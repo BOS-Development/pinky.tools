@@ -1,47 +1,50 @@
 .PHONY: build test test-backend test-frontend test-all test-clean dev dev-clean dev-build
 
+# Docker Compose command (v1: docker-compose, v2: docker compose)
+DOCKER_COMPOSE ?= docker-compose
+
 build: clean
-	docker-compose build
+	$(DOCKER_COMPOSE) build
 
 dev: dev-build
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.yaml \
 		-f docker-compose.dev.yaml \
 		up
 
 clean:
-	docker-compose down
+	$(DOCKER_COMPOSE) down
 
 dev-build: dev-clean
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.yaml \
 		-f docker-compose.dev.yaml \
 		build
 
 dev-clean:
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.yaml \
 		-f docker-compose.dev.yaml \
 		down
 
 dev-destroy:
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.yaml \
 		-f docker-compose.dev.yaml \
 		down --volumes
 
 integration-test: integration-test-build
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.ci.yaml \
 		up
 
 integration-test-build: integration-test-clean
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.ci.yaml \
 		build
 
 integration-test-clean:
-	docker-compose \
+	$(DOCKER_COMPOSE) \
 		-f docker-compose.ci.yaml \
 		down --remove-orphans
 
@@ -52,7 +55,7 @@ generate:
 test-backend:
 	@echo "Running backend tests with coverage..."
 	@mkdir -p artifacts/coverage/backend
-	docker-compose -f docker-compose.test.yaml run --rm backend-test \
+	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm backend-test \
 		sh -c "go test -v -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
 		       go tool cover -html=/artifacts/coverage/backend/coverage.out -o /artifacts/coverage/backend/coverage.html"
 	@echo "✓ Backend coverage report: artifacts/coverage/backend/coverage.html"
@@ -60,7 +63,7 @@ test-backend:
 test-frontend:
 	@echo "Running frontend tests with coverage..."
 	@mkdir -p artifacts/coverage/frontend
-	docker-compose -f docker-compose.test.yaml run --rm frontend-test \
+	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm frontend-test \
 		sh -c "npm install && npm run test:coverage -- --coverageDirectory=/artifacts/coverage/frontend"
 	@echo "✓ Frontend coverage report: artifacts/coverage/frontend/lcov-report/index.html"
 
@@ -78,6 +81,6 @@ test-all: test-clean
 
 test-clean:
 	@echo "Cleaning up test containers..."
-	@docker-compose -f docker-compose.test.yaml down --remove-orphans 2>/dev/null || true
+	@$(DOCKER_COMPOSE) -f docker-compose.test.yaml down --remove-orphans 2>/dev/null || true
 
 test: test-all
