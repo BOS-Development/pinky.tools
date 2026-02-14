@@ -1,0 +1,39 @@
+services:
+  backend-test:
+    image: golang:1.25
+    volumes:
+      - ./artifacts:/artifacts
+      - .:/app
+    working_dir: /app
+    environment:
+      PORT: "80"
+      DATABASE_HOST: "database"
+      DATABASE_PORT: "5432"
+      DATABASE_USER: "postgres"
+      DATABASE_PASSWORD: "postgres"
+      DATABASE_NAME: "app"
+      BACKEND_KEY: "test-key"
+      CGO_ENABLED: "0"
+    depends_on:
+      - database
+    entrypoint: []
+    command: ["sleep", "infinity"]
+
+  frontend-test:
+    image: node:18
+    volumes:
+      - ./artifacts:/artifacts
+      - ./frontend:/app
+    working_dir: /app
+    entrypoint: []
+    command: ["sleep", "infinity"]
+
+  database:
+    image: debezium/postgres:17
+    environment:
+      POSTGRES_DB: "app"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_HOST_AUTH_METHOD: "password"
+    tmpfs:
+      - /var/lib/postgresql/data

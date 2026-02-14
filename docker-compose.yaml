@@ -1,0 +1,19 @@
+version: "2.3"
+
+services:
+  backend:
+    image: "industry-tool:${IMAGE_VERSION_SPECIFIC:-latest}"
+    build:
+      context: .
+      target: final-backend
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:80"
+  # frontend:
+  #   image: "industry-tool-frontend:${IMAGE_VERSION_SPECIFIC:-latest}"
+  #   build:
+  #     context: .
+  #     target: publish-ui
+  #     dockerfile: ./Dockerfile
+  #   ports:
+  #     - "8080:3000"

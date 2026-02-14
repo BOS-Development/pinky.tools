@@ -1,0 +1,10 @@
+services:
+  database:
+    image: debezium/postgres:17
+    ports:
+      - 19236:5432
+    environment:
+      POSTGRES_DB: "app"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_HOST_AUTH_METHOD: "password"

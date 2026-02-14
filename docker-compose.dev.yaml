@@ -1,0 +1,28 @@
+services:
+  backend:
+    environment:
+      PORT: "80"
+      DATABASE_HOST: "database"
+      DATABASE_PORT: "5432"
+      DATABASE_USER: "postgres"
+      DATABASE_PASSWORD: "postgres"
+      DATABASE_NAME: "app"
+      BACKEND_KEY: "banana"
+    env_file:
+      - ./.env.ci
+    depends_on:
+      - database
+  # frontend:
+  #   depends_on:
+  #     - backend
+  database:
+    image: debezium/postgres:17
+    ports:
+      - 19235:5432
+    environment:
+      POSTGRES_DB: "app"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_HOST_AUTH_METHOD: "password"
+    volumes:
+      - ./build/postgres-data:/var/lib/postgresql/data

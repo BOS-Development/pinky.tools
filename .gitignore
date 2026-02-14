@@ -1,0 +1,59 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Go vendor directory
+vendor/
+
+# Build outputs
+artifacts/
+build/
+__debug_bin*
+
+# Environment files (matches in any directory)
+.env
+.env.*
+*.env
+*.env.*
+
+# Frontend (Node.js/Next.js)
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/coverage/
+frontend/dist/
+frontend/out/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage reports
+coverage/
+*.coverage
+
+# Logs
+*.log
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Claude
+.claude/
