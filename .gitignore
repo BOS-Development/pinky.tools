@@ -11,7 +11,7 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Go vendor directory
+# Go vendor directory 
 vendor/
 
 # Build outputs
@@ -57,3 +57,5 @@ Thumbs.db
 
 # Claude
 .claude/
+industry-tool
+industry-tool-test

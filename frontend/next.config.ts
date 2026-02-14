@@ -5,15 +5,15 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return [
       {
-        source: "/backend/:path",
-        destination: "http://localhost:8081/" + ":path*", // process.env.API_SERVICE + ":path*",
+        source: "/backend/:path*",
+        destination: "http://localhost:8081/:path*",
       },
     ];
   },
   async headers() {
     return [
       {
-        source: "/backend",
+        source: "/backend/:path*",
         headers: [
           {
             key: "BACKEND-KEY",

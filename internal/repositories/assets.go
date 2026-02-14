@@ -8,15 +8,18 @@ import (
 )
 
 type Asset struct {
-	Name            string  `json:"name"`
-	TypeID          int64   `json:"typeId"`
-	Quantity        int64   `json:"quantity"`
-	Volume          float64 `json:"volume"`
-	OwnerType       string  `json:"ownerType"`
-	OwnerName       string  `json:"ownerName"`
-	OwnerID         int64   `json:"ownerId"`
-	DesiredQuantity *int64  `json:"desiredQuantity"`
-	StockpileDelta  *int64  `json:"stockpileDelta"`
+	Name            string   `json:"name"`
+	TypeID          int64    `json:"typeId"`
+	Quantity        int64    `json:"quantity"`
+	Volume          float64  `json:"volume"`
+	OwnerType       string   `json:"ownerType"`
+	OwnerName       string   `json:"ownerName"`
+	OwnerID         int64    `json:"ownerId"`
+	DesiredQuantity *int64   `json:"desiredQuantity"`
+	StockpileDelta  *int64   `json:"stockpileDelta"`
+	UnitPrice       *float64 `json:"unitPrice"`
+	TotalValue      *float64 `json:"totalValue"`
+	DeficitValue    *float64 `json:"deficitValue"`
 }
 
 type AssetsResponse struct {
@@ -133,7 +136,14 @@ SELECT
     characterAssets.quantity,
     assetTypes.volume * characterAssets.quantity as "volume",
     stockpile.desired_quantity,
-    (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta
+    (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+    market.sell_price as unit_price,
+    (characterAssets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+    CASE
+        WHEN (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+        THEN ABS(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+        ELSE 0
+    END as deficit_value
 FROM
     character_assets characterAssets
 INNER JOIN
@@ -162,6 +172,11 @@ ON
     AND stockpile.location_id = characterAssets.location_id
     AND stockpile.container_id IS NULL
     AND stockpile.division_number IS NULL
+LEFT JOIN
+    market_prices market
+ON
+    market.type_id = characterAssets.type_id
+    AND market.region_id = 10000002
 WHERE
     characterAssets.user_id=$1
     AND NOT (is_singleton=true AND assetTypes.type_name like '%Container')
@@ -185,7 +200,7 @@ WHERE
 
 		asset.OwnerType = "character"
 
-		err = items.Scan(&asset.OwnerID, &asset.OwnerName, &location, &locationFlag, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &asset.DesiredQuantity, &asset.StockpileDelta)
+		err = items.Scan(&asset.OwnerID, &asset.OwnerName, &location, &locationFlag, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &asset.DesiredQuantity, &asset.StockpileDelta, &asset.UnitPrice, &asset.TotalValue, &asset.DeficitValue)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan item")
 		}
@@ -275,7 +290,14 @@ SELECT
     assetTypes.volume * characterAssets.quantity as "volume",
     characterAssets.location_id,
     stockpile.desired_quantity,
-    (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta
+    (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+    market.sell_price as unit_price,
+    (characterAssets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+    CASE
+        WHEN (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+        THEN ABS(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+        ELSE 0
+    END as deficit_value
 FROM
     character_assets characterAssets
 INNER JOIN
@@ -299,6 +321,11 @@ ON
     AND stockpile.owner_id = characterAssets.character_id
     AND stockpile.container_id = characterAssets.location_id
     AND stockpile.division_number IS NULL
+LEFT JOIN
+    market_prices market
+ON
+    market.type_id = characterAssets.type_id
+    AND market.region_id = 10000002
 WHERE
     characterAssets.user_id=$1
     AND characterAssets.location_type='item'
@@ -318,7 +345,7 @@ ORDER BY
 
 		asset.OwnerType = "character"
 
-		err = itemsInContainers.Scan(&asset.OwnerID, &asset.OwnerName, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &location, &asset.DesiredQuantity, &asset.StockpileDelta)
+		err = itemsInContainers.Scan(&asset.OwnerID, &asset.OwnerName, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &location, &asset.DesiredQuantity, &asset.StockpileDelta, &asset.UnitPrice, &asset.TotalValue, &asset.DeficitValue)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan container")
 		}
@@ -489,7 +516,14 @@ SELECT
 	corporation_assets.quantity,
 	assetTypes.volume * corporation_assets.quantity as "volume",
 	stockpile.desired_quantity,
-	(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta
+	(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+	market.sell_price as unit_price,
+	(corporation_assets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+	CASE
+		WHEN (corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+		THEN ABS(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+		ELSE 0
+	END as deficit_value
 FROM
 	corporation_assets corporation_assets
 INNER JOIN
@@ -510,6 +544,11 @@ ON
 	AND stockpile.location_id = corporation_assets.location_id
 	AND stockpile.division_number = SUBSTRING(corporation_assets.location_flag, 8, 1)::int
 	AND stockpile.container_id IS NULL
+LEFT JOIN
+	market_prices market
+ON
+	market.type_id = corporation_assets.type_id
+	AND market.region_id = 10000002
 WHERE
 	corporation_assets.user_id=$1
 	AND NOT (is_singleton=true AND assetTypes.type_name like '%Container')
@@ -529,7 +568,7 @@ WHERE
 
 		asset.OwnerType = "corporation"
 
-		err = corpHangaredItems.Scan(&asset.OwnerID, &asset.OwnerName, &location, &divisionNumber, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &asset.DesiredQuantity, &asset.StockpileDelta)
+		err = corpHangaredItems.Scan(&asset.OwnerID, &asset.OwnerName, &location, &divisionNumber, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &asset.DesiredQuantity, &asset.StockpileDelta, &asset.UnitPrice, &asset.TotalValue, &asset.DeficitValue)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan corp hangared item")
 		}
@@ -676,7 +715,14 @@ SELECT
 	assetTypes.volume * corporation_assets.quantity as "volume",
 	corporation_assets.location_id,
 	stockpile.desired_quantity,
-	(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta
+	(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+	market.sell_price as unit_price,
+	(corporation_assets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+	CASE
+		WHEN (corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+		THEN ABS(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+		ELSE 0
+	END as deficit_value
 FROM
 	corporation_assets corporation_assets
 INNER JOIN
@@ -701,6 +747,11 @@ ON
 	AND stockpile.owner_type = 'corporation'
 	AND stockpile.owner_id = corporation_assets.corporation_id
 	AND stockpile.container_id = corporation_assets.location_id
+LEFT JOIN
+	market_prices market
+ON
+	market.type_id = corporation_assets.type_id
+	AND market.region_id = 10000002
 WHERE
 	corporation_assets.user_id=$1
 	AND corporation_assets.location_type='item'
@@ -720,7 +771,7 @@ ORDER BY
 
 		asset.OwnerType = "corporation"
 
-		err = corpItemsInContainers.Scan(&asset.OwnerID, &asset.OwnerName, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &location, &asset.DesiredQuantity, &asset.StockpileDelta)
+		err = corpItemsInContainers.Scan(&asset.OwnerID, &asset.OwnerName, &asset.TypeID, &asset.Name, &asset.Quantity, &asset.Volume, &location, &asset.DesiredQuantity, &asset.StockpileDelta, &asset.UnitPrice, &asset.TotalValue, &asset.DeficitValue)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan corp container item")
 		}
@@ -805,6 +856,244 @@ ORDER BY
 				}
 			}
 		}
+	}
+
+	return response, nil
+}
+
+type StockpileItem struct {
+	Name            string   `json:"name"`
+	TypeID          int64    `json:"typeId"`
+	Quantity        int64    `json:"quantity"`
+	Volume          float64  `json:"volume"`
+	OwnerType       string   `json:"ownerType"`
+	OwnerName       string   `json:"ownerName"`
+	OwnerID         int64    `json:"ownerId"`
+	DesiredQuantity int64    `json:"desiredQuantity"`
+	StockpileDelta  int64    `json:"stockpileDelta"`
+	DeficitValue    float64  `json:"deficitValue"`
+	StructureName   string   `json:"structureName"`
+	SolarSystem     string   `json:"solarSystem"`
+	Region          string   `json:"region"`
+	ContainerName   *string  `json:"containerName"`
+}
+
+type StockpilesResponse struct {
+	Items []*StockpileItem `json:"items"`
+}
+
+func (r *Assets) GetStockpileDeficits(ctx context.Context, user int64) (*StockpilesResponse, error) {
+	response := &StockpilesResponse{
+		Items: []*StockpileItem{},
+	}
+
+	// Query for all assets with stockpile deficit (stockpile_delta < 0)
+	// This combines personal and corporation assets in a single query
+	query := `
+		WITH all_deficits AS (
+			-- Personal hangar items
+			SELECT
+				assetTypes.type_name as name,
+				characterAssets.type_id,
+				characterAssets.quantity,
+				(characterAssets.quantity * assetTypes.volume) as volume,
+				'character' as owner_type,
+				characters.name as owner_name,
+				characters.id as owner_id,
+				stockpile.desired_quantity,
+				(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+				ABS(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0) as deficit_value,
+				stations.name as structure_name,
+				systems.name as solar_system,
+				regions.name as region,
+				NULL::text as container_name
+			FROM character_assets characterAssets
+			INNER JOIN characters ON characters.id = characterAssets.character_id
+			INNER JOIN asset_item_types assetTypes ON assetTypes.type_id = characterAssets.type_id
+			INNER JOIN stations ON characterAssets.location_id = stations.station_id
+			INNER JOIN solar_systems systems ON stations.solar_system_id = systems.solar_system_id
+			INNER JOIN constellations ON systems.constellation_id = constellations.constellation_id
+			INNER JOIN regions ON constellations.region_id = regions.region_id
+			LEFT JOIN stockpile_markers stockpile ON (
+				stockpile.type_id = characterAssets.type_id
+				AND stockpile.location_id = characterAssets.location_id
+				AND stockpile.container_id IS NULL
+				AND stockpile.owner_id = characterAssets.character_id
+			)
+			LEFT JOIN market_prices market ON (market.type_id = characterAssets.type_id AND market.region_id = 10000002)
+			WHERE characterAssets.user_id = $1
+				AND characterAssets.location_type = 'station'
+				AND characterAssets.location_flag IN ('Hangar', 'Deliveries', 'AssetSafety')
+				AND (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+
+			UNION ALL
+
+			-- Personal container items
+			SELECT
+				assetTypes.type_name as name,
+				characterAssets.type_id,
+				characterAssets.quantity,
+				(characterAssets.quantity * assetTypes.volume) as volume,
+				'character' as owner_type,
+				characters.name as owner_name,
+				characters.id as owner_id,
+				stockpile.desired_quantity,
+				(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+				ABS(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0) as deficit_value,
+				stations.name as structure_name,
+				systems.name as solar_system,
+				regions.name as region,
+				containerTypes.type_name as container_name
+			FROM character_assets characterAssets
+			INNER JOIN characters ON characters.id = characterAssets.character_id
+			INNER JOIN asset_item_types assetTypes ON assetTypes.type_id = characterAssets.type_id
+			INNER JOIN character_assets containers ON containers.item_id = characterAssets.location_id
+			INNER JOIN asset_item_types containerTypes ON containerTypes.type_id = containers.type_id
+			INNER JOIN stations ON containers.location_id = stations.station_id
+			INNER JOIN solar_systems systems ON stations.solar_system_id = systems.solar_system_id
+			INNER JOIN constellations ON systems.constellation_id = constellations.constellation_id
+			INNER JOIN regions ON constellations.region_id = regions.region_id
+			LEFT JOIN stockpile_markers stockpile ON (
+				stockpile.type_id = characterAssets.type_id
+				AND stockpile.container_id = characterAssets.location_id
+				AND stockpile.owner_id = characterAssets.character_id
+			)
+			LEFT JOIN market_prices market ON (market.type_id = characterAssets.type_id AND market.region_id = 10000002)
+			WHERE characterAssets.user_id = $1
+				AND characterAssets.location_type = 'item'
+				AND NOT (characterAssets.is_singleton = true AND assetTypes.type_name LIKE '%Container')
+				AND (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+
+			UNION ALL
+
+			-- Corporation hangar items (using view for location resolution)
+			SELECT
+				assetTypes.type_name as name,
+				loc.type_id,
+				ca.quantity,
+				(ca.quantity * assetTypes.volume) as volume,
+				'corporation' as owner_type,
+				corps.name as owner_name,
+				corps.id as owner_id,
+				stockpile.desired_quantity,
+				(ca.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+				ABS(ca.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0) as deficit_value,
+				loc.station_name as structure_name,
+				loc.solar_system_name as solar_system,
+				loc.region_name as region,
+				COALESCE(divisions.name, loc.location_flag) as container_name
+			FROM corporation_asset_locations loc
+			INNER JOIN corporation_assets ca ON (
+				ca.item_id = loc.item_id
+				AND ca.corporation_id = loc.corporation_id
+				AND ca.user_id = loc.user_id
+			)
+			INNER JOIN player_corporations corps ON corps.id = loc.corporation_id
+			INNER JOIN asset_item_types assetTypes ON assetTypes.type_id = loc.type_id
+			LEFT JOIN corporation_divisions divisions ON (
+				divisions.division_number = loc.division_number
+				AND divisions.corporation_id = loc.corporation_id
+				AND divisions.user_id = loc.user_id
+				AND divisions.division_type = 'hangar'
+			)
+			LEFT JOIN stockpile_markers stockpile ON (
+				stockpile.type_id = loc.type_id
+				AND stockpile.location_id = loc.location_id
+				AND stockpile.division_number = loc.division_number
+				AND stockpile.container_id IS NULL
+				AND stockpile.owner_id = loc.corporation_id
+			)
+			LEFT JOIN market_prices market ON (market.type_id = loc.type_id AND market.region_id = 10000002)
+			WHERE loc.user_id = $1
+				AND loc.location_type = 'station'
+				AND loc.location_flag LIKE 'CorpSAG%'
+				AND loc.station_id IS NOT NULL
+				AND (ca.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+
+			UNION ALL
+
+			-- Corporation container items (using view for location resolution)
+			SELECT
+				assetTypes.type_name as name,
+				loc.type_id,
+				ca.quantity,
+				(ca.quantity * assetTypes.volume) as volume,
+				'corporation' as owner_type,
+				corps.name as owner_name,
+				corps.id as owner_id,
+				stockpile.desired_quantity,
+				(ca.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+				ABS(ca.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0) as deficit_value,
+				loc.station_name as structure_name,
+				loc.solar_system_name as solar_system,
+				loc.region_name as region,
+				COALESCE(divisions.name, loc.container_location_flag) || ' - ' || containerTypes.type_name as container_name
+			FROM corporation_asset_locations loc
+			INNER JOIN corporation_assets ca ON (
+				ca.item_id = loc.item_id
+				AND ca.corporation_id = loc.corporation_id
+				AND ca.user_id = loc.user_id
+			)
+			INNER JOIN player_corporations corps ON corps.id = loc.corporation_id
+			INNER JOIN asset_item_types assetTypes ON assetTypes.type_id = loc.type_id
+			INNER JOIN asset_item_types containerTypes ON containerTypes.type_id = loc.container_type_id
+			LEFT JOIN corporation_divisions divisions ON (
+				divisions.division_number = loc.division_number
+				AND divisions.corporation_id = loc.corporation_id
+				AND divisions.user_id = loc.user_id
+				AND divisions.division_type = 'hangar'
+			)
+			LEFT JOIN stockpile_markers stockpile ON (
+				stockpile.type_id = loc.type_id
+				AND stockpile.division_number = loc.division_number
+				AND stockpile.container_id = loc.container_id
+				AND stockpile.owner_id = loc.corporation_id
+			)
+			LEFT JOIN market_prices market ON (market.type_id = loc.type_id AND market.region_id = 10000002)
+			WHERE loc.user_id = $1
+				AND loc.location_type = 'item'
+				AND loc.container_location_flag LIKE 'CorpSAG%'
+				AND loc.station_id IS NOT NULL
+				AND NOT (ca.is_singleton = true AND assetTypes.type_name LIKE '%Container')
+				AND (ca.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+		)
+		SELECT * FROM all_deficits
+		ORDER BY deficit_value DESC NULLS LAST, structure_name, name
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, user)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stockpile deficits")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := &StockpileItem{}
+		err = rows.Scan(
+			&item.Name,
+			&item.TypeID,
+			&item.Quantity,
+			&item.Volume,
+			&item.OwnerType,
+			&item.OwnerName,
+			&item.OwnerID,
+			&item.DesiredQuantity,
+			&item.StockpileDelta,
+			&item.DeficitValue,
+			&item.StructureName,
+			&item.SolarSystem,
+			&item.Region,
+			&item.ContainerName,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan stockpile item")
+		}
+
+		response.Items = append(response.Items, item)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating stockpile rows")
 	}
 
 	return response, nil

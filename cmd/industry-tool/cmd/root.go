@@ -7,11 +7,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/client"
 	"github.com/annymsMthd/industry-tool/internal/controllers"
 	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
+	"github.com/annymsMthd/industry-tool/internal/runners"
 	"github.com/annymsMthd/industry-tool/internal/updaters"
 	"github.com/annymsMthd/industry-tool/internal/web"
 
@@ -65,11 +67,13 @@ var rootCmd = &cobra.Command{
 		playerCorporationRepostiory := repositories.NewPlayerCorporations(db)
 		playerCorporationAssetsRepository := repositories.NewCorporationAssets(db)
 		stockpileMarkersRepository := repositories.NewStockpileMarkers(db)
+		marketPricesRepository := repositories.NewMarketPrices(db)
 
 		esiClient := client.NewEsiClient(settings.OAuthClientID, settings.OAuthClientSecret)
 
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient)
 		staticUpdater := updaters.NewStatic(fuzzWorks, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
+		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 
 		controllers.NewStatic(router, staticUpdater)
 		controllers.NewCharacters(router, charactersRepository)
@@ -77,8 +81,17 @@ var rootCmd = &cobra.Command{
 		controllers.NewAssets(router, assetsRepository)
 		controllers.NewCorporations(router, esiClient, playerCorporationRepostiory)
 		controllers.NewStockpileMarkers(router, stockpileMarkersRepository)
+		controllers.NewStockpiles(router, assetsRepository)
+		controllers.NewMarketPrices(router, marketPricesUpdater)
+		controllers.NewJanice(router)
 
 		group.Go(router.Run(ctx))
+
+		// Start market price update scheduler
+		marketPricesRunner := runners.NewMarketPricesRunner(marketPricesUpdater, 6*time.Hour)
+		group.Go(func() error {
+			return marketPricesRunner.Run(ctx)
+		})
 
 		log.Info("services started")
 

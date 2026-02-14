@@ -1,6 +1,7 @@
 # Industry Tool
 
 [![CI](https://github.com/YOUR_USERNAME/industry-tool/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/industry-tool/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/YOUR_USERNAME/industry-tool/badge.svg?branch=main)](https://coveralls.io/github/YOUR_USERNAME/industry-tool?branch=main)
 
 An EVE Online industry and asset management tool.
 

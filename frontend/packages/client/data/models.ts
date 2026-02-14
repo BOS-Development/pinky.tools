@@ -18,6 +18,9 @@ export type Asset = {
   ownerId: number;
   desiredQuantity?: number;
   stockpileDelta?: number;
+  unitPrice?: number;
+  totalValue?: number;
+  deficitValue?: number;
 };
 
 export type AssetContainer = {

@@ -75,6 +75,21 @@ func NewEsiClientWithHTTPClient(clientID, clientSecret string, httpClient HTTPDo
 	}
 }
 
+// MarketOrder represents a market order from ESI
+type MarketOrder struct {
+	OrderID      int64   `json:"order_id"`
+	TypeID       int64   `json:"type_id"`
+	LocationID   int64   `json:"location_id"`
+	VolumeTotal  int64   `json:"volume_total"`
+	VolumeRemain int64   `json:"volume_remain"`
+	MinVolume    int64   `json:"min_volume"`
+	Price        float64 `json:"price"`
+	IsBuyOrder   bool    `json:"is_buy_order"`
+	Duration     int     `json:"duration"`
+	Issued       string  `json:"issued"`
+	Range        string  `json:"range"`
+}
+
 func (c *EsiClient) GetCharacterAssets(ctx context.Context, characterID int64, token, refresh string, expire time.Time) ([]*models.EveAsset, error) {
 	var client HTTPDoer
 	if c.httpClient != nil {
@@ -576,6 +591,74 @@ func (c *EsiClient) GetCorporationDivisions(ctx context.Context, corpID int64, t
 		Hanger: hangar,
 		Wallet: wallet,
 	}, nil
+}
+
+func (c *EsiClient) GetMarketOrders(ctx context.Context, regionID int64) ([]*MarketOrder, error) {
+	var client HTTPDoer
+	if c.httpClient != nil {
+		client = c.httpClient
+	} else {
+		client = &http.Client{}
+	}
+
+	orders := []*MarketOrder{}
+
+	page := 1
+	for {
+		url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/latest/markets/%d/orders/?page=%d", regionID, page))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse market orders url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    url,
+			Header: c.getCommonHeaders(),
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get market orders")
+		}
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+			return nil, errors.New(fmt.Sprintf("failed to get market orders, expected statusCode 200 got %d, %s", res.StatusCode, errText))
+		}
+
+		var pageOrders []*MarketOrder
+		j, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read market orders body")
+		}
+
+		err = json.Unmarshal(j, &pageOrders)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal market orders json")
+		}
+
+		orders = append(orders, pageOrders...)
+
+		pages := res.Header.Get("X-Pages")
+		if pages == "" {
+			break
+		}
+
+		totalPages, err := strconv.Atoi(pages)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse X-Pages header")
+		}
+
+		if page >= totalPages {
+			break
+		}
+
+		page++
+	}
+
+	return orders, nil
 }
 
 func (c *EsiClient) getCommonHeaders() http.Header {

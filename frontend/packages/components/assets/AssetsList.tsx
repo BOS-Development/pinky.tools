@@ -14,6 +14,9 @@ import SearchIcon from '@mui/icons-material/Search';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import CategoryIcon from '@mui/icons-material/Category';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import WarningIcon from '@mui/icons-material/Warning';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
@@ -107,6 +110,7 @@ export default function AssetsList(props: AssetsListProps) {
   const [desiredQuantity, setDesiredQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const desiredQuantityInputRef = useRef<HTMLInputElement>(null);
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
 
   const handleQuantityChange = (value: string) => {
     // Remove all non-digit characters
@@ -128,6 +132,24 @@ export default function AssetsList(props: AssetsListProps) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRefreshPrices = async () => {
+    if (!session) return;
+
+    setRefreshingPrices(true);
+    try {
+      await fetch('/api/market-prices/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      // Refetch assets to show updated prices
+      await refetchAssets();
+    } finally {
+      setRefreshingPrices(false);
     }
   };
 
@@ -205,9 +227,11 @@ export default function AssetsList(props: AssetsListProps) {
     }
   }, [expandedNodes]);
 
-  const { totalItems, totalVolume, uniqueTypes, filteredStructures } = useMemo(() => {
+  const { totalItems, totalVolume, uniqueTypes, totalValue, totalDeficit, filteredStructures } = useMemo(() => {
     let items = 0;
     let volume = 0;
+    let value = 0;
+    let deficit = 0;
     const types = new Set<string>();
 
     const countAssets = (assets: Asset[]) => {
@@ -215,6 +239,8 @@ export default function AssetsList(props: AssetsListProps) {
         items += 1;
         volume += asset.volume;
         types.add(asset.name);
+        if (asset.totalValue) value += asset.totalValue;
+        if (asset.deficitValue) deficit += asset.deficitValue;
       });
     };
 
@@ -296,7 +322,14 @@ export default function AssetsList(props: AssetsListProps) {
       });
     });
 
-    return { totalItems: items, totalVolume: volume, uniqueTypes: types.size, filteredStructures: filtered };
+    return {
+      totalItems: items,
+      totalVolume: volume,
+      uniqueTypes: types.size,
+      totalValue: value,
+      totalDeficit: deficit,
+      filteredStructures: filtered
+    };
   }, [assets, searchQuery, showBelowTargetOnly]);
 
   // Split structures into visible and hidden, sort pinned to top
@@ -393,6 +426,7 @@ export default function AssetsList(props: AssetsListProps) {
   const handleSaveStockpile = async () => {
     if (!selectedAsset || !session) return;
 
+    const desiredQty = parseInt(desiredQuantity.replace(/,/g, ''));
     const marker: StockpileMarker = {
       userId: 0, // Will be set by backend
       typeId: selectedAsset.asset.typeId,
@@ -401,7 +435,7 @@ export default function AssetsList(props: AssetsListProps) {
       locationId: selectedAsset.locationId,
       containerId: selectedAsset.containerId,
       divisionNumber: selectedAsset.divisionNumber,
-      desiredQuantity: parseInt(desiredQuantity.replace(/,/g, '')),
+      desiredQuantity: desiredQty,
       notes: notes || undefined,
     };
 
@@ -411,8 +445,78 @@ export default function AssetsList(props: AssetsListProps) {
       body: JSON.stringify(marker),
     });
 
+    // Update local state instead of refetching
+    setAssets(prev => {
+      const updated = { ...prev };
+      // Find and update the asset in the nested structure
+      for (const structure of updated.structures) {
+        // Update hangar assets
+        if (structure.hangarAssets) {
+          const asset = structure.hangarAssets.find(a =>
+            a.typeId === selectedAsset.asset.typeId &&
+            a.ownerId === selectedAsset.asset.ownerId
+          );
+          if (asset) {
+            asset.desiredQuantity = desiredQty;
+            asset.stockpileDelta = asset.quantity - desiredQty;
+            asset.deficitValue = asset.stockpileDelta < 0
+              ? Math.abs(asset.stockpileDelta) * (asset.unitPrice || 0)
+              : 0;
+          }
+        }
+        // Update hangar containers
+        if (structure.hangarContainers) {
+          for (const container of structure.hangarContainers) {
+            const asset = container.assets.find(a =>
+              a.typeId === selectedAsset.asset.typeId &&
+              a.ownerId === selectedAsset.asset.ownerId
+            );
+            if (asset) {
+              asset.desiredQuantity = desiredQty;
+              asset.stockpileDelta = asset.quantity - desiredQty;
+              asset.deficitValue = asset.stockpileDelta < 0
+                ? Math.abs(asset.stockpileDelta) * (asset.unitPrice || 0)
+                : 0;
+            }
+          }
+        }
+        // Update corporation hangers
+        if (structure.corporationHangers) {
+          for (const hanger of structure.corporationHangers) {
+            const asset = hanger.assets.find(a =>
+              a.typeId === selectedAsset.asset.typeId &&
+              a.ownerId === selectedAsset.asset.ownerId
+            );
+            if (asset) {
+              asset.desiredQuantity = desiredQty;
+              asset.stockpileDelta = asset.quantity - desiredQty;
+              asset.deficitValue = asset.stockpileDelta < 0
+                ? Math.abs(asset.stockpileDelta) * (asset.unitPrice || 0)
+                : 0;
+            }
+            // Check hanger containers
+            if (hanger.hangarContainers) {
+              for (const container of hanger.hangarContainers) {
+                const asset = container.assets.find(a =>
+                  a.typeId === selectedAsset.asset.typeId &&
+                  a.ownerId === selectedAsset.asset.ownerId
+                );
+                if (asset) {
+                  asset.desiredQuantity = desiredQty;
+                  asset.stockpileDelta = asset.quantity - desiredQty;
+                  asset.deficitValue = asset.stockpileDelta < 0
+                    ? Math.abs(asset.stockpileDelta) * (asset.unitPrice || 0)
+                    : 0;
+                }
+              }
+            }
+          }
+        }
+      }
+      return updated;
+    });
+
     setStockpileModalOpen(false);
-    await refetchAssets();
   };
 
   const handleDeleteStockpile = async (asset: Asset, locationId: number, containerId?: number, divisionNumber?: number) => {
@@ -435,7 +539,68 @@ export default function AssetsList(props: AssetsListProps) {
       body: JSON.stringify(marker),
     });
 
-    await refetchAssets();
+    // Update local state instead of refetching
+    setAssets(prev => {
+      const updated = { ...prev };
+      // Find and update the asset in the nested structure
+      for (const structure of updated.structures) {
+        // Update hangar assets
+        if (structure.hangarAssets) {
+          const foundAsset = structure.hangarAssets.find(a =>
+            a.typeId === asset.typeId &&
+            a.ownerId === asset.ownerId
+          );
+          if (foundAsset) {
+            foundAsset.desiredQuantity = undefined;
+            foundAsset.stockpileDelta = undefined;
+            foundAsset.deficitValue = undefined;
+          }
+        }
+        // Update hangar containers
+        if (structure.hangarContainers) {
+          for (const container of structure.hangarContainers) {
+            const foundAsset = container.assets.find(a =>
+              a.typeId === asset.typeId &&
+              a.ownerId === asset.ownerId
+            );
+            if (foundAsset) {
+              foundAsset.desiredQuantity = undefined;
+              foundAsset.stockpileDelta = undefined;
+              foundAsset.deficitValue = undefined;
+            }
+          }
+        }
+        // Update corporation hangers
+        if (structure.corporationHangers) {
+          for (const hanger of structure.corporationHangers) {
+            const foundAsset = hanger.assets.find(a =>
+              a.typeId === asset.typeId &&
+              a.ownerId === asset.ownerId
+            );
+            if (foundAsset) {
+              foundAsset.desiredQuantity = undefined;
+              foundAsset.stockpileDelta = undefined;
+              foundAsset.deficitValue = undefined;
+            }
+            // Check hanger containers
+            if (hanger.hangarContainers) {
+              for (const container of hanger.hangarContainers) {
+                const foundAsset = container.assets.find(a =>
+                  a.typeId === asset.typeId &&
+                  a.ownerId === asset.ownerId
+                );
+                if (foundAsset) {
+                  foundAsset.desiredQuantity = undefined;
+                  foundAsset.stockpileDelta = undefined;
+                  foundAsset.deficitValue = undefined;
+                }
+              }
+            }
+          }
+        }
+      }
+      return updated;
+    });
   };
 
   // Show loading state first, before checking if assets are empty
@@ -489,6 +654,9 @@ export default function AssetsList(props: AssetsListProps) {
               <TableCell align="right">Quantity</TableCell>
               <TableCell align="right">Stockpile</TableCell>
               <TableCell align="right">Volume (m³)</TableCell>
+              <TableCell align="right">Unit Price</TableCell>
+              <TableCell align="right">Total Value</TableCell>
+              <TableCell align="right">Deficit Cost</TableCell>
               {showOwner && <TableCell>Owner</TableCell>}
               <TableCell align="center">Actions</TableCell>
             </TableRow>
@@ -534,6 +702,43 @@ export default function AssetsList(props: AssetsListProps) {
                 </TableCell>
                 <TableCell align="right">
                   {asset.volume.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </TableCell>
+                {/* Unit Price */}
+                <TableCell align="right">
+                  {asset.unitPrice ? (
+                    <Typography variant="body2">
+                      {asset.unitPrice.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })} ISK
+                    </Typography>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">-</Typography>
+                  )}
+                </TableCell>
+                {/* Total Value */}
+                <TableCell align="right">
+                  {asset.totalValue ? (
+                    <Typography variant="body2" fontWeight={600}>
+                      {asset.totalValue.toLocaleString(undefined, {
+                        maximumFractionDigits: 0
+                      })} ISK
+                    </Typography>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">-</Typography>
+                  )}
+                </TableCell>
+                {/* Deficit Cost */}
+                <TableCell align="right">
+                  {asset.deficitValue && asset.deficitValue > 0 ? (
+                    <Typography variant="body2" fontWeight={600} sx={{ color: 'error.main' }}>
+                      {asset.deficitValue.toLocaleString(undefined, {
+                        maximumFractionDigits: 0
+                      })} ISK
+                    </Typography>
+                  ) : (
+                    <Typography variant="caption" color="text.secondary">-</Typography>
+                  )}
                 </TableCell>
                 {showOwner && (
                   <TableCell>
@@ -635,7 +840,7 @@ export default function AssetsList(props: AssetsListProps) {
             <Typography variant="h5">Asset Inventory</Typography>
 
             {/* Summary Stats */}
-            <Box sx={{ display: 'flex', gap: 3 }}>
+            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <InventoryIcon sx={{ fontSize: 20, color: 'primary.main' }} />
                 <Box>
@@ -659,6 +864,29 @@ export default function AssetsList(props: AssetsListProps) {
                   <Typography variant="caption" color="text.secondary">m³</Typography>
                 </Box>
               </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <AttachMoneyIcon sx={{ fontSize: 20, color: 'success.main' }} />
+                <Box>
+                  <Typography variant="body2" fontWeight={600}>
+                    {totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">Total Value</Typography>
+                </Box>
+              </Box>
+              {totalDeficit > 0 && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <WarningIcon sx={{ fontSize: 20, color: 'error.main' }} />
+                  <Box>
+                    <Typography variant="body2" fontWeight={600} color="error.main">
+                      {totalDeficit.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">Deficit Cost</Typography>
+                  </Box>
+                </Box>
+              )}
+              <IconButton onClick={handleRefreshPrices} disabled={refreshingPrices} title="Refresh market prices">
+                <RefreshIcon />
+              </IconButton>
             </Box>
           </Box>
 

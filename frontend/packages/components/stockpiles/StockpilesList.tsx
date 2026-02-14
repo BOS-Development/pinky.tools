@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
-import { AssetsResponse, Asset } from "@industry-tool/client/data/models";
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
+import Loading from "@industry-tool/components/loading";
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -10,6 +10,12 @@ import CardContent from '@mui/material/CardContent';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import Button from '@mui/material/Button';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -19,70 +25,60 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
-export type StockpilesListProps = {
-  assets: AssetsResponse;
-};
-
-type StockpileItem = Asset & {
+export type StockpileItem = {
+  name: string;
+  typeId: number;
+  quantity: number;
+  volume: number;
+  ownerType: string;
+  ownerName: string;
+  ownerId: number;
+  desiredQuantity: number;
+  stockpileDelta: number;
+  deficitValue: number;
   structureName: string;
-  location: string;
+  solarSystem: string;
+  region: string;
   containerName?: string;
 };
 
-export default function StockpilesList(props: StockpilesListProps) {
+export type StockpilesResponse = {
+  items: StockpileItem[];
+};
+
+export default function StockpilesList() {
   const { data: session } = useSession();
-  const { assets } = props;
+  const [stockpileItems, setStockpileItems] = useState<StockpileItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [creatingAppraisal, setCreatingAppraisal] = useState(false);
+  const hasFetchedRef = useRef(false);
 
-  // Flatten all assets and filter for items needing replenishment
-  const stockpileItems = useMemo(() => {
-    const items: StockpileItem[] = [];
+  // Fetch stockpile deficits on mount (only once)
+  useEffect(() => {
+    if (session && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      fetchStockpileDeficits();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
 
-    assets.structures.forEach((structure) => {
-      const addAssets = (assetList: Asset[], containerName?: string) => {
-        assetList.forEach((asset) => {
-          if (asset.stockpileDelta !== undefined && asset.stockpileDelta < 0) {
-            items.push({
-              ...asset,
-              structureName: structure.name,
-              location: `${structure.solarSystem}, ${structure.region}`,
-              containerName,
-            });
-          }
-        });
-      };
+  const fetchStockpileDeficits = async () => {
+    if (!session) return;
 
-      // Personal hangar assets
-      if (structure.hangarAssets) {
-        addAssets(structure.hangarAssets);
+    setLoading(true);
+    try {
+      const response = await fetch('/api/stockpiles/deficits');
+      if (response.ok) {
+        const data: StockpilesResponse = await response.json();
+        setStockpileItems(data.items || []);
       }
-
-      // Container assets
-      structure.hangarContainers?.forEach((container) => {
-        addAssets(container.assets, container.name);
-      });
-
-      // Deliveries
-      if (structure.deliveries) {
-        addAssets(structure.deliveries, 'Deliveries');
-      }
-
-      // Asset safety
-      if (structure.assetSafety) {
-        addAssets(structure.assetSafety, 'Asset Safety');
-      }
-
-      // Corporation hangars
-      structure.corporationHangers?.forEach((hanger) => {
-        addAssets(hanger.assets, hanger.name);
-        hanger.hangarContainers?.forEach((container) => {
-          addAssets(container.assets, `${hanger.name} - ${container.name}`);
-        });
-      });
-    });
-
-    return items;
-  }, [assets]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Filter items based on search
   const filteredItems = useMemo(() => {
@@ -93,7 +89,8 @@ export default function StockpilesList(props: StockpilesListProps) {
       (item) =>
         item.name.toLowerCase().includes(query) ||
         item.structureName.toLowerCase().includes(query) ||
-        item.location.toLowerCase().includes(query) ||
+        item.solarSystem.toLowerCase().includes(query) ||
+        item.region.toLowerCase().includes(query) ||
         item.containerName?.toLowerCase().includes(query)
     );
   }, [stockpileItems, searchQuery]);
@@ -101,21 +98,95 @@ export default function StockpilesList(props: StockpilesListProps) {
   // Calculate totals
   const totalDeficit = useMemo(() => {
     return filteredItems.reduce((sum, item) => {
-      return sum + Math.abs(item.stockpileDelta || 0);
+      return sum + Math.abs(item.stockpileDelta);
     }, 0);
   }, [filteredItems]);
 
   const totalVolume = useMemo(() => {
     return filteredItems.reduce((sum, item) => {
-      const deficit = Math.abs(item.stockpileDelta || 0);
+      const deficit = Math.abs(item.stockpileDelta);
       // item.volume is total volume (per-unit × quantity), so divide by quantity to get per-unit volume
       const perUnitVolume = item.quantity > 0 ? item.volume / item.quantity : 0;
       return sum + (deficit * perUnitVolume);
     }, 0);
   }, [filteredItems]);
 
+  const totalDeficitISK = useMemo(() => {
+    return filteredItems.reduce((sum, item) => {
+      return sum + item.deficitValue;
+    }, 0);
+  }, [filteredItems]);
+
+  const handleCopyForJanice = async () => {
+    // Format items as "ItemName quantity" for Janice
+    const janiceText = filteredItems
+      .map((item) => `${item.name} ${Math.abs(item.stockpileDelta)}`)
+      .join('\n');
+
+    try {
+      await navigator.clipboard.writeText(janiceText);
+      setSnackbarMessage('Copied to clipboard! Paste into Janice for appraisal.');
+      setSnackbarOpen(true);
+    } catch (err) {
+      setSnackbarMessage('Failed to copy to clipboard');
+      setSnackbarOpen(true);
+    }
+  };
+
+  const handleOpenJanice = async () => {
+    if (!session) return;
+
+    // Format items as "ItemName quantity" for Janice
+    const janiceText = filteredItems
+      .map((item) => `${item.name} ${Math.abs(item.stockpileDelta)}`)
+      .join('\n');
+
+    setCreatingAppraisal(true);
+    try {
+      // POST to our Next.js API route which proxies to the backend
+      const response = await fetch('/api/janice/appraisal', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: janiceText,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Janice API error response:', response.status, errorText);
+        throw new Error(`Failed to create Janice appraisal: ${response.status} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Janice API response:', data);
+
+      // Open the appraisal in a new tab
+      if (data.code) {
+        window.open(`https://janice.e-351.com/a/${data.code}`, '_blank');
+        setSnackbarMessage('Janice appraisal created and opened!');
+        setSnackbarOpen(true);
+      } else {
+        throw new Error('Janice response missing appraisal code');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setSnackbarMessage(`Failed: ${errorMessage}`);
+      setSnackbarOpen(true);
+      console.error('Janice API error:', err);
+    } finally {
+      setCreatingAppraisal(false);
+    }
+  };
+
   if (!session) {
     return null;
+  }
+
+  if (loading) {
+    return <Loading />;
   }
 
   return (
@@ -167,6 +238,37 @@ export default function StockpilesList(props: StockpilesListProps) {
               </Typography>
             </CardContent>
           </Card>
+          <Card sx={{ flex: 1 }}>
+            <CardContent>
+              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <AttachMoneyIcon color="success" />
+                Total Cost (ISK)
+              </Typography>
+              <Typography variant="h3" color="error.main">
+                {totalDeficitISK.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
+
+        {/* Actions */}
+        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<ContentCopyIcon />}
+            onClick={handleCopyForJanice}
+            disabled={filteredItems.length === 0}
+          >
+            Copy for Janice
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<OpenInNewIcon />}
+            onClick={handleOpenJanice}
+            disabled={filteredItems.length === 0 || creatingAppraisal}
+          >
+            {creatingAppraisal ? 'Creating...' : 'Create Janice Appraisal'}
+          </Button>
         </Box>
 
         {/* Search */}
@@ -213,6 +315,7 @@ export default function StockpilesList(props: StockpilesListProps) {
                       <TableCell align="right">Current</TableCell>
                       <TableCell align="right">Target</TableCell>
                       <TableCell align="right">Deficit</TableCell>
+                      <TableCell align="right">Cost (ISK)</TableCell>
                       <TableCell>Owner</TableCell>
                     </TableRow>
                   </TableHead>
@@ -230,13 +333,18 @@ export default function StockpilesList(props: StockpilesListProps) {
                       >
                         <TableCell sx={{ fontWeight: 600 }}>{item.name}</TableCell>
                         <TableCell>{item.structureName}</TableCell>
-                        <TableCell>{item.location}</TableCell>
+                        <TableCell>{item.solarSystem}, {item.region}</TableCell>
                         <TableCell>{item.containerName || '-'}</TableCell>
                         <TableCell align="right">{item.quantity.toLocaleString()}</TableCell>
-                        <TableCell align="right">{item.desiredQuantity?.toLocaleString()}</TableCell>
+                        <TableCell align="right">{item.desiredQuantity.toLocaleString()}</TableCell>
                         <TableCell align="right">
                           <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
-                            {item.stockpileDelta?.toLocaleString()}
+                            {item.stockpileDelta.toLocaleString()}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
+                            {item.deficitValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                           </Typography>
                         </TableCell>
                         <TableCell>{item.ownerName}</TableCell>
@@ -249,6 +357,18 @@ export default function StockpilesList(props: StockpilesListProps) {
           </Card>
         )}
       </Container>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

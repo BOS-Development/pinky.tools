@@ -131,6 +131,9 @@ func Test_AssetsShouldGetCharacterAssetsInStation(t *testing.T) {
 			OwnerID:         testCharacter.ID,
 			DesiredQuantity: nil,
 			StockpileDelta:  &expectedQuantity,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 		},
 	}
 
@@ -222,6 +225,9 @@ func Test_AssetsShouldGetCharacterAssetsInContainers(t *testing.T) {
 					OwnerID:         testCharacter.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity50,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 		},
@@ -395,6 +401,9 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 					OwnerID:         testCorp.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity200,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{
@@ -415,6 +424,9 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 							OwnerID:         testCorp.ID,
 							DesiredQuantity: nil,
 							StockpileDelta:  &expectedQuantity50,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 						},
 						{
 							Name:            "Mexallon",
@@ -426,6 +438,9 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 							OwnerID:         testCorp.ID,
 							DesiredQuantity: nil,
 							StockpileDelta:  &expectedQuantity25,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 						},
 					},
 				},
@@ -447,6 +462,9 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 					OwnerID:         testCorp.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity150,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{},
@@ -871,6 +889,9 @@ func Test_AssetsShouldGetCorporationAssetsInContainers(t *testing.T) {
 							OwnerID:         testCorp.ID,
 							DesiredQuantity: nil,
 							StockpileDelta:  &expectedQuantity75,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 						},
 					},
 				},
@@ -962,6 +983,9 @@ func Test_AssetsShouldShowEmptyCorporationDivisions(t *testing.T) {
 					OwnerID:         testCorp.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity1,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{},
@@ -1081,6 +1105,9 @@ func Test_AssetsShouldGetMixedCharacterAndCorporationAssets(t *testing.T) {
 			OwnerID:         testCharacter.ID,
 			DesiredQuantity: nil,
 			StockpileDelta:  &expectedQuantityChar,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 		},
 	}
 
@@ -1101,6 +1128,9 @@ func Test_AssetsShouldGetMixedCharacterAndCorporationAssets(t *testing.T) {
 					OwnerID:         testCorp.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantityCorp,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{},
@@ -1266,6 +1296,9 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 			OwnerID:         testCharacter.ID,
 			DesiredQuantity: nil,
 			StockpileDelta:  &expectedQuantity500,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 		},
 	}
 
@@ -1288,6 +1321,9 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 					OwnerID:         testCorp1.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity300,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{},
@@ -1308,6 +1344,9 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 					OwnerID:         testCorp1.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity150v2,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{},
@@ -1328,6 +1367,9 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 					OwnerID:         testCorp2.ID,
 					DesiredQuantity: nil,
 					StockpileDelta:  &expectedQuantity250,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
 				},
 			},
 			HangarContainers: []*repositories.AssetContainer{},
@@ -1508,4 +1550,8 @@ func Test_AssetsShouldNotDuplicateContainersAcrossDivisions(t *testing.T) {
 	assert.Equal(t, "Container Gamma", division3.HangarContainers[0].Name)
 	assert.Len(t, division3.HangarContainers[0].Assets, 1)
 	assert.Equal(t, int64(300), division3.HangarContainers[0].Assets[0].Quantity)
+}
+
+func ptrFloat64(v float64) *float64 {
+	return &v
 }

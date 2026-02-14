@@ -65,3 +65,12 @@ type StockpileMarker struct {
 	DesiredQuantity int64   `json:"desiredQuantity"`
 	Notes           *string `json:"notes"`
 }
+
+type MarketPrice struct {
+	TypeID      int64
+	RegionID    int64
+	BuyPrice    *float64
+	SellPrice   *float64
+	DailyVolume *int64
+	UpdatedAt   string
+}
