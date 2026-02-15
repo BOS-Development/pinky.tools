@@ -1,6 +1,7 @@
 FROM node:24.9.0-slim as ui-deps
 
 ENV BACKEND_KEY=${BACKEND_KEY}
+ENV BACKEND_URL=${BACKEND_URL}
 
 WORKDIR /app
 
