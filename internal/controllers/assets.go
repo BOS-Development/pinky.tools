@@ -10,6 +10,7 @@ import (
 
 type AssetsRepository interface {
 	GetUserAssets(ctx context.Context, user int64) (*repositories.AssetsResponse, error)
+	GetUserAssetsSummary(ctx context.Context, user int64) (*repositories.AssetsSummary, error)
 }
 
 type Assets struct {
@@ -22,6 +23,7 @@ func NewAssets(router Routerer, repository AssetsRepository) *Assets {
 	}
 
 	router.RegisterRestAPIRoute("/v1/assets/", web.AuthAccessUser, controller.GetUserAssets, "GET")
+	router.RegisterRestAPIRoute("/v1/assets/summary", web.AuthAccessUser, controller.GetUserAssetsSummary, "GET")
 
 	return controller
 }
@@ -36,4 +38,16 @@ func (c *Assets) GetUserAssets(args *web.HandlerArgs) (any, *web.HttpError) {
 	}
 
 	return assets, nil
+}
+
+func (c *Assets) GetUserAssetsSummary(args *web.HandlerArgs) (any, *web.HttpError) {
+	summary, err := c.repository.GetUserAssetsSummary(args.Request.Context(), *args.User)
+	if err != nil {
+		return nil, &web.HttpError{
+			StatusCode: 500,
+			Error:      errors.Wrap(err, "failed to get assets summary"),
+		}
+	}
+
+	return summary, nil
 }

@@ -60,6 +60,22 @@ describe('AssetsList Component', () => {
       expect(getByText('No Assets Found')).toBeInTheDocument();
       expect(getByText("You don't have any assets yet, or they haven't been synced.")).toBeInTheDocument();
     });
+
+    it('should handle null structures without crashing', () => {
+      const nullAssets = {
+        structures: null,
+      } as any;
+
+      const { getByText } = render(<AssetsList assets={nullAssets} />);
+      expect(getByText('No Assets Found')).toBeInTheDocument();
+    });
+
+    it('should handle undefined structures without crashing', () => {
+      const undefinedAssets = {} as any;
+
+      const { getByText } = render(<AssetsList assets={undefinedAssets} />);
+      expect(getByText('No Assets Found')).toBeInTheDocument();
+    });
   });
 
   describe('With Basic Assets', () => {

@@ -228,6 +228,18 @@ export default function AssetsList(props: AssetsListProps) {
   }, [expandedNodes]);
 
   const { totalItems, totalVolume, uniqueTypes, totalValue, totalDeficit, filteredStructures } = useMemo(() => {
+    // Return empty values if no assets
+    if (!assets?.structures || assets.structures.length === 0) {
+      return {
+        totalItems: 0,
+        totalVolume: 0,
+        uniqueTypes: 0,
+        totalValue: 0,
+        totalDeficit: 0,
+        filteredStructures: []
+      };
+    }
+
     let items = 0;
     let volume = 0;
     let value = 0;

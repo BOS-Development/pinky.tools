@@ -1552,6 +1552,132 @@ func Test_AssetsShouldNotDuplicateContainersAcrossDivisions(t *testing.T) {
 	assert.Equal(t, int64(300), division3.HangarContainers[0].Assets[0].Quantity)
 }
 
+func Test_AssetsShouldGetUserAssetsSummary(t *testing.T) {
+	db, err := setupDatabase()
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepository := repositories.NewUserRepository(db)
+	characterRepository := repositories.NewCharacterRepository(db)
+	characterAssetsRepository := repositories.NewCharacterAssets(db)
+	marketPricesRepo := repositories.NewMarketPrices(db)
+	stockpileMarkersRepo := repositories.NewStockpileMarkers(db)
+	assetsRepository := repositories.NewAssets(db)
+
+	testUser := &repositories.User{
+		ID:   42,
+		Name: "Test User",
+	}
+	err = userRepository.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	testCharacter := &repositories.Character{
+		ID:     1337,
+		Name:   "Test Character",
+		UserID: 42,
+	}
+	err = characterRepository.Add(context.Background(), testCharacter)
+	assert.NoError(t, err)
+
+	// Add character assets
+	characterAssets := []*models.EveAsset{
+		{
+			ItemID:       1001,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     1000, // 1000 Tritanium
+			TypeID:       34,
+			LocationFlag: "Hangar",
+		},
+		{
+			ItemID:       1002,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     500, // 500 Pyerite
+			TypeID:       35,
+			LocationFlag: "Hangar",
+		},
+	}
+	err = characterAssetsRepository.UpdateAssets(context.Background(), testCharacter.ID, testUser.ID, characterAssets)
+	assert.NoError(t, err)
+
+	// Add market prices
+	marketPrices := []models.MarketPrice{
+		{
+			TypeID:    34, // Tritanium
+			RegionID:  10000002,
+			BuyPrice:  ptrFloat64(5.0),
+			SellPrice: ptrFloat64(5.0),
+			UpdatedAt: time.Now().Format(time.RFC3339),
+		},
+		{
+			TypeID:    35, // Pyerite
+			RegionID:  10000002,
+			BuyPrice:  ptrFloat64(10.0),
+			SellPrice: ptrFloat64(10.0),
+			UpdatedAt: time.Now().Format(time.RFC3339),
+		},
+	}
+	err = marketPricesRepo.UpsertPrices(context.Background(), marketPrices)
+	assert.NoError(t, err)
+
+	// Add stockpile marker for Tritanium (desired 2000, have 1000 = deficit of 1000)
+	stockpileMarker := &models.StockpileMarker{
+		UserID:          testUser.ID,
+		TypeID:          34,
+		OwnerType:       "character",
+		OwnerID:         testCharacter.ID,
+		LocationID:      60003760,
+		DesiredQuantity: 2000,
+	}
+	err = stockpileMarkersRepo.Upsert(context.Background(), stockpileMarker)
+	assert.NoError(t, err)
+
+	// Get summary
+	summary, err := assetsRepository.GetUserAssetsSummary(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, summary)
+
+	// Expected calculations:
+	// Total Value:
+	//   - 1000 Tritanium * 5.0 = 5000
+	//   - 500 Pyerite * 10.0 = 5000
+	//   Total = 10000
+	// Total Deficit:
+	//   - Tritanium deficit: (2000 - 1000) * 5.0 = 5000
+	//   - Pyerite has no marker, so no deficit
+	//   Total = 5000
+
+	assert.Equal(t, 10000.0, summary.TotalValue, "Total value should be 10000 ISK")
+	assert.Equal(t, 5000.0, summary.TotalDeficit, "Total deficit should be 5000 ISK")
+}
+
+func Test_AssetsShouldReturnZeroSummaryForNoAssets(t *testing.T) {
+	db, err := setupDatabase()
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepository := repositories.NewUserRepository(db)
+	assetsRepository := repositories.NewAssets(db)
+
+	testUser := &repositories.User{
+		ID:   42,
+		Name: "Test User",
+	}
+	err = userRepository.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	// Get summary with no assets
+	summary, err := assetsRepository.GetUserAssetsSummary(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, summary)
+
+	assert.Equal(t, 0.0, summary.TotalValue, "Total value should be 0 for user with no assets")
+	assert.Equal(t, 0.0, summary.TotalDeficit, "Total deficit should be 0 for user with no assets")
+}
+
 func ptrFloat64(v float64) *float64 {
 	return &v
 }
