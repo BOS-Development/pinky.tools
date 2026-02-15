@@ -14,6 +14,8 @@ FROM node:24.9.0-slim as ui-build
 WORKDIR /app
 
 COPY frontend .
+RUN find . -type d -name '__tests__' -exec rm -rf {} + || true
+RUN find . -type f \( -name '*.test.tsx' -o -name '*.test.ts' -o -name '*.spec.tsx' -o -name '*.spec.ts' \) -delete
 COPY --from=ui-deps /app/node_modules ./node_modules
 
 ENV API_SERVICE=http://localhost:8080/api/
