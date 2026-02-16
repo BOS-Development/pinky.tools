@@ -20,6 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
 
 type ForSaleListing = {
   id: number;
@@ -177,20 +178,44 @@ export default function MarketplaceBrowser() {
             </TableHead>
             <TableBody>
               {filteredListings.map((listing) => (
-                <TableRow key={listing.id}>
-                  <TableCell>{listing.typeName}</TableCell>
+                <TableRow key={listing.id} hover>
                   <TableCell>
-                    <Chip label={listing.ownerName} size="small" variant="outlined" />
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {listing.typeName}
+                    </Typography>
                   </TableCell>
-                  <TableCell>{listing.locationName}</TableCell>
-                  <TableCell align="right">{listing.quantityAvailable.toLocaleString()}</TableCell>
-                  <TableCell align="right">{listing.pricePerUnit.toLocaleString()} ISK</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={listing.ownerName}
+                      size="small"
+                      sx={{
+                        background: 'rgba(59, 130, 246, 0.1)',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        color: '#60a5fa',
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                      {listing.locationName}
+                    </Typography>
+                  </TableCell>
                   <TableCell align="right">
-                    {(listing.quantityAvailable * listing.pricePerUnit).toLocaleString()} ISK
+                    <Typography variant="body2">{formatNumber(listing.quantityAvailable)}</Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      {formatISK(listing.pricePerUnit)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell align="right">
+                    <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
+                      {formatISK(listing.quantityAvailable * listing.pricePerUnit)}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     {listing.notes && (
-                      <Typography variant="caption" color="text.secondary">
+                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
                         {listing.notes}
                       </Typography>
                     )}
