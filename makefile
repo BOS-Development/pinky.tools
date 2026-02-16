@@ -1,4 +1,4 @@
-.PHONY: build test test-backend test-frontend test-all test-clean dev dev-clean dev-build build-production build-production-backend build-production-frontend
+.PHONY: build test test-backend test-frontend test-all test-clean dev dev-clean dev-build build-production build-production-backend build-production-frontend test-e2e test-e2e-ui test-e2e-clean test-e2e-debug test-e2e-ci
 
 # Docker Compose command (v1: docker-compose, v2: docker compose)
 DOCKER_COMPOSE ?= docker-compose
@@ -84,6 +84,67 @@ test-clean:
 	@$(DOCKER_COMPOSE) -f docker-compose.test.yaml down --remove-orphans 2>/dev/null || true
 
 test: test-all
+
+# E2E test targets
+test-e2e: test-e2e-clean
+	@echo "Starting E2E test environment..."
+	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml up -d --build
+	@echo "Waiting for frontend to be ready..."
+	@for i in $$(seq 1 60); do curl -sf http://localhost:3000/ > /dev/null 2>&1 && break; echo "  attempt $$i/60..."; sleep 5; done
+	@curl -sf http://localhost:3000/ > /dev/null 2>&1 || (echo "Frontend failed to start"; exit 1)
+	@echo "Installing Playwright dependencies..."
+	cd e2e && npm ci
+	@echo "Running Playwright tests..."
+	cd e2e && npx playwright test
+	@echo "✓ E2E tests completed"
+
+test-e2e-ui: test-e2e-clean
+	@echo "Starting E2E test environment..."
+	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml up -d --build
+	@echo "Waiting for frontend to be ready..."
+	@for i in $$(seq 1 60); do curl -sf http://localhost:3000/ > /dev/null 2>&1 && break; echo "  attempt $$i/60..."; sleep 5; done
+	@curl -sf http://localhost:3000/ > /dev/null 2>&1 || (echo "Frontend failed to start"; exit 1)
+	@echo "Installing Playwright dependencies..."
+	cd e2e && npm ci
+	@echo "Opening Playwright UI..."
+	cd e2e && npx playwright test --ui
+
+test-e2e-clean:
+	@echo "Cleaning up E2E test containers..."
+	@$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml down --remove-orphans --volumes 2>/dev/null || true
+	@docker run --rm -v "$$(pwd):/work" alpine sh -c "rm -rf /work/e2e/node_modules /work/e2e/test-results /work/e2e/auth-state.json /work/artifacts/e2e-report" 2>/dev/null || true
+
+# E2E tests in Docker (for CI pipelines — no local Node.js/Playwright needed)
+# The playwright service has depends_on with health checks, so it waits for frontend automatically
+test-e2e-ci: test-e2e-clean
+	@echo "Starting E2E test environment..."
+	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml up -d --build
+	@echo "Waiting for services to be ready..."
+	@sleep 5
+	@echo "Running Playwright tests in Docker..."
+	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml run --rm playwright
+	@echo "✓ E2E CI tests completed"
+
+# E2E environment for debugging (start services without running tests)
+test-e2e-debug: test-e2e-clean
+	@echo "Starting E2E test environment for debugging..."
+	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml up -d --build
+	@echo "Waiting for frontend to be ready..."
+	@for i in $$(seq 1 60); do curl -sf http://localhost:3000/ > /dev/null 2>&1 && break; echo "  attempt $$i/60..."; sleep 5; done
+	@curl -sf http://localhost:3000/ > /dev/null 2>&1 || (echo "Frontend failed to start"; exit 1)
+	@echo ""
+	@echo "========================================"
+	@echo "E2E environment is ready for debugging"
+	@echo "========================================"
+	@echo "Frontend: http://localhost:3000"
+	@echo "Backend:  http://localhost:8080"
+	@echo "Mock ESI: http://localhost:8090"
+	@echo "Database: localhost:19237"
+	@echo ""
+	@echo "Run 'cd e2e && npx playwright test' to execute tests"
+	@echo "Run 'cd e2e && npx playwright test --ui' to open Playwright UI"
+	@echo "Run 'make test-e2e-clean' to tear down"
+	@echo ""
 
 # Production build targets
 build-production-backend:

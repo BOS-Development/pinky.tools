@@ -1,0 +1,21 @@
+FROM golang:1.25 as build
+
+WORKDIR /build
+
+COPY go.mod ./
+COPY go.sum ./
+
+RUN go mod download
+
+COPY . .
+
+RUN go build -o ./mock-esi ./cmd/mock-esi
+
+FROM ubuntu:26.04
+
+RUN apt update && apt install -y ca-certificates curl
+WORKDIR /app
+
+COPY --from=0 /build/mock-esi /app/
+
+CMD ["/app/mock-esi"]

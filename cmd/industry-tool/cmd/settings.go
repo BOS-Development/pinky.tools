@@ -15,6 +15,7 @@ type Settings struct {
 	DatabaseSettings  database.PostgresDatabaseSettings
 	OAuthClientID     string
 	OAuthClientSecret string
+	EsiBaseURL        string
 }
 
 func GetSettings() (*Settings, error) {
@@ -36,6 +37,7 @@ func GetSettings() (*Settings, error) {
 	settings.DatabaseSettings.Name = os.Getenv("DATABASE_NAME")
 	settings.OAuthClientID = os.Getenv("OAUTH_CLIENT_ID")
 	settings.OAuthClientSecret = os.Getenv("OAUTH_CLIENT_SECRET")
+	settings.EsiBaseURL = os.Getenv("ESI_BASE_URL")
 
 	s = os.Getenv("DATABASE_PORT")
 	settings.DatabaseSettings.Port, err = strconv.Atoi(s)

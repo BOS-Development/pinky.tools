@@ -58,7 +58,7 @@ func Test_ClientShouldGetCharacterAssets(t *testing.T) {
 		Times(1)
 
 	// Create ESI client with mock HTTP client
-	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient)
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "")
 
 	// Test GetCharacterAssets
 	assets, err := esiClient.GetCharacterAssets(context.Background(), 12345, "test-token", "test-refresh", time.Now())
@@ -115,7 +115,7 @@ func Test_ClientShouldGetMarketOrders(t *testing.T) {
 		Times(1)
 
 	// Create ESI client with mock HTTP client
-	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient)
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "")
 
 	// Test GetMarketOrders
 	orders, err := esiClient.GetMarketOrders(context.Background(), 10000002)

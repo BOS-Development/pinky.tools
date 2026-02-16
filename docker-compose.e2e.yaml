@@ -1,0 +1,111 @@
+services:
+  database:
+    image: debezium/postgres:17
+    environment:
+      POSTGRES_DB: "app"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+      POSTGRES_HOST_AUTH_METHOD: "password"
+    command: postgres -c max_connections=200 -c shared_buffers=256MB
+    tmpfs:
+      - /var/lib/postgresql/data
+    ports:
+      - "19237:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  mock-esi:
+    build:
+      context: .
+      dockerfile: Dockerfile.mock-esi
+    environment:
+      PORT: "8090"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8090/latest/markets/10000002/orders/ || exit 1"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      target: final-backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: "80"
+      DATABASE_HOST: "database"
+      DATABASE_PORT: "5432"
+      DATABASE_USER: "postgres"
+      DATABASE_PASSWORD: "postgres"
+      DATABASE_NAME: "app"
+      BACKEND_KEY: "e2e-test-key"
+      OAUTH_CLIENT_ID: "e2e-dummy"
+      OAUTH_CLIENT_SECRET: "e2e-dummy"
+      ESI_BASE_URL: "http://mock-esi:8090"
+    depends_on:
+      database:
+        condition: service_healthy
+      mock-esi:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:80/v1/characters/ -H 'BACKEND-KEY: e2e-test-key' -H 'USER-ID: 1' || exit 1"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+
+  seed-runner:
+    image: debezium/postgres:17
+    volumes:
+      - ./e2e/seed.sql:/seed.sql:ro
+    environment:
+      PGPASSWORD: "postgres"
+    entrypoint: ["sh", "-c", "until pg_isready -h database -U postgres; do sleep 1; done && sleep 2 && psql -h database -U postgres -d app -f /seed.sql"]
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.ui
+    environment:
+      E2E_TESTING: "true"
+      BACKEND_URL: "http://backend:80/"
+      NEXT_PUBLIC_BACKEND_URL: "http://backend:80/"
+      BACKEND_KEY: "e2e-test-key"
+      NEXTAUTH_SECRET: "e2e-test-secret-key-for-jwt"
+      NEXTAUTH_URL: "http://localhost:3000"
+      EVE_CLIENT_ID: "e2e-dummy"
+      EVE_CLIENT_SECRET: "e2e-dummy"
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/ || exit 1"]
+      interval: 5s
+      timeout: 10s
+      retries: 30
+
+  # Playwright test runner for CI — not started by `docker compose up`,
+  # only via `docker compose run --rm playwright`
+  # NOTE: Image tag must match @playwright/test version in e2e/package-lock.json
+  playwright:
+    profiles: [ci]
+    image: mcr.microsoft.com/playwright:v1.58.2-noble
+    working_dir: /work/e2e
+    volumes:
+      - .:/work
+    environment:
+      CI: "true"
+      BASE_URL: "http://frontend:3000"
+    depends_on:
+      frontend:
+        condition: service_healthy
+      seed-runner:
+        condition: service_completed_successfully
+    command: sh -c "npm ci && npx playwright test"

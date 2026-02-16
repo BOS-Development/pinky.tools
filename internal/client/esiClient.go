@@ -28,13 +28,14 @@ type EsiClient struct {
 	oauthConfig                *oauth2.Config
 	assetLocationFlagAllowList []string
 	httpClient                 HTTPDoer
+	baseURL                    string
 }
 
 func NewEsiClient(clientID, clientSecret string) *EsiClient {
-	return NewEsiClientWithHTTPClient(clientID, clientSecret, nil)
+	return NewEsiClientWithHTTPClient(clientID, clientSecret, nil, "")
 }
 
-func NewEsiClientWithHTTPClient(clientID, clientSecret string, httpClient HTTPDoer) *EsiClient {
+func NewEsiClientWithHTTPClient(clientID, clientSecret string, httpClient HTTPDoer, baseURL string) *EsiClient {
 	endpoint := oauth2.Endpoint{
 		AuthURL:  "https://login.eveonline.com/v2/oauth/authorize",
 		TokenURL: "https://login.eveonline.com/v2/oauth/token",
@@ -68,10 +69,15 @@ func NewEsiClientWithHTTPClient(clientID, clientSecret string, httpClient HTTPDo
 		"CorpSAG7",
 		"OfficeFolder",
 	}
+	if baseURL == "" {
+		baseURL = "https://esi.evetech.net"
+	}
+
 	return &EsiClient{
 		oauthConfig:                oauthConfig,
 		assetLocationFlagAllowList: assetLocationFlagAllowList,
 		httpClient:                 httpClient,
+		baseURL:                    baseURL,
 	}
 }
 
@@ -108,7 +114,7 @@ func (c *EsiClient) GetCharacterAssets(ctx context.Context, characterID int64, t
 	page := 1
 	for {
 
-		url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/characters/%d/assets?page=%d", characterID, page))
+		url, err := url.Parse(fmt.Sprintf("%s/characters/%d/assets?page=%d", c.baseURL, characterID, page))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse url")
 		}
@@ -194,7 +200,7 @@ func (c *EsiClient) GetCharacterLocationNames(ctx context.Context, characterID i
 	}
 	req, err := http.NewRequest(
 		"POST",
-		fmt.Sprintf("https://esi.evetech.net/characters/%d/assets/names", characterID),
+		fmt.Sprintf("%s/characters/%d/assets/names", c.baseURL, characterID),
 		bytes.NewReader(jsonIds))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
@@ -254,7 +260,7 @@ func (c *EsiClient) GetPlayerOwnedStationInformation(ctx context.Context, token,
 
 	stations := []models.Station{}
 	for _, id := range ids {
-		url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/universe/structures/%d", id))
+		url, err := url.Parse(fmt.Sprintf("%s/universe/structures/%d", c.baseURL, id))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse url")
 		}
@@ -330,7 +336,7 @@ func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int
 
 	jsons := fmt.Sprintf("[%d]", characterID)
 
-	req, err := http.NewRequest("POST", "https://esi.evetech.net/characters/affiliation", bytes.NewBuffer([]byte(jsons)))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/characters/affiliation", c.baseURL), bytes.NewBuffer([]byte(jsons)))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
 	}
@@ -357,7 +363,7 @@ func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int
 		return nil, errors.Wrap(err, "failed to unmarshal character affiliation json")
 	}
 
-	url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/corporations/%d", charAffiliation[0].CorporationID))
+	url, err := url.Parse(fmt.Sprintf("%s/corporations/%d", c.baseURL, charAffiliation[0].CorporationID))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse url")
 	}
@@ -408,7 +414,7 @@ func (c *EsiClient) GetCorporationAssets(ctx context.Context, corpID int64, toke
 	page := 1
 	for {
 
-		url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/corporations/%d/assets?page=%d", corpID, page))
+		url, err := url.Parse(fmt.Sprintf("%s/corporations/%d/assets?page=%d", c.baseURL, corpID, page))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse url")
 		}
@@ -487,7 +493,7 @@ func (c *EsiClient) GetCorporationLocationNames(ctx context.Context, corpID int6
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to marshal ids into json")
 	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://esi.evetech.net/corporations/%d/assets/names", corpID), bytes.NewReader(jsonIds))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/corporations/%d/assets/names", c.baseURL, corpID), bytes.NewReader(jsonIds))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
 	}
@@ -545,7 +551,7 @@ func (c *EsiClient) GetCorporationDivisions(ctx context.Context, corpID int64, t
 		client = c.oauthConfig.Client(ctx, t)
 	}
 
-	url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/corporations/%d/divisions", corpID))
+	url, err := url.Parse(fmt.Sprintf("%s/corporations/%d/divisions", c.baseURL, corpID))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse url")
 	}
@@ -605,7 +611,7 @@ func (c *EsiClient) GetMarketOrders(ctx context.Context, regionID int64) ([]*Mar
 
 	page := 1
 	for {
-		url, err := url.Parse(fmt.Sprintf("https://esi.evetech.net/latest/markets/%d/orders/?page=%d", regionID, page))
+		url, err := url.Parse(fmt.Sprintf("%s/latest/markets/%d/orders/?page=%d", c.baseURL, regionID, page))
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse market orders url")
 		}
