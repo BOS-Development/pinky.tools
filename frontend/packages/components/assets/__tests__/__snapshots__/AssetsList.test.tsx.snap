@@ -73,14 +73,14 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
           Asset Inventory
         </h5>
         <div
-          class="MuiBox-root css-yqacci"
+          class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-c6csgn"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -93,23 +93,23 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 2
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Items
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-1unt0aa"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-121kxbi-MuiSvgIcon-root"
               data-testid="CategoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -130,23 +130,23 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 2
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Types
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-7h42y6"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-j3wxw1-MuiSvgIcon-root"
               data-testid="LocationOnIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -159,23 +159,23 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 30
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 m³
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-113yael"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ef1zdl-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ofx7p7-MuiSvgIcon-root"
               data-testid="AttachMoneyIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -188,20 +188,19 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-98o0bz-MuiTypography-root"
               >
-                0
-                 ISK
+                0 ISK
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Total Value
               </span>
             </div>
           </div>
           <button
-            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
             tabindex="0"
             title="Refresh market prices"
             type="button"
@@ -504,14 +503,14 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
           Asset Inventory
         </h5>
         <div
-          class="MuiBox-root css-yqacci"
+          class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-c6csgn"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -524,23 +523,23 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 2
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Items
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-1unt0aa"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-121kxbi-MuiSvgIcon-root"
               data-testid="CategoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -561,23 +560,23 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 2
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Types
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-7h42y6"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-j3wxw1-MuiSvgIcon-root"
               data-testid="LocationOnIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -590,23 +589,23 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 18
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 m³
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-113yael"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ef1zdl-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ofx7p7-MuiSvgIcon-root"
               data-testid="AttachMoneyIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -619,20 +618,19 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-98o0bz-MuiTypography-root"
               >
-                0
-                 ISK
+                0 ISK
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Total Value
               </span>
             </div>
           </div>
           <button
-            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
             tabindex="0"
             title="Refresh market prices"
             type="button"
@@ -855,14 +853,14 @@ exports[`AssetsList Component With Containers should match snapshot with contain
           Asset Inventory
         </h5>
         <div
-          class="MuiBox-root css-yqacci"
+          class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-c6csgn"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -875,23 +873,23 @@ exports[`AssetsList Component With Containers should match snapshot with contain
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 1
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Items
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-1unt0aa"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-121kxbi-MuiSvgIcon-root"
               data-testid="CategoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -912,23 +910,23 @@ exports[`AssetsList Component With Containers should match snapshot with contain
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 1
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Types
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-7h42y6"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-j3wxw1-MuiSvgIcon-root"
               data-testid="LocationOnIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -941,23 +939,23 @@ exports[`AssetsList Component With Containers should match snapshot with contain
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 20
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 m³
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-113yael"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ef1zdl-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ofx7p7-MuiSvgIcon-root"
               data-testid="AttachMoneyIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -970,20 +968,19 @@ exports[`AssetsList Component With Containers should match snapshot with contain
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-98o0bz-MuiTypography-root"
               >
-                0
-                 ISK
+                0 ISK
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Total Value
               </span>
             </div>
           </div>
           <button
-            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
             tabindex="0"
             title="Refresh market prices"
             type="button"
@@ -1206,14 +1203,14 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
           Asset Inventory
         </h5>
         <div
-          class="MuiBox-root css-yqacci"
+          class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-c6csgn"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1226,23 +1223,23 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 1
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Items
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-1unt0aa"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-121kxbi-MuiSvgIcon-root"
               data-testid="CategoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1263,23 +1260,23 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 1
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Types
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-7h42y6"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-j3wxw1-MuiSvgIcon-root"
               data-testid="LocationOnIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1292,23 +1289,23 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 30
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 m³
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-113yael"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ef1zdl-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ofx7p7-MuiSvgIcon-root"
               data-testid="AttachMoneyIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1321,20 +1318,19 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-98o0bz-MuiTypography-root"
               >
-                0
-                 ISK
+                0 ISK
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Total Value
               </span>
             </div>
           </div>
           <button
-            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
             tabindex="0"
             title="Refresh market prices"
             type="button"
@@ -1557,14 +1553,14 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
           Asset Inventory
         </h5>
         <div
-          class="MuiBox-root css-yqacci"
+          class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-c6csgn"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1577,23 +1573,23 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 2
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Items
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-1unt0aa"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-121kxbi-MuiSvgIcon-root"
               data-testid="CategoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1614,23 +1610,23 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 2
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Types
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-7h42y6"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-131qtn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-j3wxw1-MuiSvgIcon-root"
               data-testid="LocationOnIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1643,23 +1639,23 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-lhsbas-MuiTypography-root"
               >
                 46
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 m³
               </span>
             </div>
           </div>
           <div
-            class="MuiBox-root css-171onha"
+            class="MuiBox-root css-113yael"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ef1zdl-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1ofx7p7-MuiSvgIcon-root"
               data-testid="AttachMoneyIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1672,20 +1668,19 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body1 css-98o0bz-MuiTypography-root"
               >
-                0
-                 ISK
+                0 ISK
               </p>
               <span
-                class="MuiTypography-root MuiTypography-caption css-1374baf-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-caption css-1j867qh-MuiTypography-root"
               >
                 Total Value
               </span>
             </div>
           </div>
           <button
-            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeMedium css-53g0n7-MuiButtonBase-root-MuiIconButton-root"
+            class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
             tabindex="0"
             title="Refresh market prices"
             type="button"

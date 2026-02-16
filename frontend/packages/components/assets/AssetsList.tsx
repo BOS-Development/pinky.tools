@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { AssetsResponse, Asset, AssetContainer, CorporationHanger, StockpileMarker } from "@industry-tool/client/data/models";
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
+import { formatISK, formatNumber, formatCompact } from '@industry-tool/utils/formatting';
 import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -879,12 +880,20 @@ export default function AssetsList(props: AssetsListProps) {
                         return (
                           <Chip
                             icon={<CheckCircleIcon />}
-                            label={`${listing.quantityAvailable.toLocaleString()} @ ${listing.pricePerUnit.toLocaleString()} ISK`}
+                            label={`${formatNumber(listing.quantityAvailable)} @ ${formatISK(listing.pricePerUnit)}`}
                             size="medium"
-                            color="success"
-                            variant="filled"
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              cursor: 'pointer',
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              color: '#10b981',
+                              border: '1px solid rgba(16, 185, 129, 0.3)',
+                              '& .MuiChip-icon': {
+                                color: '#10b981',
+                              },
+                            }}
                             onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber, listing)}
-                            sx={{ fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' }}
                           />
                         );
                       }
@@ -892,65 +901,64 @@ export default function AssetsList(props: AssetsListProps) {
                     })()}
                   </Box>
                 </TableCell>
-                <TableCell align="right">{asset.quantity.toLocaleString()}</TableCell>
+                <TableCell align="right">
+                  <Typography variant="body2">{formatNumber(asset.quantity)}</Typography>
+                </TableCell>
                 <TableCell align="right">
                   {asset.desiredQuantity ? (
                     <Typography variant="body2" sx={{ fontWeight: 500 }}>
                       <Box
                         component="span"
                         sx={{
-                          color: asset.stockpileDelta! >= 0 ? 'success.main' : 'error.main',
+                          color: asset.stockpileDelta! >= 0 ? '#10b981' : '#ef4444',
                           fontWeight: 600,
-                          fontSize: '1rem'
+                          fontSize: '0.875rem'
                         }}
                       >
-                        {asset.stockpileDelta! >= 0 ? '+' : ''}{asset.stockpileDelta!.toLocaleString()}
+                        {asset.stockpileDelta! >= 0 ? '+' : ''}{formatNumber(asset.stockpileDelta!)}
                       </Box>
-                      {' / '}
-                      {asset.desiredQuantity.toLocaleString()}
+                      <Box component="span" sx={{ color: '#64748b', mx: 0.5 }}>/</Box>
+                      <Box component="span" sx={{ color: '#94a3b8' }}>
+                        {formatNumber(asset.desiredQuantity)}
+                      </Box>
                     </Typography>
                   ) : (
-                    <Typography variant="caption" color="text.secondary">-</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
                   )}
                 </TableCell>
                 <TableCell align="right">
-                  {asset.volume.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>
+                    {formatNumber(asset.volume, 2)}
+                  </Typography>
                 </TableCell>
                 {/* Unit Price */}
                 <TableCell align="right">
                   {asset.unitPrice ? (
                     <Typography variant="body2">
-                      {asset.unitPrice.toLocaleString(undefined, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                      })} ISK
+                      {formatISK(asset.unitPrice)}
                     </Typography>
                   ) : (
-                    <Typography variant="caption" color="text.secondary">-</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
                   )}
                 </TableCell>
                 {/* Total Value */}
                 <TableCell align="right">
                   {asset.totalValue ? (
-                    <Typography variant="body2" fontWeight={600}>
-                      {asset.totalValue.toLocaleString(undefined, {
-                        maximumFractionDigits: 0
-                      })} ISK
+                    <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
+                      {formatISK(asset.totalValue)}
                     </Typography>
                   ) : (
-                    <Typography variant="caption" color="text.secondary">-</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
                   )}
                 </TableCell>
                 {/* Deficit Cost */}
                 <TableCell align="right">
                   {asset.deficitValue && asset.deficitValue > 0 ? (
-                    <Typography variant="body2" fontWeight={600} sx={{ color: 'error.main' }}>
-                      {asset.deficitValue.toLocaleString(undefined, {
-                        maximumFractionDigits: 0
-                      })} ISK
+                    <Typography variant="body2" sx={{ color: '#ef4444', fontWeight: 600 }}>
+                      {formatISK(asset.deficitValue)}
                     </Typography>
                   ) : (
-                    <Typography variant="caption" color="text.secondary">-</Typography>
+                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
                   )}
                 </TableCell>
                 {showOwner && (
@@ -1063,51 +1071,106 @@ export default function AssetsList(props: AssetsListProps) {
             <Typography variant="h5">Asset Inventory</Typography>
 
             {/* Summary Stats */}
-            <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <InventoryIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+            <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'center', flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2,
+                  py: 1,
+                  borderRadius: 1.5,
+                  background: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                }}
+              >
+                <InventoryIcon sx={{ fontSize: 20, color: '#3b82f6' }} />
                 <Box>
-                  <Typography variant="body2" fontWeight={600}>{totalItems.toLocaleString()}</Typography>
-                  <Typography variant="caption" color="text.secondary">Items</Typography>
+                  <Typography variant="body1" fontWeight={700}>{formatCompact(totalItems)}</Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Items</Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <CategoryIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2,
+                  py: 1,
+                  borderRadius: 1.5,
+                  background: 'rgba(139, 92, 246, 0.08)',
+                  border: '1px solid rgba(139, 92, 246, 0.2)',
+                }}
+              >
+                <CategoryIcon sx={{ fontSize: 20, color: '#8b5cf6' }} />
                 <Box>
-                  <Typography variant="body2" fontWeight={600}>{uniqueTypes.toLocaleString()}</Typography>
-                  <Typography variant="caption" color="text.secondary">Types</Typography>
+                  <Typography variant="body1" fontWeight={700}>{formatCompact(uniqueTypes)}</Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Types</Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <LocationOnIcon sx={{ fontSize: 20, color: 'primary.main' }} />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2,
+                  py: 1,
+                  borderRadius: 1.5,
+                  background: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px solid rgba(245, 158, 11, 0.2)',
+                }}
+              >
+                <LocationOnIcon sx={{ fontSize: 20, color: '#f59e0b' }} />
                 <Box>
-                  <Typography variant="body2" fontWeight={600}>
-                    {totalVolume.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  <Typography variant="body1" fontWeight={700}>
+                    {formatCompact(totalVolume)}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">m³</Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>m³</Typography>
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <AttachMoneyIcon sx={{ fontSize: 20, color: 'success.main' }} />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  px: 2,
+                  py: 1,
+                  borderRadius: 1.5,
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                }}
+              >
+                <AttachMoneyIcon sx={{ fontSize: 20, color: '#10b981' }} />
                 <Box>
-                  <Typography variant="body2" fontWeight={600}>
-                    {totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                  <Typography variant="body1" fontWeight={700} sx={{ color: '#10b981' }}>
+                    {formatISK(totalValue)}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">Total Value</Typography>
+                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Total Value</Typography>
                 </Box>
               </Box>
               {totalDeficit > 0 && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <WarningIcon sx={{ fontSize: 20, color: 'error.main' }} />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    px: 2,
+                    py: 1,
+                    borderRadius: 1.5,
+                    background: 'rgba(239, 68, 68, 0.08)',
+                    border: '1px solid rgba(239, 68, 68, 0.2)',
+                  }}
+                >
+                  <WarningIcon sx={{ fontSize: 20, color: '#ef4444' }} />
                   <Box>
-                    <Typography variant="body2" fontWeight={600} color="error.main">
-                      {totalDeficit.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
+                    <Typography variant="body1" fontWeight={700} sx={{ color: '#ef4444' }}>
+                      {formatISK(totalDeficit)}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">Deficit Cost</Typography>
+                    <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Deficit Cost</Typography>
                   </Box>
                 </Box>
               )}
-              <IconButton onClick={handleRefreshPrices} disabled={refreshingPrices} title="Refresh market prices">
+              <IconButton onClick={handleRefreshPrices} disabled={refreshingPrices} title="Refresh market prices" size="small">
                 <RefreshIcon />
               </IconButton>
             </Box>

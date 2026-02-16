@@ -21,7 +21,7 @@ A full-stack web application for managing EVE Online player inventory and assets
 
 **Frontend (Next.js 16.1.6)**
 - React 19.2.3 with TypeScript 5
-- UI: Material-UI (MUI) + Emotion + Tailwind CSS
+- UI: Material-UI (MUI) with Emotion
 - Auth: NextAuth 4.24.13 with EVE Online OAuth
 - State: Server-side props with NextAuth sessions
 - Monorepo: Yarn workspaces (Lerna)
@@ -210,10 +210,10 @@ player_corporations (1) ←→ (N) corporation_divisions
 - No global client state (using server props)
 
 ### Styling
-- MUI theme: Dark mode (#0a0e27 background, #1976d2 primary)
+- MUI theme: Dark mode (#0a0e1a background, #3b82f6 primary)
 - Responsive grid layouts
 - Emotion for CSS-in-JS
-- Tailwind for utility classes
+- Custom formatting utilities in `packages/utils/formatting.ts`
 
 ---
 
@@ -451,6 +451,163 @@ export default function Page(props: PageProps) {
 - **FuzzWorks API**: https://www.fuzzwork.co.uk/
 - **Next.js Docs**: https://nextjs.org/docs
 - **MUI Docs**: https://mui.com/material-ui/
+
+---
+
+## AI Agent Guidelines
+
+### Working on This Project
+
+**General Approach**
+- Always read files before editing them
+- Follow existing patterns from similar components/files
+- Test changes before marking work complete
+- When unsure, ask the user rather than guessing
+
+**Git Workflow**
+- **NEVER commit directly to main branch** - Always use feature branches
+- Branch naming: `feature/{feature-name}` or `fix/{bug-name}`
+  - Examples: `feature/add-buy-orders`, `fix/null-contacts-error`
+- Before starting work:
+  ```bash
+  git checkout main
+  git pull origin main
+  git checkout -b feature/your-feature-name
+  ```
+- Commit frequently with clear messages
+- Push branch and create PR when ready for review
+- Delete branch after PR is merged
+
+**Planning Complex Features**
+- For multi-file changes or architectural decisions, use plan mode first
+- Present options to the user when multiple approaches are valid
+- Break down large features into phases with clear verification steps
+- **Feature Documentation**: Check and update `docs/features/` directory
+  - Always check for existing feature plans before starting work
+  - Create new feature docs for complex features (include schema, phases, verification)
+  - Examples: `contact-marketplace.md`, `jita-market-pricing.md`, `landing-page.md`
+  - Store in repo, not in local `.claude/plans/` directory
+
+**Code Quality Standards**
+
+*Backend (Go):*
+- **CRITICAL**: Initialize slices as `items := []*Type{}` NOT `var items []*Type`
+  - Prevents nil JSON marshaling (nil → `null` instead of `[]`)
+  - Example: `contacts := []*models.Contact{}` for rows.Next() loops
+- Use transactions with deferred Rollback for multi-statement operations
+- Wrap errors with `github.com/pkg/errors` for context
+- Follow repository → controller → router pattern
+
+*Frontend (React/Next.js):*
+- **MUI SSR**: ThemeRegistry must use Emotion cache (see `ThemeRegistry.tsx`)
+- **Formatting**: Use utilities from `packages/utils/formatting.ts` for ISK/numbers
+- **Authentication**: Check session status before rendering protected content
+- **API Routes**: Proxy to backend, don't implement business logic
+- Read existing components before creating similar ones
+
+**Testing Requirements**
+
+*Backend:*
+- Write integration tests in `*_test.go` files
+- Test repository methods with real database (testcontainers)
+- Cover success cases, edge cases, and error scenarios
+- Use table-driven tests for multiple scenarios
+
+*Frontend:*
+- **Snapshot testing**: Create snapshots for all new components
+  - Run `npm test -- -u` to update snapshots after intentional changes
+  - Location: `__tests__/{ComponentName}.test.tsx`
+  - Test loading, error, and success states
+  - Example:
+    ```typescript
+    import { render } from '@testing-library/react';
+    import MyComponent from '../MyComponent';
+
+    describe('MyComponent', () => {
+      it('matches snapshot with data', () => {
+        const { container } = render(<MyComponent data={mockData} />);
+        expect(container).toMatchSnapshot();
+      });
+
+      it('matches snapshot when loading', () => {
+        const { container } = render(<MyComponent loading={true} />);
+        expect(container).toMatchSnapshot();
+      });
+    });
+    ```
+- Manually test in browser before marking complete
+- Verify edge cases (empty data, errors, null values)
+- Test both character and corporation flows if applicable
+- Check responsive layouts (mobile, tablet, desktop)
+
+**Common Pitfalls to Avoid**
+
+1. **Go nil slices → JSON null**: Always initialize `items := []*Type{}`
+2. **MUI FOUC**: Ensure ThemeRegistry has Emotion cache setup
+3. **Missing auth headers**: Backend needs `BACKEND-KEY` and `USER-ID`
+4. **Incomplete transactions**: Always defer `tx.Rollback()` before operations
+5. **Hardcoded IDs**: Use session providerAccountId, not hardcoded values
+
+**UI/UX Standards**
+
+*Design System:*
+- Dark theme: Background `#0a0e1a`, Cards `#12151f`, Primary `#3b82f6`
+- Use gradients for important metrics: `linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, ...)`
+- Color coding: Green `#10b981` for revenue/success, Red `#ef4444` for costs/errors
+- Icons: Use MUI icons from `@mui/icons-material`
+
+*Component Patterns:*
+- Stat cards: Gradient background + colored border + icon + formatted value
+- Tables: Dark header (`#0f1219`), alternating row colors, right-align numbers
+- Loading states: Use `<Loading />` component, not custom spinners
+- Empty states: Centered message in table cell with `colSpan`
+
+*Formatting:*
+```typescript
+import { formatISK, formatNumber, formatCompact } from '@industry-tool/utils/formatting';
+
+// Currency: "1.5M ISK", "842.3K ISK"
+formatISK(value)
+
+// Large numbers: "1,234,567"
+formatNumber(value)
+
+// Compact: "1.5M", "842K"
+formatCompact(value)
+```
+
+**File Organization**
+- Backend: `internal/repositories/` → `internal/controllers/` → `cmd/cmd/root.go`
+- Frontend components: `packages/components/{feature}/{ComponentName}.tsx`
+- API routes: `pages/api/{feature}/{action}.ts`
+- Types/interfaces: Define in component file or `internal/models/models.go`
+
+**Migration & Schema Changes**
+- **Creating new migrations**: Use the helper script
+  - Command: `./scripts/new-migration.sh migration_name`
+  - Example: `./scripts/new-migration.sh add_user_preferences`
+  - Auto-generates both `.up.sql` and `.down.sql` files with timestamp
+- **Naming**: Timestamp-based versions (prevents merge conflicts)
+  - Format: `{YYYYMMDDHHMMSS}_{name}.up.sql` (no underscore in timestamp)
+  - Example: `20250215143022_create_contacts.up.sql`
+  - Manual timestamp: `date +%Y%m%d%H%M%S`
+- Location: `internal/database/migrations/`
+- Style: Lowercase SQL keywords, tab indentation
+- Auto-applied on server startup (no manual commands needed)
+- Update repository methods after schema changes
+- Always create both `.up.sql` and `.down.sql` for rollback support
+
+**Debugging Tips**
+- Backend logs: Check container output via `docker logs`
+- Frontend: Use browser DevTools Network tab for API calls
+- Database: Connect via `psql -h localhost -p 19236 -U postgres -d app`
+- Authentication issues: Verify session in browser DevTools Application tab
+
+**When in Doubt**
+- Check similar existing features for patterns
+- Read the full file before editing
+- Ask user for clarification on requirements
+- Prefer simple solutions over complex abstractions
 
 ---
 

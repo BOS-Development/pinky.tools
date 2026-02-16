@@ -23,6 +23,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CategoryIcon from '@mui/icons-material/Category';
 import PeopleIcon from '@mui/icons-material/People';
+import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
 
 interface TimeSeriesData {
   date: string;
@@ -51,21 +52,6 @@ interface SalesMetrics {
 }
 
 type TimePeriod = '7d' | '30d' | '90d' | '1y' | 'all';
-
-const formatISK = (value: number): string => {
-  if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(2)}B ISK`;
-  } else if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(2)}M ISK`;
-  } else if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(2)}K ISK`;
-  }
-  return `${value.toFixed(2)} ISK`;
-};
-
-const formatNumber = (value: number): string => {
-  return value.toLocaleString();
-};
 
 export default function SalesMetrics() {
   const [period, setPeriod] = useState<TimePeriod>('30d');
@@ -182,97 +168,118 @@ export default function SalesMetrics() {
         sx={{
           display: 'grid',
           gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-          gap: 3,
+          gap: 2.5,
           mb: 4,
         }}
       >
-        <Box>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <AttachMoneyIcon color="primary" sx={{ mr: 1 }} />
-                <Typography color="textSecondary" variant="body2">
-                  Total Revenue
-                </Typography>
-              </Box>
-              <Typography variant="h5">{formatISK(metrics.totalRevenue)}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <ShoppingCartIcon color="primary" sx={{ mr: 1 }} />
-                <Typography color="textSecondary" variant="body2">
-                  Total Transactions
-                </Typography>
-              </Box>
-              <Typography variant="h5">{formatNumber(metrics.totalTransactions)}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <TrendingUpIcon color="primary" sx={{ mr: 1 }} />
-                <Typography color="textSecondary" variant="body2">
-                  Items Sold
-                </Typography>
-              </Box>
-              <Typography variant="h5">{formatNumber(metrics.totalQuantitySold)}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <CategoryIcon color="primary" sx={{ mr: 1 }} />
-                <Typography color="textSecondary" variant="body2">
-                  Unique Item Types
-                </Typography>
-              </Box>
-              <Typography variant="h5">{formatNumber(metrics.uniqueItemTypes)}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <PeopleIcon color="primary" sx={{ mr: 1 }} />
-                <Typography color="textSecondary" variant="body2">
-                  Unique Buyers
-                </Typography>
-              </Box>
-              <Typography variant="h5">{formatNumber(metrics.uniqueBuyers)}</Typography>
-            </CardContent>
-          </Card>
-        </Box>
-
-        <Box>
-          <Card>
-            <CardContent>
-              <Box display="flex" alignItems="center" mb={1}>
-                <AttachMoneyIcon color="primary" sx={{ mr: 1 }} />
-                <Typography color="textSecondary" variant="body2">
-                  Avg Revenue/Transaction
-                </Typography>
-              </Box>
-              <Typography variant="h5">
-                {metrics.totalTransactions > 0
-                  ? formatISK(metrics.totalRevenue / metrics.totalTransactions)
-                  : '0 ISK'}
+        <Card
+          sx={{
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
+            border: '1px solid rgba(59, 130, 246, 0.2)',
+          }}
+        >
+          <CardContent sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}
+              >
+                Total Revenue
               </Typography>
-            </CardContent>
-          </Card>
-        </Box>
+              <AttachMoneyIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#10b981', mb: 0.5 }}>
+              {formatISK(metrics.totalRevenue)}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}
+              >
+                Transactions
+              </Typography>
+              <ShoppingCartIcon sx={{ color: '#8b5cf6', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {formatNumber(metrics.totalTransactions)}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}
+              >
+                Items Sold
+              </Typography>
+              <TrendingUpIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {formatNumber(metrics.totalQuantitySold)}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}
+              >
+                Unique Items
+              </Typography>
+              <CategoryIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {formatNumber(metrics.uniqueItemTypes)}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}
+              >
+                Unique Buyers
+              </Typography>
+              <PeopleIcon sx={{ color: '#10b981', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {formatNumber(metrics.uniqueBuyers)}
+            </Typography>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
+              <Typography
+                variant="body2"
+                sx={{ color: '#94a3b8', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.05em' }}
+              >
+                Avg / Transaction
+              </Typography>
+              <AttachMoneyIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+            </Box>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+              {metrics.totalTransactions > 0
+                ? formatISK(metrics.totalRevenue / metrics.totalTransactions)
+                : '0 ISK'}
+            </Typography>
+          </CardContent>
+        </Card>
       </Box>
 
       {/* Top Selling Items */}
@@ -301,12 +308,26 @@ export default function SalesMetrics() {
                   </TableRow>
                 ) : (
                   metrics.topItems.map((item) => (
-                    <TableRow key={item.typeId}>
-                      <TableCell>{item.typeName}</TableCell>
-                      <TableCell align="right">{formatNumber(item.quantitySold)}</TableCell>
-                      <TableCell align="right">{formatISK(item.revenue)}</TableCell>
-                      <TableCell align="right">{formatNumber(item.transactionCount)}</TableCell>
-                      <TableCell align="right">{formatISK(item.averagePricePerUnit)}</TableCell>
+                    <TableRow key={item.typeId} hover>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {item.typeName}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{formatNumber(item.quantitySold)}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
+                          {formatISK(item.revenue)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{formatNumber(item.transactionCount)}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{formatISK(item.averagePricePerUnit)}</Typography>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
@@ -341,11 +362,23 @@ export default function SalesMetrics() {
                   </TableRow>
                 ) : (
                   metrics.timeSeriesData.map((row) => (
-                    <TableRow key={row.date}>
-                      <TableCell>{row.date}</TableCell>
-                      <TableCell align="right">{formatISK(row.revenue)}</TableCell>
-                      <TableCell align="right">{formatNumber(row.transactions)}</TableCell>
-                      <TableCell align="right">{formatNumber(row.quantitySold)}</TableCell>
+                    <TableRow key={row.date} hover>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                          {row.date}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
+                          {formatISK(row.revenue)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{formatNumber(row.transactions)}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">{formatNumber(row.quantitySold)}</Typography>
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
