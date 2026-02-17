@@ -22,9 +22,8 @@ test.describe('Marketplace', () => {
     await bobPage.goto('/characters');
     await expect(bobPage.getByRole('link', { name: /Refresh Assets/i })).toBeVisible({ timeout: 10000 });
     await bobPage.getByRole('link', { name: /Refresh Assets/i }).click();
-    await bobPage.waitForTimeout(5000);
 
-    // Now go to inventory to create a listing
+    // Now go to inventory to create a listing (toBeVisible assertion below handles waiting for refresh)
     await bobPage.goto('/inventory');
     await expect(bobPage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 15000 });
 
@@ -52,7 +51,6 @@ test.describe('Marketplace', () => {
 
     // Save listing
     await bobPage.getByRole('button', { name: /Create Listing/i }).click();
-    await bobPage.waitForTimeout(2000);
 
     // Verify listing appears on marketplace
     await bobPage.goto('/marketplace');
@@ -89,7 +87,6 @@ test.describe('Marketplace', () => {
 
     // Confirm purchase
     await alicePage.getByRole('button', { name: /Confirm Purchase/i }).click();
-    await alicePage.waitForTimeout(1000);
 
     // Check purchase appears in history
     await alicePage.getByRole('tab', { name: 'History' }).click();
@@ -108,7 +105,6 @@ test.describe('Marketplace', () => {
     // Search for item
     const itemSearch = alicePage.getByPlaceholder(/Start typing/i);
     await itemSearch.fill('Pyerite');
-    await alicePage.waitForTimeout(500);
 
     // Select from autocomplete dropdown (use .first() since full SDE has many Pyerite-related types)
     await alicePage.getByRole('option', { name: /Pyerite/i }).first().click();
@@ -122,7 +118,6 @@ test.describe('Marketplace', () => {
 
     // Create the order
     await alicePage.getByRole('button', { name: /Create/i }).click();
-    await alicePage.waitForTimeout(1000);
 
     // Verify buy order appears
     await expect(alicePage.getByText('Pyerite').first()).toBeVisible({ timeout: 5000 });
@@ -135,7 +130,7 @@ test.describe('Marketplace', () => {
 
     for (const tabName of tabs) {
       await alicePage.getByRole('tab', { name: tabName }).click();
-      await alicePage.waitForTimeout(300);
+      await expect(alicePage.getByRole('tab', { name: tabName })).toHaveAttribute('aria-selected', 'true');
     }
   });
 });

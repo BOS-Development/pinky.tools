@@ -85,9 +85,6 @@ test.describe('Stockpiles', () => {
     await expect(page.getByText(/Stargazer Industries - Main Hangar/).first()).toBeVisible({ timeout: 5000 });
     await page.getByText(/Stargazer Industries - Main Hangar/).first().click();
 
-    // Corp Tritanium should be visible (100,000 units)
-    await page.waitForTimeout(500);
-
     // Find the Tritanium row in the corp hangar and set a stockpile marker
     // Use last() since the personal hangar Tritanium row may also be in the DOM
     const corpTritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).last();
@@ -187,21 +184,16 @@ test.describe('Stockpiles', () => {
 
     // Search for "Tritanium" to verify filter shows matching items
     await searchInput.fill('Tritanium');
-    await page.waitForTimeout(500);
     await expect(page.getByText('Tritanium').first()).toBeVisible({ timeout: 5000 });
 
     // Search for something that won't match
     await searchInput.clear();
     await searchInput.fill('Nonexistent Item');
-    await page.waitForTimeout(500);
-
-    // Should show no items message
     await expect(page.getByText('No items match your search')).toBeVisible({ timeout: 5000 });
 
     // Search by solar system name
     await searchInput.clear();
     await searchInput.fill('Jita');
-    await page.waitForTimeout(500);
     await expect(page.getByText('Tritanium').first()).toBeVisible({ timeout: 5000 });
   });
 
@@ -221,15 +213,14 @@ test.describe('Stockpiles', () => {
 
     const tritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).first();
     await tritaniumRow.getByTitle('Remove stockpile target').click();
-    await page.waitForTimeout(1000);
+    await expect(tritaniumRow.getByTitle('Remove stockpile target')).not.toBeVisible({ timeout: 5000 });
 
     // Delete the corp Tritanium marker
     await page.getByText(/Stargazer Industries - Main Hangar/).first().click();
-    await page.waitForTimeout(500);
 
     const corpTritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).last();
     await corpTritaniumRow.getByTitle('Remove stockpile target').click();
-    await page.waitForTimeout(1000);
+    await expect(corpTritaniumRow.getByTitle('Remove stockpile target')).not.toBeVisible({ timeout: 5000 });
 
     // Verify on stockpiles page - should be empty again
     await page.goto('/stockpiles');
