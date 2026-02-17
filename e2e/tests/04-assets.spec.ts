@@ -51,7 +51,8 @@ test.describe('Assets Page', () => {
   test('displays container with nested assets', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Expand Jita
+    // Wait for assets to load, then expand Jita
+    await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
     await page.getByText('Jita IV - Moon 4').click();
 
     // Container name from mock ESI
