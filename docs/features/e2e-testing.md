@@ -38,8 +38,19 @@ Game data (assets, market prices, corp divisions) is NOT pre-seeded into the dat
 
 Only bootstrap data that can't be created through the app is seeded via SQL:
 - Static universe data (regions, systems, stations, item types)
-- Characters and corporations with fake ESI tokens
 - Users (created when Playwright logs in via CredentialsProvider)
+
+Characters and corporations are created during tests via E2E API routes (see below), exercising the full backend creation flow through the mock ESI.
+
+### 4. E2E API Routes (test-only endpoints)
+
+Two Next.js API routes are available only when `E2E_TESTING=true`:
+
+- **`POST /api/e2e/add-character`** — Creates a character by calling `POST /v1/characters/` on the backend. Accepts `{ userId, characterId, characterName }` and generates fake ESI tokens.
+
+- **`POST /api/e2e/add-corporation`** — Creates a corporation by calling `POST /v1/corporations` on the backend, which triggers the full ESI affiliation discovery flow (mock ESI `POST /characters/affiliation` → `GET /corporations/{id}`). Accepts `{ userId, characterId, characterName }`.
+
+Both routes return 404 when `E2E_TESTING` is not set, preventing accidental use in production.
 
 ---
 
@@ -92,13 +103,14 @@ Runs automatically via the `e2e-tests` job in `.github/workflows/ci.yml`. Upload
 
 ## Test Flows
 
-1. **Landing + Auth** — Login via CredentialsProvider, verify authenticated landing page
-2. **Navigation** — All navbar links resolve to working pages
-3. **Characters** — Character list shows seeded characters
-4. **Asset Refresh** — Refresh Assets triggers mock ESI, assets populate by station (Jita, Amarr), containers, corp divisions
-5. **Stockpile Workflow** — Set/edit/delete stockpile markers from assets page, verify deficit calculations on stockpiles page
-6. **Contacts Workflow** — Send contact request (Alice → Bob), accept, verify bidirectional connection
-7. **Marketplace Workflow** — Create listing (Bob), browse (Alice), purchase, buy orders
+1. **Landing + Auth** (`01-landing.spec.ts`) — Login via CredentialsProvider, verify authenticated landing page
+2. **Characters** (`02-characters.spec.ts`) — Empty state, add characters via E2E API, verify cards/portraits/buttons
+3. **Corporations** (`03-corporations.spec.ts`) — Empty state, add corporation via E2E API (mock ESI affiliation), verify card/chip/buttons
+4. **Assets** (`04-assets.spec.ts`) — Refresh Assets triggers mock ESI, assets populate by station (Jita, Amarr), containers, corp divisions
+5. **Navigation** (`05-navigation.spec.ts`) — All navbar links resolve to working pages
+6. **Stockpile Workflow** (`06-stockpiles.spec.ts`) — Set/edit/delete stockpile markers from assets page, verify deficit calculations on stockpiles page
+7. **Contacts Workflow** (`07-contacts.spec.ts`) — Send contact request (Alice → Bob), accept, verify bidirectional connection
+8. **Marketplace Workflow** (`08-marketplace.spec.ts`) — Create listing (Bob), browse (Alice), purchase, buy orders
 
 ---
 
@@ -126,17 +138,22 @@ e2e/
   tsconfig.json             # TypeScript config
   playwright.config.ts      # Chromium only, workers: 1, sequential
   global-setup.ts           # Authenticates as Alice Stargazer
-  seed.sql                  # Bootstrap data (static universe, characters, corps)
+  seed.sql                  # Bootstrap data (static universe + users only)
   fixtures/
     auth.ts                 # Multi-user auth fixtures (Alice, Bob, Charlie, Diana)
   tests/
-    landing.spec.ts
-    navigation.spec.ts
-    characters.spec.ts
-    assets.spec.ts
-    stockpiles.spec.ts
-    contacts.spec.ts
-    marketplace.spec.ts
+    01-landing.spec.ts      # Auth + landing page
+    02-characters.spec.ts   # Character creation + display
+    03-corporations.spec.ts # Corporation creation via mock ESI
+    04-assets.spec.ts       # Asset refresh + display
+    05-navigation.spec.ts   # Navbar links
+    06-stockpiles.spec.ts   # Stockpile markers + deficits
+    07-contacts.spec.ts     # Contact requests + acceptance
+    08-marketplace.spec.ts  # Listings, purchases, buy orders
+
+frontend/pages/api/e2e/
+  add-character.ts          # E2E-only: create character via backend
+  add-corporation.ts        # E2E-only: create corporation via backend + mock ESI
 
 cmd/mock-esi/
   main.go                   # Mock ESI HTTP server
