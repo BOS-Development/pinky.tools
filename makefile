@@ -122,11 +122,11 @@ test-e2e-clean:
 
 # E2E tests in Docker (for CI pipelines — no local Node.js/Playwright needed)
 # The playwright service has depends_on with health checks, so it waits for frontend automatically
+# Set E2E_BUILD_FLAG=--no-build when images are pre-built (e.g., CI with Docker layer caching)
+E2E_BUILD_FLAG ?= --build
 test-e2e-ci: test-e2e-clean
 	@echo "Starting E2E test environment..."
-	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml up -d --build
-	@echo "Waiting for services to be ready..."
-	@sleep 5
+	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml up -d $(E2E_BUILD_FLAG)
 	@echo "Running Playwright tests in Docker..."
 	$(DOCKER_COMPOSE) -f docker-compose.e2e.yaml run --rm playwright
 	@echo "✓ E2E CI tests completed"

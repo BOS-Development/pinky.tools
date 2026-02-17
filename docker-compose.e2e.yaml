@@ -18,6 +18,7 @@ services:
       retries: 15
 
   mock-esi:
+    image: industry-tool-mock-esi
     build:
       context: .
       dockerfile: Dockerfile.mock-esi
@@ -30,6 +31,7 @@ services:
       retries: 10
 
   backend:
+    image: industry-tool-backend
     build:
       context: .
       target: final-backend
@@ -68,6 +70,7 @@ services:
         condition: service_healthy
 
   frontend:
+    image: industry-tool-frontend
     build:
       context: .
       dockerfile: Dockerfile.ui
