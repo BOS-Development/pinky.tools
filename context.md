@@ -16,7 +16,7 @@ A full-stack web application for managing EVE Online player inventory and assets
 - Framework: Gorilla Mux (HTTP routing)
 - Database: PostgreSQL with golang-migrate
 - Authentication: Header-based (BACKEND-KEY, USER-ID)
-- External APIs: EVE Online ESI, FuzzWorks
+- External APIs: EVE Online ESI, CCP Static Data Export (SDE)
 - CLI: Cobra framework
 
 **Frontend (Next.js 16.1.6)**
@@ -47,8 +47,9 @@ industry-tool/
 │   ├── controllers/            # HTTP handlers
 │   ├── repositories/           # Database access layer
 │   ├── database/               # PostgreSQL + migrations
-│   ├── client/                 # ESI API client
-│   ├── updaters/               # Business logic
+│   ├── client/                 # ESI + SDE API clients
+│   ├── updaters/               # Business logic (SDE, prices, assets)
+│   ├── runners/                # Background refresh runners
 │   ├── web/                    # HTTP router
 │   └── logging/                # Structured logging
 ├── frontend/                   # Next.js application
@@ -83,12 +84,45 @@ industry-tool/
 - `corporation_assets` - Corporate assets
 - `corporation_asset_location_names` - Named corp locations
 
-**EVE Universe (Static Data)**
-- `asset_item_types` - Item definitions (type_id, name, volume)
+**EVE Universe (Static Data — populated from CCP SDE)**
+- `asset_item_types` - Item definitions (type_id, name, volume, group_id, mass, published, market_group_id, etc.)
 - `regions` - EVE regions
 - `constellations` - EVE constellations
 - `solar_systems` - EVE solar systems
-- `stations` - NPC stations
+- `stations` - NPC stations (names come from seed data; SDE has no station names)
+
+**SDE Reference Data** (see `docs/features/sde-import.md` for full schema)
+- `sde_categories`, `sde_groups` - Item taxonomy (category → group → type)
+- `sde_market_groups` - Market browser hierarchy (self-referencing parent_group_id)
+- `sde_meta_groups` - Tech level classification (Tech I, Tech II, Faction, etc.)
+- `sde_icons`, `sde_graphics` - Visual asset references
+
+**SDE Blueprints & Industry**
+- `sde_blueprints` - Blueprint definitions (max_production_limit)
+- `sde_blueprint_activities` - Activity types per blueprint (manufacturing, reaction, invention, copying, etc.) with time
+- `sde_blueprint_materials` - Input materials per activity (blueprint + activity + type_id → quantity)
+- `sde_blueprint_products` - Output products per activity (includes probability for invention)
+- `sde_blueprint_skills` - Required skills per activity
+- `industry_cost_indices` - Per-system cost indices by activity (refreshed hourly from ESI)
+
+**SDE Dogma (Item Attributes & Effects)**
+- `sde_dogma_attributes`, `sde_dogma_attribute_categories` - Attribute definitions
+- `sde_dogma_effects` - Effect definitions
+- `sde_type_dogma_attributes` - Per-type attribute values (type_id + attribute_id → value)
+- `sde_type_dogma_effects` - Per-type effects
+
+**SDE NPC & Lore**
+- `sde_factions`, `sde_npc_corporations`, `sde_races`, `sde_bloodlines`, `sde_ancestries`
+- `sde_agents`, `sde_agents_in_space`
+
+**SDE Industry (PI & POS)**
+- `sde_planet_schematics`, `sde_planet_schematic_types` - Planetary interaction recipes
+- `sde_control_tower_resources` - POS fuel requirements
+
+**SDE Misc**
+- `sde_skins`, `sde_skin_licenses`, `sde_skin_materials` - Ship customization
+- `sde_certificates` - Certificate definitions
+- `sde_metadata` - Tracks SDE checksum for freshness detection
 
 **Key Relationships**
 ```
@@ -97,6 +131,13 @@ users (1) ←→ (N) player_corporations
 characters (1) ←→ (N) character_assets
 player_corporations (1) ←→ (N) corporation_assets
 player_corporations (1) ←→ (N) corporation_divisions
+
+sde_categories (1) ←→ (N) sde_groups (1) ←→ (N) asset_item_types
+sde_blueprints (1) ←→ (N) sde_blueprint_activities (1) ←→ (N) sde_blueprint_materials
+                                                    (1) ←→ (N) sde_blueprint_products
+                                                    (1) ←→ (N) sde_blueprint_skills
+asset_item_types (1) ←→ (N) sde_type_dogma_attributes
+asset_item_types (1) ←→ (N) sde_type_dogma_effects
 ```
 
 ---
@@ -119,7 +160,7 @@ player_corporations (1) ←→ (N) corporation_divisions
 
 **Utilities**
 - `GET /v1/users/refreshAssets` - Refresh from ESI
-- `GET /v1/static/update` - Update static EVE data
+- `GET /v1/static/update` - Trigger SDE refresh
 
 **Authentication Headers**
 - `BACKEND-KEY` - Backend auth key (required)
@@ -133,7 +174,7 @@ player_corporations (1) ←→ (N) corporation_divisions
 - `/api/corporations/add` - Initiate corp OAuth flow
 - `/api/corporations/refreshAssets` - Trigger corp refresh
 - `/api/assets/get` - Fetch user assets
-- `/api/static/update` - Update static data
+- `/api/static/update` - Trigger SDE refresh
 
 ---
 
@@ -165,12 +206,16 @@ player_corporations (1) ←→ (N) corporation_divisions
 
 **EVE Swagger Interface Client** (`internal/client/esiClient.go`)
 
-### Methods
+### Authenticated Methods (require OAuth tokens)
 - `GetCharacterAssets()` - Fetch character assets
 - `GetCharacterAssetNames()` - Get container names
 - `GetCorporationAssets()` - Fetch corp assets
 - `GetCorporationAssetNames()` - Get corp container names
 - `GetCorporationDivisions()` - Get hangar/wallet divisions
+
+### Public Methods (no auth required)
+- `GetCcpMarketPrices()` - CCP adjusted/average prices per type (for industry job cost calculations)
+- `GetIndustryCostIndices()` - Per-system cost indices by activity (manufacturing, reaction, etc.)
 
 ### OAuth Token Management
 - Tokens stored per character/corporation
@@ -183,6 +228,39 @@ player_corporations (1) ←→ (N) corporation_divisions
 - `CorpSAG1-7` - Corporation hangar divisions
 - `Deliveries` - Items in transit
 - `AssetSafety` - Items in asset safety
+
+---
+
+## SDE (Static Data Export) Integration
+
+**SDE Client** (`internal/client/sdeClient.go`) — Downloads and parses CCP's official EVE static data.
+
+### Methods
+- `GetChecksum(ctx)` - Fetch build number from CCP (for freshness check)
+- `DownloadSDE(ctx)` - Download `sde.zip` (~84MB) to temp file
+- `ParseSDE(zipPath)` - Parse all YAML files from ZIP into `SdeData` struct
+
+### Data Refresh (Background Runners)
+| Runner | Interval | Source | Description |
+|--------|----------|--------|-------------|
+| SDE Runner | 24h | CCP SDE ZIP | Full static data refresh (types, blueprints, dogma, universe, etc.) |
+| CCP Prices Runner | 1h | ESI `/markets/prices/` | Adjusted prices for job cost calculations |
+| Cost Indices Runner | 1h | ESI `/industry/systems/` | Per-system manufacturing/reaction cost indices |
+
+All runners execute immediately on startup, then repeat at their interval. The SDE runner skips if the checksum hasn't changed.
+
+### SDE Update Flow
+1. Fetch checksum from CCP → compare with `sde_metadata["checksum"]`
+2. If unchanged → skip (already current)
+3. Download ZIP → parse all YAML files → `SdeData` struct
+4. Upsert to existing tables: `asset_item_types`, `regions`, `constellations`, `solar_systems`, `stations`
+5. Upsert to all `sde_*` tables
+6. Store new checksum in `sde_metadata`
+
+### Gotchas
+- `npcStations.yaml` has **no station names** — station upsert preserves existing names when SDE provides empty ones
+- Some YAML fields use mixed formats (plain string vs localized `{en: "...", de: "..."}` maps) — handled by `localizedString` custom unmarshaler
+- Blueprint activities include: `manufacturing`, `reaction`, `invention`, `copying`, `researching_material_efficiency`, `researching_time_efficiency`
 
 ---
 
@@ -425,7 +503,7 @@ make test-e2e-clean      # Clean up E2E containers
 4. **Token Storage**: ESI OAuth tokens stored per character/corporation with auto-refresh
 5. **Monorepo**: Frontend uses Yarn workspaces for shared packages
 6. **Authentication**: Two-level (backend key + user ID) for security
-7. **Static Data**: Periodic updates from ESI/FuzzWorks APIs
+7. **Static Data**: Auto-refreshed from CCP SDE (24h) and ESI public endpoints (1h)
 
 ---
 
@@ -463,7 +541,7 @@ make test-e2e-clean      # Clean up E2E containers
 
 - **EVE Online ESI**: https://esi.evetech.net/
 - **EVE Image Server**: https://image.eveonline.com/
-- **FuzzWorks API**: https://www.fuzzwork.co.uk/
+- **CCP SDE**: https://developers.eveonline.com/static-data/
 - **Next.js Docs**: https://nextjs.org/docs
 - **MUI Docs**: https://mui.com/material-ui/
 
