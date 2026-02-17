@@ -47,7 +47,7 @@ func setupForSaleTestData(t *testing.T, db *sql.DB, userID, charID, typeID, syst
 }
 
 func Test_ForSaleItemsShouldCreate(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupForSaleTestData(t, db, 2000, 20000, 34, 30000142)
@@ -70,7 +70,7 @@ func Test_ForSaleItemsShouldCreate(t *testing.T) {
 }
 
 func Test_ForSaleItemsShouldGetByUser(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupForSaleTestData(t, db, 2100, 21000, 35, 30000143)
@@ -101,7 +101,7 @@ func Test_ForSaleItemsShouldGetByUser(t *testing.T) {
 }
 
 func Test_ForSaleItemsShouldDelete(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupForSaleTestData(t, db, 2300, 23000, 37, 30000145)
@@ -130,7 +130,7 @@ func Test_ForSaleItemsShouldDelete(t *testing.T) {
 }
 
 func Test_ForSaleItemsShouldGetUserIDByCharacterID(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -151,7 +151,7 @@ func Test_ForSaleItemsShouldGetUserIDByCharacterID(t *testing.T) {
 }
 
 func Test_ForSaleItemsUpdateQuantityToZero_ShouldMarkInactive(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupForSaleTestData(t, db, 2400, 24000, 38, 30000146)
@@ -190,7 +190,7 @@ func Test_ForSaleItemsUpdateQuantityToZero_ShouldMarkInactive(t *testing.T) {
 }
 
 func Test_ForSaleItemsUpdateQuantityPartial_ShouldUpdateQuantity(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupForSaleTestData(t, db, 2500, 25000, 39, 30000147)

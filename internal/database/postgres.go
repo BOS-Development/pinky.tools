@@ -92,6 +92,7 @@ func (ds *PostgresDatabaseSettings) MigrateUp() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to create migration")
 	}
+	defer m.Close()
 
 	err = m.Up()
 	if err != nil && err.Error() != "no change" {

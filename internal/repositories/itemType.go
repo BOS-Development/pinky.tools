@@ -30,16 +30,36 @@ insert into
 		type_id,
 		type_name,
 		volume,
-		icon_id
+		icon_id,
+		group_id,
+		packaged_volume,
+		mass,
+		capacity,
+		portion_size,
+		published,
+		market_group_id,
+		graphic_id,
+		race_id,
+		description
 	)
 	values
-		($1,$2,$3,$4)
+		($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
 on conflict
 	(type_id)
 do update set
 	type_name = EXCLUDED.type_name,
 	volume = EXCLUDED.volume,
-	icon_id = EXCLUDED.icon_id
+	icon_id = EXCLUDED.icon_id,
+	group_id = EXCLUDED.group_id,
+	packaged_volume = EXCLUDED.packaged_volume,
+	mass = EXCLUDED.mass,
+	capacity = EXCLUDED.capacity,
+	portion_size = EXCLUDED.portion_size,
+	published = EXCLUDED.published,
+	market_group_id = EXCLUDED.market_group_id,
+	graphic_id = EXCLUDED.graphic_id,
+	race_id = EXCLUDED.race_id,
+	description = EXCLUDED.description
 `
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -59,6 +79,16 @@ do update set
 			itemType.TypeName,
 			itemType.Volume,
 			itemType.IconID,
+			itemType.GroupID,
+			itemType.PackagedVolume,
+			itemType.Mass,
+			itemType.Capacity,
+			itemType.PortionSize,
+			itemType.Published,
+			itemType.MarketGroupID,
+			itemType.GraphicID,
+			itemType.RaceID,
+			itemType.Description,
 		)
 		if err != nil {
 			return errors.Wrap(err, "failed to execute item type upsert")

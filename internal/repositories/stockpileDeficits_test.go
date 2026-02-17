@@ -11,7 +11,7 @@ import (
 )
 
 func Test_StockpileDeficits_Integration(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -165,7 +165,7 @@ func Test_StockpileDeficits_Integration(t *testing.T) {
 }
 
 func Test_StockpileDeficits_NoDeficits(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -185,7 +185,7 @@ func Test_StockpileDeficits_NoDeficits(t *testing.T) {
 }
 
 func Test_StockpileDeficits_UserIsolation(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 
 	ctx := context.Background()
@@ -276,7 +276,7 @@ func Test_StockpileDeficits_UserIsolation(t *testing.T) {
 // items in containers inside office folders at stations were not being found.
 // This tests the 3-level hierarchy: station -> office -> container -> items
 func Test_StockpileDeficits_ContainerRecursion(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 
 	ctx := context.Background()

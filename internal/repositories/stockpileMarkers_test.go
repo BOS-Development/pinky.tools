@@ -10,7 +10,7 @@ import (
 )
 
 func Test_StockpileMarkersShouldUpsertAndRetrieve(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -107,7 +107,7 @@ func Test_StockpileMarkersShouldUpsertAndRetrieve(t *testing.T) {
 }
 
 func Test_StockpileMarkersShouldUpdateOnConflict(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -157,7 +157,7 @@ func Test_StockpileMarkersShouldUpdateOnConflict(t *testing.T) {
 }
 
 func Test_StockpileMarkersShouldDelete(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -221,7 +221,7 @@ func Test_StockpileMarkersShouldDelete(t *testing.T) {
 }
 
 func Test_StockpileMarkersShouldHandleNullValues(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -299,7 +299,7 @@ func Test_StockpileMarkersShouldHandleNullValues(t *testing.T) {
 }
 
 func Test_StockpileMarkersShouldIsolateByUser(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)

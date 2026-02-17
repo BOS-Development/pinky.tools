@@ -1,4 +1,4 @@
-.PHONY: build test test-backend test-frontend test-all test-clean dev dev-clean dev-build build-production build-production-backend build-production-frontend test-e2e test-e2e-ui test-e2e-clean test-e2e-debug test-e2e-ci
+.PHONY: build test test-backend test-backend-sde-integration test-frontend test-all test-clean dev dev-clean dev-build build-production build-production-backend build-production-frontend test-e2e test-e2e-ui test-e2e-clean test-e2e-debug test-e2e-ci
 
 # Docker Compose command (v1: docker-compose, v2: docker compose)
 DOCKER_COMPOSE ?= docker-compose
@@ -59,6 +59,12 @@ test-backend:
 		sh -c "go test -v -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
 		       go tool cover -html=/artifacts/coverage/backend/coverage.out -o /artifacts/coverage/backend/coverage.html"
 	@echo "✓ Backend coverage report: artifacts/coverage/backend/coverage.html"
+
+test-backend-sde-integration:
+	@echo "Running SDE integration test (downloads real SDE from CCP)..."
+	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm backend-test \
+		sh -c "SDE_INTEGRATION_TEST=1 go test -v -run Test_SdeClient_Integration -timeout 300s ./internal/client/"
+	@echo "✓ SDE integration test passed"
 
 test-frontend:
 	@echo "Running frontend tests with coverage..."

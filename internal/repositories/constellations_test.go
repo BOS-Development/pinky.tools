@@ -10,7 +10,7 @@ import (
 )
 
 func Test_ConstellationsShouldUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	regionsRepo := repositories.NewRegions(db)
@@ -46,7 +46,7 @@ func Test_ConstellationsShouldUpsert(t *testing.T) {
 }
 
 func Test_ConstellationsShouldHandleEmptyUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	constellationsRepo := repositories.NewConstellations(db)

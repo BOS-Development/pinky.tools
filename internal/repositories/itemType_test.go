@@ -10,7 +10,7 @@ import (
 )
 
 func Test_ItemTypeShouldUpsertItemTypes(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	itemTypeRepo := repositories.NewItemTypeRepository(db)
@@ -44,7 +44,7 @@ func Test_ItemTypeShouldUpsertItemTypes(t *testing.T) {
 }
 
 func Test_ItemTypeShouldHandleNullIconID(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	itemTypeRepo := repositories.NewItemTypeRepository(db)
@@ -60,7 +60,7 @@ func Test_ItemTypeShouldHandleNullIconID(t *testing.T) {
 }
 
 func Test_ItemTypeShouldHandleEmptyUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	itemTypeRepo := repositories.NewItemTypeRepository(db)

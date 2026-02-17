@@ -10,7 +10,7 @@ import (
 )
 
 func Test_CharacterAssetsShouldUpdateData(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)

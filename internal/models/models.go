@@ -14,10 +14,20 @@ type EveAsset struct {
 }
 
 type EveInventoryType struct {
-	TypeID   int64
-	TypeName string
-	Volume   float64
-	IconID   *int64
+	TypeID         int64
+	TypeName       string
+	Volume         float64
+	IconID         *int64
+	GroupID        *int64
+	PackagedVolume *float64
+	Mass           *float64
+	Capacity       *float64
+	PortionSize    *int
+	Published      *bool
+	MarketGroupID  *int64
+	GraphicID      *int64
+	RaceID         *int64
+	Description    *string
 }
 
 type Region struct {
@@ -178,12 +188,288 @@ type ItemSalesData struct {
 }
 
 type BuyerAnalytics struct {
-	BuyerUserID       int64   `json:"buyerUserId"`
-	BuyerName         string  `json:"buyerName"`
-	TotalSpent        int64   `json:"totalSpent"`
-	TotalPurchases    int64   `json:"totalPurchases"`
-	TotalQuantity     int64   `json:"totalQuantity"`
+	BuyerUserID       int64     `json:"buyerUserId"`
+	BuyerName         string    `json:"buyerName"`
+	TotalSpent        int64     `json:"totalSpent"`
+	TotalPurchases    int64     `json:"totalPurchases"`
+	TotalQuantity     int64     `json:"totalQuantity"`
 	FirstPurchaseDate time.Time `json:"firstPurchaseDate"`
 	LastPurchaseDate  time.Time `json:"lastPurchaseDate"`
-	RepeatCustomer    bool    `json:"repeatCustomer"`
+	RepeatCustomer    bool      `json:"repeatCustomer"`
+}
+
+// SDE Models
+
+type SdeMetadata struct {
+	Key       string
+	Value     string
+	UpdatedAt time.Time
+}
+
+type SdeCategory struct {
+	CategoryID int64
+	Name       string
+	Published  bool
+	IconID     *int64
+}
+
+type SdeGroup struct {
+	GroupID    int64
+	Name       string
+	CategoryID int64
+	Published  bool
+	IconID     *int64
+}
+
+type SdeMetaGroup struct {
+	MetaGroupID int64
+	Name        string
+}
+
+type SdeMarketGroup struct {
+	MarketGroupID int64
+	ParentGroupID *int64
+	Name          string
+	Description   *string
+	IconID        *int64
+	HasTypes      bool
+}
+
+type SdeIcon struct {
+	IconID      int64
+	Description *string
+}
+
+type SdeGraphic struct {
+	GraphicID   int64
+	Description *string
+}
+
+type SdeBlueprint struct {
+	BlueprintTypeID    int64
+	MaxProductionLimit *int
+}
+
+type SdeBlueprintActivity struct {
+	BlueprintTypeID int64
+	Activity        string
+	Time            int
+}
+
+type SdeBlueprintMaterial struct {
+	BlueprintTypeID int64
+	Activity        string
+	TypeID          int64
+	Quantity        int
+}
+
+type SdeBlueprintProduct struct {
+	BlueprintTypeID int64
+	Activity        string
+	TypeID          int64
+	Quantity        int
+	Probability     *float64
+}
+
+type SdeBlueprintSkill struct {
+	BlueprintTypeID int64
+	Activity        string
+	TypeID          int64
+	Level           int
+}
+
+type SdeDogmaAttributeCategory struct {
+	CategoryID  int64
+	Name        *string
+	Description *string
+}
+
+type SdeDogmaAttribute struct {
+	AttributeID  int64
+	Name         *string
+	Description  *string
+	DefaultValue *float64
+	DisplayName  *string
+	CategoryID   *int64
+	HighIsGood   *bool
+	Stackable    *bool
+	Published    *bool
+	UnitID       *int64
+}
+
+type SdeDogmaEffect struct {
+	EffectID    int64
+	Name        *string
+	Description *string
+	DisplayName *string
+	CategoryID  *int64
+}
+
+type SdeTypeDogmaAttribute struct {
+	TypeID      int64
+	AttributeID int64
+	Value       float64
+}
+
+type SdeTypeDogmaEffect struct {
+	TypeID    int64
+	EffectID  int64
+	IsDefault bool
+}
+
+type SdeFaction struct {
+	FactionID     int64
+	Name          string
+	Description   *string
+	CorporationID *int64
+	IconID        *int64
+}
+
+type SdeNpcCorporation struct {
+	CorporationID int64
+	Name          string
+	FactionID     *int64
+	IconID        *int64
+}
+
+type SdeNpcCorporationDivision struct {
+	CorporationID int64
+	DivisionID    int64
+	Name          string
+}
+
+type SdeAgent struct {
+	AgentID       int64
+	Name          *string
+	CorporationID *int64
+	DivisionID    *int64
+	Level         *int
+}
+
+type SdeAgentInSpace struct {
+	AgentID       int64
+	SolarSystemID *int64
+}
+
+type SdeRace struct {
+	RaceID      int64
+	Name        string
+	Description *string
+	IconID      *int64
+}
+
+type SdeBloodline struct {
+	BloodlineID int64
+	Name        string
+	RaceID      *int64
+	Description *string
+	IconID      *int64
+}
+
+type SdeAncestry struct {
+	AncestryID  int64
+	Name        string
+	BloodlineID *int64
+	Description *string
+	IconID      *int64
+}
+
+type SdePlanetSchematic struct {
+	SchematicID int64
+	Name        string
+	CycleTime   int
+}
+
+type SdePlanetSchematicType struct {
+	SchematicID int64
+	TypeID      int64
+	Quantity    int
+	IsInput     bool
+}
+
+type SdeControlTowerResource struct {
+	ControlTowerTypeID int64
+	ResourceTypeID     int64
+	Purpose            *int
+	Quantity           int
+	MinSecurity        *float64
+	FactionID          *int64
+}
+
+type IndustryCostIndex struct {
+	SystemID  int64
+	Activity  string
+	CostIndex float64
+	UpdatedAt time.Time
+}
+
+type SdeSkin struct {
+	SkinID     int64
+	TypeID     *int64
+	MaterialID *int64
+}
+
+type SdeSkinLicense struct {
+	LicenseTypeID int64
+	SkinID        *int64
+	Duration      *int
+}
+
+type SdeSkinMaterial struct {
+	SkinMaterialID int64
+	Name           *string
+}
+
+type SdeCertificate struct {
+	CertificateID int64
+	Name          *string
+	Description   *string
+	GroupID       *int64
+}
+
+type SdeLandmark struct {
+	LandmarkID  int64
+	Name        *string
+	Description *string
+}
+
+type SdeStationOperation struct {
+	OperationID int64
+	Name        *string
+	Description *string
+}
+
+type SdeStationService struct {
+	ServiceID   int64
+	Name        *string
+	Description *string
+}
+
+type SdeContrabandType struct {
+	FactionID    int64
+	TypeID       int64
+	StandingLoss *float64
+	FineByValue  *float64
+}
+
+type SdeResearchAgent struct {
+	AgentID int64
+	TypeID  int64
+}
+
+type SdeCharacterAttribute struct {
+	AttributeID int64
+	Name        *string
+	Description *string
+	IconID      *int64
+}
+
+type SdeCorporationActivity struct {
+	ActivityID int64
+	Name       *string
+}
+
+type SdeTournamentRuleSet struct {
+	RuleSetID int64
+	Data      *string
 }

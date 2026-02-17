@@ -161,3 +161,56 @@ WHERE
 
 	return lastUpdate, nil
 }
+
+func (r *MarketPrices) UpsertAdjustedPrices(ctx context.Context, prices map[int64]float64) error {
+	if len(prices) == 0 {
+		return nil
+	}
+
+	upsertQuery := `
+UPDATE market_prices
+SET adjusted_price = $2
+WHERE type_id = $1
+`
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "failed to begin transaction for adjusted prices upsert")
+	}
+	defer tx.Rollback()
+
+	smt, err := tx.PrepareContext(ctx, upsertQuery)
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare for adjusted prices upsert")
+	}
+
+	for typeID, adjustedPrice := range prices {
+		_, err = smt.ExecContext(ctx, typeID, adjustedPrice)
+		if err != nil {
+			return errors.Wrap(err, "failed to execute adjusted price upsert")
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return errors.Wrap(err, "failed to commit adjusted prices transaction")
+	}
+
+	return nil
+}
+
+func (r *MarketPrices) GetAdjustedPriceLastUpdateTime(ctx context.Context) (*time.Time, error) {
+	query := `
+SELECT MAX(updated_at) FROM market_prices WHERE adjusted_price IS NOT NULL
+`
+	var lastUpdate *time.Time
+	err := r.db.QueryRowContext(ctx, query).Scan(&lastUpdate)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to query last adjusted price update time")
+	}
+
+	return lastUpdate, nil
+}

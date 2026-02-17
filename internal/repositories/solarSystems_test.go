@@ -10,7 +10,7 @@ import (
 )
 
 func Test_SolarSystemsShouldUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	regionsRepo := repositories.NewRegions(db)
@@ -54,7 +54,7 @@ func Test_SolarSystemsShouldUpsert(t *testing.T) {
 }
 
 func Test_SolarSystemsShouldHandleEmptyUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	solarSystemsRepo := repositories.NewSolarSystems(db)

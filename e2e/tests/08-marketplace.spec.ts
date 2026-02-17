@@ -110,8 +110,8 @@ test.describe('Marketplace', () => {
     await itemSearch.fill('Pyerite');
     await alicePage.waitForTimeout(500);
 
-    // Select from autocomplete dropdown
-    await alicePage.getByRole('option', { name: /Pyerite/i }).click();
+    // Select from autocomplete dropdown (use .first() since full SDE has many Pyerite-related types)
+    await alicePage.getByRole('option', { name: /Pyerite/i }).first().click();
 
     // Fill in quantity and price
     const qtyInput = alicePage.getByLabel(/Quantity Desired/i);

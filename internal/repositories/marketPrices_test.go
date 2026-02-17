@@ -10,7 +10,7 @@ import (
 )
 
 func Test_MarketPricesShouldUpsertPrices(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	// Need to ensure asset_item_types exist first
@@ -68,7 +68,7 @@ func Test_MarketPricesShouldUpsertPrices(t *testing.T) {
 }
 
 func Test_MarketPricesShouldDeleteAllForRegion(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	// Setup item types
@@ -108,7 +108,7 @@ func Test_MarketPricesShouldDeleteAllForRegion(t *testing.T) {
 }
 
 func Test_MarketPricesShouldHandleEmptyUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	marketPricesRepo := repositories.NewMarketPrices(db)
