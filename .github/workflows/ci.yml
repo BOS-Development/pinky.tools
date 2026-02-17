@@ -6,12 +6,14 @@ on:
             - "**/**/*.md"
             - "docs/**"
             - ".vscode/**"
+            - ".github/**"
         branches: [main, master]
     pull_request:
         paths-ignore:
             - "**/**/*.md"
             - "docs/**"
             - ".vscode/**"
+            - ".github/**"
         branches: [main, master]
 
 jobs:
@@ -126,9 +128,41 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
+            - name: Build backend image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: Dockerfile
+                  target: final-backend
+                  load: true
+                  tags: industry-tool-backend:latest
+                  cache-from: type=gha,scope=e2e-backend
+                  cache-to: type=gha,mode=max,scope=e2e-backend
+
+            - name: Build mock-esi image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: Dockerfile.mock-esi
+                  load: true
+                  tags: industry-tool-mock-esi:latest
+                  cache-from: type=gha,scope=e2e-mock-esi
+                  cache-to: type=gha,mode=max,scope=e2e-mock-esi
+
+            - name: Build frontend image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: Dockerfile.ui
+                  load: true
+                  tags: industry-tool-frontend:latest
+                  cache-from: type=gha,scope=e2e-frontend
+                  cache-to: type=gha,mode=max,scope=e2e-frontend
+
             - name: Run E2E tests
               env:
                   DOCKER_COMPOSE: docker compose
+                  E2E_BUILD_FLAG: "--no-build"
               run: make test-e2e-ci
 
             - name: Upload Playwright report
