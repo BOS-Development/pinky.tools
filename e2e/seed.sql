@@ -1,5 +1,6 @@
 -- E2E Test Seed Data
--- Only bootstraps data that cannot be created through the app without real EVE OAuth.
+-- Only bootstraps data that cannot be created through the app.
+-- Characters and corporations are now created via E2E API routes (/api/e2e/add-character, /api/e2e/add-corporation).
 -- Game data (assets, market prices, divisions) comes from the mock ESI during tests.
 
 BEGIN;
@@ -36,7 +37,7 @@ INSERT INTO asset_item_types (type_id, type_name, volume, icon_id) VALUES
   (27, 'Office', 0, NULL);
 
 -- ===========================================
--- Users (created via NextAuth CredentialsProvider login, but characters need to pre-exist)
+-- Users (created via NextAuth CredentialsProvider login)
 -- ===========================================
 
 INSERT INTO users (id, name) VALUES
@@ -44,37 +45,5 @@ INSERT INTO users (id, name) VALUES
   (1002, 'Bob Miner'),
   (1003, 'Charlie Trader'),
   (1004, 'Diana Scout');
-
--- ===========================================
--- Characters with fake ESI tokens
--- (Adding characters requires EVE OAuth which we mock out entirely)
--- ===========================================
-
--- Alice Stargazer's characters
-INSERT INTO characters (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on) VALUES
-  (2001001, 1001, 'Alice Alpha', 'fake-token-alice-alpha', 'fake-refresh-alice-alpha', NOW() + INTERVAL '1 hour'),
-  (2001002, 1001, 'Alice Beta', 'fake-token-alice-beta', 'fake-refresh-alice-beta', NOW() + INTERVAL '1 hour');
-
--- Bob Miner's character
-INSERT INTO characters (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on) VALUES
-  (2002001, 1002, 'Bob Bravo', 'fake-token-bob-bravo', 'fake-refresh-bob-bravo', NOW() + INTERVAL '1 hour');
-
--- Charlie Trader's character
-INSERT INTO characters (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on) VALUES
-  (2003001, 1003, 'Charlie Charlie', 'fake-token-charlie', 'fake-refresh-charlie', NOW() + INTERVAL '1 hour');
-
--- Diana Scout's character
-INSERT INTO characters (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on) VALUES
-  (2004001, 1004, 'Diana Delta', 'fake-token-diana', 'fake-refresh-diana', NOW() + INTERVAL '1 hour');
-
--- ===========================================
--- Corporations with fake ESI tokens
--- ===========================================
-
-INSERT INTO corporations (id, name) VALUES
-  (3001001, 'Stargazer Industries');
-
-INSERT INTO player_corporations (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on) VALUES
-  (3001001, 1001, 'Stargazer Industries', 'fake-token-stargazer-corp', 'fake-refresh-stargazer-corp', NOW() + INTERVAL '1 hour');
 
 COMMIT;
