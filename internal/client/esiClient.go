@@ -32,7 +32,7 @@ type EsiClient struct {
 }
 
 func NewEsiClient(clientID, clientSecret string) *EsiClient {
-	return NewEsiClientWithHTTPClient(clientID, clientSecret, nil, "")
+	return NewEsiClientWithHTTPClient(clientID, clientSecret, &http.Client{}, "")
 }
 
 func NewEsiClientWithHTTPClient(clientID, clientSecret string, httpClient HTTPDoer, baseURL string) *EsiClient {
@@ -673,4 +673,89 @@ func (c *EsiClient) getCommonHeaders() http.Header {
 	headers.Add("Accept", "application/json")
 	headers.Add("Content-Type", "application/json")
 	return headers
+}
+
+// CcpMarketPrice represents a market price from the CCP ESI /markets/prices/ endpoint
+type CcpMarketPrice struct {
+	TypeID        int64    `json:"type_id"`
+	AdjustedPrice *float64 `json:"adjusted_price"`
+	AveragePrice  *float64 `json:"average_price"`
+}
+
+// GetCcpMarketPrices fetches adjusted/average market prices from ESI (public, no auth required)
+func (c *EsiClient) GetCcpMarketPrices(ctx context.Context) ([]*CcpMarketPrice, error) {
+	reqURL := fmt.Sprintf("%s/latest/markets/prices/", c.baseURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create CCP market prices request")
+	}
+	req.Header = c.getCommonHeaders()
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch CCP market prices")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code fetching CCP market prices: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read CCP market prices body")
+	}
+
+	var prices []*CcpMarketPrice
+	if err := json.Unmarshal(body, &prices); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal CCP market prices")
+	}
+
+	return prices, nil
+}
+
+// IndustryCostIndexActivity represents a single activity cost index
+type IndustryCostIndexActivity struct {
+	Activity  string  `json:"activity"`
+	CostIndex float64 `json:"cost_index"`
+}
+
+// IndustryCostIndexSystem represents cost indices for a solar system
+type IndustryCostIndexSystem struct {
+	SolarSystemID int64                       `json:"solar_system_id"`
+	CostIndices   []IndustryCostIndexActivity `json:"cost_indices"`
+}
+
+// GetIndustryCostIndices fetches industry cost indices from ESI (public, no auth required)
+func (c *EsiClient) GetIndustryCostIndices(ctx context.Context) ([]*IndustryCostIndexSystem, error) {
+	reqURL := fmt.Sprintf("%s/latest/industry/systems/", c.baseURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create industry cost indices request")
+	}
+	req.Header = c.getCommonHeaders()
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch industry cost indices")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code fetching industry cost indices: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read industry cost indices body")
+	}
+
+	var systems []*IndustryCostIndexSystem
+	if err := json.Unmarshal(body, &systems); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal industry cost indices")
+	}
+
+	return systems, nil
 }

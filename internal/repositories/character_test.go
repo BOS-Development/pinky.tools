@@ -9,7 +9,7 @@ import (
 )
 
 func Test_CharacterShouldAddAndGet(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -42,7 +42,7 @@ func Test_CharacterShouldAddAndGet(t *testing.T) {
 }
 
 func Test_CharacterShouldGetAll(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -85,7 +85,7 @@ func Test_CharacterShouldGetAll(t *testing.T) {
 }
 
 func Test_CharacterShouldIsolateByUser(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)

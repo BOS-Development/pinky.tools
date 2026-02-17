@@ -76,7 +76,7 @@ func setupPurchaseTestData(t *testing.T, db *sql.DB, buyerID, sellerID, typeID, 
 }
 
 func Test_PurchaseTransactions_CreateAndGet(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	item, err := setupPurchaseTestData(t, db, 3000, 3001, 40, 30000150)
@@ -120,7 +120,7 @@ func Test_PurchaseTransactions_CreateAndGet(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_UpdateStatus(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	item, err := setupPurchaseTestData(t, db, 3010, 3011, 41, 30000151)
@@ -167,7 +167,7 @@ func Test_PurchaseTransactions_UpdateStatus(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_UpdateContractKeys(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	item, err := setupPurchaseTestData(t, db, 3020, 3021, 42, 30000152)
@@ -227,7 +227,7 @@ func Test_PurchaseTransactions_UpdateContractKeys(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_GetByBuyer(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	item, err := setupPurchaseTestData(t, db, 3030, 3031, 43, 30000153)
@@ -272,7 +272,7 @@ func Test_PurchaseTransactions_GetByBuyer(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_GetBySeller(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	item, err := setupPurchaseTestData(t, db, 3040, 3041, 44, 30000154)
@@ -310,7 +310,7 @@ func Test_PurchaseTransactions_GetBySeller(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_GetPendingForSeller(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	item, err := setupPurchaseTestData(t, db, 3050, 3051, 45, 30000155)
@@ -368,7 +368,7 @@ func Test_PurchaseTransactions_GetPendingForSeller(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_GetByID_NotFound(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	repo := repositories.NewPurchaseTransactions(db)
@@ -379,7 +379,7 @@ func Test_PurchaseTransactions_GetByID_NotFound(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_UpdateStatus_NotFound(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	repo := repositories.NewPurchaseTransactions(db)
@@ -390,7 +390,7 @@ func Test_PurchaseTransactions_UpdateStatus_NotFound(t *testing.T) {
 }
 
 func Test_PurchaseTransactions_UpdateContractKeys_EmptyArray(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	repo := repositories.NewPurchaseTransactions(db)

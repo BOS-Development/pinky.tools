@@ -11,7 +11,7 @@ import (
 )
 
 func Test_CorporationAssetsShouldUpsertAndUpdate(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -95,7 +95,7 @@ func Test_CorporationAssetsShouldUpsertAndUpdate(t *testing.T) {
 }
 
 func Test_CorporationAssetsShouldGetAssembledContainers(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -176,7 +176,7 @@ func Test_CorporationAssetsShouldGetAssembledContainers(t *testing.T) {
 }
 
 func Test_CorporationAssetsShouldUpsertContainerNames(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -254,7 +254,7 @@ func Test_CorporationAssetsShouldUpsertContainerNames(t *testing.T) {
 }
 
 func Test_CorporationAssetsShouldGetPlayerOwnedStationIDs(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -331,7 +331,7 @@ func Test_CorporationAssetsShouldGetPlayerOwnedStationIDs(t *testing.T) {
 }
 
 func Test_CorporationAssetsShouldHandleEmptyUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)

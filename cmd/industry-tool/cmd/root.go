@@ -53,8 +53,6 @@ var rootCmd = &cobra.Command{
 
 		router := web.NewRouter(settings.Port, settings.BackendKey)
 
-		fuzzWorks := client.NewFuzzWorks(&http.Client{})
-
 		charactersRepository := repositories.NewCharacterRepository(db)
 		itemTypesRepository := repositories.NewItemTypeRepository(db)
 		charactersAssetRepository := repositories.NewCharacterAssets(db)
@@ -74,6 +72,8 @@ var rootCmd = &cobra.Command{
 		purchaseTransactionsRepository := repositories.NewPurchaseTransactions(db)
 		buyOrdersRepository := repositories.NewBuyOrders(db)
 		salesAnalyticsRepository := repositories.NewSalesAnalytics(db)
+		sdeDataRepository := repositories.NewSdeDataRepository(db)
+		industryCostIndicesRepository := repositories.NewIndustryCostIndices(db)
 
 		var esiClient *client.EsiClient
 		if settings.EsiBaseURL != "" {
@@ -82,11 +82,15 @@ var rootCmd = &cobra.Command{
 			esiClient = client.NewEsiClient(settings.OAuthClientID, settings.OAuthClientSecret)
 		}
 
-		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient)
-		staticUpdater := updaters.NewStatic(fuzzWorks, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
-		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
+		sdeClient := client.NewSdeClient(&http.Client{})
 
-		controllers.NewStatic(router, staticUpdater)
+		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient)
+		sdeUpdater := updaters.NewSde(sdeClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
+		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
+		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
+		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
+
+		controllers.NewStatic(router, sdeUpdater)
 		controllers.NewCharacters(router, charactersRepository)
 		controllers.NewUsers(router, usersRepository, assetUpdater)
 		controllers.NewAssets(router, assetsRepository)
@@ -105,10 +109,28 @@ var rootCmd = &cobra.Command{
 
 		group.Go(router.Run(ctx))
 
-		// Start market price update scheduler
+		// Start SDE update scheduler (24h)
+		sdeRunner := runners.NewSdeRunner(sdeUpdater, 24*time.Hour)
+		group.Go(func() error {
+			return sdeRunner.Run(ctx)
+		})
+
+		// Start market price update scheduler (6h)
 		marketPricesRunner := runners.NewMarketPricesRunner(marketPricesUpdater, 6*time.Hour)
 		group.Go(func() error {
 			return marketPricesRunner.Run(ctx)
+		})
+
+		// Start CCP adjusted prices update scheduler (1h)
+		ccpPricesRunner := runners.NewCcpPricesRunner(ccpPricesUpdater, 1*time.Hour)
+		group.Go(func() error {
+			return ccpPricesRunner.Run(ctx)
+		})
+
+		// Start industry cost indices update scheduler (1h)
+		costIndicesRunner := runners.NewIndustryCostIndicesRunner(costIndicesUpdater, 1*time.Hour)
+		group.Go(func() error {
+			return costIndicesRunner.Run(ctx)
 		})
 
 		log.Info("services started")

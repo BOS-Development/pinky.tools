@@ -20,10 +20,7 @@ test.describe('Assets Page', () => {
     await expect(page.getByRole('link', { name: /Refresh Assets/i })).toBeVisible({ timeout: 10000 });
     await page.getByRole('link', { name: /Refresh Assets/i }).click();
 
-    // Wait for refresh to complete
-    await page.waitForTimeout(5000);
-
-    // Navigate to inventory
+    // Navigate to inventory (the toBeVisible assertion below handles waiting for refresh)
     await page.goto('/inventory');
 
     // Jita station should appear with Alice Alpha's assets
@@ -51,7 +48,8 @@ test.describe('Assets Page', () => {
   test('displays container with nested assets', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Expand Jita
+    // Wait for assets to load, then expand Jita
+    await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
     await page.getByText('Jita IV - Moon 4').click();
 
     // Container name from mock ESI
@@ -84,9 +82,6 @@ test.describe('Assets Page', () => {
     // Use search to filter
     const searchInput = page.getByPlaceholder('Search items...');
     await searchInput.fill('Tritanium');
-
-    // Wait for search results to render
-    await page.waitForTimeout(1000);
 
     // Tritanium should be visible in search results (auto-expanded)
     await expect(page.getByText('Tritanium').first()).toBeVisible({ timeout: 10000 });

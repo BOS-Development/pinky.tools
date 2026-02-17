@@ -33,6 +33,10 @@ type PlayerCorporationRepository interface {
 	UpsertDivisions(ctx context.Context, corp, user int64, divisions *models.CorporationDivisions) error
 }
 
+type StationRepository interface {
+	Upsert(ctx context.Context, stations []models.Station) error
+}
+
 type EsiClient interface {
 	GetCharacterAssets(ctx context.Context, characterID int64, token, refresh string, expire time.Time) ([]*models.EveAsset, error)
 	GetCharacterLocationNames(ctx context.Context, characterID int64, token, refresh string, expire time.Time, ids []int64) (map[int64]string, error)

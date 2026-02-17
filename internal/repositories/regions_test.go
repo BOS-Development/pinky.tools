@@ -10,7 +10,7 @@ import (
 )
 
 func Test_RegionsShouldUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	regionsRepo := repositories.NewRegions(db)
@@ -37,7 +37,7 @@ func Test_RegionsShouldUpsert(t *testing.T) {
 }
 
 func Test_RegionsShouldHandleEmptyUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	regionsRepo := repositories.NewRegions(db)

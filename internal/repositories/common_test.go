@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"strconv"
+	"testing"
 
 	"github.com/annymsMthd/industry-tool/internal/database"
 	"github.com/pkg/errors"
@@ -17,7 +18,9 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
-func setupDatabase() (*sql.DB, error) {
+func setupDatabase(t *testing.T) (*sql.DB, error) {
+	t.Helper()
+
 	databaseName := "testDatabase_" + strconv.Itoa(rand.Int())
 
 	host := getEnvOrDefault("DATABASE_HOST", "localhost")
@@ -47,16 +50,12 @@ func setupDatabase() (*sql.DB, error) {
 		return nil, errors.Wrap(err, "failed to get database")
 	}
 
-	// Set connection pool limits to prevent exhausting PostgreSQL connections
-	db.SetMaxOpenConns(5)
-	db.SetMaxIdleConns(2)
+	db.SetMaxOpenConns(2)
+	db.SetMaxIdleConns(1)
+
+	t.Cleanup(func() {
+		db.Close()
+	})
 
 	return db, nil
-}
-
-func cleanupDatabase(db *sql.DB, databaseName string) error {
-	if db != nil {
-		db.Close()
-	}
-	return nil
 }

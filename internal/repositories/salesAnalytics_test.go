@@ -12,9 +12,9 @@ import (
 )
 
 func TestSalesAnalytics_GetSalesMetrics(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
-	defer db.Close()
+
 
 	ctx := context.Background()
 
@@ -93,9 +93,9 @@ func TestSalesAnalytics_GetSalesMetrics(t *testing.T) {
 }
 
 func TestSalesAnalytics_GetTopItems(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
-	defer db.Close()
+
 
 	ctx := context.Background()
 
@@ -191,9 +191,9 @@ func TestSalesAnalytics_GetTopItems(t *testing.T) {
 }
 
 func TestSalesAnalytics_GetBuyerAnalytics(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
-	defer db.Close()
+
 
 	ctx := context.Background()
 
@@ -296,9 +296,9 @@ func TestSalesAnalytics_GetBuyerAnalytics(t *testing.T) {
 }
 
 func TestSalesAnalytics_GetItemSalesHistory(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
-	defer db.Close()
+
 
 	ctx := context.Background()
 

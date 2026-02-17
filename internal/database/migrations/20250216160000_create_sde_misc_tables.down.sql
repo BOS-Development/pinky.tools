@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS sde_tournament_rule_sets;
+DROP TABLE IF EXISTS sde_corporation_activities;
+DROP TABLE IF EXISTS sde_character_attributes;
+DROP TABLE IF EXISTS sde_research_agents;
+DROP TABLE IF EXISTS sde_contraband_types;
+DROP TABLE IF EXISTS sde_station_services;
+DROP TABLE IF EXISTS sde_station_operations;
+DROP TABLE IF EXISTS sde_landmarks;
+DROP TABLE IF EXISTS sde_certificates;
+DROP TABLE IF EXISTS sde_skin_materials;
+DROP TABLE IF EXISTS sde_skin_licenses;
+DROP TABLE IF EXISTS sde_skins;

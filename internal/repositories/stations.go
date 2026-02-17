@@ -38,7 +38,7 @@ insert into
 on conflict
 	(station_id)
 do update set
-	name = EXCLUDED.name,
+	name = CASE WHEN EXCLUDED.name = '' THEN stations.name ELSE EXCLUDED.name END,
 	solar_system_id = EXCLUDED.solar_system_id,
 	corporation_id = EXCLUDED.corporation_id,
 	is_npc_station = EXCLUDED.is_npc_station;

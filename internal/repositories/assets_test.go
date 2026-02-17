@@ -67,7 +67,7 @@ func setupTestUniverse(t *testing.T, db any) {
 }
 
 func Test_AssetsShouldGetCharacterAssetsInStation(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -141,7 +141,7 @@ func Test_AssetsShouldGetCharacterAssetsInStation(t *testing.T) {
 }
 
 func Test_AssetsShouldGetCharacterAssetsInContainers(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -237,7 +237,7 @@ func Test_AssetsShouldGetCharacterAssetsInContainers(t *testing.T) {
 }
 
 func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -497,7 +497,7 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 }
 
 func Test_AssetsShouldHandleNestedContainersInOffices(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -642,7 +642,7 @@ func Test_AssetsShouldHandleNestedContainersInOffices(t *testing.T) {
 }
 
 func Test_NestedContainersShouldNotDuplicateAcrossStations(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -785,7 +785,7 @@ func Test_NestedContainersShouldNotDuplicateAcrossStations(t *testing.T) {
 }
 
 func Test_AssetsShouldGetCorporationAssetsInContainers(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -903,7 +903,7 @@ func Test_AssetsShouldGetCorporationAssetsInContainers(t *testing.T) {
 }
 
 func Test_AssetsShouldShowEmptyCorporationDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -1004,7 +1004,7 @@ func Test_AssetsShouldShowEmptyCorporationDivisions(t *testing.T) {
 }
 
 func Test_AssetsShouldGetMixedCharacterAndCorporationAssets(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -1142,7 +1142,7 @@ func Test_AssetsShouldGetMixedCharacterAndCorporationAssets(t *testing.T) {
 }
 
 func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -1380,7 +1380,7 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 }
 
 func Test_AssetsShouldNotDuplicateContainersAcrossDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -1553,7 +1553,7 @@ func Test_AssetsShouldNotDuplicateContainersAcrossDivisions(t *testing.T) {
 }
 
 func Test_AssetsShouldGetUserAssetsSummary(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)
@@ -1654,7 +1654,7 @@ func Test_AssetsShouldGetUserAssetsSummary(t *testing.T) {
 }
 
 func Test_AssetsShouldReturnZeroSummaryForNoAssets(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	setupTestUniverse(t, db)

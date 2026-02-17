@@ -11,19 +11,23 @@ BEGIN;
 
 INSERT INTO regions (region_id, name) VALUES
   (10000002, 'The Forge'),
-  (10000043, 'Domain');
+  (10000043, 'Domain')
+ON CONFLICT (region_id) DO NOTHING;
 
 INSERT INTO constellations (constellation_id, name, region_id) VALUES
   (20000020, 'Kimotoro', 10000002),
-  (20000322, 'Throne Worlds', 10000043);
+  (20000322, 'Throne Worlds', 10000043)
+ON CONFLICT (constellation_id) DO NOTHING;
 
 INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES
   (30000142, 'Jita', 20000020, 0.9),
-  (30002187, 'Amarr', 20000322, 1.0);
+  (30002187, 'Amarr', 20000322, 1.0)
+ON CONFLICT (solar_system_id) DO NOTHING;
 
 INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station) VALUES
   (60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 30000142, 1000035, true),
-  (60008494, 'Amarr VIII (Oris) - Emperor Family Academy', 30002187, 1000066, true);
+  (60008494, 'Amarr VIII (Oris) - Emperor Family Academy', 30002187, 1000066, true)
+ON CONFLICT (station_id) DO NOTHING;
 
 INSERT INTO asset_item_types (type_id, type_name, volume, icon_id) VALUES
   (34, 'Tritanium', 0.01, 34),
@@ -34,7 +38,8 @@ INSERT INTO asset_item_types (type_id, type_name, volume, icon_id) VALUES
   (587, 'Rifter', 16500, 587),
   (11399, 'Raven Navy Issue', 486000, 11399),
   (17703, 'Medium Standard Container', 65, 17703),
-  (27, 'Office', 0, NULL);
+  (27, 'Office', 0, NULL)
+ON CONFLICT (type_id) DO NOTHING;
 
 -- ===========================================
 -- Users (created via NextAuth CredentialsProvider login)

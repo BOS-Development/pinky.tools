@@ -10,7 +10,7 @@ import (
 )
 
 func Test_ContactPermissionsShouldUpsert(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -57,7 +57,7 @@ func Test_ContactPermissionsShouldUpsert(t *testing.T) {
 }
 
 func Test_ContactPermissionsShouldUpdateExisting(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -107,7 +107,7 @@ func Test_ContactPermissionsShouldUpdateExisting(t *testing.T) {
 }
 
 func Test_ContactPermissionsShouldCheckPermission(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -157,7 +157,7 @@ func Test_ContactPermissionsShouldCheckPermission(t *testing.T) {
 }
 
 func Test_ContactPermissionsShouldGetUserPermissionsForService(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -225,7 +225,7 @@ func Test_ContactPermissionsShouldGetUserPermissionsForService(t *testing.T) {
 }
 
 func Test_ContactPermissionsShouldInitializePermissionsForContact(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -274,7 +274,7 @@ func Test_ContactPermissionsShouldInitializePermissionsForContact(t *testing.T) 
 }
 
 func Test_ContactPermissionsShouldGetByContact(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -343,7 +343,7 @@ func Test_ContactPermissionsShouldGetByContact(t *testing.T) {
 }
 
 func Test_ContactPermissionsShouldBeUnidirectional(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)

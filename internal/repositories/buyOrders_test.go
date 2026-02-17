@@ -10,7 +10,7 @@ import (
 )
 
 func Test_BuyOrders_CreateAndGet(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -57,7 +57,7 @@ func Test_BuyOrders_CreateAndGet(t *testing.T) {
 }
 
 func Test_BuyOrders_GetByUser(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -104,7 +104,7 @@ func Test_BuyOrders_GetByUser(t *testing.T) {
 }
 
 func Test_BuyOrders_Update(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -153,7 +153,7 @@ func Test_BuyOrders_Update(t *testing.T) {
 }
 
 func Test_BuyOrders_Delete(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -194,7 +194,7 @@ func Test_BuyOrders_Delete(t *testing.T) {
 }
 
 func Test_BuyOrders_GetDemandForSeller(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -295,7 +295,7 @@ func Test_BuyOrders_GetDemandForSeller(t *testing.T) {
 }
 
 func Test_BuyOrders_GetByID_NotFound(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	repo := repositories.NewBuyOrders(db)
@@ -306,7 +306,7 @@ func Test_BuyOrders_GetByID_NotFound(t *testing.T) {
 }
 
 func Test_BuyOrders_Update_NotFound(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	repo := repositories.NewBuyOrders(db)
@@ -324,7 +324,7 @@ func Test_BuyOrders_Update_NotFound(t *testing.T) {
 }
 
 func Test_BuyOrders_Delete_NotFound(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	repo := repositories.NewBuyOrders(db)

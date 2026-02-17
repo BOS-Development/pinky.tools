@@ -9,7 +9,7 @@ import (
 )
 
 func Test_ContactsShouldCreateAndGet(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -52,7 +52,7 @@ func Test_ContactsShouldCreateAndGet(t *testing.T) {
 }
 
 func Test_ContactsShouldUpdateStatus(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -86,7 +86,7 @@ func Test_ContactsShouldUpdateStatus(t *testing.T) {
 }
 
 func Test_ContactsShouldRejectStatus(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -120,7 +120,7 @@ func Test_ContactsShouldRejectStatus(t *testing.T) {
 }
 
 func Test_ContactsShouldDelete(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -157,7 +157,7 @@ func Test_ContactsShouldDelete(t *testing.T) {
 }
 
 func Test_ContactsShouldPreventDuplicates(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -190,7 +190,7 @@ func Test_ContactsShouldPreventDuplicates(t *testing.T) {
 }
 
 func Test_ContactsShouldGetByUserBidirectional(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -234,7 +234,7 @@ func Test_ContactsShouldGetByUserBidirectional(t *testing.T) {
 }
 
 func Test_ContactsShouldGetUserIDByCharacterName(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -256,7 +256,7 @@ func Test_ContactsShouldGetUserIDByCharacterName(t *testing.T) {
 }
 
 func Test_ContactsShouldGetUserIDByCharacterNameCaseInsensitive(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -278,7 +278,7 @@ func Test_ContactsShouldGetUserIDByCharacterNameCaseInsensitive(t *testing.T) {
 }
 
 func Test_ContactsShouldGetUserIDByCharacterID(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)
@@ -300,7 +300,7 @@ func Test_ContactsShouldGetUserIDByCharacterID(t *testing.T) {
 }
 
 func Test_ContactsShouldNotUpdateStatusIfNotRecipient(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepo := repositories.NewUserRepository(db)

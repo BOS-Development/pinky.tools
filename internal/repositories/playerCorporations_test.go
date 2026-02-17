@@ -11,7 +11,7 @@ import (
 )
 
 func Test_PlayerCorporationsShouldUpsertAndGet(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)
@@ -48,7 +48,7 @@ func Test_PlayerCorporationsShouldUpsertAndGet(t *testing.T) {
 }
 
 func Test_PlayerCorporationsShouldUpdateExistingCorporation(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)
@@ -95,7 +95,7 @@ func Test_PlayerCorporationsShouldUpdateExistingCorporation(t *testing.T) {
 }
 
 func Test_PlayerCorporationsShouldUpsertDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)
@@ -142,7 +142,7 @@ func Test_PlayerCorporationsShouldUpsertDivisions(t *testing.T) {
 }
 
 func Test_PlayerCorporationsShouldUpdateDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)
@@ -205,7 +205,7 @@ func Test_PlayerCorporationsShouldUpdateDivisions(t *testing.T) {
 }
 
 func Test_PlayerCorporationsShouldHandleNilDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)
@@ -241,7 +241,7 @@ func Test_PlayerCorporationsShouldHandleNilDivisions(t *testing.T) {
 }
 
 func Test_PlayerCorporationsShouldHandleEmptyDivisions(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userRepository := repositories.NewUserRepository(db)
