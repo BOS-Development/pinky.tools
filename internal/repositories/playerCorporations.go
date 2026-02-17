@@ -60,6 +60,21 @@ do update set
 	return nil
 }
 
+func (r *PlayerCorporations) UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error {
+	_, err := r.db.ExecContext(ctx, `
+update player_corporations set
+	esi_token = $1,
+	esi_refresh_token = $2,
+	esi_token_expires_on = $3
+where
+	id = $4 and user_id = $5;
+	`, token, refreshToken, expiresOn, id, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update corporation tokens")
+	}
+	return nil
+}
+
 func (r *PlayerCorporations) Get(ctx context.Context, user int64) ([]PlayerCorporation, error) {
 	query := `
 select

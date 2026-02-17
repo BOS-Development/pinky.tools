@@ -83,6 +83,21 @@ func (r *CharacterRepository) Get(ctx context.Context, id string) (*Character, e
 	return &char, nil
 }
 
+func (r *CharacterRepository) UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error {
+	_, err := r.db.ExecContext(ctx, `
+update characters set
+	esi_token = $1,
+	esi_refresh_token = $2,
+	esi_token_expires_on = $3
+where
+	id = $4 and user_id = $5;
+	`, token, refreshToken, expiresOn, id, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update character tokens")
+	}
+	return nil
+}
+
 func (r *CharacterRepository) Add(ctx context.Context, character *Character) error {
 	_, err := r.db.ExecContext(ctx, `
 insert into

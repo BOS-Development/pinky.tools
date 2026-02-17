@@ -674,3 +674,29 @@ func (c *EsiClient) GetIndustryCostIndices(ctx context.Context) ([]*IndustryCost
 
 	return systems, nil
 }
+
+// RefreshedToken holds the result of a token refresh.
+type RefreshedToken struct {
+	AccessToken  string
+	RefreshToken string
+	Expiry       time.Time
+}
+
+// RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
+// Returns the new access token, refresh token, and expiry. The caller is responsible
+// for persisting these back to the database.
+func (c *EsiClient) RefreshAccessToken(ctx context.Context, refreshToken string) (*RefreshedToken, error) {
+	t := &oauth2.Token{
+		RefreshToken: refreshToken,
+	}
+	src := c.oauthConfig.TokenSource(ctx, t)
+	newToken, err := src.Token()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to refresh ESI access token")
+	}
+	return &RefreshedToken{
+		AccessToken:  newToken.AccessToken,
+		RefreshToken: newToken.RefreshToken,
+		Expiry:       newToken.Expiry,
+	}, nil
+}
