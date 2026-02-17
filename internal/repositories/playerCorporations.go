@@ -16,6 +16,7 @@ type PlayerCorporation struct {
 	EsiToken        string
 	EsiRefreshToken string
 	EsiExpiresOn    time.Time
+	EsiScopes       string
 }
 
 type PlayerCorporations struct {
@@ -38,19 +39,21 @@ insert into
 		name,
 		esi_token,
 		esi_refresh_token,
-		esi_token_expires_on
+		esi_token_expires_on,
+		esi_scopes
 	)
 	values
-		($1,$2,$3,$4,$5,$6)
+		($1,$2,$3,$4,$5,$6,$7)
 on conflict
 	(id, user_id)
 do update set
 	name = EXCLUDED.name,
 	esi_token = EXCLUDED.esi_token,
 	esi_refresh_token = EXCLUDED.esi_refresh_token,
-	esi_token_expires_on = EXCLUDED.esi_token_expires_on;`
+	esi_token_expires_on = EXCLUDED.esi_token_expires_on,
+	esi_scopes = EXCLUDED.esi_scopes;`
 
-	_, err := r.db.ExecContext(ctx, upsertQuery, corp.ID, corp.UserID, corp.Name, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn)
+	_, err := r.db.ExecContext(ctx, upsertQuery, corp.ID, corp.UserID, corp.Name, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn, corp.EsiScopes)
 	if err != nil {
 		return errors.Wrap(err, "failed to execute player corporation upsert")
 	}
@@ -65,7 +68,8 @@ select
 	name,
 	esi_token,
 	esi_refresh_token,
-	esi_token_expires_on
+	esi_token_expires_on,
+	esi_scopes
 from
 	player_corporations
 where
@@ -80,7 +84,7 @@ where
 	corps := []PlayerCorporation{}
 	for rows.Next() {
 		var corp PlayerCorporation
-		err = rows.Scan(&corp.ID, &corp.UserID, &corp.Name, &corp.EsiToken, &corp.EsiRefreshToken, &corp.EsiExpiresOn)
+		err = rows.Scan(&corp.ID, &corp.UserID, &corp.Name, &corp.EsiToken, &corp.EsiRefreshToken, &corp.EsiExpiresOn, &corp.EsiScopes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan player corporation row")
 		}

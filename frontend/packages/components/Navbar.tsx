@@ -32,7 +32,8 @@ export default function Navbar() {
         const response = await fetch('/api/contacts');
         if (!response.ok) return;
 
-        const contacts: Contact[] = await response.json();
+        const contacts: Contact[] | null = await response.json();
+        if (!contacts) return;
         const currentUserId = parseInt(session.providerAccountId);
 
         // Count pending requests where current user is the recipient

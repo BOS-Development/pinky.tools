@@ -1,19 +1,32 @@
 import * as client from "openid-client";
 
-let config: client.Configuration = await client.discovery(
-  new URL("https://login.eveonline.com"),
-  process.env.ALT_EVE_CLIENT_ID as string,
-  process.env.ALT_EVE_CLIENT_SECRET as string,
-);
+// Lazy discovery — only connects to EVE SSO when an OAuth flow is triggered,
+// not at module import time (avoids failures in E2E where SSO is unreachable).
+let config: client.Configuration | null = null;
 
-const code_verifier: string = client.randomPKCECodeVerifier();
+async function getConfig(): Promise<client.Configuration> {
+  if (!config) {
+    config = await client.discovery(
+      new URL("https://login.eveonline.com"),
+      process.env.EVE_CLIENT_ID as string,
+      process.env.EVE_CLIENT_SECRET as string,
+    );
+  }
+  return config;
+}
 
-let state!: string;
-let redirect_uri = process.env.NEXTAUTH_URL + "api/altAuth/callback";
+let redirect_uri = process.env.NEXTAUTH_URL + "api/auth/callback";
 
-const stateMaps: { [key: string]: string } = {};
+type StateEntry = {
+  flowType: FlowType;
+  codeVerifier: string;
+};
 
-let scopesArray = [
+const stateMaps: { [key: string]: StateEntry } = {};
+
+export type FlowType = "login" | "char" | "corp";
+
+export let scopesArray = [
   "publicData",
   "esi-skills.read_skills.v1",
   "esi-skills.read_skillqueue.v1",
@@ -45,8 +58,9 @@ let scopesArray = [
   "esi-corporations.read_facilities.v1",
   "esi-corporations.read_freelance_jobs.v1",
 ];
-let playerScope = scopesArray.join(" ");
-let corpScopesArray = [
+export let playerScope = scopesArray.join(" ");
+
+export let corpScopesArray = [
   "esi-wallet.read_corporation_wallet.v1",
   "esi-search.search_structures.v1",
   "esi-universe.read_structures.v1",
@@ -62,36 +76,58 @@ let corpScopesArray = [
   "esi-corporations.read_freelance_jobs.v1",
   "esi-corporations.read_divisions.v1",
 ];
-let corpScope = corpScopesArray.join(" ");
+export let corpScope = corpScopesArray.join(" ");
 
 let base = process.env.NEXTAUTH_URL as string;
 
 export type VerifyTokenResponse = {
   tokenResponse: client.TokenEndpointResponse;
-  redirectType: string;
+  flowType: FlowType;
 };
+
 export async function verifyToken(
   url: string,
   state: string,
 ): Promise<VerifyTokenResponse> {
-  let redirectType = stateMaps[state];
+  let entry = stateMaps[state];
+  if (!entry) {
+    throw new Error(`unknown state: ${state}`);
+  }
+
+  let cfg = await getConfig();
   let tokens: client.TokenEndpointResponse =
-    await client.authorizationCodeGrant(config, new URL(base + url), {
-      pkceCodeVerifier: code_verifier,
+    await client.authorizationCodeGrant(cfg, new URL(base + url), {
+      pkceCodeVerifier: entry.codeVerifier,
       expectedState: state,
     });
 
+  // Clean up used state
+  delete stateMaps[state];
+
   return {
     tokenResponse: tokens,
-    redirectType,
+    flowType: entry.flowType,
   };
 }
 
-export default async function getAuthUrl(isCorp: boolean): Promise<string> {
+export default async function getAuthUrl(flowType: FlowType): Promise<string> {
+  let code_verifier = client.randomPKCECodeVerifier();
   let code_challenge: string =
     await client.calculatePKCECodeChallenge(code_verifier);
 
-  let scope = isCorp ? corpScope : playerScope;
+  let scope: string;
+  switch (flowType) {
+    case "login":
+      scope = "publicData";
+      break;
+    case "char":
+      scope = playerScope;
+      break;
+    case "corp":
+      scope = corpScope;
+      break;
+  }
+
   let parameters: Record<string, string> = {
     redirect_uri: redirect_uri,
     scope,
@@ -99,10 +135,11 @@ export default async function getAuthUrl(isCorp: boolean): Promise<string> {
     code_challenge_method: "S256",
   };
 
-  state = client.randomState();
+  let state = client.randomState();
   parameters.state = state;
-  stateMaps[state] = isCorp ? "corp" : "char";
+  stateMaps[state] = { flowType, codeVerifier: code_verifier };
 
-  let redirectTo: URL = client.buildAuthorizationUrl(config, parameters);
+  let cfg = await getConfig();
+  let redirectTo: URL = client.buildAuthorizationUrl(cfg, parameters);
   return redirectTo.toString();
 }

@@ -20,9 +20,8 @@ openssl rand -base64 32
 
 Create at https://developers.eveonline.com/ with:
 
-**Callback URLs** (update `<railway-url>` after deployment):
-- `https://<railway-url>/api/auth/callback/eveonline`
-- `https://<railway-url>/api/altAuth/callback`
+**Callback URL** (update `<railway-url>` after deployment):
+- `https://<railway-url>/api/auth/callback`
 
 **Required Scopes:** See [frontend/packages/client/auth/api.ts](../../frontend/packages/client/auth/api.ts) for complete list. Minimum:
 - `esi-assets.read_assets.v1`, `esi-assets.read_corporation_assets.v1`
@@ -56,11 +55,9 @@ NEXTAUTH_URL=https://$RAILWAY_PUBLIC_DOMAIN/
 NEXTAUTH_SECRET=<generated-secret>
 EVE_CLIENT_ID=<eve-client-id>
 EVE_CLIENT_SECRET=<eve-client-secret>
-ALT_EVE_CLIENT_ID=<eve-client-id>
-ALT_EVE_CLIENT_SECRET=<eve-client-secret>
 ```
 
-**Note:** All OAuth variables (`EVE_CLIENT_ID`, `ALT_EVE_CLIENT_ID`, `OAUTH_CLIENT_ID`) use the **same** EVE Online application credentials.
+**Note:** `EVE_CLIENT_ID` and `OAUTH_CLIENT_ID` use the **same** EVE Online application credentials.
 
 ## Deployment Steps
 
@@ -93,9 +90,8 @@ ALT_EVE_CLIENT_SECRET=<eve-client-secret>
 
 ### 4. Update EVE OAuth Callbacks
 
-Update your EVE Online application at https://developers.eveonline.com/ with both:
-- `https://<railway-url>/api/auth/callback/eveonline`
-- `https://<railway-url>/api/altAuth/callback`
+Update your EVE Online application at https://developers.eveonline.com/ with:
+- `https://<railway-url>/api/auth/callback`
 
 ### 5. Verify
 
@@ -105,10 +101,9 @@ Update your EVE Online application at https://developers.eveonline.com/ with bot
 
 | Issue | Solution |
 |-------|----------|
-| **"clientId must be a non-empty string"** when adding characters | Missing `ALT_EVE_CLIENT_ID`/`ALT_EVE_CLIENT_SECRET` in Frontend. Add both (same values as `EVE_CLIENT_ID`). Verify callback: `https://<url>/api/altAuth/callback` |
 | Backend can't connect to database | Check service name is `Postgres` (case-sensitive). Verify `DATABASE_*` variables use `${{Postgres.PGHOST}}` syntax |
 | Frontend gets 401 from backend | `BACKEND_KEY` must match in both services. Use `${{Backend.BACKEND_KEY}}` in Frontend |
-| OAuth callback fails | Check `NEXTAUTH_URL` matches Railway domain exactly (with `https://` and trailing `/`). Verify both callback URLs in EVE app |
+| OAuth callback fails | Check `NEXTAUTH_URL` matches Railway domain exactly (with `https://` and trailing `/`). Verify callback URL in EVE app: `https://<url>/api/auth/callback` |
 | Frontend can't reach backend | `BACKEND_URL` must be `http://backend.production.railway.internal:8081/`. Service name must be exactly `Backend` |
 | Docker build fails | Verify build args: Backend `--target final-backend`, Frontend `--target publish-ui` |
 

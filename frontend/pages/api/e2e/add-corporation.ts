@@ -33,6 +33,7 @@ export default async function handler(
     esiToken: `fake-token-${characterName.toLowerCase().replace(/\s+/g, "-")}`,
     esiRefreshToken: `fake-refresh-${characterName.toLowerCase().replace(/\s+/g, "-")}`,
     esiTokenExpiresOn: expiresOn,
+    esiScopes: "esi-assets.read_corporation_assets.v1 esi-corporations.read_divisions.v1",
   });
 
   if (response.kind === "error") {

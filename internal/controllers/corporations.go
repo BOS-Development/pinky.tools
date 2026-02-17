@@ -66,6 +66,7 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 		EsiToken:        character.EsiToken,
 		EsiRefreshToken: character.EsiRefreshToken,
 		EsiExpiresOn:    character.EsiTokenExpiresOn,
+		EsiScopes:       character.EsiScopes,
 	})
 	if err != nil {
 		return nil, &web.HttpError{
