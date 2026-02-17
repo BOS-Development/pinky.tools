@@ -97,18 +97,6 @@ type MarketOrder struct {
 }
 
 func (c *EsiClient) GetCharacterAssets(ctx context.Context, characterID int64, token, refresh string, expire time.Time) ([]*models.EveAsset, error) {
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	assets := []*models.EveAsset{}
 
 	page := 1
@@ -122,10 +110,10 @@ func (c *EsiClient) GetCharacterAssets(ctx context.Context, characterID int64, t
 		req := &http.Request{
 			Method: "GET",
 			URL:    url,
-			Header: c.getCommonHeaders(),
+			Header: c.getAuthHeaders(token),
 		}
 
-		res, err := client.Do(req)
+		res, err := c.httpClient.Do(req)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get character assets")
 		}
@@ -179,18 +167,6 @@ func (c *EsiClient) GetCharacterLocationNames(ctx context.Context, characterID i
 		return map[int64]string{}, nil
 	}
 
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	// todo: handle more than 1000 locations because black omega things
 	names := map[int64]string{}
 
@@ -205,9 +181,9 @@ func (c *EsiClient) GetCharacterLocationNames(ctx context.Context, characterID i
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
 	}
-	req.Header = c.getCommonHeaders()
+	req.Header = c.getAuthHeaders(token)
 
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get character location names")
 	}
@@ -246,18 +222,6 @@ func (c *EsiClient) GetPlayerOwnedStationInformation(ctx context.Context, token,
 		return []models.Station{}, nil
 	}
 
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	stations := []models.Station{}
 	for _, id := range ids {
 		url, err := url.Parse(fmt.Sprintf("%s/universe/structures/%d", c.baseURL, id))
@@ -268,10 +232,10 @@ func (c *EsiClient) GetPlayerOwnedStationInformation(ctx context.Context, token,
 		req := &http.Request{
 			Method: "GET",
 			URL:    url,
-			Header: c.getCommonHeaders(),
+			Header: c.getAuthHeaders(token),
 		}
 
-		res, err := client.Do(req)
+		res, err := c.httpClient.Do(req)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get player owned structure")
 		}
@@ -322,27 +286,15 @@ type corporationInformation struct {
 }
 
 func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int64, token, refresh string, expire time.Time) (*models.Corporation, error) {
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	jsons := fmt.Sprintf("[%d]", characterID)
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/characters/affiliation", c.baseURL), bytes.NewBuffer([]byte(jsons)))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
 	}
-	req.Header = c.getCommonHeaders()
+	req.Header = c.getAuthHeaders(token)
 
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to do character affiliation")
 	}
@@ -371,10 +323,10 @@ func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int
 	req = &http.Request{
 		Method: "GET",
 		URL:    url,
-		Header: c.getCommonHeaders(),
+		Header: c.getAuthHeaders(token),
 	}
 
-	res, err = client.Do(req)
+	res, err = c.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to do corporation information")
 	}
@@ -397,18 +349,6 @@ func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int
 }
 
 func (c *EsiClient) GetCorporationAssets(ctx context.Context, corpID int64, token, refresh string, expire time.Time) ([]*models.EveAsset, error) {
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	assets := []*models.EveAsset{}
 
 	page := 1
@@ -422,10 +362,10 @@ func (c *EsiClient) GetCorporationAssets(ctx context.Context, corpID int64, toke
 		req := &http.Request{
 			Method: "GET",
 			URL:    url,
-			Header: c.getCommonHeaders(),
+			Header: c.getAuthHeaders(token),
 		}
 
-		res, err := client.Do(req)
+		res, err := c.httpClient.Do(req)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get corporation assets")
 		}
@@ -474,18 +414,6 @@ func (c *EsiClient) GetCorporationLocationNames(ctx context.Context, corpID int6
 		return map[int64]string{}, nil
 	}
 
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	// todo: handle more than 1000 locations because black omega things
 	names := map[int64]string{}
 
@@ -497,9 +425,9 @@ func (c *EsiClient) GetCorporationLocationNames(ctx context.Context, corpID int6
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create request")
 	}
-	req.Header = c.getCommonHeaders()
+	req.Header = c.getAuthHeaders(token)
 
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get corporation location names")
 	}
@@ -539,18 +467,6 @@ type divisionResponse struct {
 }
 
 func (c *EsiClient) GetCorporationDivisions(ctx context.Context, corpID int64, token, refresh string, expire time.Time) (*models.CorporationDivisions, error) {
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		t := new(oauth2.Token)
-		t.AccessToken = token
-		t.RefreshToken = refresh
-		t.TokenType = ""
-		t.Expiry = expire
-		client = c.oauthConfig.Client(ctx, t)
-	}
-
 	url, err := url.Parse(fmt.Sprintf("%s/corporations/%d/divisions", c.baseURL, corpID))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse url")
@@ -559,10 +475,10 @@ func (c *EsiClient) GetCorporationDivisions(ctx context.Context, corpID int64, t
 	req := &http.Request{
 		Method: "GET",
 		URL:    url,
-		Header: c.getCommonHeaders(),
+		Header: c.getAuthHeaders(token),
 	}
 
-	res, err := client.Do(req)
+	res, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get corporation divisions")
 	}
@@ -600,13 +516,6 @@ func (c *EsiClient) GetCorporationDivisions(ctx context.Context, corpID int64, t
 }
 
 func (c *EsiClient) GetMarketOrders(ctx context.Context, regionID int64) ([]*MarketOrder, error) {
-	var client HTTPDoer
-	if c.httpClient != nil {
-		client = c.httpClient
-	} else {
-		client = &http.Client{}
-	}
-
 	orders := []*MarketOrder{}
 
 	page := 1
@@ -622,7 +531,7 @@ func (c *EsiClient) GetMarketOrders(ctx context.Context, regionID int64) ([]*Mar
 			Header: c.getCommonHeaders(),
 		}
 
-		res, err := client.Do(req)
+		res, err := c.httpClient.Do(req)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get market orders")
 		}
@@ -672,6 +581,12 @@ func (c *EsiClient) getCommonHeaders() http.Header {
 	headers.Add("X-Compatibility-Date", "2025-12-16")
 	headers.Add("Accept", "application/json")
 	headers.Add("Content-Type", "application/json")
+	return headers
+}
+
+func (c *EsiClient) getAuthHeaders(token string) http.Header {
+	headers := c.getCommonHeaders()
+	headers.Set("Authorization", "Bearer "+token)
 	return headers
 }
 
@@ -758,4 +673,30 @@ func (c *EsiClient) GetIndustryCostIndices(ctx context.Context) ([]*IndustryCost
 	}
 
 	return systems, nil
+}
+
+// RefreshedToken holds the result of a token refresh.
+type RefreshedToken struct {
+	AccessToken  string
+	RefreshToken string
+	Expiry       time.Time
+}
+
+// RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
+// Returns the new access token, refresh token, and expiry. The caller is responsible
+// for persisting these back to the database.
+func (c *EsiClient) RefreshAccessToken(ctx context.Context, refreshToken string) (*RefreshedToken, error) {
+	t := &oauth2.Token{
+		RefreshToken: refreshToken,
+	}
+	src := c.oauthConfig.TokenSource(ctx, t)
+	newToken, err := src.Token()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to refresh ESI access token")
+	}
+	return &RefreshedToken{
+		AccessToken:  newToken.AccessToken,
+		RefreshToken: newToken.RefreshToken,
+		Expiry:       newToken.Expiry,
+	}, nil
 }

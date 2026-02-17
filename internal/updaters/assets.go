@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/annymsMthd/industry-tool/internal/client"
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 
@@ -26,10 +28,12 @@ type PlayerCorporationAssetsRepository interface {
 
 type CharacterRepository interface {
 	GetAll(ctx context.Context, baseUserID int64) ([]*repositories.Character, error)
+	UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error
 }
 
 type PlayerCorporationRepository interface {
 	Get(ctx context.Context, user int64) ([]repositories.PlayerCorporation, error)
+	UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error
 	UpsertDivisions(ctx context.Context, corp, user int64, divisions *models.CorporationDivisions) error
 }
 
@@ -44,6 +48,7 @@ type EsiClient interface {
 	GetCorporationAssets(ctx context.Context, corpID int64, token, refresh string, expire time.Time) ([]*models.EveAsset, error)
 	GetCorporationLocationNames(ctx context.Context, corpID int64, token, refresh string, expire time.Time, ids []int64) (map[int64]string, error)
 	GetCorporationDivisions(ctx context.Context, corpID int64, token, refresh string, expire time.Time) (*models.CorporationDivisions, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (*client.RefreshedToken, error)
 }
 
 type Assets struct {
@@ -79,7 +84,25 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 	}
 
 	for _, char := range characters {
-		assets, err := u.esiClient.GetCharacterAssets(ctx, char.ID, char.EsiToken, char.EsiRefreshToken, char.EsiTokenExpiresOn)
+		token, refresh, expire := char.EsiToken, char.EsiRefreshToken, char.EsiTokenExpiresOn
+
+		if time.Now().After(expire) {
+			refreshed, err := u.esiClient.RefreshAccessToken(ctx, refresh)
+			if err != nil {
+				return errors.Wrapf(err, "failed to refresh token for character %d", char.ID)
+			}
+			token = refreshed.AccessToken
+			refresh = refreshed.RefreshToken
+			expire = refreshed.Expiry
+
+			err = u.characterRepository.UpdateTokens(ctx, char.ID, char.UserID, token, refresh, expire)
+			if err != nil {
+				return errors.Wrapf(err, "failed to persist refreshed token for character %d", char.ID)
+			}
+			log.Info("refreshed ESI token for character", "characterID", char.ID)
+		}
+
+		assets, err := u.esiClient.GetCharacterAssets(ctx, char.ID, token, refresh, expire)
 		if err != nil {
 			return errors.Wrap(err, "failed to get assets from the esi client")
 		}
@@ -94,7 +117,7 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 			return errors.Wrap(err, "failed to get character containers")
 		}
 
-		containerNames, err := u.esiClient.GetCharacterLocationNames(ctx, char.ID, char.EsiToken, char.EsiRefreshToken, char.EsiTokenExpiresOn, containers)
+		containerNames, err := u.esiClient.GetCharacterLocationNames(ctx, char.ID, token, refresh, expire, containers)
 		if err != nil {
 			return errors.Wrap(err, "failed to get character container names from esi")
 		}
@@ -109,7 +132,7 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 			return errors.Wrap(err, "failed to retrieve player owned station IDs")
 		}
 
-		stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, char.EsiToken, char.EsiRefreshToken, char.EsiTokenExpiresOn, playerOwnedStationIDs)
+		stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, token, refresh, expire, playerOwnedStationIDs)
 		if err != nil {
 			return errors.Wrap(err, "failed to get player owned station information from esi")
 		}
@@ -126,7 +149,25 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 	}
 
 	for _, corp := range corporations {
-		assets, err := u.esiClient.GetCorporationAssets(ctx, corp.ID, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn)
+		token, refresh, expire := corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn
+
+		if time.Now().After(expire) {
+			refreshed, err := u.esiClient.RefreshAccessToken(ctx, refresh)
+			if err != nil {
+				return errors.Wrapf(err, "failed to refresh token for corporation %d", corp.ID)
+			}
+			token = refreshed.AccessToken
+			refresh = refreshed.RefreshToken
+			expire = refreshed.Expiry
+
+			err = u.playerCorporationsRepository.UpdateTokens(ctx, corp.ID, corp.UserID, token, refresh, expire)
+			if err != nil {
+				return errors.Wrapf(err, "failed to persist refreshed token for corporation %d", corp.ID)
+			}
+			log.Info("refreshed ESI token for corporation", "corporationID", corp.ID)
+		}
+
+		assets, err := u.esiClient.GetCorporationAssets(ctx, corp.ID, token, refresh, expire)
 		if err != nil {
 			return errors.Wrap(err, "failed to get corp assets")
 		}
@@ -141,7 +182,7 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 			return errors.Wrap(err, "failed to get corp assembled containers")
 		}
 
-		containerNames, err := u.esiClient.GetCorporationLocationNames(ctx, corp.ID, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn, assembledContainers)
+		containerNames, err := u.esiClient.GetCorporationLocationNames(ctx, corp.ID, token, refresh, expire, assembledContainers)
 		if err != nil {
 			return errors.Wrap(err, "failed to get corp location names")
 		}
@@ -156,7 +197,7 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 			return errors.Wrap(err, "failed to get corp player owned stations id")
 		}
 
-		stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn, stationIDs)
+		stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, token, refresh, expire, stationIDs)
 		if err != nil {
 			return errors.Wrap(err, "failed to get player owned station information")
 		}
@@ -166,7 +207,7 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 			return errors.Wrap(err, "failed to upsert player owned stations")
 		}
 
-		divisions, err := u.esiClient.GetCorporationDivisions(ctx, corp.ID, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn)
+		divisions, err := u.esiClient.GetCorporationDivisions(ctx, corp.ID, token, refresh, expire)
 		if err != nil {
 			return errors.Wrap(err, "failed to get corporation divisions from esi client")
 		}

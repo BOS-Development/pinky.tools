@@ -200,7 +200,7 @@ export default function Home() {
             <Button
               variant="contained"
               size="large"
-              href="/api/auth/signin"
+              href="/api/auth/login"
               sx={{
                 fontSize: '1.1rem',
                 px: 4,

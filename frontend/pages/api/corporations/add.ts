@@ -5,7 +5,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  let redirectTo = await getAuthUrl(true);
+  let redirectTo = await getAuthUrl("corp");
 
   res.redirect(redirectTo);
 }

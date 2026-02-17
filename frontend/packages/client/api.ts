@@ -17,6 +17,7 @@ export type FullCharacterData = {
   esiToken: string;
   esiRefreshToken: string;
   esiTokenExpiresOn: Date;
+  esiScopes: string;
 };
 
 const getHeaders = (id: string) => {

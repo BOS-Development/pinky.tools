@@ -1,6 +1,5 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import EVEOnlineProvider from "next-auth/providers/eveonline";
 
 type User = {
   id: number;
@@ -12,7 +11,7 @@ let commonHeaders = {
   "BACKEND-KEY": process.env.BACKEND_KEY as string,
 };
 
-let getUser = async (id: number): Promise<User | null> => {
+export let getUser = async (id: number): Promise<User | null> => {
   let path = process.env.BACKEND_URL + "v1/users/" + id;
 
   try {
@@ -56,7 +55,7 @@ let getUser = async (id: number): Promise<User | null> => {
   }
 };
 
-let addUser = async (user: User): Promise<boolean> => {
+export let addUser = async (user: User): Promise<boolean> => {
   let path = process.env.BACKEND_URL + "v1/users/";
 
   try {
@@ -96,35 +95,29 @@ let addUser = async (user: User): Promise<boolean> => {
 };
 
 const providers: any[] = [
-  EVEOnlineProvider({
-    clientId: process.env.EVE_CLIENT_ID as string,
-    clientSecret: process.env.EVE_CLIENT_SECRET as string,
+  CredentialsProvider({
+    name: "E2E Test Credentials",
+    credentials: {
+      userId: { label: "User ID", type: "text" },
+      userName: { label: "User Name", type: "text" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.userId || !credentials?.userName) {
+        return null;
+      }
+      return {
+        id: credentials.userId,
+        name: credentials.userName,
+      };
+    },
   }),
 ];
 
-if (process.env.E2E_TESTING === "true") {
-  providers.push(
-    CredentialsProvider({
-      name: "E2E Test Credentials",
-      credentials: {
-        userId: { label: "User ID", type: "text" },
-        userName: { label: "User Name", type: "text" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.userId || !credentials?.userName) {
-          return null;
-        }
-        return {
-          id: credentials.userId,
-          name: credentials.userName,
-        };
-      },
-    })
-  );
-}
-
 export const authOptions = {
   providers,
+  pages: {
+    signIn: "/api/auth/login",
+  },
   debug: process.env.NODE_ENV === 'development',
   logger: {
     error(code, metadata) {
@@ -160,12 +153,7 @@ export const authOptions = {
             accountId: account.providerAccountId,
           });
 
-          // For credentials provider, use user.id as providerAccountId
-          if (account.provider === "credentials") {
-            token.providerAccountId = user?.id;
-          } else {
-            token.providerAccountId = account.providerAccountId;
-          }
+          token.providerAccountId = user?.id;
 
           console.log('[NextAuth JWT] Fetching user from backend...');
           let existingUser = await getUser(Number(token.providerAccountId));

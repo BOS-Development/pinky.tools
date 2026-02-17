@@ -36,7 +36,7 @@ export default function Unuathorized() {
         <Button
           variant="contained"
           size="large"
-          href="api/auth/signin"
+          href="api/auth/login"
           fullWidth
         >
           Sign In

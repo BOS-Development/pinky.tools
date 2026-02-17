@@ -16,6 +16,7 @@ type PlayerCorporation struct {
 	EsiToken        string
 	EsiRefreshToken string
 	EsiExpiresOn    time.Time
+	EsiScopes       string
 }
 
 type PlayerCorporations struct {
@@ -38,21 +39,38 @@ insert into
 		name,
 		esi_token,
 		esi_refresh_token,
-		esi_token_expires_on
+		esi_token_expires_on,
+		esi_scopes
 	)
 	values
-		($1,$2,$3,$4,$5,$6)
+		($1,$2,$3,$4,$5,$6,$7)
 on conflict
 	(id, user_id)
 do update set
 	name = EXCLUDED.name,
 	esi_token = EXCLUDED.esi_token,
 	esi_refresh_token = EXCLUDED.esi_refresh_token,
-	esi_token_expires_on = EXCLUDED.esi_token_expires_on;`
+	esi_token_expires_on = EXCLUDED.esi_token_expires_on,
+	esi_scopes = EXCLUDED.esi_scopes;`
 
-	_, err := r.db.ExecContext(ctx, upsertQuery, corp.ID, corp.UserID, corp.Name, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn)
+	_, err := r.db.ExecContext(ctx, upsertQuery, corp.ID, corp.UserID, corp.Name, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn, corp.EsiScopes)
 	if err != nil {
 		return errors.Wrap(err, "failed to execute player corporation upsert")
+	}
+	return nil
+}
+
+func (r *PlayerCorporations) UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error {
+	_, err := r.db.ExecContext(ctx, `
+update player_corporations set
+	esi_token = $1,
+	esi_refresh_token = $2,
+	esi_token_expires_on = $3
+where
+	id = $4 and user_id = $5;
+	`, token, refreshToken, expiresOn, id, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update corporation tokens")
 	}
 	return nil
 }
@@ -65,7 +83,8 @@ select
 	name,
 	esi_token,
 	esi_refresh_token,
-	esi_token_expires_on
+	esi_token_expires_on,
+	esi_scopes
 from
 	player_corporations
 where
@@ -80,7 +99,7 @@ where
 	corps := []PlayerCorporation{}
 	for rows.Next() {
 		var corp PlayerCorporation
-		err = rows.Scan(&corp.ID, &corp.UserID, &corp.Name, &corp.EsiToken, &corp.EsiRefreshToken, &corp.EsiExpiresOn)
+		err = rows.Scan(&corp.ID, &corp.UserID, &corp.Name, &corp.EsiToken, &corp.EsiRefreshToken, &corp.EsiExpiresOn, &corp.EsiScopes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan player corporation row")
 		}

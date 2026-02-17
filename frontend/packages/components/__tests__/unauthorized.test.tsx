@@ -18,6 +18,6 @@ describe('Unauthorized Component', () => {
     const { getByRole } = render(<Unauthorized />);
     const signInLink = getByRole('link', { name: /sign in/i });
     expect(signInLink).toBeInTheDocument();
-    expect(signInLink).toHaveAttribute('href', 'api/auth/signin');
+    expect(signInLink).toHaveAttribute('href', 'api/auth/login');
   });
 });

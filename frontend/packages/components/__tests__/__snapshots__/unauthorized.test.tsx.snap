@@ -32,7 +32,7 @@ exports[`Unauthorized Component should match snapshot 1`] = `
       </p>
       <a
         class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-fullWidth css-13tpzue-MuiButtonBase-root-MuiButton-root"
-        href="api/auth/signin"
+        href="api/auth/login"
         tabindex="0"
       >
         Sign In

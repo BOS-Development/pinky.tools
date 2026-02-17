@@ -15,6 +15,7 @@ type Character struct {
 	EsiRefreshToken   string
 	EsiTokenExpiresOn time.Time
 	UserID            int64
+	EsiScopes         string
 }
 
 type CharacterRepository struct {
@@ -35,7 +36,8 @@ select
 	user_id,
 	esi_token,
 	esi_refresh_token,
-	esi_token_expires_on
+	esi_token_expires_on,
+	esi_scopes
 from
 	characters
 where
@@ -50,7 +52,7 @@ where
 	for rows.Next() {
 		var char Character
 
-		err = rows.Scan(&char.ID, &char.Name, &char.UserID, &char.EsiToken, &char.EsiRefreshToken, &char.EsiTokenExpiresOn)
+		err = rows.Scan(&char.ID, &char.Name, &char.UserID, &char.EsiToken, &char.EsiRefreshToken, &char.EsiTokenExpiresOn, &char.EsiScopes)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan charater")
 		}
@@ -81,21 +83,37 @@ func (r *CharacterRepository) Get(ctx context.Context, id string) (*Character, e
 	return &char, nil
 }
 
+func (r *CharacterRepository) UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error {
+	_, err := r.db.ExecContext(ctx, `
+update characters set
+	esi_token = $1,
+	esi_refresh_token = $2,
+	esi_token_expires_on = $3
+where
+	id = $4 and user_id = $5;
+	`, token, refreshToken, expiresOn, id, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update character tokens")
+	}
+	return nil
+}
+
 func (r *CharacterRepository) Add(ctx context.Context, character *Character) error {
 	_, err := r.db.ExecContext(ctx, `
 insert into
 	characters
-		(id, name, user_id, esi_token, esi_refresh_token, esi_token_expires_on)
+		(id, name, user_id, esi_token, esi_refresh_token, esi_token_expires_on, esi_scopes)
 	values
-		($1, $2, $3, $4, $5, $6)
+		($1, $2, $3, $4, $5, $6, $7)
 on conflict
 	(id, user_id)
 do update set
 	name = EXCLUDED.name,
 	esi_token = EXCLUDED.esi_token,
 	esi_refresh_token = EXCLUDED.esi_refresh_token,
-	esi_token_expires_on = EXCLUDED.esi_token_expires_on;
-	`, character.ID, character.Name, character.UserID, character.EsiToken, character.EsiRefreshToken, character.EsiTokenExpiresOn)
+	esi_token_expires_on = EXCLUDED.esi_token_expires_on,
+	esi_scopes = EXCLUDED.esi_scopes;
+	`, character.ID, character.Name, character.UserID, character.EsiToken, character.EsiRefreshToken, character.EsiTokenExpiresOn, character.EsiScopes)
 	if err != nil {
 		return errors.Wrap(err, "failed to insert character into database")
 	}

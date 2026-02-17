@@ -1,11 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import getAuthUrl from "@/packages/client/auth/api";
+import getAuthUrl from "@industry-tool/client/auth/api";
 
 export default async function handler(
-  req: NextApiRequest,
+  _req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  let redirectTo = await getAuthUrl("char");
-
+  let redirectTo = await getAuthUrl("login");
   res.redirect(redirectTo);
 }
