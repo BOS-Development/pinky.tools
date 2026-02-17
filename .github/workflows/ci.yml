@@ -2,8 +2,16 @@ name: CI
 
 on:
   push:
+    paths-ignore:
+        - '**/**/*.md'
+        - 'docs/**'
+        - '.vscode/**'
     branches: [ main, master ]
   pull_request:
+    paths-ignore:
+        - '**/**/*.md'
+        - 'docs/**'
+        - '.vscode/**'
     branches: [ main, master ]
 
 jobs:
