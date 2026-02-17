@@ -388,6 +388,21 @@ export default function Page(props: PageProps) {
 
 ## Testing
 
+**IMPORTANT**: Always prefer using the Makefile targets to run all tests. Do not run test commands directly — the Makefile handles Docker Compose orchestration, environment setup, and cleanup.
+
+```bash
+# Unit/integration tests
+make test-backend        # Backend Go tests with coverage
+make test-frontend       # Frontend Jest tests with coverage
+make test-all            # Run both backend and frontend tests
+make test-clean          # Clean up test containers
+
+# End-to-end tests (Playwright)
+make test-e2e            # Run E2E tests headless
+make test-e2e-ui         # Run E2E tests with Playwright UI
+make test-e2e-clean      # Clean up E2E containers
+```
+
 ### Integration Tests
 - Located in `internal/repositories/*_test.go`
 - Use testcontainers pattern (random DB names)
@@ -482,11 +497,12 @@ export default function Page(props: PageProps) {
 - For multi-file changes or architectural decisions, use plan mode first
 - Present options to the user when multiple approaches are valid
 - Break down large features into phases with clear verification steps
-- **Feature Documentation**: Check and update `docs/features/` directory
+- **Feature Documentation**: All feature plans MUST be documented in `docs/features/`
   - Always check for existing feature plans before starting work
-  - Create new feature docs for complex features (include schema, phases, verification)
-  - Examples: `contact-marketplace.md`, `jita-market-pricing.md`, `landing-page.md`
-  - Store in repo, not in local `.claude/plans/` directory
+  - Create a feature doc for every new feature or significant change (include overview, design decisions, schema, file structure, verification steps)
+  - Update existing docs when modifying a feature
+  - Examples: `contact-marketplace.md`, `jita-market-pricing.md`, `e2e-testing.md`
+  - Store in repo (`docs/features/`), not in local `.claude/plans/` directory
 
 **Code Quality Standards**
 
@@ -616,5 +632,5 @@ formatCompact(value)
 - **EVE Character Images**: `https://image.eveonline.com/Character/{id}_128.jpg`
 - **Corporation Logos**: `https://images.evetech.net/corporations/{id}/logo`
 - **Item Icons**: `https://images.evetech.net/types/{type_id}/icon`
-- **Test Data**: Use ID 42 for users, 1337 for characters, 60003760 for Jita station
+- **Test Data**: See E2E test users in `docs/features/e2e-testing.md`; Jita station ID: 60003760
 - **Division Types**: `hangar` and `wallet` stored separately in `corporation_divisions`

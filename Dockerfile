@@ -23,7 +23,7 @@ CMD go test -race -coverprofile=/artifacts/coverage.txt -covermode=atomic -p 1 .
 # final image
 FROM ubuntu:26.04 as final-backend
 
-RUN apt update && apt install -y ca-certificates
+RUN apt update && apt install -y ca-certificates curl
 WORKDIR /app
 
 COPY --from=0 /build/industry-tool /app/

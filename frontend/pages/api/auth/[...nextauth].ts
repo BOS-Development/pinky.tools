@@ -1,4 +1,5 @@
 import NextAuth from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import EVEOnlineProvider from "next-auth/providers/eveonline";
 
 type User = {
@@ -94,13 +95,36 @@ let addUser = async (user: User): Promise<boolean> => {
   }
 };
 
+const providers: any[] = [
+  EVEOnlineProvider({
+    clientId: process.env.EVE_CLIENT_ID as string,
+    clientSecret: process.env.EVE_CLIENT_SECRET as string,
+  }),
+];
+
+if (process.env.E2E_TESTING === "true") {
+  providers.push(
+    CredentialsProvider({
+      name: "E2E Test Credentials",
+      credentials: {
+        userId: { label: "User ID", type: "text" },
+        userName: { label: "User Name", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.userId || !credentials?.userName) {
+          return null;
+        }
+        return {
+          id: credentials.userId,
+          name: credentials.userName,
+        };
+      },
+    })
+  );
+}
+
 export const authOptions = {
-  providers: [
-    EVEOnlineProvider({
-      clientId: process.env.EVE_CLIENT_ID as string,
-      clientSecret: process.env.EVE_CLIENT_SECRET as string,
-    }),
-  ],
+  providers,
   debug: process.env.NODE_ENV === 'development',
   logger: {
     error(code, metadata) {
@@ -128,7 +152,7 @@ export const authOptions = {
     },
   },
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       try {
         if (account) {
           console.log('[NextAuth JWT] Processing new account:', {
@@ -136,19 +160,24 @@ export const authOptions = {
             accountId: account.providerAccountId,
           });
 
-          token.providerAccountId = account.providerAccountId;
+          // For credentials provider, use user.id as providerAccountId
+          if (account.provider === "credentials") {
+            token.providerAccountId = user?.id;
+          } else {
+            token.providerAccountId = account.providerAccountId;
+          }
 
           console.log('[NextAuth JWT] Fetching user from backend...');
-          let user = await getUser(account.providerAccountId);
+          let existingUser = await getUser(Number(token.providerAccountId));
 
-          if (user == null) {
+          if (existingUser == null) {
             console.log('[NextAuth JWT] User not found, creating new user');
             await addUser({
               id: Number(token.providerAccountId),
               name: token.name,
             });
           } else {
-            console.log('[NextAuth JWT] Existing user found:', user.name);
+            console.log('[NextAuth JWT] Existing user found:', existingUser.name);
           }
         }
 

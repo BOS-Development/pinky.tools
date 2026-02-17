@@ -75,7 +75,12 @@ var rootCmd = &cobra.Command{
 		buyOrdersRepository := repositories.NewBuyOrders(db)
 		salesAnalyticsRepository := repositories.NewSalesAnalytics(db)
 
-		esiClient := client.NewEsiClient(settings.OAuthClientID, settings.OAuthClientSecret)
+		var esiClient *client.EsiClient
+		if settings.EsiBaseURL != "" {
+			esiClient = client.NewEsiClientWithHTTPClient(settings.OAuthClientID, settings.OAuthClientSecret, &http.Client{}, settings.EsiBaseURL)
+		} else {
+			esiClient = client.NewEsiClient(settings.OAuthClientID, settings.OAuthClientSecret)
+		}
 
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient)
 		staticUpdater := updaters.NewStatic(fuzzWorks, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)

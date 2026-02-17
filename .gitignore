@@ -55,7 +55,18 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# E2E test artifacts
+e2e/test-results/
+e2e/playwright-report/
+e2e/auth-state.json
+e2e/node_modules/
+
 # Claude
 .claude/
+
+# go binaries in case they sneak in
 industry-tool
+!cmd/industry-tool/
 industry-tool-test
+mock-esi
+!cmd/mock-esi/
