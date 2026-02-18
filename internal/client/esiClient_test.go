@@ -127,3 +127,82 @@ func Test_ClientShouldGetMarketOrders(t *testing.T) {
 	assert.Equal(t, 5.45, orders[1].Price)
 	assert.True(t, orders[1].IsBuyOrder)
 }
+
+func Test_ClientShouldGetUniverseNames(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockHTTPClient := NewMockHTTPDoer(ctrl)
+
+	mockNames := []struct {
+		ID       int64  `json:"id"`
+		Name     string `json:"name"`
+		Category string `json:"category"`
+	}{
+		{ID: 60003760, Name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant", Category: "station"},
+		{ID: 60008494, Name: "Amarr VIII (Oris) - Emperor Family Academy", Category: "station"},
+	}
+
+	namesJSON, _ := json.Marshal(mockNames)
+
+	mockHTTPClient.EXPECT().
+		Do(gomock.Any()).
+		DoAndReturn(func(req *http.Request) (*http.Response, error) {
+			assert.Equal(t, "POST", req.Method)
+			assert.Contains(t, req.URL.String(), "/universe/names/")
+
+			var ids []int64
+			body, _ := io.ReadAll(req.Body)
+			json.Unmarshal(body, &ids)
+			assert.ElementsMatch(t, []int64{60003760, 60008494}, ids)
+
+			return &http.Response{
+				StatusCode: 200,
+				Body:       io.NopCloser(bytes.NewReader(namesJSON)),
+			}, nil
+		}).
+		Times(1)
+
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "https://esi.test.com")
+
+	names, err := esiClient.GetUniverseNames(context.Background(), []int64{60003760, 60008494})
+	assert.NoError(t, err)
+	assert.Len(t, names, 2)
+	assert.Equal(t, "Jita IV - Moon 4 - Caldari Navy Assembly Plant", names[60003760])
+	assert.Equal(t, "Amarr VIII (Oris) - Emperor Family Academy", names[60008494])
+}
+
+func Test_ClientShouldReturnEmptyMapForNoIDs(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockHTTPClient := NewMockHTTPDoer(ctrl)
+
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "")
+
+	names, err := esiClient.GetUniverseNames(context.Background(), []int64{})
+	assert.NoError(t, err)
+	assert.Empty(t, names)
+}
+
+func Test_ClientShouldHandleUniverseNamesError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockHTTPClient := NewMockHTTPDoer(ctrl)
+
+	mockHTTPClient.EXPECT().
+		Do(gomock.Any()).
+		Return(&http.Response{
+			StatusCode: 500,
+			Body:       io.NopCloser(bytes.NewReader([]byte(`{"error":"internal error"}`))),
+		}, nil).
+		Times(1)
+
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "https://esi.test.com")
+
+	names, err := esiClient.GetUniverseNames(context.Background(), []int64{60003760})
+	assert.Error(t, err)
+	assert.Nil(t, names)
+	assert.Contains(t, err.Error(), "unexpected status code")
+}

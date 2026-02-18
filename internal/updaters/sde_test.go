@@ -133,6 +133,18 @@ type mockStationRepo struct{ err error }
 func (m *mockStationRepo) Upsert(ctx context.Context, stations []models.Station) error {
 	return m.err
 }
+func (m *mockStationRepo) GetStationsWithEmptyNames(ctx context.Context) ([]int64, error) {
+	return []int64{}, nil
+}
+func (m *mockStationRepo) UpdateNames(ctx context.Context, names map[int64]string) error {
+	return nil
+}
+
+type mockSdeEsiClient struct{}
+
+func (m *mockSdeEsiClient) GetUniverseNames(ctx context.Context, ids []int64) (map[int64]string, error) {
+	return map[int64]string{}, nil
+}
 
 func emptySdeData() *client.SdeData {
 	return &client.SdeData{}
@@ -146,7 +158,7 @@ func Test_SdeUpdater_FullUpdateWhenChecksumDiffers(t *testing.T) {
 	}
 	repo := newMockSdeDataRepo()
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.NoError(t, err)
@@ -162,7 +174,7 @@ func Test_SdeUpdater_SkipsWhenChecksumMatches(t *testing.T) {
 	repo := newMockSdeDataRepo()
 	repo.metadata["checksum"] = &models.SdeMetadata{Key: "checksum", Value: "existing-checksum"}
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.NoError(t, err)
@@ -177,7 +189,7 @@ func Test_SdeUpdater_ErrorGettingChecksum(t *testing.T) {
 	}
 	repo := newMockSdeDataRepo()
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -191,7 +203,7 @@ func Test_SdeUpdater_ErrorGettingStoredMetadata(t *testing.T) {
 	repo := newMockSdeDataRepo()
 	repo.getMetaErr = fmt.Errorf("db error")
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -205,7 +217,7 @@ func Test_SdeUpdater_ErrorDownloading(t *testing.T) {
 	}
 	repo := newMockSdeDataRepo()
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -220,7 +232,7 @@ func Test_SdeUpdater_ErrorParsing(t *testing.T) {
 	}
 	repo := newMockSdeDataRepo()
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -235,7 +247,7 @@ func Test_SdeUpdater_ErrorUpsertingRegions(t *testing.T) {
 	}
 	repo := newMockSdeDataRepo()
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{err: fmt.Errorf("db error")}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{err: fmt.Errorf("db error")}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -250,7 +262,7 @@ func Test_SdeUpdater_ErrorUpsertingItemTypes(t *testing.T) {
 	}
 	repo := newMockSdeDataRepo()
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{err: fmt.Errorf("db error")}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{err: fmt.Errorf("db error")}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -266,7 +278,7 @@ func Test_SdeUpdater_ErrorSettingChecksum(t *testing.T) {
 	repo := newMockSdeDataRepo()
 	repo.setMetaErr = fmt.Errorf("db error")
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.Error(t, err)
@@ -282,7 +294,7 @@ func Test_SdeUpdater_FirstRunWithNoStoredChecksum(t *testing.T) {
 	repo := newMockSdeDataRepo()
 	// No stored checksum — nil metadata
 
-	u := updaters.NewSde(sdeClient, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
+	u := updaters.NewSde(sdeClient, &mockSdeEsiClient{}, repo, &mockItemTypeRepo{}, &mockRegionRepo{}, &mockConstellationRepo{}, &mockSolarSystemRepo{}, &mockStationRepo{})
 
 	err := u.Update(context.Background())
 	assert.NoError(t, err)

@@ -309,6 +309,38 @@ func main() {
 		http.Error(w, `{"error":"Forbidden"}`, 403)
 	})
 
+	// POST /universe/names/
+	var knownNames = map[int64]struct {
+		Name     string
+		Category string
+	}{
+		60003760: {Name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant", Category: "station"},
+		60008494: {Name: "Amarr VIII (Oris) - Emperor Family Academy", Category: "station"},
+	}
+	mux.HandleFunc("/universe/names/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "POST" {
+			http.Error(w, "method not allowed", 405)
+			return
+		}
+		var ids []int64
+		if err := json.NewDecoder(r.Body).Decode(&ids); err != nil {
+			http.Error(w, `{"error":"bad request"}`, 400)
+			return
+		}
+		type nameResult struct {
+			ID       int64  `json:"id"`
+			Name     string `json:"name"`
+			Category string `json:"category"`
+		}
+		results := []nameResult{}
+		for _, id := range ids {
+			if entry, ok := knownNames[id]; ok {
+				results = append(results, nameResult{ID: id, Name: entry.Name, Category: entry.Category})
+			}
+		}
+		writeJSON(w, results)
+	})
+
 	// GET /latest/markets/{regionID}/orders/
 	mux.HandleFunc("/latest/markets/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Pages", "1")

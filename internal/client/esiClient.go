@@ -675,6 +675,70 @@ func (c *EsiClient) GetIndustryCostIndices(ctx context.Context) ([]*IndustryCost
 	return systems, nil
 }
 
+// universeNameEntry represents a single entry from the ESI /universe/names/ response
+type universeNameEntry struct {
+	ID       int64  `json:"id"`
+	Name     string `json:"name"`
+	Category string `json:"category"`
+}
+
+// GetUniverseNames resolves IDs to names using the public ESI /universe/names/ endpoint.
+// Accepts up to 1000 IDs per call; larger sets are batched automatically.
+func (c *EsiClient) GetUniverseNames(ctx context.Context, ids []int64) (map[int64]string, error) {
+	if len(ids) == 0 {
+		return map[int64]string{}, nil
+	}
+
+	result := make(map[int64]string, len(ids))
+	batchSize := 1000
+
+	for i := 0; i < len(ids); i += batchSize {
+		end := i + batchSize
+		if end > len(ids) {
+			end = len(ids)
+		}
+		batch := ids[i:end]
+
+		body, err := json.Marshal(batch)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal universe names request")
+		}
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/universe/names/", c.baseURL), bytes.NewReader(body))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create universe names request")
+		}
+		req.Header = c.getCommonHeaders()
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to fetch universe names")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != http.StatusOK {
+			respBody, _ := io.ReadAll(res.Body)
+			return nil, fmt.Errorf("unexpected status code fetching universe names: %d, %s", res.StatusCode, respBody)
+		}
+
+		respBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read universe names response")
+		}
+
+		var entries []universeNameEntry
+		if err := json.Unmarshal(respBody, &entries); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal universe names response")
+		}
+
+		for _, entry := range entries {
+			result[entry.ID] = entry.Name
+		}
+	}
+
+	return result, nil
+}
+
 // RefreshedToken holds the result of a token refresh.
 type RefreshedToken struct {
 	AccessToken  string
