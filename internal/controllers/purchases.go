@@ -138,7 +138,7 @@ func (c *Purchases) PurchaseItem(args *web.HandlerArgs) (any, *web.HttpError) {
 		TypeID:            item.TypeID,
 		QuantityPurchased: req.QuantityPurchased,
 		PricePerUnit:      item.PricePerUnit,
-		TotalPrice:        req.QuantityPurchased * item.PricePerUnit,
+		TotalPrice:        float64(req.QuantityPurchased) * item.PricePerUnit,
 		Status:            "pending",
 		TransactionNotes:  notes,
 	}

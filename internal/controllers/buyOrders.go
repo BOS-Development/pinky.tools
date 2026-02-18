@@ -72,7 +72,7 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 	var req struct {
 		TypeID          int64   `json:"typeId"`
 		QuantityDesired int64   `json:"quantityDesired"`
-		MaxPricePerUnit int64   `json:"maxPricePerUnit"`
+		MaxPricePerUnit float64 `json:"maxPricePerUnit"`
 		Notes           *string `json:"notes"`
 	}
 
@@ -161,7 +161,7 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 
 	var req struct {
 		QuantityDesired int64   `json:"quantityDesired"`
-		MaxPricePerUnit int64   `json:"maxPricePerUnit"`
+		MaxPricePerUnit float64 `json:"maxPricePerUnit"`
 		Notes           *string `json:"notes"`
 		IsActive        *bool   `json:"isActive"`
 	}

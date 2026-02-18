@@ -52,7 +52,7 @@ func Test_BuyOrders_CreateAndGet(t *testing.T) {
 	assert.Equal(t, int64(60), retrieved.TypeID)
 	assert.Equal(t, "Mexallon", retrieved.TypeName)
 	assert.Equal(t, int64(100000), retrieved.QuantityDesired)
-	assert.Equal(t, int64(50), retrieved.MaxPricePerUnit)
+	assert.Equal(t, float64(50), retrieved.MaxPricePerUnit)
 	assert.True(t, retrieved.IsActive)
 }
 
@@ -83,7 +83,7 @@ func Test_BuyOrders_GetByUser(t *testing.T) {
 			BuyerUserID:     5010,
 			TypeID:          61 + int64(i%2),
 			QuantityDesired: int64(10000 * (i + 1)),
-			MaxPricePerUnit: int64(50 + i),
+			MaxPricePerUnit: float64(50 + i),
 			IsActive:        true,
 		}
 		err = repo.Create(context.Background(), order)
@@ -147,7 +147,7 @@ func Test_BuyOrders_Update(t *testing.T) {
 	retrieved, err := repo.GetByID(context.Background(), order.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, int64(75000), retrieved.QuantityDesired)
-	assert.Equal(t, int64(120), retrieved.MaxPricePerUnit)
+	assert.Equal(t, float64(120), retrieved.MaxPricePerUnit)
 	assert.NotNil(t, retrieved.Notes)
 	assert.Equal(t, "Urgent order", *retrieved.Notes)
 }

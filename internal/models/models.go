@@ -120,7 +120,7 @@ type ForSaleItem struct {
 	ContainerID       *int64    `json:"containerId"`
 	DivisionNumber    *int      `json:"divisionNumber"`
 	QuantityAvailable int64     `json:"quantityAvailable"`
-	PricePerUnit      int64     `json:"pricePerUnit"`
+	PricePerUnit      float64   `json:"pricePerUnit"`
 	Notes             *string   `json:"notes"`
 	IsActive          bool      `json:"isActive"`
 	CreatedAt         time.Time `json:"createdAt"`
@@ -138,8 +138,8 @@ type PurchaseTransaction struct {
 	LocationID        int64     `json:"locationId"`
 	LocationName      string    `json:"locationName"`
 	QuantityPurchased int64     `json:"quantityPurchased"`
-	PricePerUnit      int64     `json:"pricePerUnit"`
-	TotalPrice        int64     `json:"totalPrice"`
+	PricePerUnit      float64   `json:"pricePerUnit"`
+	TotalPrice        float64   `json:"totalPrice"`
 	Status            string    `json:"status"`
 	ContractKey       *string   `json:"contractKey,omitempty"`
 	TransactionNotes  *string   `json:"transactionNotes"`
@@ -152,7 +152,7 @@ type BuyOrder struct {
 	TypeID           int64     `json:"typeId"`
 	TypeName         string    `json:"typeName"`
 	QuantityDesired  int64     `json:"quantityDesired"`
-	MaxPricePerUnit  int64     `json:"maxPricePerUnit"`
+	MaxPricePerUnit  float64   `json:"maxPricePerUnit"`
 	Notes            *string   `json:"notes"`
 	IsActive         bool      `json:"isActive"`
 	CreatedAt        time.Time `json:"createdAt"`
@@ -162,7 +162,7 @@ type BuyOrder struct {
 // Sales Analytics Models
 
 type SalesMetrics struct {
-	TotalRevenue      int64          `json:"totalRevenue"`
+	TotalRevenue      float64        `json:"totalRevenue"`
 	TotalTransactions int64          `json:"totalTransactions"`
 	TotalQuantitySold int64          `json:"totalQuantitySold"`
 	UniqueItemTypes   int64          `json:"uniqueItemTypes"`
@@ -173,8 +173,8 @@ type SalesMetrics struct {
 
 type TimeSeriesData struct {
 	Date              string `json:"date"`
-	Revenue           int64  `json:"revenue"`
-	Transactions      int64  `json:"transactions"`
+	Revenue           float64 `json:"revenue"`
+	Transactions      int64   `json:"transactions"`
 	QuantitySold      int64  `json:"quantitySold"`
 }
 
@@ -182,15 +182,15 @@ type ItemSalesData struct {
 	TypeID            int64   `json:"typeId"`
 	TypeName          string  `json:"typeName"`
 	QuantitySold      int64   `json:"quantitySold"`
-	Revenue           int64   `json:"revenue"`
-	TransactionCount  int64   `json:"transactionCount"`
-	AveragePricePerUnit int64 `json:"averagePricePerUnit"`
+	Revenue             float64 `json:"revenue"`
+	TransactionCount    int64   `json:"transactionCount"`
+	AveragePricePerUnit float64 `json:"averagePricePerUnit"`
 }
 
 type BuyerAnalytics struct {
 	BuyerUserID       int64     `json:"buyerUserId"`
 	BuyerName         string    `json:"buyerName"`
-	TotalSpent        int64     `json:"totalSpent"`
+	TotalSpent        float64   `json:"totalSpent"`
 	TotalPurchases    int64     `json:"totalPurchases"`
 	TotalQuantity     int64     `json:"totalQuantity"`
 	FirstPurchaseDate time.Time `json:"firstPurchaseDate"`

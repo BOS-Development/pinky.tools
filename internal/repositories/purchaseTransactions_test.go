@@ -247,8 +247,8 @@ func Test_PurchaseTransactions_GetByBuyer(t *testing.T) {
 			SellerUserID:      3031,
 			TypeID:            43,
 			QuantityPurchased: int64(10 + i),
-			PricePerUnit:      100,
-			TotalPrice:        int64((10 + i) * 100),
+			PricePerUnit:      100.0,
+			TotalPrice:        float64((10 + i) * 100),
 			Status:            "pending",
 		}
 		err = repo.Create(context.Background(), tx, purchase)
@@ -291,8 +291,8 @@ func Test_PurchaseTransactions_GetBySeller(t *testing.T) {
 			SellerUserID:      3041,
 			TypeID:            44,
 			QuantityPurchased: int64(20 + i),
-			PricePerUnit:      100,
-			TotalPrice:        int64((20 + i) * 100),
+			PricePerUnit:      100.0,
+			TotalPrice:        float64((20 + i) * 100),
 			Status:            "completed",
 		}
 		err = repo.Create(context.Background(), tx, purchase)

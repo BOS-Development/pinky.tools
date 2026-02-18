@@ -74,7 +74,7 @@ func TestSalesAnalytics_GetSalesMetrics(t *testing.T) {
 		metrics, err := analyticsRepo.GetSalesMetrics(ctx, sellerUser.ID, 0)
 		require.NoError(t, err)
 
-		assert.Equal(t, int64(200000), metrics.TotalRevenue)
+		assert.Equal(t, float64(200000), metrics.TotalRevenue)
 		assert.Equal(t, int64(2), metrics.TotalTransactions)
 		assert.Equal(t, int64(150), metrics.TotalQuantitySold)
 		assert.Equal(t, int64(2), metrics.UniqueItemTypes)
@@ -87,7 +87,7 @@ func TestSalesAnalytics_GetSalesMetrics(t *testing.T) {
 		metrics, err := analyticsRepo.GetSalesMetrics(ctx, sellerUser.ID, 30)
 		require.NoError(t, err)
 
-		assert.Equal(t, int64(200000), metrics.TotalRevenue)
+		assert.Equal(t, float64(200000), metrics.TotalRevenue)
 		assert.Equal(t, int64(2), metrics.TotalTransactions)
 	})
 }
@@ -170,14 +170,14 @@ func TestSalesAnalytics_GetTopItems(t *testing.T) {
 		assert.Equal(t, int64(34), items[0].TypeID)
 		assert.Equal(t, "Tritanium", items[0].TypeName)
 		assert.Equal(t, int64(3000), items[0].QuantitySold)
-		assert.Equal(t, int64(40000), items[0].Revenue)
+		assert.Equal(t, float64(40000), items[0].Revenue)
 		assert.Equal(t, int64(2), items[0].TransactionCount)
 
 		// Second item should be Pyerite
 		assert.Equal(t, int64(35), items[1].TypeID)
 		assert.Equal(t, "Pyerite", items[1].TypeName)
 		assert.Equal(t, int64(500), items[1].QuantitySold)
-		assert.Equal(t, int64(10000), items[1].Revenue)
+		assert.Equal(t, float64(10000), items[1].Revenue)
 		assert.Equal(t, int64(1), items[1].TransactionCount)
 	})
 
@@ -273,14 +273,14 @@ func TestSalesAnalytics_GetBuyerAnalytics(t *testing.T) {
 
 		// First buyer should be buyer1 (higher total spent)
 		assert.Equal(t, buyer1.ID, buyers[0].BuyerUserID)
-		assert.Equal(t, int64(200000), buyers[0].TotalSpent)
+		assert.Equal(t, float64(200000), buyers[0].TotalSpent)
 		assert.Equal(t, int64(2), buyers[0].TotalPurchases)
 		assert.Equal(t, int64(150), buyers[0].TotalQuantity)
 		assert.True(t, buyers[0].RepeatCustomer)
 
 		// Second buyer should be buyer2
 		assert.Equal(t, buyer2.ID, buyers[1].BuyerUserID)
-		assert.Equal(t, int64(25000), buyers[1].TotalSpent)
+		assert.Equal(t, float64(25000), buyers[1].TotalSpent)
 		assert.Equal(t, int64(1), buyers[1].TotalPurchases)
 		assert.Equal(t, int64(25), buyers[1].TotalQuantity)
 		assert.False(t, buyers[1].RepeatCustomer)
@@ -370,9 +370,9 @@ func TestSalesAnalytics_GetItemSalesHistory(t *testing.T) {
 		assert.Equal(t, int64(34), item.TypeID)
 		assert.Equal(t, "Tritanium", item.TypeName)
 		assert.Equal(t, int64(3000), item.QuantitySold)
-		assert.Equal(t, int64(34000), item.Revenue)
+		assert.Equal(t, float64(34000), item.Revenue)
 		assert.Equal(t, int64(2), item.TransactionCount)
-		assert.Equal(t, int64(11), item.AveragePricePerUnit) // (10 + 12) / 2 = 11
+		assert.Equal(t, float64(11), item.AveragePricePerUnit) // (10 + 12) / 2 = 11
 	})
 
 	t.Run("Get item sales history for Pyerite", func(t *testing.T) {
@@ -382,9 +382,9 @@ func TestSalesAnalytics_GetItemSalesHistory(t *testing.T) {
 		assert.Equal(t, int64(35), item.TypeID)
 		assert.Equal(t, "Pyerite", item.TypeName)
 		assert.Equal(t, int64(500), item.QuantitySold)
-		assert.Equal(t, int64(10000), item.Revenue)
+		assert.Equal(t, float64(10000), item.Revenue)
 		assert.Equal(t, int64(1), item.TransactionCount)
-		assert.Equal(t, int64(20), item.AveragePricePerUnit)
+		assert.Equal(t, float64(20), item.AveragePricePerUnit)
 	})
 
 	t.Run("Get item sales history for non-existent item", func(t *testing.T) {

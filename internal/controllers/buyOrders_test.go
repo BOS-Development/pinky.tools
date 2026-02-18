@@ -58,7 +58,7 @@ func Test_BuyOrders_CreateOrder_Success(t *testing.T) {
 	assert.Equal(t, userID, order.BuyerUserID)
 	assert.Equal(t, int64(70), order.TypeID)
 	assert.Equal(t, int64(100000), order.QuantityDesired)
-	assert.Equal(t, int64(6), order.MaxPricePerUnit)
+	assert.Equal(t, float64(6), order.MaxPricePerUnit)
 	assert.True(t, order.IsActive)
 }
 
@@ -118,7 +118,7 @@ func Test_BuyOrders_GetMyOrders(t *testing.T) {
 			BuyerUserID:     userID,
 			TypeID:          71 + int64(i%2),
 			QuantityDesired: int64(10000 * (i + 1)),
-			MaxPricePerUnit: int64(10 + i),
+			MaxPricePerUnit: float64(10 + i),
 			IsActive:        true,
 		}
 		assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
@@ -192,7 +192,7 @@ func Test_BuyOrders_UpdateOrder_Success(t *testing.T) {
 
 	updated := result.(*models.BuyOrder)
 	assert.Equal(t, int64(75000), updated.QuantityDesired)
-	assert.Equal(t, int64(25), updated.MaxPricePerUnit)
+	assert.Equal(t, float64(25), updated.MaxPricePerUnit)
 }
 
 func Test_BuyOrders_UpdateOrder_NotOwner(t *testing.T) {
@@ -358,7 +358,7 @@ func Test_BuyOrders_GetDemand(t *testing.T) {
 			BuyerUserID:     buyerID,
 			TypeID:          76,
 			QuantityDesired: int64(5000 * (i + 1)),
-			MaxPricePerUnit: int64(50 + i*10),
+			MaxPricePerUnit: float64(50 + i*10),
 			IsActive:        true,
 		}
 		assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
