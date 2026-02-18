@@ -360,8 +360,8 @@ func Test_PurchaseTransactions_GetPendingForSeller(t *testing.T) {
 	assert.Equal(t, "pending", pending[0].Status)
 	assert.Equal(t, int64(30), pending[0].QuantityPurchased)
 
-	// Verify buyer name is populated
-	assert.Equal(t, "Buyer Character", pending[0].BuyerName)
+	// Verify buyer name is populated (from users table, not characters)
+	assert.Equal(t, "Test Buyer", pending[0].BuyerName)
 
 	// Verify location name is populated
 	assert.Equal(t, "Test System", pending[0].LocationName)
