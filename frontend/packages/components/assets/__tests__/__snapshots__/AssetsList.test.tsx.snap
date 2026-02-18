@@ -67,11 +67,15 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
       <div
         class="MuiBox-root css-izd8sw"
       >
-        <h5
-          class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+        <div
+          class="MuiBox-root css-0"
         >
-          Asset Inventory
-        </h5>
+          <h5
+            class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+          >
+            Asset Inventory
+          </h5>
+        </div>
         <div
           class="MuiBox-root css-13xem27"
         >
@@ -497,11 +501,15 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
       <div
         class="MuiBox-root css-izd8sw"
       >
-        <h5
-          class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+        <div
+          class="MuiBox-root css-0"
         >
-          Asset Inventory
-        </h5>
+          <h5
+            class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+          >
+            Asset Inventory
+          </h5>
+        </div>
         <div
           class="MuiBox-root css-13xem27"
         >
@@ -847,11 +855,15 @@ exports[`AssetsList Component With Containers should match snapshot with contain
       <div
         class="MuiBox-root css-izd8sw"
       >
-        <h5
-          class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+        <div
+          class="MuiBox-root css-0"
         >
-          Asset Inventory
-        </h5>
+          <h5
+            class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+          >
+            Asset Inventory
+          </h5>
+        </div>
         <div
           class="MuiBox-root css-13xem27"
         >
@@ -1197,11 +1209,15 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
       <div
         class="MuiBox-root css-izd8sw"
       >
-        <h5
-          class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+        <div
+          class="MuiBox-root css-0"
         >
-          Asset Inventory
-        </h5>
+          <h5
+            class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+          >
+            Asset Inventory
+          </h5>
+        </div>
         <div
           class="MuiBox-root css-13xem27"
         >
@@ -1547,11 +1563,15 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
       <div
         class="MuiBox-root css-izd8sw"
       >
-        <h5
-          class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+        <div
+          class="MuiBox-root css-0"
         >
-          Asset Inventory
-        </h5>
+          <h5
+            class="MuiTypography-root MuiTypography-h5 css-16xl4zq-MuiTypography-root"
+          >
+            Asset Inventory
+          </h5>
+        </div>
         <div
           class="MuiBox-root css-13xem27"
         >

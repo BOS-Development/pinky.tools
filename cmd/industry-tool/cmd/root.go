@@ -84,17 +84,17 @@ var rootCmd = &cobra.Command{
 
 		sdeClient := client.NewSdeClient(&http.Client{})
 
-		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient)
+		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient, usersRepository, settings.AssetUpdateConcurrency)
 		sdeUpdater := updaters.NewSde(sdeClient, esiClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
 		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
 
 		controllers.NewStatic(router, sdeUpdater)
-		controllers.NewCharacters(router, charactersRepository)
-		controllers.NewUsers(router, usersRepository, assetUpdater)
+		controllers.NewCharacters(router, charactersRepository, assetUpdater)
+		controllers.NewUsers(router, usersRepository, usersRepository)
 		controllers.NewAssets(router, assetsRepository)
-		controllers.NewCorporations(router, esiClient, playerCorporationRepostiory)
+		controllers.NewCorporations(router, esiClient, playerCorporationRepostiory, assetUpdater)
 		controllers.NewStockpileMarkers(router, stockpileMarkersRepository)
 		controllers.NewStockpiles(router, assetsRepository)
 		controllers.NewMarketPrices(router, marketPricesUpdater)
@@ -131,6 +131,12 @@ var rootCmd = &cobra.Command{
 		costIndicesRunner := runners.NewIndustryCostIndicesRunner(costIndicesUpdater, 1*time.Hour)
 		group.Go(func() error {
 			return costIndicesRunner.Run(ctx)
+		})
+
+		// Start asset update scheduler (configurable, default 1h)
+		assetsRunner := runners.NewAssetsRunner(assetUpdater, usersRepository, time.Duration(settings.AssetUpdateIntervalSec)*time.Second)
+		group.Go(func() error {
+			return assetsRunner.Run(ctx)
 		})
 
 		log.Info("services started")

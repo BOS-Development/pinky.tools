@@ -5,9 +5,7 @@ import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
-import Stack from '@mui/material/Stack';
 import AddIcon from '@mui/icons-material/Add';
-import RefreshIcon from '@mui/icons-material/Refresh';
 
 export type CorporationListProps = {
   corporations: Corporation[];
@@ -57,22 +55,13 @@ export default function List(props: CorporationListProps) {
           <Typography variant="h4" gutterBottom>
             Corporations
           </Typography>
-          <Stack direction="row" spacing={2}>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              href="api/corporations/add"
-            >
-              Add Corporation
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              href="api/corporations/refreshAssets"
-            >
-              Refresh Assets
-            </Button>
-          </Stack>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            href="api/corporations/add"
+          >
+            Add Corporation
+          </Button>
         </Box>
         <Box
           sx={{

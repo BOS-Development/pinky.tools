@@ -60,12 +60,11 @@ test.describe('Characters', () => {
     await expect(aliceImg).toHaveAttribute('src', /2001001/);
   });
 
-  test('shows Add Character and Refresh Assets buttons', async ({ page }) => {
+  test('shows Add Character button', async ({ page }) => {
     await page.goto('/characters');
 
     await expect(page.getByText('Alice Alpha')).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('link', { name: /Add Character/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Refresh Assets/i })).toBeVisible();
   });
 
   test('displays Characters heading', async ({ page }) => {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 	"github.com/annymsMthd/industry-tool/internal/web"
 
@@ -21,13 +22,19 @@ type CharacterRepository interface {
 	GetAll(ctx context.Context, baseUserID int64) ([]*repositories.Character, error)
 }
 
-type Characters struct {
-	repository CharacterRepository
+type CharacterAssetUpdater interface {
+	UpdateCharacterAssets(ctx context.Context, char *repositories.Character, userID int64) error
 }
 
-func NewCharacters(router Routerer, repository CharacterRepository) *Characters {
+type Characters struct {
+	repository CharacterRepository
+	updater    CharacterAssetUpdater
+}
+
+func NewCharacters(router Routerer, repository CharacterRepository, updater CharacterAssetUpdater) *Characters {
 	controller := &Characters{
 		repository: repository,
+		updater:    updater,
 	}
 
 	router.RegisterRestAPIRoute("/v1/characters/{id}", web.AuthAccessUser, controller.GetCharacter, "GET")
@@ -102,6 +109,12 @@ func (c *Characters) AddCharacter(args *web.HandlerArgs) (interface{}, *web.Http
 			Error:      errors.Wrap(err, "failed to insert character"),
 		}
 	}
+
+	go func() {
+		if err := c.updater.UpdateCharacterAssets(context.Background(), &character, character.UserID); err != nil {
+			log.Error("failed to update assets after adding character", "characterID", character.ID, "error", err)
+		}
+	}()
 
 	return nil, nil
 }

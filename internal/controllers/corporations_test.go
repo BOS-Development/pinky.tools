@@ -47,12 +47,22 @@ func (m *MockEsiClient) GetCharacterCorporation(ctx context.Context, characterID
 	return args.Get(0).(*models.Corporation), args.Error(1)
 }
 
+type MockCorporationAssetUpdater struct {
+	mock.Mock
+}
+
+func (m *MockCorporationAssetUpdater) UpdateCorporationAssets(ctx context.Context, corp repositories.PlayerCorporation, userID int64) error {
+	args := m.Called(ctx, corp, userID)
+	return args.Error(0)
+}
+
 func Test_CorporationsController_Get_Success(t *testing.T) {
 	mockRepo := new(MockPlayerCorporationRepository)
 	mockEsiClient := new(MockEsiClient)
+	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
 
 	userID := int64(42)
 	expectedCorps := []repositories.PlayerCorporation{
@@ -84,9 +94,10 @@ func Test_CorporationsController_Get_Success(t *testing.T) {
 func Test_CorporationsController_Get_RepositoryError(t *testing.T) {
 	mockRepo := new(MockPlayerCorporationRepository)
 	mockEsiClient := new(MockEsiClient)
+	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
 
 	userID := int64(42)
 	mockRepo.On("Get", mock.Anything, userID).Return(nil, errors.New("database error"))
@@ -109,9 +120,10 @@ func Test_CorporationsController_Get_RepositoryError(t *testing.T) {
 func Test_CorporationsController_Add_Success(t *testing.T) {
 	mockRepo := new(MockPlayerCorporationRepository)
 	mockEsiClient := new(MockEsiClient)
+	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
 
 	userID := int64(42)
 	character := repositories.Character{
@@ -130,6 +142,9 @@ func Test_CorporationsController_Add_Success(t *testing.T) {
 	mockRepo.On("Upsert", mock.Anything, mock.MatchedBy(func(c repositories.PlayerCorporation) bool {
 		return c.UserID == userID && c.ID == 2001
 	})).Return(nil)
+
+	// The updater is called in a goroutine after successful upsert
+	mockUpdater.On("UpdateCorporationAssets", mock.Anything, mock.Anything, userID).Return(nil).Maybe()
 
 	body, _ := json.Marshal(character)
 	req := httptest.NewRequest("POST", "/v1/corporations", bytes.NewReader(body))
@@ -150,9 +165,10 @@ func Test_CorporationsController_Add_Success(t *testing.T) {
 func Test_CorporationsController_Add_InvalidJSON(t *testing.T) {
 	mockRepo := new(MockPlayerCorporationRepository)
 	mockEsiClient := new(MockEsiClient)
+	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
 
 	userID := int64(42)
 
@@ -172,9 +188,10 @@ func Test_CorporationsController_Add_InvalidJSON(t *testing.T) {
 func Test_CorporationsController_Add_EsiError(t *testing.T) {
 	mockRepo := new(MockPlayerCorporationRepository)
 	mockEsiClient := new(MockEsiClient)
+	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
 
 	userID := int64(42)
 	character := repositories.Character{
@@ -205,9 +222,10 @@ func Test_CorporationsController_Add_EsiError(t *testing.T) {
 func Test_CorporationsController_Add_RepositoryError(t *testing.T) {
 	mockRepo := new(MockPlayerCorporationRepository)
 	mockEsiClient := new(MockEsiClient)
+	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
 
 	userID := int64(42)
 	character := repositories.Character{
