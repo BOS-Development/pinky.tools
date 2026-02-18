@@ -571,6 +571,9 @@ make test-e2e-clean      # Clean up E2E containers
 - Push branch and create PR when ready for review
 - Delete branch after PR is merged
 
+**Issue Tickets**
+- Do NOT include Discord usernames or other personal attributions in GitHub issues
+
 **Planning Complex Features**
 - For multi-file changes or architectural decisions, use plan mode first
 - Present options to the user when multiple approaches are valid
