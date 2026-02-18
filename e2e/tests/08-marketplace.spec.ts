@@ -93,6 +93,26 @@ test.describe('Marketplace', () => {
     await expect(alicePage.getByText('Rifter')).toBeVisible({ timeout: 5000 });
   });
 
+  test('Bob sees no duplicate items in pending sales', async ({ bobPage }) => {
+    // Alice (user 1001) has 2 characters (Alice Alpha + Alice Beta).
+    // The bug caused a LEFT JOIN to the characters table to produce one row
+    // per character, duplicating every pending sale for multi-character buyers.
+    await bobPage.goto('/marketplace');
+
+    // Click Pending Sales tab
+    await bobPage.getByRole('tab', { name: 'Pending Sales' }).click();
+
+    // Wait for the pending sale from Alice's Rifter purchase to load
+    await expect(bobPage.getByText('Rifter')).toBeVisible({ timeout: 10000 });
+
+    // The header should show exactly 1 item in 1 group — not 2 items (which would mean duplication)
+    await expect(bobPage.getByText(/1 items? in 1 groups?/)).toBeVisible();
+
+    // Rifter should appear exactly once in the table body
+    const rifterRows = bobPage.getByRole('cell', { name: 'Rifter' });
+    await expect(rifterRows).toHaveCount(1);
+  });
+
   test('Alice can create a buy order', async ({ alicePage }) => {
     await alicePage.goto('/marketplace');
 

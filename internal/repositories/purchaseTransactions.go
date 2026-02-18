@@ -101,7 +101,7 @@ func (r *PurchaseTransactions) GetByBuyer(ctx context.Context, buyerUserID int64
 	}
 	defer rows.Close()
 
-	var transactions []*models.PurchaseTransaction
+	transactions := []*models.PurchaseTransaction{}
 	for rows.Next() {
 		var tx models.PurchaseTransaction
 		err = rows.Scan(
@@ -157,7 +157,7 @@ func (r *PurchaseTransactions) GetBySeller(ctx context.Context, sellerUserID int
 	}
 	defer rows.Close()
 
-	var transactions []*models.PurchaseTransaction
+	transactions := []*models.PurchaseTransaction{}
 	for rows.Next() {
 		var tx models.PurchaseTransaction
 		err = rows.Scan(
@@ -191,7 +191,7 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 			pt.id,
 			pt.for_sale_item_id,
 			pt.buyer_user_id,
-			COALESCE(buyer_char.name, CONCAT('User ', pt.buyer_user_id)) AS buyer_name,
+			COALESCE(buyer_user.name, CONCAT('User ', pt.buyer_user_id)) AS buyer_name,
 			pt.seller_user_id,
 			pt.type_id,
 			t.type_name,
@@ -207,11 +207,11 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
 		JOIN for_sale_items fsi ON pt.for_sale_item_id = fsi.id
-		LEFT JOIN characters buyer_char ON pt.buyer_user_id = buyer_char.user_id
+		LEFT JOIN users buyer_user ON pt.buyer_user_id = buyer_user.id
 		LEFT JOIN solar_systems s ON fsi.location_id = s.solar_system_id
 		LEFT JOIN stations st ON fsi.location_id = st.station_id
 		WHERE pt.seller_user_id = $1 AND pt.status = 'pending'
-		ORDER BY fsi.location_id, COALESCE(buyer_char.name, CONCAT('User ', pt.buyer_user_id)), pt.purchased_at DESC
+		ORDER BY fsi.location_id, COALESCE(buyer_user.name, CONCAT('User ', pt.buyer_user_id)), pt.purchased_at DESC
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, sellerUserID)
@@ -220,7 +220,7 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 	}
 	defer rows.Close()
 
-	var transactions []*models.PurchaseTransaction
+	transactions := []*models.PurchaseTransaction{}
 	for rows.Next() {
 		var tx models.PurchaseTransaction
 		err = rows.Scan(
