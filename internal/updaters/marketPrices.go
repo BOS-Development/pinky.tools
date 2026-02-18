@@ -24,9 +24,14 @@ type MarketPricesEsiClient interface {
 	GetMarketOrders(ctx context.Context, regionID int64) ([]*client.MarketOrder, error)
 }
 
+type AutoSellAllUsersSyncer interface {
+	SyncForAllUsers(ctx context.Context) error
+}
+
 type MarketPrices struct {
 	marketPricesRepo MarketPricesRepository
 	esiClient        MarketPricesEsiClient
+	autoSellSyncer   AutoSellAllUsersSyncer
 }
 
 func NewMarketPrices(repo MarketPricesRepository, esiClient MarketPricesEsiClient) *MarketPrices {
@@ -124,5 +129,16 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 		return errors.Wrap(err, "failed to upsert market prices")
 	}
 
+	if u.autoSellSyncer != nil {
+		if err := u.autoSellSyncer.SyncForAllUsers(ctx); err != nil {
+			log.Error("failed to sync auto-sell listings after market price update", "error", err)
+		}
+	}
+
 	return nil
+}
+
+// WithAutoSellUpdater sets the optional auto-sell syncer
+func (u *MarketPrices) WithAutoSellUpdater(syncer AutoSellAllUsersSyncer) {
+	u.autoSellSyncer = syncer
 }

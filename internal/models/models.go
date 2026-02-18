@@ -108,23 +108,43 @@ type ContactPermission struct {
 }
 
 type ForSaleItem struct {
-	ID                int64     `json:"id"`
-	UserID            int64     `json:"userId"`
-	TypeID            int64     `json:"typeId"`
-	TypeName          string    `json:"typeName"`
-	OwnerType         string    `json:"ownerType"`
-	OwnerID           int64     `json:"ownerId"`
-	OwnerName         string    `json:"ownerName"`
-	LocationID        int64     `json:"locationId"`
-	LocationName      string    `json:"locationName"`
-	ContainerID       *int64    `json:"containerId"`
-	DivisionNumber    *int      `json:"divisionNumber"`
-	QuantityAvailable int64     `json:"quantityAvailable"`
-	PricePerUnit      float64   `json:"pricePerUnit"`
-	Notes             *string   `json:"notes"`
-	IsActive          bool      `json:"isActive"`
-	CreatedAt         time.Time `json:"createdAt"`
-	UpdatedAt         time.Time `json:"updatedAt"`
+	ID                  int64     `json:"id"`
+	UserID              int64     `json:"userId"`
+	TypeID              int64     `json:"typeId"`
+	TypeName            string    `json:"typeName"`
+	OwnerType           string    `json:"ownerType"`
+	OwnerID             int64     `json:"ownerId"`
+	OwnerName           string    `json:"ownerName"`
+	LocationID          int64     `json:"locationId"`
+	LocationName        string    `json:"locationName"`
+	ContainerID         *int64    `json:"containerId"`
+	DivisionNumber      *int      `json:"divisionNumber"`
+	QuantityAvailable   int64     `json:"quantityAvailable"`
+	PricePerUnit        float64   `json:"pricePerUnit"`
+	Notes               *string   `json:"notes"`
+	AutoSellContainerID *int64    `json:"autoSellContainerId"`
+	IsActive            bool      `json:"isActive"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
+}
+
+type AutoSellContainer struct {
+	ID              int64     `json:"id"`
+	UserID          int64     `json:"userId"`
+	OwnerType       string    `json:"ownerType"`
+	OwnerID         int64     `json:"ownerId"`
+	LocationID      int64     `json:"locationId"`
+	ContainerID     int64     `json:"containerId"`
+	DivisionNumber  *int      `json:"divisionNumber"`
+	PricePercentage float64   `json:"pricePercentage"`
+	IsActive        bool      `json:"isActive"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+}
+
+type ContainerItem struct {
+	TypeID   int64
+	Quantity int64
 }
 
 type PurchaseTransaction struct {

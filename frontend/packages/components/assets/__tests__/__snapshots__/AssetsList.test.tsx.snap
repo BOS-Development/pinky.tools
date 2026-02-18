@@ -256,7 +256,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
             <input
               aria-invalid="false"
               class="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall MuiInputBase-inputAdornedStart css-1q55ijt-MuiInputBase-input-MuiOutlinedInput-input"
-              id="_r_1b_"
+              id="_r_1i_"
               placeholder="Search items..."
               type="text"
               value=""
@@ -1044,7 +1044,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
             <input
               aria-invalid="false"
               class="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall MuiInputBase-inputAdornedStart css-1q55ijt-MuiInputBase-input-MuiOutlinedInput-input"
-              id="_r_j_"
+              id="_r_m_"
               placeholder="Search items..."
               type="text"
               value=""
@@ -1398,7 +1398,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
             <input
               aria-invalid="false"
               class="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall MuiInputBase-inputAdornedStart css-1q55ijt-MuiInputBase-input-MuiOutlinedInput-input"
-              id="_r_p_"
+              id="_r_t_"
               placeholder="Search items..."
               type="text"
               value=""
@@ -1752,7 +1752,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
             <input
               aria-invalid="false"
               class="MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall MuiInputBase-inputAdornedStart css-1q55ijt-MuiInputBase-input-MuiOutlinedInput-input"
-              id="_r_v_"
+              id="_r_14_"
               placeholder="Search items..."
               type="text"
               value=""
