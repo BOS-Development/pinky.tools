@@ -47,6 +47,7 @@ services:
       OAUTH_CLIENT_ID: "e2e-dummy"
       OAUTH_CLIENT_SECRET: "e2e-dummy"
       ESI_BASE_URL: "http://mock-esi:8090"
+      ASSET_UPDATE_INTERVAL_SEC: "10"
     depends_on:
       database:
         condition: service_healthy

@@ -104,8 +104,8 @@ const Client = (baseUrl: string, id: string) => {
         data: true,
       };
     },
-    async refreshAssets(): Promise<ApiResult<boolean> | ApiError> {
-      let path = baseUrl + "v1/users/refreshAssets";
+    async getAssetStatus(): Promise<ApiResult<{ lastUpdatedAt: string | null; nextUpdateAt: string | null }> | ApiError> {
+      let path = baseUrl + "v1/users/asset-status";
       const response = await fetch(path, {
         method: "GET",
         headers: getHeaders(id),
@@ -115,9 +115,11 @@ const Client = (baseUrl: string, id: string) => {
         throw `call to ${path} reponse code ${response.status}`;
       }
 
+      const resp = await response.json();
+
       return {
         kind: "success",
-        data: true,
+        data: resp,
       };
     },
     async addCharacterCorporation(

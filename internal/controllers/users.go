@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 	"github.com/annymsMthd/industry-tool/internal/web"
@@ -15,22 +16,22 @@ type UserRepository interface {
 	Add(ctx context.Context, user *repositories.User) error
 }
 
-type Updater interface {
-	UpdateUserAssets(ctx context.Context, userID int64) error
+type UserAssetsStatusRepository interface {
+	GetAssetsLastUpdated(ctx context.Context, userID int64) (*time.Time, error)
 }
 
 type Users struct {
-	repository UserRepository
-	updater    Updater
+	repository       UserRepository
+	assetsStatusRepo UserAssetsStatusRepository
 }
 
-func NewUsers(router Routerer, repository UserRepository, updater Updater) *Users {
+func NewUsers(router Routerer, repository UserRepository, assetsStatusRepo UserAssetsStatusRepository) *Users {
 	controller := &Users{
-		repository: repository,
-		updater:    updater,
+		repository:       repository,
+		assetsStatusRepo: assetsStatusRepo,
 	}
 
-	router.RegisterRestAPIRoute("/v1/users/refreshAssets", web.AuthAccessUser, controller.RefreshAssets, "GET")
+	router.RegisterRestAPIRoute("/v1/users/asset-status", web.AuthAccessUser, controller.GetAssetStatus, "GET")
 	router.RegisterRestAPIRoute("/v1/users/{id}", web.AuthAccessBackend, controller.GetUser, "GET")
 	router.RegisterRestAPIRoute("/v1/users/", web.AuthAccessBackend, controller.AddUser, "POST")
 
@@ -87,13 +88,28 @@ func (c *Users) AddUser(args *web.HandlerArgs) (any, *web.HttpError) {
 	return nil, nil
 }
 
-func (c *Users) RefreshAssets(args *web.HandlerArgs) (any, *web.HttpError) {
-	err := c.updater.UpdateUserAssets(args.Request.Context(), *args.User)
+type AssetStatusResponse struct {
+	LastUpdatedAt *time.Time `json:"lastUpdatedAt"`
+	NextUpdateAt  *time.Time `json:"nextUpdateAt"`
+}
+
+func (c *Users) GetAssetStatus(args *web.HandlerArgs) (any, *web.HttpError) {
+	lastUpdated, err := c.assetsStatusRepo.GetAssetsLastUpdated(args.Request.Context(), *args.User)
 	if err != nil {
 		return nil, &web.HttpError{
 			StatusCode: 500,
-			Error:      errors.Wrap(err, "failed to update user assets"),
+			Error:      errors.Wrap(err, "failed to get asset status"),
 		}
 	}
-	return nil, nil
+
+	response := &AssetStatusResponse{
+		LastUpdatedAt: lastUpdated,
+	}
+
+	if lastUpdated != nil {
+		nextUpdate := lastUpdated.Add(1 * time.Hour)
+		response.NextUpdateAt = &nextUpdate
+	}
+
+	return response, nil
 }

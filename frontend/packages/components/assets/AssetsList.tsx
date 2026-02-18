@@ -62,6 +62,18 @@ type ForSaleListing = {
   notes?: string;
 };
 
+function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const absDiffMs = Math.abs(diffMs);
+  const minutes = Math.round(absDiffMs / 60000);
+  const hours = Math.round(absDiffMs / 3600000);
+
+  if (minutes < 1) return diffMs < 0 ? 'just now' : 'in less than a minute';
+  if (minutes < 60) return diffMs < 0 ? `${minutes} minute${minutes !== 1 ? 's' : ''} ago` : `in ${minutes} minute${minutes !== 1 ? 's' : ''}`;
+  return diffMs < 0 ? `${hours} hour${hours !== 1 ? 's' : ''} ago` : `in ${hours} hour${hours !== 1 ? 's' : ''}`;
+}
+
 export type AssetsListProps = {
   assets?: AssetsResponse;
 };
@@ -126,6 +138,7 @@ export default function AssetsList(props: AssetsListProps) {
   const [notes, setNotes] = useState('');
   const desiredQuantityInputRef = useRef<HTMLInputElement>(null);
   const [refreshingPrices, setRefreshingPrices] = useState(false);
+  const [assetStatus, setAssetStatus] = useState<{ lastUpdatedAt: string | null; nextUpdateAt: string | null } | null>(null);
 
   // For-sale listing state
   const [listingDialogOpen, setListingDialogOpen] = useState(false);
@@ -165,6 +178,20 @@ export default function AssetsList(props: AssetsListProps) {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAssetStatus = async () => {
+    if (!session) return;
+
+    try {
+      const response = await fetch('/api/assets/status');
+      if (response.ok) {
+        const data = await response.json();
+        setAssetStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch asset status:', error);
     }
   };
 
@@ -217,6 +244,7 @@ export default function AssetsList(props: AssetsListProps) {
     }
     if (session) {
       fetchForSaleListings();
+      fetchAssetStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1081,7 +1109,23 @@ export default function AssetsList(props: AssetsListProps) {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, pt: 0.5 }}>
-            <Typography variant="h5">Asset Inventory</Typography>
+            <Box>
+              <Typography variant="h5">Asset Inventory</Typography>
+              {assetStatus && (
+                <Typography sx={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                  {assetStatus.lastUpdatedAt ? (
+                    <>
+                      Last updated: {formatRelativeTime(new Date(assetStatus.lastUpdatedAt))}
+                      {assetStatus.nextUpdateAt && (
+                        <> | Next update: {formatRelativeTime(new Date(assetStatus.nextUpdateAt))}</>
+                      )}
+                    </>
+                  ) : (
+                    'Assets have not been updated yet'
+                  )}
+                </Typography>
+              )}
+            </Box>
 
             {/* Summary Stats */}
             <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'center', flexWrap: 'wrap' }}>

@@ -26,12 +26,11 @@ test.describe('Corporations', () => {
     await expect(page.getByText('Corporation', { exact: true })).toBeVisible();
   });
 
-  test('shows Add Corporation and Refresh Assets buttons', async ({ page }) => {
+  test('shows Add Corporation button', async ({ page }) => {
     await page.goto('/corporations');
 
     await expect(page.getByText('Stargazer Industries')).toBeVisible({ timeout: 10000 });
     await expect(page.getByRole('link', { name: /Add Corporation/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /Refresh Assets/i })).toBeVisible();
   });
 
   test('displays Corporations heading', async ({ page }) => {

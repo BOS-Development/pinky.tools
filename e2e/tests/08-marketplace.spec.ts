@@ -18,14 +18,10 @@ test.describe('Marketplace', () => {
     await bobPage.goto('/inventory');
     await bobPage.evaluate(() => localStorage.clear());
 
-    // Bob first needs to refresh his assets
-    await bobPage.goto('/characters');
-    await expect(bobPage.getByRole('link', { name: /Refresh Assets/i })).toBeVisible({ timeout: 10000 });
-    await bobPage.getByRole('link', { name: /Refresh Assets/i }).click();
-
-    // Now go to inventory to create a listing (toBeVisible assertion below handles waiting for refresh)
+    // Assets are automatically updated by the background runner (10s interval in E2E)
+    // and also triggered immediately when characters are added
     await bobPage.goto('/inventory');
-    await expect(bobPage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 15000 });
+    await expect(bobPage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
 
     // Expand Jita station
     await bobPage.getByText('Jita IV - Moon 4').click();

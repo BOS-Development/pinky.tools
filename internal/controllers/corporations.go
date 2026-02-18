@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 	"github.com/annymsMthd/industry-tool/internal/web"
@@ -20,17 +21,23 @@ type EsiClient interface {
 	GetCharacterCorporation(ctx context.Context, characterID int64, token, refresh string, expire time.Time) (*models.Corporation, error)
 }
 
+type CorporationAssetUpdater interface {
+	UpdateCorporationAssets(ctx context.Context, corp repositories.PlayerCorporation, userID int64) error
+}
+
 type Corporations struct {
 	router     Routerer
 	esiClient  EsiClient
 	repository PlayerCorporationRepository
+	updater    CorporationAssetUpdater
 }
 
-func NewCorporations(router Routerer, esiClient EsiClient, repository PlayerCorporationRepository) *Corporations {
+func NewCorporations(router Routerer, esiClient EsiClient, repository PlayerCorporationRepository, updater CorporationAssetUpdater) *Corporations {
 	controller := &Corporations{
 		router:     router,
 		esiClient:  esiClient,
 		repository: repository,
+		updater:    updater,
 	}
 
 	router.RegisterRestAPIRoute("/v1/corporations", web.AuthAccessUser, controller.Add, "POST")
@@ -59,7 +66,7 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 		}
 	}
 
-	err = c.repository.Upsert(args.Request.Context(), repositories.PlayerCorporation{
+	playerCorp := repositories.PlayerCorporation{
 		ID:              corp.ID,
 		UserID:          *args.User,
 		Name:            corp.Name,
@@ -67,13 +74,21 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 		EsiRefreshToken: character.EsiRefreshToken,
 		EsiExpiresOn:    character.EsiTokenExpiresOn,
 		EsiScopes:       character.EsiScopes,
-	})
+	}
+
+	err = c.repository.Upsert(args.Request.Context(), playerCorp)
 	if err != nil {
 		return nil, &web.HttpError{
 			StatusCode: 500,
 			Error:      errors.Wrap(err, "failed to upsert corp to repository"),
 		}
 	}
+
+	go func() {
+		if err := c.updater.UpdateCorporationAssets(context.Background(), playerCorp, *args.User); err != nil {
+			log.Error("failed to update assets after adding corporation", "corporationID", playerCorp.ID, "error", err)
+		}
+	}()
 
 	return nil, nil
 }

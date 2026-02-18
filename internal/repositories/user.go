@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -41,6 +42,43 @@ func (r *UserRepository) Get(ctx context.Context, id int64) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+func (r *UserRepository) GetAllIDs(ctx context.Context) ([]int64, error) {
+	rows, err := r.db.QueryContext(ctx, "select id from users")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get all user IDs from database")
+	}
+	defer rows.Close()
+
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan user ID")
+		}
+		ids = append(ids, id)
+	}
+
+	return ids, nil
+}
+
+func (r *UserRepository) UpdateAssetsLastUpdated(ctx context.Context, userID int64) error {
+	_, err := r.db.ExecContext(ctx, "update users set assets_last_updated_at = now() where id = $1", userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update assets_last_updated_at")
+	}
+	return nil
+}
+
+func (r *UserRepository) GetAssetsLastUpdated(ctx context.Context, userID int64) (*time.Time, error) {
+	var lastUpdated *time.Time
+	err := r.db.QueryRowContext(ctx, "select assets_last_updated_at from users where id = $1", userID).Scan(&lastUpdated)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get assets_last_updated_at")
+	}
+	return lastUpdated, nil
 }
 
 func (r *UserRepository) Add(ctx context.Context, user *User) error {

@@ -10,12 +10,14 @@ import (
 )
 
 type Settings struct {
-	Port              int
-	BackendKey        string
-	DatabaseSettings  database.PostgresDatabaseSettings
-	OAuthClientID     string
-	OAuthClientSecret string
-	EsiBaseURL        string
+	Port                   int
+	BackendKey             string
+	DatabaseSettings       database.PostgresDatabaseSettings
+	OAuthClientID          string
+	OAuthClientSecret      string
+	EsiBaseURL             string
+	AssetUpdateConcurrency int
+	AssetUpdateIntervalSec int
 }
 
 func GetSettings() (*Settings, error) {
@@ -43,6 +45,24 @@ func GetSettings() (*Settings, error) {
 	settings.DatabaseSettings.Port, err = strconv.Atoi(s)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to convert database port '%s' to number", s)
+	}
+
+	if s := os.Getenv("ASSET_UPDATE_CONCURRENCY"); s != "" {
+		settings.AssetUpdateConcurrency, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "ASSET_UPDATE_CONCURRENCY '%s' is not a number", s)
+		}
+	} else {
+		settings.AssetUpdateConcurrency = 5
+	}
+
+	if s := os.Getenv("ASSET_UPDATE_INTERVAL_SEC"); s != "" {
+		settings.AssetUpdateIntervalSec, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "ASSET_UPDATE_INTERVAL_SEC '%s' is not a number", s)
+		}
+	} else {
+		settings.AssetUpdateIntervalSec = 3600
 	}
 
 	return settings, nil

@@ -7,24 +7,13 @@ test.describe('Assets Page', () => {
     await page.evaluate(() => localStorage.clear());
   });
 
-  test('shows empty state before refresh', async ({ page }) => {
-    await page.goto('/inventory');
-
-    // Before refreshing assets, the empty state is shown
-    await expect(page.getByText('No Assets Found')).toBeVisible({ timeout: 10000 });
-  });
-
-  test('refresh assets populates data from mock ESI', async ({ page }) => {
-    // Trigger asset refresh via the characters page
-    await page.goto('/characters');
-    await expect(page.getByRole('link', { name: /Refresh Assets/i })).toBeVisible({ timeout: 10000 });
-    await page.getByRole('link', { name: /Refresh Assets/i }).click();
-
-    // Navigate to inventory (the toBeVisible assertion below handles waiting for refresh)
+  test('assets are populated by background refresh', async ({ page }) => {
+    // Assets are automatically updated by the background runner (10s interval in E2E)
+    // and also triggered immediately when characters/corporations are added
     await page.goto('/inventory');
 
     // Jita station should appear with Alice Alpha's assets
-    await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
   });
 
   test('displays character assets grouped by station', async ({ page }) => {
