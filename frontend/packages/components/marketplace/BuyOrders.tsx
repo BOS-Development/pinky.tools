@@ -387,7 +387,7 @@ export default function BuyOrders() {
               label="Max Price Per Unit (ISK)"
               type="number"
               value={formData.maxPricePerUnit || ''}
-              onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseInt(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseFloat(e.target.value) || 0 })}
               fullWidth
               required
             />

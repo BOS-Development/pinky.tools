@@ -111,7 +111,7 @@ func (c *ForSaleItems) CreateListing(args *web.HandlerArgs) (any, *web.HttpError
 		ContainerID       *int64  `json:"containerId"`
 		DivisionNumber    *int    `json:"divisionNumber"`
 		QuantityAvailable int64   `json:"quantityAvailable"`
-		PricePerUnit      int64   `json:"pricePerUnit"`
+		PricePerUnit      float64 `json:"pricePerUnit"`
 		Notes             *string `json:"notes"`
 	}
 
@@ -196,7 +196,7 @@ func (c *ForSaleItems) UpdateListing(args *web.HandlerArgs) (any, *web.HttpError
 
 	var req struct {
 		QuantityAvailable int64   `json:"quantityAvailable"`
-		PricePerUnit      int64   `json:"pricePerUnit"`
+		PricePerUnit      float64 `json:"pricePerUnit"`
 		Notes             *string `json:"notes"`
 		IsActive          *bool   `json:"isActive"`
 	}

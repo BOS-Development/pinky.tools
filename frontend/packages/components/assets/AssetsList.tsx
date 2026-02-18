@@ -719,16 +719,29 @@ export default function AssetsList(props: AssetsListProps) {
     const quantity = listingQuantityRef.current?.value.replace(/,/g, '') || '0';
     const price = listingPriceRef.current?.value.replace(/,/g, '') || '0';
     const quantityNum = parseInt(quantity) || 0;
-    const priceNum = parseInt(price) || 0;
+    const priceNum = parseFloat(price) || 0;
     const total = quantityNum * priceNum;
-    setListingTotalValue(total > 0 ? total.toLocaleString() : '');
+    setListingTotalValue(total > 0 ? total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) : '');
   };
 
-  const handleListingInputChange = (ref: React.RefObject<HTMLInputElement | null>) => {
+  const handleListingInputChange = (ref: React.RefObject<HTMLInputElement | null>, allowDecimals = false) => {
     if (!ref.current) return;
-    const numericValue = ref.current.value.replace(/\D/g, '');
-    const formatted = numericValue ? parseInt(numericValue).toLocaleString() : '';
-    ref.current.value = formatted;
+    const stripped = ref.current.value.replace(/,/g, '');
+    if (allowDecimals) {
+      const num = parseFloat(stripped);
+      if (isNaN(num) || num <= 0) {
+        ref.current.value = '';
+      } else {
+        ref.current.value = num.toLocaleString(undefined, {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2,
+        });
+      }
+    } else {
+      const numericValue = stripped.replace(/\D/g, '');
+      const formatted = numericValue ? parseInt(numericValue).toLocaleString() : '';
+      ref.current.value = formatted;
+    }
     updateTotalValue();
   };
 
@@ -739,7 +752,7 @@ export default function AssetsList(props: AssetsListProps) {
     const priceValue = listingPriceRef.current?.value.replace(/,/g, '') || '0';
 
     const quantity = parseInt(quantityValue);
-    const price = parseInt(priceValue);
+    const price = parseFloat(priceValue);
     const notes = listingNotesRef.current?.value || '';
 
     if (!quantity || !price) return;
@@ -1556,7 +1569,7 @@ export default function AssetsList(props: AssetsListProps) {
                 label="Price Per Unit (ISK)"
                 type="text"
                 inputRef={listingPriceRef}
-                onBlur={() => handleListingInputChange(listingPriceRef)}
+                onBlur={() => handleListingInputChange(listingPriceRef, true)}
                 sx={{ mb: 2 }}
                 required
                 placeholder="0"

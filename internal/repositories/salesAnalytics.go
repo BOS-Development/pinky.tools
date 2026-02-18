@@ -121,7 +121,7 @@ func (r *SalesAnalytics) GetTopItems(ctx context.Context, sellerUserID int64, pe
 			COALESCE(SUM(pt.quantity_purchased), 0) as quantity_sold,
 			COALESCE(SUM(pt.total_price), 0) as revenue,
 			COUNT(*) as transaction_count,
-			COALESCE(AVG(pt.price_per_unit), 0)::BIGINT as avg_price_per_unit
+			COALESCE(AVG(pt.price_per_unit), 0) as avg_price_per_unit
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
 		WHERE pt.seller_user_id = $1
@@ -245,7 +245,7 @@ func (r *SalesAnalytics) GetItemSalesHistory(ctx context.Context, sellerUserID i
 			COALESCE(SUM(pt.quantity_purchased), 0) as quantity_sold,
 			COALESCE(SUM(pt.total_price), 0) as revenue,
 			COUNT(*) as transaction_count,
-			COALESCE(AVG(pt.price_per_unit), 0)::BIGINT as avg_price_per_unit
+			COALESCE(AVG(pt.price_per_unit), 0) as avg_price_per_unit
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
 		WHERE pt.seller_user_id = $1

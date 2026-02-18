@@ -97,7 +97,7 @@ func Test_ForSaleItemsShouldGetByUser(t *testing.T) {
 	assert.Equal(t, "Test Character", items[0].OwnerName)
 	assert.Equal(t, "Jita", items[0].LocationName)
 	assert.Equal(t, int64(2000), items[0].QuantityAvailable)
-	assert.Equal(t, int64(100), items[0].PricePerUnit)
+	assert.Equal(t, float64(100), items[0].PricePerUnit)
 }
 
 func Test_ForSaleItemsShouldDelete(t *testing.T) {

@@ -71,7 +71,7 @@ func TestAnalyticsController_GetSalesMetrics(t *testing.T) {
 		require.NotNil(t, result)
 
 		metrics := result.(*models.SalesMetrics)
-		assert.Equal(t, int64(100000), metrics.TotalRevenue)
+		assert.Equal(t, float64(100000), metrics.TotalRevenue)
 		assert.Equal(t, int64(1), metrics.TotalTransactions)
 		assert.Equal(t, int64(100), metrics.TotalQuantitySold)
 	})
@@ -90,7 +90,7 @@ func TestAnalyticsController_GetSalesMetrics(t *testing.T) {
 		require.NotNil(t, result)
 
 		metrics := result.(*models.SalesMetrics)
-		assert.Equal(t, int64(100000), metrics.TotalRevenue)
+		assert.Equal(t, float64(100000), metrics.TotalRevenue)
 	})
 }
 

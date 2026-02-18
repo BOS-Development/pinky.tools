@@ -127,7 +127,7 @@ func Test_PurchaseItem_Success(t *testing.T) {
 	assert.Equal(t, buyerID, purchase.BuyerUserID)
 	assert.Equal(t, sellerID, purchase.SellerUserID)
 	assert.Equal(t, int64(250), purchase.QuantityPurchased)
-	assert.Equal(t, int64(25000), purchase.TotalPrice)
+	assert.Equal(t, float64(25000), purchase.TotalPrice)
 	assert.Equal(t, "pending", purchase.Status)
 
 	// Verify quantity was reduced
