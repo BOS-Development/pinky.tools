@@ -37,7 +37,7 @@ INSERT INTO asset_item_types (type_id, type_name, volume, icon_id) VALUES
   (38, 'Nocxium', 0.01, 38),
   (587, 'Rifter', 16500, 587),
   (11399, 'Raven Navy Issue', 486000, 11399),
-  (17703, 'Medium Standard Container', 65, 17703),
+  (9999001, 'Medium Standard Container', 65, NULL),
   (27, 'Office', 0, NULL)
 ON CONFLICT (type_id) DO NOTHING;
 

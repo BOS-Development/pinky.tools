@@ -1220,6 +1220,7 @@ export default function AssetsList(props: AssetsListProps) {
           <Tooltip title={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}>
             <IconButton
               size="small"
+              aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
               onClick={(e) => {
                 e.stopPropagation();
                 handleOpenAutoSellDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
