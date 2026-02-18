@@ -84,11 +84,17 @@ var rootCmd = &cobra.Command{
 
 		sdeClient := client.NewSdeClient(&http.Client{})
 
+		autoSellContainersRepository := repositories.NewAutoSellContainers(db)
+
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient, usersRepository, settings.AssetUpdateConcurrency)
 		sdeUpdater := updaters.NewSde(sdeClient, esiClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
 		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
+		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository)
+
+		assetUpdater.WithAutoSellUpdater(autoSellUpdater)
+		marketPricesUpdater.WithAutoSellUpdater(autoSellUpdater)
 
 		controllers.NewStatic(router, sdeUpdater)
 		controllers.NewCharacters(router, charactersRepository, assetUpdater)
@@ -106,6 +112,7 @@ var rootCmd = &cobra.Command{
 		controllers.NewBuyOrders(router, buyOrdersRepository, contactPermissionsRepository)
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
+		controllers.NewAutoSellContainers(router, autoSellContainersRepository, autoSellUpdater, forSaleItemsRepository)
 
 		group.Go(router.Run(ctx))
 

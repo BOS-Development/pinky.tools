@@ -53,6 +53,7 @@ func (r *ForSaleItems) GetByUser(ctx context.Context, userID int64) ([]*models.F
 			f.quantity_available,
 			f.price_per_unit,
 			f.notes,
+			f.auto_sell_container_id,
 			f.is_active,
 			f.created_at,
 			f.updated_at
@@ -90,6 +91,7 @@ func (r *ForSaleItems) GetByUser(ctx context.Context, userID int64) ([]*models.F
 			&item.QuantityAvailable,
 			&item.PricePerUnit,
 			&item.Notes,
+			&item.AutoSellContainerID,
 			&item.IsActive,
 			&item.CreatedAt,
 			&item.UpdatedAt,
@@ -129,6 +131,7 @@ func (r *ForSaleItems) GetBrowsableItems(ctx context.Context, buyerUserID int64,
 			f.quantity_available,
 			f.price_per_unit,
 			f.notes,
+			f.auto_sell_container_id,
 			f.is_active,
 			f.created_at,
 			f.updated_at
@@ -166,6 +169,7 @@ func (r *ForSaleItems) GetBrowsableItems(ctx context.Context, buyerUserID int64,
 			&item.QuantityAvailable,
 			&item.PricePerUnit,
 			&item.Notes,
+			&item.AutoSellContainerID,
 			&item.IsActive,
 			&item.CreatedAt,
 			&item.UpdatedAt,
@@ -184,14 +188,15 @@ func (r *ForSaleItems) Upsert(ctx context.Context, item *models.ForSaleItem) err
 	query := `
 		INSERT INTO for_sale_items
 		(user_id, type_id, owner_type, owner_id, location_id, container_id, division_number,
-		 quantity_available, price_per_unit, notes, is_active, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+		 quantity_available, price_per_unit, notes, auto_sell_container_id, is_active, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
 		ON CONFLICT (user_id, type_id, owner_type, owner_id, location_id, COALESCE(container_id, 0), COALESCE(division_number, 0))
 		WHERE is_active = true
 		DO UPDATE SET
 			quantity_available = EXCLUDED.quantity_available,
 			price_per_unit = EXCLUDED.price_per_unit,
 			notes = EXCLUDED.notes,
+			auto_sell_container_id = EXCLUDED.auto_sell_container_id,
 			is_active = EXCLUDED.is_active,
 			updated_at = NOW()
 		RETURNING id, created_at, updated_at
@@ -208,6 +213,7 @@ func (r *ForSaleItems) Upsert(ctx context.Context, item *models.ForSaleItem) err
 		item.QuantityAvailable,
 		item.PricePerUnit,
 		item.Notes,
+		item.AutoSellContainerID,
 		item.IsActive,
 	).Scan(&item.ID, &item.CreatedAt, &item.UpdatedAt)
 
@@ -297,6 +303,7 @@ func (r *ForSaleItems) GetByID(ctx context.Context, itemID int64) (*models.ForSa
 			f.quantity_available,
 			f.price_per_unit,
 			f.notes,
+			f.auto_sell_container_id,
 			f.is_active,
 			f.created_at,
 			f.updated_at
@@ -325,6 +332,7 @@ func (r *ForSaleItems) GetByID(ctx context.Context, itemID int64) (*models.ForSa
 		&item.QuantityAvailable,
 		&item.PricePerUnit,
 		&item.Notes,
+		&item.AutoSellContainerID,
 		&item.IsActive,
 		&item.CreatedAt,
 		&item.UpdatedAt,
@@ -338,4 +346,74 @@ func (r *ForSaleItems) GetByID(ctx context.Context, itemID int64) (*models.ForSa
 	}
 
 	return &item, nil
+}
+
+// GetActiveAutoSellListings returns all active listings tied to a specific auto-sell container
+func (r *ForSaleItems) GetActiveAutoSellListings(ctx context.Context, autoSellContainerID int64) ([]*models.ForSaleItem, error) {
+	query := `
+		SELECT
+			f.id,
+			f.user_id,
+			f.type_id,
+			f.owner_type,
+			f.owner_id,
+			f.location_id,
+			f.container_id,
+			f.division_number,
+			f.quantity_available,
+			f.price_per_unit,
+			f.notes,
+			f.auto_sell_container_id,
+			f.is_active
+		FROM for_sale_items f
+		WHERE f.auto_sell_container_id = $1 AND f.is_active = true
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, autoSellContainerID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query auto-sell listings")
+	}
+	defer rows.Close()
+
+	items := []*models.ForSaleItem{}
+	for rows.Next() {
+		var item models.ForSaleItem
+		err = rows.Scan(
+			&item.ID,
+			&item.UserID,
+			&item.TypeID,
+			&item.OwnerType,
+			&item.OwnerID,
+			&item.LocationID,
+			&item.ContainerID,
+			&item.DivisionNumber,
+			&item.QuantityAvailable,
+			&item.PricePerUnit,
+			&item.Notes,
+			&item.AutoSellContainerID,
+			&item.IsActive,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan auto-sell listing")
+		}
+		items = append(items, &item)
+	}
+
+	return items, nil
+}
+
+// DeactivateAutoSellListings soft-deletes all active listings for an auto-sell container
+func (r *ForSaleItems) DeactivateAutoSellListings(ctx context.Context, autoSellContainerID int64) error {
+	query := `
+		UPDATE for_sale_items
+		SET is_active = false, updated_at = NOW()
+		WHERE auto_sell_container_id = $1 AND is_active = true
+	`
+
+	_, err := r.db.ExecContext(ctx, query, autoSellContainerID)
+	if err != nil {
+		return errors.Wrap(err, "failed to deactivate auto-sell listings")
+	}
+
+	return nil
 }

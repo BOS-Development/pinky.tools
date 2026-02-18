@@ -56,6 +56,10 @@ type EsiClient interface {
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*client.RefreshedToken, error)
 }
 
+type AutoSellSyncer interface {
+	SyncForUser(ctx context.Context, userID int64) error
+}
+
 type Assets struct {
 	characterRepository               CharacterRepository
 	characterAssetsRepository         CharacterAssetsRepository
@@ -64,6 +68,7 @@ type Assets struct {
 	playerCorporationAssetsRepository PlayerCorporationAssetsRepository
 	esiClient                         EsiClient
 	userTimestampRepository           UserTimestampRepository
+	autoSellSyncer                    AutoSellSyncer
 	concurrency                       int
 }
 
@@ -130,11 +135,22 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 
 	wg.Wait()
 
+	if u.autoSellSyncer != nil {
+		if err := u.autoSellSyncer.SyncForUser(ctx, userID); err != nil {
+			log.Error("failed to sync auto-sell listings after asset update", "userID", userID, "error", err)
+		}
+	}
+
 	if err := u.userTimestampRepository.UpdateAssetsLastUpdated(ctx, userID); err != nil {
 		log.Error("failed to update assets_last_updated_at", "userID", userID, "error", err)
 	}
 
 	return nil
+}
+
+// WithAutoSellUpdater sets the optional auto-sell syncer
+func (u *Assets) WithAutoSellUpdater(syncer AutoSellSyncer) {
+	u.autoSellSyncer = syncer
 }
 
 // UpdateCharacterAssets updates assets for a single character

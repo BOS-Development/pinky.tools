@@ -73,7 +73,7 @@ var characterAssets = map[int64][]asset{
 		{ItemID: 100002, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 25000, TypeID: 35},  // Pyerite
 		{ItemID: 100003, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 10000, TypeID: 36},  // Mexallon
 		{ItemID: 100004, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 1, TypeID: 11399, IsSingleton: true},    // Raven Navy Issue
-		{ItemID: 100010, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 1, TypeID: 17703, IsSingleton: true},    // Container
+		{ItemID: 100010, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 1, TypeID: 9999001, IsSingleton: true}, // Container
 		{ItemID: 100011, LocationFlag: "Hangar", LocationID: 100010, LocationType: "item", Quantity: 5000, TypeID: 37},        // Isogen in container
 	},
 	// Alice Beta — assets in Amarr
@@ -153,6 +153,10 @@ var marketOrders = []marketOrder{
 	{OrderID: 5, TypeID: 36, LocationID: 60003760, VolumeTotal: 1000000, VolumeRemain: 500000, MinVolume: 1, Price: 75.00, IsBuyOrder: false, Duration: 90, Issued: "2025-01-01T00:00:00Z", Range: "station"},
 	// Mexallon buy
 	{OrderID: 6, TypeID: 36, LocationID: 60003760, VolumeTotal: 1000000, VolumeRemain: 500000, MinVolume: 1, Price: 70.00, IsBuyOrder: true, Duration: 90, Issued: "2025-01-01T00:00:00Z", Range: "station"},
+	// Isogen sell
+	{OrderID: 11, TypeID: 37, LocationID: 60003760, VolumeTotal: 500000, VolumeRemain: 200000, MinVolume: 1, Price: 55.00, IsBuyOrder: false, Duration: 90, Issued: "2025-01-01T00:00:00Z", Range: "station"},
+	// Isogen buy
+	{OrderID: 12, TypeID: 37, LocationID: 60003760, VolumeTotal: 500000, VolumeRemain: 200000, MinVolume: 1, Price: 50.00, IsBuyOrder: true, Duration: 90, Issued: "2025-01-01T00:00:00Z", Range: "station"},
 	// Rifter sell
 	{OrderID: 7, TypeID: 587, LocationID: 60003760, VolumeTotal: 100, VolumeRemain: 50, MinVolume: 1, Price: 600000, IsBuyOrder: false, Duration: 90, Issued: "2025-01-01T00:00:00Z", Range: "region"},
 	// Rifter buy

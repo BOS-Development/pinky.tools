@@ -26,6 +26,30 @@ import DialogActions from '@mui/material/DialogActions';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import SearchIcon from '@mui/icons-material/Search';
+import SellIcon from '@mui/icons-material/Sell';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
+import Chip from '@mui/material/Chip';
+import Badge from '@mui/material/Badge';
+import Tooltip from '@mui/material/Tooltip';
+
+const AutoSellIcon = () => (
+  <Badge
+    badgeContent={<AutorenewIcon sx={{ fontSize: '0.6rem' }} />}
+    sx={{
+      '& .MuiBadge-badge': {
+        minWidth: 'unset',
+        height: 'unset',
+        padding: 0,
+        backgroundColor: 'transparent',
+        color: 'inherit',
+        top: 2,
+        right: 2,
+      },
+    }}
+  >
+    <SellIcon />
+  </Badge>
+);
 import Loading from "@industry-tool/components/loading";
 
 export type ForSaleItem = {
@@ -43,6 +67,7 @@ export type ForSaleItem = {
   quantityAvailable: number;
   pricePerUnit: number;
   notes?: string;
+  autoSellContainerId?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -272,7 +297,29 @@ export default function MyListings() {
                         },
                       }}
                     >
-                      <TableCell sx={{ fontWeight: 600 }}>{item.typeName}</TableCell>
+                      <TableCell sx={{ fontWeight: 600 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          {item.typeName}
+                          {item.autoSellContainerId && (
+                            <Tooltip title="Auto-managed listing — changes will be overwritten on next sync">
+                              <Chip
+                                icon={<AutoSellIcon />}
+                                label="Auto"
+                                size="small"
+                                sx={{
+                                  fontSize: '0.65rem',
+                                  fontWeight: 600,
+                                  height: 22,
+                                  background: 'rgba(59, 130, 246, 0.15)',
+                                  color: '#3b82f6',
+                                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                                  '& .MuiChip-icon': { color: '#3b82f6', fontSize: '0.8rem' },
+                                }}
+                              />
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </TableCell>
                       <TableCell>{item.ownerName}</TableCell>
                       <TableCell>{item.locationName}</TableCell>
                       <TableCell align="right">{item.quantityAvailable.toLocaleString()}</TableCell>

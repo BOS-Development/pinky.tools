@@ -48,7 +48,30 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SellIcon from '@mui/icons-material/Sell';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import Badge from '@mui/material/Badge';
+import Tooltip from '@mui/material/Tooltip';
+
+// Combined sell + sync icon for auto-sell features
+const AutoSellIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' | 'large' }) => (
+  <Badge
+    badgeContent={<AutorenewIcon sx={{ fontSize: '0.6rem' }} />}
+    sx={{
+      '& .MuiBadge-badge': {
+        minWidth: 'unset',
+        height: 'unset',
+        padding: 0,
+        backgroundColor: 'transparent',
+        color: 'inherit',
+        top: 2,
+        right: 2,
+      },
+    }}
+  >
+    <SellIcon fontSize={fontSize} />
+  </Badge>
+);
 
 type ForSaleListing = {
   id: number;
@@ -60,6 +83,19 @@ type ForSaleListing = {
   quantityAvailable: number;
   pricePerUnit: number;
   notes?: string;
+  autoSellContainerId?: number;
+};
+
+type AutoSellConfig = {
+  id: number;
+  userId: number;
+  ownerType: string;
+  ownerId: number;
+  locationId: number;
+  containerId: number;
+  divisionNumber?: number;
+  pricePercentage: number;
+  isActive: boolean;
 };
 
 function formatRelativeTime(date: Date): string {
@@ -158,6 +194,20 @@ export default function AssetsList(props: AssetsListProps) {
   // Track active for-sale listings
   const [forSaleListings, setForSaleListings] = useState<ForSaleListing[]>([]);
 
+  // Auto-sell state
+  const [autoSellConfigs, setAutoSellConfigs] = useState<AutoSellConfig[]>([]);
+  const [autoSellDialogOpen, setAutoSellDialogOpen] = useState(false);
+  const [autoSellContainer, setAutoSellContainer] = useState<{
+    ownerType: string;
+    ownerId: number;
+    locationId: number;
+    containerId: number;
+    divisionNumber?: number;
+    containerName: string;
+  } | null>(null);
+  const [autoSellPercentage, setAutoSellPercentage] = useState('90');
+  const [submittingAutoSell, setSubmittingAutoSell] = useState(false);
+
   const handleQuantityChange = (value: string) => {
     // Remove all non-digit characters
     const numericValue = value.replace(/\D/g, '');
@@ -209,6 +259,93 @@ export default function AssetsList(props: AssetsListProps) {
     }
   };
 
+  const fetchAutoSellConfigs = async () => {
+    if (!session) return;
+
+    try {
+      const response = await fetch('/api/auto-sell');
+      if (response.ok) {
+        const data = await response.json();
+        setAutoSellConfigs(data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch auto-sell configs:', error);
+    }
+  };
+
+  const getAutoSellForContainer = (containerId: number, ownerType: string, ownerId: number, locationId: number, divisionNumber?: number): AutoSellConfig | undefined => {
+    return autoSellConfigs.find(config =>
+      config.containerId === containerId &&
+      config.ownerType === ownerType &&
+      config.ownerId === ownerId &&
+      config.locationId === locationId &&
+      (config.divisionNumber || 0) === (divisionNumber || 0)
+    );
+  };
+
+  const handleOpenAutoSellDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number, containerName: string, divisionNumber?: number) => {
+    const existing = getAutoSellForContainer(containerId, ownerType, ownerId, locationId, divisionNumber);
+    setAutoSellContainer({ ownerType, ownerId, locationId, containerId, divisionNumber, containerName });
+    setAutoSellPercentage(existing ? existing.pricePercentage.toString() : '90');
+    setAutoSellDialogOpen(true);
+  };
+
+  const handleSaveAutoSell = async () => {
+    if (!autoSellContainer || !session) return;
+
+    setSubmittingAutoSell(true);
+    try {
+      const response = await fetch('/api/auto-sell', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ownerType: autoSellContainer.ownerType,
+          ownerId: autoSellContainer.ownerId,
+          locationId: autoSellContainer.locationId,
+          containerId: autoSellContainer.containerId,
+          divisionNumber: autoSellContainer.divisionNumber,
+          pricePercentage: parseFloat(autoSellPercentage),
+        }),
+      });
+
+      if (response.ok) {
+        setAutoSellDialogOpen(false);
+        await fetchAutoSellConfigs();
+        await fetchForSaleListings();
+      }
+    } finally {
+      setSubmittingAutoSell(false);
+    }
+  };
+
+  const handleDisableAutoSell = async () => {
+    if (!autoSellContainer || !session) return;
+
+    const existing = getAutoSellForContainer(
+      autoSellContainer.containerId,
+      autoSellContainer.ownerType,
+      autoSellContainer.ownerId,
+      autoSellContainer.locationId,
+      autoSellContainer.divisionNumber
+    );
+    if (!existing) return;
+
+    setSubmittingAutoSell(true);
+    try {
+      const response = await fetch(`/api/auto-sell/${existing.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setAutoSellDialogOpen(false);
+        await fetchAutoSellConfigs();
+        await fetchForSaleListings();
+      }
+    } finally {
+      setSubmittingAutoSell(false);
+    }
+  };
+
   const getListingForAsset = (asset: Asset, locationId: number, containerId?: number, divisionNumber?: number): ForSaleListing | undefined => {
     return forSaleListings.find(listing =>
       listing.typeId === asset.typeId &&
@@ -245,6 +382,7 @@ export default function AssetsList(props: AssetsListProps) {
     if (session) {
       fetchForSaleListings();
       fetchAssetStatus();
+      fetchAutoSellConfigs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -920,18 +1058,18 @@ export default function AssetsList(props: AssetsListProps) {
                       if (listing) {
                         return (
                           <Chip
-                            icon={<CheckCircleIcon />}
-                            label={`${formatNumber(listing.quantityAvailable)} @ ${formatISK(listing.pricePerUnit)}`}
+                            icon={listing.autoSellContainerId ? <AutoSellIcon /> : <CheckCircleIcon />}
+                            label={`${listing.autoSellContainerId ? 'Auto · ' : ''}${formatNumber(listing.quantityAvailable)} @ ${formatISK(listing.pricePerUnit)}`}
                             size="medium"
                             sx={{
                               fontSize: '0.75rem',
                               fontWeight: 600,
                               cursor: 'pointer',
-                              background: 'rgba(16, 185, 129, 0.15)',
-                              color: '#10b981',
-                              border: '1px solid rgba(16, 185, 129, 0.3)',
+                              background: listing.autoSellContainerId ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                              color: listing.autoSellContainerId ? '#3b82f6' : '#10b981',
+                              border: listing.autoSellContainerId ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
                               '& .MuiChip-icon': {
-                                color: '#10b981',
+                                color: listing.autoSellContainerId ? '#3b82f6' : '#10b981',
                               },
                             }}
                             onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber, listing)}
@@ -1049,16 +1187,49 @@ export default function AssetsList(props: AssetsListProps) {
   const renderContainer = (container: AssetContainer, parentId: string, showOwner: boolean, locationId: number, divisionNumber?: number) => {
     const nodeId = `${parentId}-container-${container.id}`;
     const isExpanded = expandedNodes.has(nodeId);
+    const autoSellConfig = getAutoSellForContainer(container.id, container.ownerType, container.ownerId, locationId, divisionNumber);
 
     return (
       <Box key={container.id}>
         <ListItemButton onClick={() => toggleNode(nodeId)} sx={{ pl: 3 }}>
           {isExpanded ? <ExpandLess /> : <ExpandMore />}
           <ListItemText
-            primary={`📦 ${container.name}`}
+            primary={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {`📦 ${container.name}`}
+                {autoSellConfig && (
+                  <Chip
+                    icon={<AutoSellIcon />}
+                    label={`Auto-Sell @ ${autoSellConfig.pricePercentage}% JBV`}
+                    size="small"
+                    sx={{
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      color: '#3b82f6',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      '& .MuiChip-icon': { color: '#3b82f6', fontSize: '0.9rem' },
+                    }}
+                  />
+                )}
+              </Box>
+            }
             secondary={`${container.assets.length} items`}
             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
           />
+          <Tooltip title={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}>
+            <IconButton
+              size="small"
+              aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAutoSellDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
+              }}
+              sx={{ color: autoSellConfig ? '#3b82f6' : undefined }}
+            >
+              <AutoSellIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </ListItemButton>
         <Collapse in={isExpanded} timeout={150} unmountOnExit>
           {renderAssetsTable(container.assets, showOwner, locationId, container.id, divisionNumber)}
@@ -1648,6 +1819,72 @@ export default function AssetsList(props: AssetsListProps) {
               disabled={submittingListing}
             >
               {submittingListing ? (editingListingId ? 'Updating...' : 'Creating...') : (editingListingId ? 'Update Listing' : 'Create Listing')}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Auto-Sell Configuration Dialog */}
+        <Dialog
+          open={autoSellDialogOpen}
+          onClose={() => setAutoSellDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            {autoSellContainer && getAutoSellForContainer(
+              autoSellContainer.containerId,
+              autoSellContainer.ownerType,
+              autoSellContainer.ownerId,
+              autoSellContainer.locationId,
+              autoSellContainer.divisionNumber
+            ) ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 1 }}>
+              <Typography variant="body2" gutterBottom>
+                <strong>Container:</strong> {autoSellContainer?.containerName}
+              </Typography>
+              <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
+                All items in this container will be automatically listed for sale at the specified percentage of Jita buy price. Listings sync on asset refresh and market price updates.
+              </Typography>
+              <TextField
+                fullWidth
+                label="Price Percentage of Jita Buy"
+                type="number"
+                value={autoSellPercentage}
+                onChange={(e) => setAutoSellPercentage(e.target.value)}
+                InputProps={{
+                  inputProps: { min: 1, max: 200, step: 0.5 },
+                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                }}
+                helperText={`Items will be listed at ${autoSellPercentage}% of Jita buy price`}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            {autoSellContainer && getAutoSellForContainer(
+              autoSellContainer.containerId,
+              autoSellContainer.ownerType,
+              autoSellContainer.ownerId,
+              autoSellContainer.locationId,
+              autoSellContainer.divisionNumber
+            ) && (
+              <Button
+                onClick={handleDisableAutoSell}
+                color="error"
+                disabled={submittingAutoSell}
+                sx={{ mr: 'auto' }}
+              >
+                Disable
+              </Button>
+            )}
+            <Button onClick={() => setAutoSellDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSaveAutoSell}
+              variant="contained"
+              disabled={submittingAutoSell || !autoSellPercentage || parseFloat(autoSellPercentage) <= 0 || parseFloat(autoSellPercentage) > 200}
+            >
+              {submittingAutoSell ? 'Saving...' : 'Save'}
             </Button>
           </DialogActions>
         </Dialog>
