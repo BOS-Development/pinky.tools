@@ -50,10 +50,17 @@ type SdeSolarSystemRepository interface {
 
 type SdeStationRepository interface {
 	Upsert(ctx context.Context, stations []models.Station) error
+	GetStationsWithEmptyNames(ctx context.Context) ([]int64, error)
+	UpdateNames(ctx context.Context, names map[int64]string) error
+}
+
+type SdeEsiClient interface {
+	GetUniverseNames(ctx context.Context, ids []int64) (map[int64]string, error)
 }
 
 type Sde struct {
 	client                  SdeClientInterface
+	esiClient               SdeEsiClient
 	sdeDataRepo             SdeDataRepository
 	itemTypeRepository      SdeItemTypeRepository
 	regionRepository        SdeRegionRepository
@@ -64,6 +71,7 @@ type Sde struct {
 
 func NewSde(
 	client SdeClientInterface,
+	esiClient SdeEsiClient,
 	sdeDataRepo SdeDataRepository,
 	itemTypeRepository SdeItemTypeRepository,
 	regionRepository SdeRegionRepository,
@@ -73,6 +81,7 @@ func NewSde(
 ) *Sde {
 	return &Sde{
 		client:                  client,
+		esiClient:               esiClient,
 		sdeDataRepo:             sdeDataRepo,
 		itemTypeRepository:      itemTypeRepository,
 		regionRepository:        regionRepository,
@@ -138,6 +147,27 @@ func (u *Sde) Update(ctx context.Context) error {
 
 	if err := u.stationRepository.Upsert(ctx, data.Stations); err != nil {
 		return errors.Wrap(err, "failed to upsert stations")
+	}
+
+	// Resolve empty NPC station names from ESI
+	emptyNameIDs, err := u.stationRepository.GetStationsWithEmptyNames(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to get stations with empty names")
+	}
+
+	if len(emptyNameIDs) > 0 {
+		log.Info("resolving NPC station names from ESI", "count", len(emptyNameIDs))
+
+		names, err := u.esiClient.GetUniverseNames(ctx, emptyNameIDs)
+		if err != nil {
+			return errors.Wrap(err, "failed to get universe names from ESI")
+		}
+
+		if err := u.stationRepository.UpdateNames(ctx, names); err != nil {
+			return errors.Wrap(err, "failed to update station names")
+		}
+
+		log.Info("NPC station names resolved", "resolved", len(names))
 	}
 
 	if err := u.itemTypeRepository.UpsertItemTypes(ctx, data.Types); err != nil {

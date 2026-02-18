@@ -68,3 +68,47 @@ do update set
 	}
 	return nil
 }
+
+func (r *Stations) GetStationsWithEmptyNames(ctx context.Context) ([]int64, error) {
+	rows, err := r.db.QueryContext(ctx, `
+select station_id from stations where name = '' and is_npc_station = true`)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stations with empty names")
+	}
+	defer rows.Close()
+
+	ids := []int64{}
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, errors.Wrap(err, "failed to scan station id")
+		}
+		ids = append(ids, id)
+	}
+	return ids, nil
+}
+
+func (r *Stations) UpdateNames(ctx context.Context, names map[int64]string) error {
+	if len(names) == 0 {
+		return nil
+	}
+
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return errors.Wrap(err, "failed to begin transaction for station name update")
+	}
+	defer tx.Rollback()
+
+	stmt, err := tx.PrepareContext(ctx, `update stations set name = $1 where station_id = $2`)
+	if err != nil {
+		return errors.Wrap(err, "failed to prepare station name update")
+	}
+
+	for id, name := range names {
+		if _, err := stmt.ExecContext(ctx, name, id); err != nil {
+			return errors.Wrap(err, "failed to update station name")
+		}
+	}
+
+	return tx.Commit()
+}

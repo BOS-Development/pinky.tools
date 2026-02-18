@@ -85,7 +85,7 @@ var rootCmd = &cobra.Command{
 		sdeClient := client.NewSdeClient(&http.Client{})
 
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient)
-		sdeUpdater := updaters.NewSde(sdeClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
+		sdeUpdater := updaters.NewSde(sdeClient, esiClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
 		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
