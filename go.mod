@@ -5,6 +5,7 @@ go 1.25.5
 require github.com/spf13/cobra v1.10.2
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/antihax/goesi v0.0.0-20251103030832-a87832eae7ca // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect

@@ -84,6 +84,7 @@ var rootCmd = &cobra.Command{
 
 		sdeClient := client.NewSdeClient(&http.Client{})
 
+		contactRulesRepository := repositories.NewContactRules(db)
 		autoSellContainersRepository := repositories.NewAutoSellContainers(db)
 
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient, usersRepository, settings.AssetUpdateConcurrency)
@@ -92,15 +93,16 @@ var rootCmd = &cobra.Command{
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
 		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository)
+		contactRulesUpdater := updaters.NewContactRules(contactsRepository, contactRulesRepository, contactPermissionsRepository, db)
 
 		assetUpdater.WithAutoSellUpdater(autoSellUpdater)
 		marketPricesUpdater.WithAutoSellUpdater(autoSellUpdater)
 
 		controllers.NewStatic(router, sdeUpdater)
-		controllers.NewCharacters(router, charactersRepository, assetUpdater)
+		controllers.NewCharacters(router, charactersRepository, assetUpdater, esiClient, contactRulesUpdater)
 		controllers.NewUsers(router, usersRepository, usersRepository)
 		controllers.NewAssets(router, assetsRepository)
-		controllers.NewCorporations(router, esiClient, playerCorporationRepostiory, assetUpdater)
+		controllers.NewCorporations(router, esiClient, playerCorporationRepostiory, assetUpdater, contactRulesUpdater)
 		controllers.NewStockpileMarkers(router, stockpileMarkersRepository)
 		controllers.NewStockpiles(router, assetsRepository)
 		controllers.NewMarketPrices(router, marketPricesUpdater)
@@ -113,6 +115,7 @@ var rootCmd = &cobra.Command{
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
 		controllers.NewAutoSellContainers(router, autoSellContainersRepository, autoSellUpdater, forSaleItemsRepository)
+		controllers.NewContactRules(router, contactRulesRepository, contactRulesUpdater)
 
 		group.Go(router.Run(ctx))
 

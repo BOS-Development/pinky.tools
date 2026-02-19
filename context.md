@@ -333,48 +333,53 @@ Assets organized by location with nested structure:
 
 ---
 
-## Development Workflow
+## Code Pattern Examples
 
-### Backend Development
-```bash
-# Run backend server
-go run cmd/industry-tool/main.go
+### Repository Pattern
+```go
+type CharacterAssets struct {
+    db *sql.DB
+}
 
-# Run tests
-go test ./internal/repositories -v
+func NewCharacterAssets(db *sql.DB) *CharacterAssets {
+    return &CharacterAssets{db: db}
+}
 
-# Run integration tests (requires database)
-make integration-test-clean
-docker-compose -f docker-compose.ci.yaml up -d database
-go test ./internal/repositories -run Test_Assets
+func (r *CharacterAssets) UpdateAssets(ctx context.Context, characterID, userID int64, assets []*models.EveAsset) error {
+    tx, err := r.db.BeginTx(ctx, nil)
+    if err != nil {
+        return errors.Wrap(err, "failed to begin transaction")
+    }
+    defer tx.Rollback()
+    // ...
+    return tx.Commit()
+}
 ```
 
-### Frontend Development
-```bash
-cd frontend
-npm install
-npm run dev  # Starts on localhost:3000
+### Frontend Components
+```typescript
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+  if (!session) {
+    return { props: {} };
+  }
+  const api = client(process.env.BACKEND_URL, session.providerAccountId);
+  const response = await api.getCharacters();
+  return { props: { characters: response.data } };
+};
+
+export default function Page(props: PageProps) {
+  const { data: session, status } = useSession();
+  if (status === "loading") return <Loading />;
+  if (status !== "authenticated") return <Unauthorized />;
+  return <List items={props.items} />;
+}
 ```
 
-### Database Migrations
-```bash
-# Migrations located in internal/database/migrations/
-# Format: {version}_{name}.up.sql
-
-# Auto-applied on server startup via golang-migrate
-```
-
-### Docker Development
-```bash
-# Full stack
-make dev
-
-# Clean up
-make dev-clean
-
-# Integration tests
-make integration-test
-```
+### Error Handling
+- Backend: Wrap errors with `github.com/pkg/errors`
+- Frontend: Return error kinds (`success`, `error`, `not-found`)
+- HTTP: Standard status codes (200, 401, 404, 500)
 
 ---
 
@@ -402,99 +407,6 @@ NEXTAUTH_URL=http://localhost:3000
 
 ---
 
-## Code Patterns
-
-### Repository Pattern
-```go
-type CharacterAssets struct {
-    db *sql.DB
-}
-
-func NewCharacterAssets(db *sql.DB) *CharacterAssets {
-    return &CharacterAssets{db: db}
-}
-
-func (r *CharacterAssets) UpdateAssets(ctx context.Context, characterID, userID int64, assets []*models.EveAsset) error {
-    // Use transactions with deferred Rollback
-    tx, err := r.db.BeginTx(ctx, nil)
-    if err != nil {
-        return errors.Wrap(err, "failed to begin transaction")
-    }
-    defer tx.Rollback()
-
-    // Execute queries
-    // ...
-
-    return tx.Commit()
-}
-```
-
-### Frontend Components
-```typescript
-// Server-side props
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getSession(context);
-  if (!session) {
-    return { props: {} };
-  }
-
-  const api = client(process.env.BACKEND_URL, session.providerAccountId);
-  const response = await api.getCharacters();
-
-  return {
-    props: { characters: response.data }
-  };
-};
-
-// Component
-export default function Page(props: PageProps) {
-  const { data: session, status } = useSession();
-
-  if (status === "loading") return <Loading />;
-  if (status !== "authenticated") return <Unauthorized />;
-
-  return <List items={props.items} />;
-}
-```
-
-### Error Handling
-- Backend: Wrap errors with `github.com/pkg/errors`
-- Frontend: Return error kinds (`success`, `error`, `not-found`)
-- HTTP: Standard status codes (200, 401, 404, 500)
-
----
-
-## Testing
-
-**IMPORTANT**: Always prefer using the Makefile targets to run all tests. Do not run test commands directly — the Makefile handles Docker Compose orchestration, environment setup, and cleanup.
-
-```bash
-# Unit/integration tests
-make test-backend        # Backend Go tests with coverage
-make test-frontend       # Frontend Jest tests with coverage
-make test-all            # Run both backend and frontend tests
-make test-clean          # Clean up test containers
-
-# End-to-end tests (Playwright)
-make test-e2e            # Run E2E tests headless
-make test-e2e-ui         # Run E2E tests with Playwright UI
-make test-e2e-clean      # Clean up E2E containers
-```
-
-### Integration Tests
-- Located in `internal/repositories/*_test.go`
-- Use testcontainers pattern (random DB names)
-- Setup test data via repositories
-- Assert expected vs actual structs
-
-### Test Database
-- PostgreSQL on port 19236
-- Started via `docker-compose.ci.yaml`
-- Migrations auto-applied
-- Cleaned up after tests
-
----
-
 ## Key Constraints & Design Decisions
 
 1. **Corporation Assets**: Filtered by `OfficeFolder` location flag to identify corp offices
@@ -507,36 +419,6 @@ make test-e2e-clean      # Clean up E2E containers
 
 ---
 
-## Common Tasks
-
-### Add New Repository
-1. Create `internal/repositories/myrepo.go`
-2. Implement struct with `*sql.DB`
-3. Add methods with transactions
-4. Create test file `myrepo_test.go`
-5. Wire up in `cmd/cmd/root.go`
-
-### Add New API Endpoint
-1. Create handler in `internal/controllers/`
-2. Register route in `internal/web/router.go`
-3. Add client method in `frontend/packages/client/api.ts`
-4. Create frontend API route in `frontend/pages/api/`
-5. Call from component via `getServerSideProps`
-
-### Add New Component
-1. Create in `frontend/packages/components/`
-2. Use MUI components for consistency
-3. Follow naming: `Item` (card), `List` (grid)
-4. Export from component directory
-
-### Update Database Schema
-1. Create migration file `{version}_{name}.up.sql`
-2. Write SQL with tab indentation, lowercase keywords
-3. Restart server to auto-apply
-4. Update repository queries as needed
-
----
-
 ## External Resources
 
 - **EVE Online ESI**: https://esi.evetech.net/
@@ -544,167 +426,6 @@ make test-e2e-clean      # Clean up E2E containers
 - **CCP SDE**: https://developers.eveonline.com/static-data/
 - **Next.js Docs**: https://nextjs.org/docs
 - **MUI Docs**: https://mui.com/material-ui/
-
----
-
-## AI Agent Guidelines
-
-### Working on This Project
-
-**General Approach**
-- Always read files before editing them
-- Follow existing patterns from similar components/files
-- Test changes before marking work complete
-- When unsure, ask the user rather than guessing
-
-**Git Workflow**
-- **NEVER commit directly to main branch** - Always use feature branches
-- Branch naming: `feature/{feature-name}` or `fix/{bug-name}`
-  - Examples: `feature/add-buy-orders`, `fix/null-contacts-error`
-- Before starting work:
-  ```bash
-  git checkout main
-  git pull origin main
-  git checkout -b feature/your-feature-name
-  ```
-- Commit frequently with clear messages
-- Push branch and create PR when ready for review
-- Delete branch after PR is merged
-
-**Issue Tickets**
-- Do NOT include Discord usernames or other personal attributions in GitHub issues
-
-**Planning Complex Features**
-- For multi-file changes or architectural decisions, use plan mode first
-- Present options to the user when multiple approaches are valid
-- Break down large features into phases with clear verification steps
-- **Feature Documentation**: All feature plans MUST be documented in `docs/features/`
-  - Always check for existing feature plans before starting work
-  - Create a feature doc for every new feature or significant change (include overview, design decisions, schema, file structure, verification steps)
-  - Update existing docs when modifying a feature
-  - Examples: `contact-marketplace.md`, `jita-market-pricing.md`, `e2e-testing.md`
-  - Store in repo (`docs/features/`), not in local `.claude/plans/` directory
-
-**Code Quality Standards**
-
-*Backend (Go):*
-- **CRITICAL**: Initialize slices as `items := []*Type{}` NOT `var items []*Type`
-  - Prevents nil JSON marshaling (nil → `null` instead of `[]`)
-  - Example: `contacts := []*models.Contact{}` for rows.Next() loops
-- Use transactions with deferred Rollback for multi-statement operations
-- Wrap errors with `github.com/pkg/errors` for context
-- Follow repository → controller → router pattern
-
-*Frontend (React/Next.js):*
-- **MUI SSR**: ThemeRegistry must use Emotion cache (see `ThemeRegistry.tsx`)
-- **Formatting**: Use utilities from `packages/utils/formatting.ts` for ISK/numbers
-- **Authentication**: Check session status before rendering protected content
-- **API Routes**: Proxy to backend, don't implement business logic
-- Read existing components before creating similar ones
-
-**Testing Requirements**
-
-*Backend:*
-- Write integration tests in `*_test.go` files
-- Test repository methods with real database (testcontainers)
-- Cover success cases, edge cases, and error scenarios
-- Use table-driven tests for multiple scenarios
-
-*Frontend:*
-- **Snapshot testing**: Create snapshots for all new components
-  - Run `npm test -- -u` to update snapshots after intentional changes
-  - Location: `__tests__/{ComponentName}.test.tsx`
-  - Test loading, error, and success states
-  - Example:
-    ```typescript
-    import { render } from '@testing-library/react';
-    import MyComponent from '../MyComponent';
-
-    describe('MyComponent', () => {
-      it('matches snapshot with data', () => {
-        const { container } = render(<MyComponent data={mockData} />);
-        expect(container).toMatchSnapshot();
-      });
-
-      it('matches snapshot when loading', () => {
-        const { container } = render(<MyComponent loading={true} />);
-        expect(container).toMatchSnapshot();
-      });
-    });
-    ```
-- Manually test in browser before marking complete
-- Verify edge cases (empty data, errors, null values)
-- Test both character and corporation flows if applicable
-- Check responsive layouts (mobile, tablet, desktop)
-
-**Common Pitfalls to Avoid**
-
-1. **Go nil slices → JSON null**: Always initialize `items := []*Type{}`
-2. **MUI FOUC**: Ensure ThemeRegistry has Emotion cache setup
-3. **Missing auth headers**: Backend needs `BACKEND-KEY` and `USER-ID`
-4. **Incomplete transactions**: Always defer `tx.Rollback()` before operations
-5. **Hardcoded IDs**: Use session providerAccountId, not hardcoded values
-
-**UI/UX Standards**
-
-*Design System:*
-- Dark theme: Background `#0a0e1a`, Cards `#12151f`, Primary `#3b82f6`
-- Use gradients for important metrics: `linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, ...)`
-- Color coding: Green `#10b981` for revenue/success, Red `#ef4444` for costs/errors
-- Icons: Use MUI icons from `@mui/icons-material`
-
-*Component Patterns:*
-- Stat cards: Gradient background + colored border + icon + formatted value
-- Tables: Dark header (`#0f1219`), alternating row colors, right-align numbers
-- Loading states: Use `<Loading />` component, not custom spinners
-- Empty states: Centered message in table cell with `colSpan`
-
-*Formatting:*
-```typescript
-import { formatISK, formatNumber, formatCompact } from '@industry-tool/utils/formatting';
-
-// Currency: "1.5M ISK", "842.3K ISK"
-formatISK(value)
-
-// Large numbers: "1,234,567"
-formatNumber(value)
-
-// Compact: "1.5M", "842K"
-formatCompact(value)
-```
-
-**File Organization**
-- Backend: `internal/repositories/` → `internal/controllers/` → `cmd/cmd/root.go`
-- Frontend components: `packages/components/{feature}/{ComponentName}.tsx`
-- API routes: `pages/api/{feature}/{action}.ts`
-- Types/interfaces: Define in component file or `internal/models/models.go`
-
-**Migration & Schema Changes**
-- **Creating new migrations**: Use the helper script
-  - Command: `./scripts/new-migration.sh migration_name`
-  - Example: `./scripts/new-migration.sh add_user_preferences`
-  - Auto-generates both `.up.sql` and `.down.sql` files with timestamp
-- **Naming**: Timestamp-based versions (prevents merge conflicts)
-  - Format: `{YYYYMMDDHHMMSS}_{name}.up.sql` (no underscore in timestamp)
-  - Example: `20250215143022_create_contacts.up.sql`
-  - Manual timestamp: `date +%Y%m%d%H%M%S`
-- Location: `internal/database/migrations/`
-- Style: Lowercase SQL keywords, tab indentation
-- Auto-applied on server startup (no manual commands needed)
-- Update repository methods after schema changes
-- Always create both `.up.sql` and `.down.sql` for rollback support
-
-**Debugging Tips**
-- Backend logs: Check container output via `docker logs`
-- Frontend: Use browser DevTools Network tab for API calls
-- Database: Connect via `psql -h localhost -p 19236 -U postgres -d app`
-- Authentication issues: Verify session in browser DevTools Application tab
-
-**When in Doubt**
-- Check similar existing features for patterns
-- Read the full file before editing
-- Ask user for clarification on requirements
-- Prefer simple solutions over complex abstractions
 
 ---
 
