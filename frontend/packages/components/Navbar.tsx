@@ -93,6 +93,9 @@ export default function Navbar() {
           <Button color="inherit" href="/marketplace">
             Marketplace
           </Button>
+          <Button color="inherit" href="/reactions">
+            Reactions
+          </Button>
         </Toolbar>
       </AppBar>
       <Toolbar />

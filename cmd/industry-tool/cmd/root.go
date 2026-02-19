@@ -113,6 +113,7 @@ var rootCmd = &cobra.Command{
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
 		controllers.NewAutoSellContainers(router, autoSellContainersRepository, autoSellUpdater, forSaleItemsRepository)
+		controllers.NewReactions(router, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
 
 		group.Go(router.Run(ctx))
 

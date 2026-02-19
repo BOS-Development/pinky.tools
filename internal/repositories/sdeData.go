@@ -551,6 +551,151 @@ func (r *SdeDataRepository) UpsertMiscData(ctx context.Context, skins []models.S
 	return tx.Commit()
 }
 
+// ReactionRow represents a reaction with its product info and group
+type ReactionRow struct {
+	BlueprintTypeID int64
+	ProductTypeID   int64
+	ProductName     string
+	GroupName       string
+	ProductQuantity int
+	Time            int
+	ProductVolume   float64
+}
+
+// ReactionMaterialRow represents an input material for a reaction
+type ReactionMaterialRow struct {
+	BlueprintTypeID int64
+	TypeID          int64
+	TypeName        string
+	Quantity        int
+	Volume          float64
+}
+
+// GetAllReactions returns all reactions with product info and group names
+func (r *SdeDataRepository) GetAllReactions(ctx context.Context) ([]*ReactionRow, error) {
+	query := `
+SELECT
+	ba.blueprint_type_id,
+	bp.type_id AS product_type_id,
+	ait.type_name AS product_name,
+	g.name AS group_name,
+	bp.quantity AS product_quantity,
+	ba.time,
+	COALESCE(ait.packaged_volume, ait.volume, 0) AS product_volume
+FROM sde_blueprint_activities ba
+JOIN sde_blueprint_products bp ON bp.blueprint_type_id = ba.blueprint_type_id AND bp.activity = ba.activity
+JOIN asset_item_types ait ON ait.type_id = bp.type_id
+JOIN sde_groups g ON g.group_id = ait.group_id
+WHERE ba.activity = 'reaction'
+  AND ba.time >= 3600
+ORDER BY g.name, ait.type_name
+`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query reactions")
+	}
+	defer rows.Close()
+
+	results := []*ReactionRow{}
+	for rows.Next() {
+		var row ReactionRow
+		err := rows.Scan(
+			&row.BlueprintTypeID,
+			&row.ProductTypeID,
+			&row.ProductName,
+			&row.GroupName,
+			&row.ProductQuantity,
+			&row.Time,
+			&row.ProductVolume,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan reaction row")
+		}
+		results = append(results, &row)
+	}
+
+	return results, nil
+}
+
+// GetAllReactionMaterials returns input materials for all reactions
+func (r *SdeDataRepository) GetAllReactionMaterials(ctx context.Context) ([]*ReactionMaterialRow, error) {
+	query := `
+SELECT
+	bm.blueprint_type_id,
+	bm.type_id,
+	ait.type_name,
+	bm.quantity,
+	COALESCE(ait.packaged_volume, ait.volume, 0) AS volume
+FROM sde_blueprint_materials bm
+JOIN asset_item_types ait ON ait.type_id = bm.type_id
+WHERE bm.activity = 'reaction'
+ORDER BY bm.blueprint_type_id, ait.type_name
+`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query reaction materials")
+	}
+	defer rows.Close()
+
+	results := []*ReactionMaterialRow{}
+	for rows.Next() {
+		var row ReactionMaterialRow
+		err := rows.Scan(
+			&row.BlueprintTypeID,
+			&row.TypeID,
+			&row.TypeName,
+			&row.Quantity,
+			&row.Volume,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan reaction material row")
+		}
+		results = append(results, &row)
+	}
+
+	return results, nil
+}
+
+// GetReactionSystems returns systems with reaction cost indices
+func (r *SdeDataRepository) GetReactionSystems(ctx context.Context) ([]*models.ReactionSystem, error) {
+	query := `
+SELECT
+	i.system_id,
+	s.name,
+	s.security,
+	i.cost_index
+FROM industry_cost_indices i
+JOIN solar_systems s ON s.solar_system_id = i.system_id
+WHERE i.activity = 'reaction'
+ORDER BY s.name
+`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query reaction systems")
+	}
+	defer rows.Close()
+
+	results := []*models.ReactionSystem{}
+	for rows.Next() {
+		var sys models.ReactionSystem
+		err := rows.Scan(
+			&sys.SystemID,
+			&sys.Name,
+			&sys.SecurityStatus,
+			&sys.CostIndex,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan reaction system row")
+		}
+		results = append(results, &sys)
+	}
+
+	return results, nil
+}
+
 // batchUpsert executes upsert queries for a batch of items in a single transaction
 func batchUpsert[T any](db *sql.DB, ctx context.Context, upsertQuery string, items []T, execFn func(*sql.Stmt, T) error) error {
 	if len(items) == 0 {
