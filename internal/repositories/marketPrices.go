@@ -199,6 +199,69 @@ WHERE type_id = $1
 	return nil
 }
 
+// GetAllAdjustedPrices returns all CCP adjusted prices as a map of type_id -> adjusted_price
+func (r *MarketPrices) GetAllAdjustedPrices(ctx context.Context) (map[int64]float64, error) {
+	query := `
+SELECT type_id, adjusted_price
+FROM market_prices
+WHERE adjusted_price IS NOT NULL
+`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query adjusted prices")
+	}
+	defer rows.Close()
+
+	prices := make(map[int64]float64)
+	for rows.Next() {
+		var typeID int64
+		var price float64
+		if err := rows.Scan(&typeID, &price); err != nil {
+			return nil, errors.Wrap(err, "failed to scan adjusted price row")
+		}
+		prices[typeID] = price
+	}
+
+	return prices, nil
+}
+
+// GetAllJitaPrices returns all Jita market prices (region_id = 10000002 "The Forge")
+func (r *MarketPrices) GetAllJitaPrices(ctx context.Context) (map[int64]*models.MarketPrice, error) {
+	query := `
+SELECT type_id, region_id, buy_price, sell_price, daily_volume, updated_at
+FROM market_prices
+WHERE region_id = 10000002
+`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query Jita prices")
+	}
+	defer rows.Close()
+
+	prices := make(map[int64]*models.MarketPrice)
+	for rows.Next() {
+		var price models.MarketPrice
+		var updatedAt time.Time
+		err := rows.Scan(
+			&price.TypeID,
+			&price.RegionID,
+			&price.BuyPrice,
+			&price.SellPrice,
+			&price.DailyVolume,
+			&updatedAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan Jita price row")
+		}
+		price.UpdatedAt = updatedAt.Format(time.RFC3339)
+		prices[price.TypeID] = &price
+	}
+
+	return prices, nil
+}
+
 func (r *MarketPrices) GetAdjustedPriceLastUpdateTime(ctx context.Context) (*time.Time, error) {
 	query := `
 SELECT MAX(updated_at) FROM market_prices WHERE adjusted_price IS NOT NULL

@@ -81,12 +81,13 @@ type StockpileMarker struct {
 }
 
 type MarketPrice struct {
-	TypeID      int64
-	RegionID    int64
-	BuyPrice    *float64
-	SellPrice   *float64
-	DailyVolume *int64
-	UpdatedAt   string
+	TypeID        int64
+	RegionID      int64
+	BuyPrice      *float64
+	SellPrice     *float64
+	DailyVolume   *int64
+	AdjustedPrice *float64
+	UpdatedAt     string
 }
 
 type Contact struct {
@@ -507,4 +508,93 @@ type SdeCorporationActivity struct {
 type SdeTournamentRuleSet struct {
 	RuleSetID int64
 	Data      *string
+}
+
+// Reactions Calculator Models
+
+type ReactionMaterial struct {
+	TypeID         int64   `json:"type_id"`
+	Name           string  `json:"name"`
+	BaseQty        int     `json:"base_qty"`
+	AdjQty         int     `json:"adj_qty"`
+	Price          float64 `json:"price"`
+	Cost           float64 `json:"cost"`
+	Volume         float64 `json:"volume"`
+	IsIntermediate bool    `json:"is_intermediate"`
+}
+
+type Reaction struct {
+	ReactionTypeID    int64              `json:"reaction_type_id"`
+	ProductTypeID     int64              `json:"product_type_id"`
+	ProductName       string             `json:"product_name"`
+	GroupName         string             `json:"group_name"`
+	ProductQtyPerRun  int                `json:"product_qty_per_run"`
+	RunsPerCycle      int                `json:"runs_per_cycle"`
+	SecsPerRun        int                `json:"secs_per_run"`
+	ComplexInstances  int                `json:"complex_instances"`
+	NumIntermediates  int                `json:"num_intermediates"`
+	InputCostPerRun   float64            `json:"input_cost_per_run"`
+	JobCostPerRun     float64            `json:"job_cost_per_run"`
+	OutputValuePerRun float64            `json:"output_value_per_run"`
+	OutputFeesPerRun  float64            `json:"output_fees_per_run"`
+	ShippingInPerRun  float64            `json:"shipping_in_per_run"`
+	ShippingOutPerRun float64            `json:"shipping_out_per_run"`
+	ProfitPerRun      float64            `json:"profit_per_run"`
+	ProfitPerCycle    float64            `json:"profit_per_cycle"`
+	Margin            float64            `json:"margin"`
+	Materials         []*ReactionMaterial `json:"materials"`
+}
+
+type ReactionsResponse struct {
+	Reactions      []*Reaction `json:"reactions"`
+	Count          int         `json:"count"`
+	CostIndex      float64     `json:"cost_index"`
+	MEFactor       float64     `json:"me_factor"`
+	TEFactor       float64     `json:"te_factor"`
+	RunsPerCycle   int         `json:"runs_per_cycle"`
+}
+
+type ReactionSystem struct {
+	SystemID       int64   `json:"system_id"`
+	Name           string  `json:"name"`
+	SecurityStatus float64 `json:"security_status"`
+	CostIndex      float64 `json:"cost_index"`
+}
+
+type PlanSelection struct {
+	ReactionTypeID int64 `json:"reaction_type_id"`
+	Instances      int   `json:"instances"`
+}
+
+type IntermediatePlan struct {
+	TypeID   int64  `json:"type_id"`
+	Name     string `json:"name"`
+	Slots    int    `json:"slots"`
+	Runs     int    `json:"runs"`
+	Produced int64  `json:"produced"`
+}
+
+type ShoppingItem struct {
+	TypeID   int64   `json:"type_id"`
+	Name     string  `json:"name"`
+	Quantity int64   `json:"quantity"`
+	Price    float64 `json:"price"`
+	Cost     float64 `json:"cost"`
+	Volume   float64 `json:"volume"`
+}
+
+type PlanSummary struct {
+	TotalSlots        int     `json:"total_slots"`
+	IntermediateSlots int     `json:"intermediate_slots"`
+	ComplexSlots      int     `json:"complex_slots"`
+	Investment        float64 `json:"investment"`
+	Revenue           float64 `json:"revenue"`
+	Profit            float64 `json:"profit"`
+	Margin            float64 `json:"margin"`
+}
+
+type PlanResponse struct {
+	Intermediates []*IntermediatePlan `json:"intermediates"`
+	ShoppingList  []*ShoppingItem    `json:"shopping_list"`
+	Summary       *PlanSummary       `json:"summary"`
 }
