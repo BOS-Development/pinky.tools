@@ -3,8 +3,10 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"time"
 
 	log "github.com/annymsMthd/industry-tool/internal/logging"
+	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 	"github.com/annymsMthd/industry-tool/internal/web"
 
@@ -26,15 +28,27 @@ type CharacterAssetUpdater interface {
 	UpdateCharacterAssets(ctx context.Context, char *repositories.Character, userID int64) error
 }
 
-type Characters struct {
-	repository CharacterRepository
-	updater    CharacterAssetUpdater
+type CharacterEsiClient interface {
+	GetCharacterCorporation(ctx context.Context, characterID int64, token, refresh string, expire time.Time) (*models.Corporation, error)
 }
 
-func NewCharacters(router Routerer, repository CharacterRepository, updater CharacterAssetUpdater) *Characters {
+type CharacterContactRuleApplier interface {
+	ApplyRulesForNewCorporation(ctx context.Context, userID int64, corpID int64, allianceID int64) error
+}
+
+type Characters struct {
+	repository          CharacterRepository
+	updater             CharacterAssetUpdater
+	esiClient           CharacterEsiClient
+	contactRulesApplier CharacterContactRuleApplier
+}
+
+func NewCharacters(router Routerer, repository CharacterRepository, updater CharacterAssetUpdater, esiClient CharacterEsiClient, contactRulesApplier CharacterContactRuleApplier) *Characters {
 	controller := &Characters{
-		repository: repository,
-		updater:    updater,
+		repository:          repository,
+		updater:             updater,
+		esiClient:           esiClient,
+		contactRulesApplier: contactRulesApplier,
 	}
 
 	router.RegisterRestAPIRoute("/v1/characters/{id}", web.AuthAccessUser, controller.GetCharacter, "GET")
@@ -111,8 +125,24 @@ func (c *Characters) AddCharacter(args *web.HandlerArgs) (interface{}, *web.Http
 	}
 
 	go func() {
-		if err := c.updater.UpdateCharacterAssets(context.Background(), &character, character.UserID); err != nil {
+		ctx := context.Background()
+		if err := c.updater.UpdateCharacterAssets(ctx, &character, character.UserID); err != nil {
 			log.Error("failed to update assets after adding character", "characterID", character.ID, "error", err)
+		}
+		// Look up the character's corporation and apply any matching contact rules
+		if c.esiClient != nil && c.contactRulesApplier != nil {
+			corp, err := c.esiClient.GetCharacterCorporation(ctx, character.ID, character.EsiToken, character.EsiRefreshToken, character.EsiTokenExpiresOn)
+			if err != nil {
+				log.Error("failed to get character corporation for contact rules", "characterID", character.ID, "error", err)
+			} else {
+				allianceID := int64(0)
+				if corp.AllianceID > 0 {
+					allianceID = corp.AllianceID
+				}
+				if err := c.contactRulesApplier.ApplyRulesForNewCorporation(ctx, character.UserID, corp.ID, allianceID); err != nil {
+					log.Error("failed to apply contact rules for new character", "characterID", character.ID, "corporationID", corp.ID, "error", err)
+				}
+			}
 		}
 	}()
 

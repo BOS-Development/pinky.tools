@@ -25,19 +25,25 @@ type CorporationAssetUpdater interface {
 	UpdateCorporationAssets(ctx context.Context, corp repositories.PlayerCorporation, userID int64) error
 }
 
-type Corporations struct {
-	router     Routerer
-	esiClient  EsiClient
-	repository PlayerCorporationRepository
-	updater    CorporationAssetUpdater
+type CorporationContactRuleApplier interface {
+	ApplyRulesForNewCorporation(ctx context.Context, userID int64, corpID int64, allianceID int64) error
 }
 
-func NewCorporations(router Routerer, esiClient EsiClient, repository PlayerCorporationRepository, updater CorporationAssetUpdater) *Corporations {
+type Corporations struct {
+	router              Routerer
+	esiClient           EsiClient
+	repository          PlayerCorporationRepository
+	updater             CorporationAssetUpdater
+	contactRulesApplier CorporationContactRuleApplier
+}
+
+func NewCorporations(router Routerer, esiClient EsiClient, repository PlayerCorporationRepository, updater CorporationAssetUpdater, contactRulesApplier CorporationContactRuleApplier) *Corporations {
 	controller := &Corporations{
-		router:     router,
-		esiClient:  esiClient,
-		repository: repository,
-		updater:    updater,
+		router:              router,
+		esiClient:           esiClient,
+		repository:          repository,
+		updater:             updater,
+		contactRulesApplier: contactRulesApplier,
 	}
 
 	router.RegisterRestAPIRoute("/v1/corporations", web.AuthAccessUser, controller.Add, "POST")
@@ -66,6 +72,15 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 		}
 	}
 
+	var allianceID *int64
+	var allianceName *string
+	if corp.AllianceID > 0 {
+		allianceID = &corp.AllianceID
+		if corp.AllianceName != "" {
+			allianceName = &corp.AllianceName
+		}
+	}
+
 	playerCorp := repositories.PlayerCorporation{
 		ID:              corp.ID,
 		UserID:          *args.User,
@@ -74,6 +89,8 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 		EsiRefreshToken: character.EsiRefreshToken,
 		EsiExpiresOn:    character.EsiTokenExpiresOn,
 		EsiScopes:       character.EsiScopes,
+		AllianceID:      allianceID,
+		AllianceName:    allianceName,
 	}
 
 	err = c.repository.Upsert(args.Request.Context(), playerCorp)
@@ -85,8 +102,19 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 	}
 
 	go func() {
-		if err := c.updater.UpdateCorporationAssets(context.Background(), playerCorp, *args.User); err != nil {
+		ctx := context.Background()
+		if err := c.updater.UpdateCorporationAssets(ctx, playerCorp, *args.User); err != nil {
 			log.Error("failed to update assets after adding corporation", "corporationID", playerCorp.ID, "error", err)
+		}
+		// Apply contact rules for the new corporation
+		if c.contactRulesApplier != nil {
+			allianceIDVal := int64(0)
+			if playerCorp.AllianceID != nil {
+				allianceIDVal = *playerCorp.AllianceID
+			}
+			if err := c.contactRulesApplier.ApplyRulesForNewCorporation(ctx, *args.User, playerCorp.ID, allianceIDVal); err != nil {
+				log.Error("failed to apply contact rules for new corporation", "corporationID", playerCorp.ID, "error", err)
+			}
 		}
 	}()
 

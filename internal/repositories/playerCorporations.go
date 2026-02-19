@@ -17,6 +17,8 @@ type PlayerCorporation struct {
 	EsiRefreshToken string
 	EsiExpiresOn    time.Time
 	EsiScopes       string
+	AllianceID      *int64
+	AllianceName    *string
 }
 
 type PlayerCorporations struct {
@@ -40,10 +42,12 @@ insert into
 		esi_token,
 		esi_refresh_token,
 		esi_token_expires_on,
-		esi_scopes
+		esi_scopes,
+		alliance_id,
+		alliance_name
 	)
 	values
-		($1,$2,$3,$4,$5,$6,$7)
+		($1,$2,$3,$4,$5,$6,$7,$8,$9)
 on conflict
 	(id, user_id)
 do update set
@@ -51,9 +55,11 @@ do update set
 	esi_token = EXCLUDED.esi_token,
 	esi_refresh_token = EXCLUDED.esi_refresh_token,
 	esi_token_expires_on = EXCLUDED.esi_token_expires_on,
-	esi_scopes = EXCLUDED.esi_scopes;`
+	esi_scopes = EXCLUDED.esi_scopes,
+	alliance_id = EXCLUDED.alliance_id,
+	alliance_name = EXCLUDED.alliance_name;`
 
-	_, err := r.db.ExecContext(ctx, upsertQuery, corp.ID, corp.UserID, corp.Name, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn, corp.EsiScopes)
+	_, err := r.db.ExecContext(ctx, upsertQuery, corp.ID, corp.UserID, corp.Name, corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn, corp.EsiScopes, corp.AllianceID, corp.AllianceName)
 	if err != nil {
 		return errors.Wrap(err, "failed to execute player corporation upsert")
 	}

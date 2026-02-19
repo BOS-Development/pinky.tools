@@ -57,8 +57,10 @@ type Station struct {
 }
 
 type Corporation struct {
-	ID   int64
-	Name string
+	ID           int64
+	Name         string
+	AllianceID   int64
+	AllianceName string
 }
 
 type CorporationDivisions struct {
@@ -96,6 +98,19 @@ type Contact struct {
 	Status          string     `json:"status"`
 	RequestedAt     time.Time  `json:"requestedAt"`
 	RespondedAt     *time.Time `json:"respondedAt"`
+	ContactRuleID   *int64     `json:"contactRuleId"`
+}
+
+type ContactRule struct {
+	ID          int64     `json:"id"`
+	UserID      int64     `json:"userId"`
+	RuleType    string    `json:"ruleType"`
+	EntityID    *int64    `json:"entityId"`
+	EntityName  *string   `json:"entityName"`
+	Permissions []string  `json:"permissions"`
+	IsActive    bool      `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type ContactPermission struct {

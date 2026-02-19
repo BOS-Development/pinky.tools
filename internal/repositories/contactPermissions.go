@@ -77,6 +77,32 @@ func (r *ContactPermissions) Upsert(ctx context.Context, perm *models.ContactPer
 	return nil
 }
 
+// UpsertInTx creates or updates a permission within an existing transaction
+func (r *ContactPermissions) UpsertInTx(ctx context.Context, tx *sql.Tx, perm *models.ContactPermission) error {
+	query := `
+		INSERT INTO contact_permissions
+		(contact_id, granting_user_id, receiving_user_id, service_type, can_access, updated_at)
+		VALUES ($1, $2, $3, $4, $5, NOW())
+		ON CONFLICT (contact_id, granting_user_id, receiving_user_id, service_type)
+		DO UPDATE SET
+			can_access = EXCLUDED.can_access,
+			updated_at = NOW()
+	`
+
+	_, err := tx.ExecContext(ctx, query,
+		perm.ContactID,
+		perm.GrantingUserID,
+		perm.ReceivingUserID,
+		perm.ServiceType,
+		perm.CanAccess,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to upsert contact permission in transaction")
+	}
+
+	return nil
+}
+
 // CheckPermission verifies if grantingUser allows receivingUser to access serviceType
 func (r *ContactPermissions) CheckPermission(ctx context.Context, grantingUserID, receivingUserID int64, serviceType string) (bool, error) {
 	query := `

@@ -62,7 +62,7 @@ func Test_CorporationsController_Get_Success(t *testing.T) {
 	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater, nil)
 
 	userID := int64(42)
 	expectedCorps := []repositories.PlayerCorporation{
@@ -97,7 +97,7 @@ func Test_CorporationsController_Get_RepositoryError(t *testing.T) {
 	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater, nil)
 
 	userID := int64(42)
 	mockRepo.On("Get", mock.Anything, userID).Return(nil, errors.New("database error"))
@@ -123,7 +123,7 @@ func Test_CorporationsController_Add_Success(t *testing.T) {
 	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater, nil)
 
 	userID := int64(42)
 	character := repositories.Character{
@@ -168,7 +168,7 @@ func Test_CorporationsController_Add_InvalidJSON(t *testing.T) {
 	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater, nil)
 
 	userID := int64(42)
 
@@ -191,7 +191,7 @@ func Test_CorporationsController_Add_EsiError(t *testing.T) {
 	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater, nil)
 
 	userID := int64(42)
 	character := repositories.Character{
@@ -225,7 +225,7 @@ func Test_CorporationsController_Add_RepositoryError(t *testing.T) {
 	mockUpdater := new(MockCorporationAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater)
+	controller := controllers.NewCorporations(mockRouter, mockEsiClient, mockRepo, mockUpdater, nil)
 
 	userID := int64(42)
 	character := repositories.Character{
