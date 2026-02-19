@@ -106,7 +106,7 @@ func Test_ContactRulesUpdater_ApplyRule_Corporation(t *testing.T) {
 
 	entityID := int64(2001)
 	rule := &models.ContactRule{
-		ID: 1, UserID: 100, RuleType: "corporation", EntityID: &entityID,
+		ID: 1, UserID: 100, RuleType: "corporation", EntityID: &entityID, Permissions: []string{"for_sale_browse"},
 	}
 
 	contactsRepo := &mockContactsRepo{}
@@ -133,7 +133,7 @@ func Test_ContactRulesUpdater_ApplyRule_Alliance(t *testing.T) {
 
 	entityID := int64(5001)
 	rule := &models.ContactRule{
-		ID: 2, UserID: 100, RuleType: "alliance", EntityID: &entityID,
+		ID: 2, UserID: 100, RuleType: "alliance", EntityID: &entityID, Permissions: []string{"for_sale_browse"},
 	}
 
 	contactsRepo := &mockContactsRepo{}
@@ -153,7 +153,7 @@ func Test_ContactRulesUpdater_ApplyRule_Everyone(t *testing.T) {
 	db, dbMock := newMockDB(t, 3)
 	defer db.Close()
 
-	rule := &models.ContactRule{ID: 3, UserID: 100, RuleType: "everyone"}
+	rule := &models.ContactRule{ID: 3, UserID: 100, RuleType: "everyone", Permissions: []string{"for_sale_browse"}}
 
 	contactsRepo := &mockContactsRepo{}
 	rulesRepo := &mockRulesRepo{allUsers: []int64{200, 300, 400}}
@@ -229,7 +229,7 @@ func Test_ContactRulesUpdater_ApplyRule_SkippedContact(t *testing.T) {
 	defer db.Close()
 
 	entityID := int64(2001)
-	rule := &models.ContactRule{ID: 1, UserID: 100, RuleType: "corporation", EntityID: &entityID}
+	rule := &models.ContactRule{ID: 1, UserID: 100, RuleType: "corporation", EntityID: &entityID, Permissions: []string{"for_sale_browse"}}
 
 	contactsRepo := &mockContactsRepo{
 		createAutoContactFn: func(ctx context.Context, tx *sql.Tx, requesterID, recipientID, ruleID int64) (int64, bool, error) {
@@ -252,7 +252,7 @@ func Test_ContactRulesUpdater_ApplyRule_ExistingAcceptedContact(t *testing.T) {
 	defer db.Close()
 
 	entityID := int64(2001)
-	rule := &models.ContactRule{ID: 1, UserID: 100, RuleType: "corporation", EntityID: &entityID}
+	rule := &models.ContactRule{ID: 1, UserID: 100, RuleType: "corporation", EntityID: &entityID, Permissions: []string{"for_sale_browse"}}
 
 	contactsRepo := &mockContactsRepo{
 		createAutoContactFn: func(ctx context.Context, tx *sql.Tx, requesterID, recipientID, ruleID int64) (int64, bool, error) {
@@ -279,7 +279,7 @@ func Test_ContactRulesUpdater_ApplyRulesForNewCorporation_CorpRule(t *testing.T)
 
 	contactsRepo := &mockContactsRepo{}
 	rulesRepo := &mockRulesRepo{
-		corpRules:     []*models.ContactRule{{ID: 1, UserID: 100, RuleType: "corporation"}},
+		corpRules:     []*models.ContactRule{{ID: 1, UserID: 100, RuleType: "corporation", Permissions: []string{"for_sale_browse"}}},
 		everyoneRules: []*models.ContactRule{},
 	}
 	permsRepo := &mockPermsRepo{}
@@ -297,7 +297,7 @@ func Test_ContactRulesUpdater_ApplyRulesForNewCorporation_CorpRule(t *testing.T)
 func Test_ContactRulesUpdater_ApplyRulesForNewCorporation_SkipsSelfRules(t *testing.T) {
 	contactsRepo := &mockContactsRepo{}
 	rulesRepo := &mockRulesRepo{
-		corpRules:     []*models.ContactRule{{ID: 1, UserID: 200, RuleType: "corporation"}},
+		corpRules:     []*models.ContactRule{{ID: 1, UserID: 200, RuleType: "corporation", Permissions: []string{"for_sale_browse"}}},
 		everyoneRules: []*models.ContactRule{},
 	}
 
@@ -315,7 +315,7 @@ func Test_ContactRulesUpdater_ApplyRulesForNewCorporation_AllianceRule(t *testin
 	contactsRepo := &mockContactsRepo{}
 	rulesRepo := &mockRulesRepo{
 		corpRules:     []*models.ContactRule{},
-		alliRules:     []*models.ContactRule{{ID: 2, UserID: 100, RuleType: "alliance"}},
+		alliRules:     []*models.ContactRule{{ID: 2, UserID: 100, RuleType: "alliance", Permissions: []string{"for_sale_browse"}}},
 		everyoneRules: []*models.ContactRule{},
 	}
 
@@ -349,7 +349,7 @@ func Test_ContactRulesUpdater_ApplyRulesForNewCorporation_EveryoneRule(t *testin
 	contactsRepo := &mockContactsRepo{}
 	rulesRepo := &mockRulesRepo{
 		corpRules:     []*models.ContactRule{},
-		everyoneRules: []*models.ContactRule{{ID: 3, UserID: 100, RuleType: "everyone"}},
+		everyoneRules: []*models.ContactRule{{ID: 3, UserID: 100, RuleType: "everyone", Permissions: []string{"for_sale_browse"}}},
 	}
 
 	updater := updaters.NewContactRules(contactsRepo, rulesRepo, &mockPermsRepo{}, db)
@@ -402,9 +402,9 @@ func Test_ContactRulesUpdater_ApplyRulesForNewCorporation_MultipleRuleTypes(t *t
 
 	contactsRepo := &mockContactsRepo{}
 	rulesRepo := &mockRulesRepo{
-		corpRules:     []*models.ContactRule{{ID: 1, UserID: 100}},
-		alliRules:     []*models.ContactRule{{ID: 2, UserID: 300}},
-		everyoneRules: []*models.ContactRule{{ID: 3, UserID: 400}},
+		corpRules:     []*models.ContactRule{{ID: 1, UserID: 100, Permissions: []string{"for_sale_browse"}}},
+		alliRules:     []*models.ContactRule{{ID: 2, UserID: 300, Permissions: []string{"for_sale_browse"}}},
+		everyoneRules: []*models.ContactRule{{ID: 3, UserID: 400, Permissions: []string{"for_sale_browse"}}},
 	}
 
 	updater := updaters.NewContactRules(contactsRepo, rulesRepo, &mockPermsRepo{}, db)

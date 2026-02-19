@@ -102,14 +102,15 @@ type Contact struct {
 }
 
 type ContactRule struct {
-	ID         int64     `json:"id"`
-	UserID     int64     `json:"userId"`
-	RuleType   string    `json:"ruleType"`
-	EntityID   *int64    `json:"entityId"`
-	EntityName *string   `json:"entityName"`
-	IsActive   bool      `json:"isActive"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+	ID          int64     `json:"id"`
+	UserID      int64     `json:"userId"`
+	RuleType    string    `json:"ruleType"`
+	EntityID    *int64    `json:"entityId"`
+	EntityName  *string   `json:"entityName"`
+	Permissions []string  `json:"permissions"`
+	IsActive    bool      `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 type ContactPermission struct {

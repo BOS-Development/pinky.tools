@@ -76,7 +76,7 @@ func (u *ContactRulesUpdater) ApplyRule(ctx context.Context, rule *models.Contac
 	}
 
 	for _, userID := range userIDs {
-		if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID); err != nil {
+		if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID, rule.Permissions); err != nil {
 			log.Error("failed to create auto-contact", "ruleID", rule.ID, "targetUserID", userID, "error", err)
 			continue
 		}
@@ -97,7 +97,7 @@ func (u *ContactRulesUpdater) ApplyRulesForNewCorporation(ctx context.Context, u
 		if rule.UserID == userID {
 			continue
 		}
-		if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID); err != nil {
+		if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID, rule.Permissions); err != nil {
 			log.Error("failed to create auto-contact from corp rule", "ruleID", rule.ID, "userID", userID, "error", err)
 		}
 	}
@@ -113,7 +113,7 @@ func (u *ContactRulesUpdater) ApplyRulesForNewCorporation(ctx context.Context, u
 			if rule.UserID == userID {
 				continue
 			}
-			if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID); err != nil {
+			if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID, rule.Permissions); err != nil {
 				log.Error("failed to create auto-contact from alliance rule", "ruleID", rule.ID, "userID", userID, "error", err)
 			}
 		}
@@ -129,7 +129,7 @@ func (u *ContactRulesUpdater) ApplyRulesForNewCorporation(ctx context.Context, u
 		if rule.UserID == userID {
 			continue
 		}
-		if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID); err != nil {
+		if err := u.createContactAndPermissions(ctx, rule.UserID, userID, rule.ID, rule.Permissions); err != nil {
 			log.Error("failed to create auto-contact from everyone rule", "ruleID", rule.ID, "userID", userID, "error", err)
 		}
 	}
@@ -137,8 +137,8 @@ func (u *ContactRulesUpdater) ApplyRulesForNewCorporation(ctx context.Context, u
 	return nil
 }
 
-// createContactAndPermissions creates an auto-contact and grants for_sale_browse permission
-func (u *ContactRulesUpdater) createContactAndPermissions(ctx context.Context, ruleOwnerID, targetUserID, ruleID int64) error {
+// createContactAndPermissions creates an auto-contact and grants the specified permissions
+func (u *ContactRulesUpdater) createContactAndPermissions(ctx context.Context, ruleOwnerID, targetUserID, ruleID int64, permissions []string) error {
 	tx, err := u.db.BeginTx(ctx, nil)
 	if err != nil {
 		return errors.Wrap(err, "failed to begin transaction")
@@ -163,16 +163,18 @@ func (u *ContactRulesUpdater) createContactAndPermissions(ctx context.Context, r
 		}
 	}
 
-	// Grant for_sale_browse from rule owner to target
-	err = u.permissionsRepo.UpsertInTx(ctx, tx, &models.ContactPermission{
-		ContactID:       contactID,
-		GrantingUserID:  ruleOwnerID,
-		ReceivingUserID: targetUserID,
-		ServiceType:     "for_sale_browse",
-		CanAccess:       true,
-	})
-	if err != nil {
-		return errors.Wrap(err, "failed to grant for_sale_browse permission")
+	// Grant each permission from rule owner to target
+	for _, serviceType := range permissions {
+		err = u.permissionsRepo.UpsertInTx(ctx, tx, &models.ContactPermission{
+			ContactID:       contactID,
+			GrantingUserID:  ruleOwnerID,
+			ReceivingUserID: targetUserID,
+			ServiceType:     serviceType,
+			CanAccess:       true,
+		})
+		if err != nil {
+			return errors.Wrapf(err, "failed to grant %s permission", serviceType)
+		}
 	}
 
 	return tx.Commit()

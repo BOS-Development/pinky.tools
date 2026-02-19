@@ -2,7 +2,7 @@
 
 ## Overview
 
-Contact rules allow users to automatically create connections with all members of a corporation, alliance, or everyone in the system. When a rule is created, auto-accepted contacts are generated with all matching users, granting them `for_sale_browse` permission. When new users join the matching entity, contacts are auto-created for them too.
+Contact rules allow users to automatically create connections with all members of a corporation, alliance, or everyone in the system. When a rule is created, auto-accepted contacts are generated with all matching users, granting configurable permissions. When new users join the matching entity, contacts are auto-created for them too.
 
 ## Status
 
@@ -13,7 +13,7 @@ Contact rules allow users to automatically create connections with all members o
 ## Key Decisions
 
 - **Auto-create real contacts**: Rules produce actual `contacts` + `contact_permissions` rows rather than a separate permission path. Existing marketplace permission checks (`GetUserPermissionsForService`, `CheckPermission`, `GetBrowsableItems`) work unchanged.
-- **Rule creator grants permissions**: The rule creator grants `for_sale_browse: true` to all matched users. Matched users' permissions default to `false` (they can grant back manually).
+- **Configurable permissions**: The rule creator selects which permissions to grant (e.g., `for_sale_browse`). These are stored on the rule as a `permissions` jsonb array and applied to all auto-created contacts. Matched users' permissions default to `false` (they can grant back manually).
 - **No accept/reject flow**: Auto-created contacts are immediately `accepted`.
 - **Cascade cleanup**: Contacts created by a rule have `contact_rule_id` FK with `ON DELETE CASCADE`. Deleting a rule removes all its auto-created contacts and their permissions.
 - **Duplicate handling**: Before creating a contact, check both directions (A→B and B→A). Skip if any contact already exists between the pair.
@@ -39,6 +39,7 @@ Contact rules allow users to automatically create connections with all members o
 | `entity_name` | varchar(500) nullable | Display name |
 | `is_active` | boolean | Soft-delete flag |
 | `created_at` | timestamp | |
+| `permissions` | jsonb | Array of service types to grant (default `["for_sale_browse"]`) |
 | `updated_at` | timestamp | |
 
 **Constraints:**

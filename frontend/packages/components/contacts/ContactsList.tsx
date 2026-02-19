@@ -37,6 +37,8 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import PermissionsDialog from './PermissionsDialog';
 
 export type Contact = {
@@ -57,10 +59,15 @@ type ContactRule = {
   ruleType: 'corporation' | 'alliance' | 'everyone';
   entityId: number | null;
   entityName: string | null;
+  permissions: string[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 };
+
+const SERVICE_TYPES = [
+  { type: 'for_sale_browse', label: 'Browse For-Sale Items' },
+];
 
 type SearchResult = {
   id: number;
@@ -90,6 +97,7 @@ export default function ContactsList() {
   const [selectedEntity, setSelectedEntity] = useState<SearchResult | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [rulePermissions, setRulePermissions] = useState<string[]>(SERVICE_TYPES.map(s => s.type));
 
   const currentUserId = session?.providerAccountId ? parseInt(session.providerAccountId) : null;
 
@@ -264,8 +272,9 @@ export default function ContactsList() {
     }
 
     try {
-      const body: { ruleType: string; entityId?: number; entityName?: string } = {
+      const body: { ruleType: string; entityId?: number; entityName?: string; permissions: string[] } = {
         ruleType: newRuleType,
+        permissions: rulePermissions,
       };
 
       if (newRuleType !== 'everyone' && selectedEntity) {
@@ -286,6 +295,7 @@ export default function ContactsList() {
         setSelectedEntity(null);
         setSearchQuery('');
         setSearchResults([]);
+        setRulePermissions(SERVICE_TYPES.map(s => s.type));
         await fetchContactRules();
         // Refresh contacts after a short delay to show auto-created ones
         setTimeout(() => fetchContacts(), 2000);
@@ -571,6 +581,7 @@ export default function ContactsList() {
                       <TableRow>
                         <TableCell>Type</TableCell>
                         <TableCell>Entity</TableCell>
+                        <TableCell>Permissions</TableCell>
                         <TableCell>Created</TableCell>
                         <TableCell align="right">Actions</TableCell>
                       </TableRow>
@@ -587,6 +598,14 @@ export default function ContactsList() {
                           </TableCell>
                           <TableCell>
                             {rule.ruleType === 'everyone' ? 'All Users' : (rule.entityName || `ID: ${rule.entityId}`)}
+                          </TableCell>
+                          <TableCell>
+                            {(rule.permissions || []).map((perm) => {
+                              const label = SERVICE_TYPES.find(s => s.type === perm)?.label || perm;
+                              return (
+                                <Chip key={perm} label={label} size="small" variant="outlined" sx={{ mr: 0.5 }} />
+                              );
+                            })}
                           </TableCell>
                           <TableCell>
                             {new Date(rule.createdAt).toLocaleDateString()}
@@ -684,17 +703,39 @@ export default function ContactsList() {
           )}
 
           {newRuleType === 'everyone' && (
-            <Alert severity="info">
-              This will automatically connect you with every user in the system and grant them permission to browse your for-sale items.
+            <Alert severity="info" sx={{ mb: 2 }}>
+              This will automatically connect you with every user in the system.
             </Alert>
           )}
+
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            Permissions to Grant
+          </Typography>
+          {SERVICE_TYPES.map((service) => (
+            <FormControlLabel
+              key={service.type}
+              control={
+                <Checkbox
+                  checked={rulePermissions.includes(service.type)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setRulePermissions([...rulePermissions, service.type]);
+                    } else {
+                      setRulePermissions(rulePermissions.filter(p => p !== service.type));
+                    }
+                  }}
+                />
+              }
+              label={service.label}
+            />
+          ))}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setAddRuleOpen(false)}>Cancel</Button>
           <Button
             onClick={handleCreateRule}
             variant="contained"
-            disabled={newRuleType !== 'everyone' && !selectedEntity}
+            disabled={(newRuleType !== 'everyone' && !selectedEntity) || rulePermissions.length === 0}
           >
             Create Rule
           </Button>

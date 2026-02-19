@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/pkg/errors"
@@ -16,10 +17,32 @@ func NewContactRules(db *sql.DB) *ContactRules {
 	return &ContactRules{db: db}
 }
 
+// scanContactRule scans a contact rule row including the permissions jsonb column
+func scanContactRule(scanner interface{ Scan(...any) error }) (*models.ContactRule, error) {
+	var item models.ContactRule
+	var permissionsJSON []byte
+	err := scanner.Scan(
+		&item.ID, &item.UserID, &item.RuleType, &item.EntityID,
+		&item.EntityName, &permissionsJSON, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	item.Permissions = []string{}
+	if len(permissionsJSON) > 0 {
+		if err := json.Unmarshal(permissionsJSON, &item.Permissions); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal permissions")
+		}
+	}
+
+	return &item, nil
+}
+
 // GetByUser returns all active rules for a user
 func (r *ContactRules) GetByUser(ctx context.Context, userID int64) ([]*models.ContactRule, error) {
 	query := `
-		SELECT id, user_id, rule_type, entity_id, entity_name, is_active, created_at, updated_at
+		SELECT id, user_id, rule_type, entity_id, entity_name, permissions, is_active, created_at, updated_at
 		FROM contact_rules
 		WHERE user_id = $1 AND is_active = true
 		ORDER BY created_at DESC
@@ -33,15 +56,11 @@ func (r *ContactRules) GetByUser(ctx context.Context, userID int64) ([]*models.C
 
 	items := []*models.ContactRule{}
 	for rows.Next() {
-		var item models.ContactRule
-		err = rows.Scan(
-			&item.ID, &item.UserID, &item.RuleType, &item.EntityID,
-			&item.EntityName, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
-		)
+		item, err := scanContactRule(rows)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan contact rule")
 		}
-		items = append(items, &item)
+		items = append(items, item)
 	}
 
 	return items, nil
@@ -49,14 +68,19 @@ func (r *ContactRules) GetByUser(ctx context.Context, userID int64) ([]*models.C
 
 // Create inserts a new contact rule
 func (r *ContactRules) Create(ctx context.Context, rule *models.ContactRule) error {
+	permissionsJSON, err := json.Marshal(rule.Permissions)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal permissions")
+	}
+
 	query := `
-		INSERT INTO contact_rules (user_id, rule_type, entity_id, entity_name)
-		VALUES ($1, $2, $3, $4)
+		INSERT INTO contact_rules (user_id, rule_type, entity_id, entity_name, permissions)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, is_active, created_at, updated_at
 	`
 
-	err := r.db.QueryRowContext(ctx, query,
-		rule.UserID, rule.RuleType, rule.EntityID, rule.EntityName,
+	err = r.db.QueryRowContext(ctx, query,
+		rule.UserID, rule.RuleType, rule.EntityID, rule.EntityName, permissionsJSON,
 	).Scan(&rule.ID, &rule.IsActive, &rule.CreatedAt, &rule.UpdatedAt)
 
 	if err != nil {
@@ -94,7 +118,7 @@ func (r *ContactRules) Delete(ctx context.Context, ruleID int64, userID int64) e
 // GetMatchingRulesForCorporation returns all active rules matching a corporation ID
 func (r *ContactRules) GetMatchingRulesForCorporation(ctx context.Context, corpID int64) ([]*models.ContactRule, error) {
 	query := `
-		SELECT id, user_id, rule_type, entity_id, entity_name, is_active, created_at, updated_at
+		SELECT id, user_id, rule_type, entity_id, entity_name, permissions, is_active, created_at, updated_at
 		FROM contact_rules
 		WHERE rule_type = 'corporation' AND entity_id = $1 AND is_active = true
 	`
@@ -107,15 +131,11 @@ func (r *ContactRules) GetMatchingRulesForCorporation(ctx context.Context, corpI
 
 	items := []*models.ContactRule{}
 	for rows.Next() {
-		var item models.ContactRule
-		err = rows.Scan(
-			&item.ID, &item.UserID, &item.RuleType, &item.EntityID,
-			&item.EntityName, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
-		)
+		item, err := scanContactRule(rows)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan contact rule")
 		}
-		items = append(items, &item)
+		items = append(items, item)
 	}
 
 	return items, nil
@@ -124,7 +144,7 @@ func (r *ContactRules) GetMatchingRulesForCorporation(ctx context.Context, corpI
 // GetMatchingRulesForAlliance returns all active rules matching an alliance ID
 func (r *ContactRules) GetMatchingRulesForAlliance(ctx context.Context, allianceID int64) ([]*models.ContactRule, error) {
 	query := `
-		SELECT id, user_id, rule_type, entity_id, entity_name, is_active, created_at, updated_at
+		SELECT id, user_id, rule_type, entity_id, entity_name, permissions, is_active, created_at, updated_at
 		FROM contact_rules
 		WHERE rule_type = 'alliance' AND entity_id = $1 AND is_active = true
 	`
@@ -137,15 +157,11 @@ func (r *ContactRules) GetMatchingRulesForAlliance(ctx context.Context, alliance
 
 	items := []*models.ContactRule{}
 	for rows.Next() {
-		var item models.ContactRule
-		err = rows.Scan(
-			&item.ID, &item.UserID, &item.RuleType, &item.EntityID,
-			&item.EntityName, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
-		)
+		item, err := scanContactRule(rows)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan contact rule")
 		}
-		items = append(items, &item)
+		items = append(items, item)
 	}
 
 	return items, nil
@@ -154,7 +170,7 @@ func (r *ContactRules) GetMatchingRulesForAlliance(ctx context.Context, alliance
 // GetEveryoneRules returns all active "everyone" rules
 func (r *ContactRules) GetEveryoneRules(ctx context.Context) ([]*models.ContactRule, error) {
 	query := `
-		SELECT id, user_id, rule_type, entity_id, entity_name, is_active, created_at, updated_at
+		SELECT id, user_id, rule_type, entity_id, entity_name, permissions, is_active, created_at, updated_at
 		FROM contact_rules
 		WHERE rule_type = 'everyone' AND is_active = true
 	`
@@ -167,15 +183,11 @@ func (r *ContactRules) GetEveryoneRules(ctx context.Context) ([]*models.ContactR
 
 	items := []*models.ContactRule{}
 	for rows.Next() {
-		var item models.ContactRule
-		err = rows.Scan(
-			&item.ID, &item.UserID, &item.RuleType, &item.EntityID,
-			&item.EntityName, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
-		)
+		item, err := scanContactRule(rows)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan contact rule")
 		}
-		items = append(items, &item)
+		items = append(items, item)
 	}
 
 	return items, nil

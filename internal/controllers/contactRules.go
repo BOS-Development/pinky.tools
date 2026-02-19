@@ -68,9 +68,10 @@ func (c *ContactRules) CreateRule(args *web.HandlerArgs) (any, *web.HttpError) {
 	}
 
 	var req struct {
-		RuleType   string `json:"ruleType"`
-		EntityID   *int64 `json:"entityId"`
-		EntityName string `json:"entityName"`
+		RuleType    string   `json:"ruleType"`
+		EntityID    *int64   `json:"entityId"`
+		EntityName  string   `json:"entityName"`
+		Permissions []string `json:"permissions"`
 	}
 
 	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
@@ -85,16 +86,30 @@ func (c *ContactRules) CreateRule(args *web.HandlerArgs) (any, *web.HttpError) {
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("entityId is required for corporation and alliance rules")}
 	}
 
+	// Default to for_sale_browse if no permissions specified
+	if len(req.Permissions) == 0 {
+		req.Permissions = []string{"for_sale_browse"}
+	}
+
+	// Validate permissions against allowed service types
+	allowedPermissions := map[string]bool{"for_sale_browse": true}
+	for _, p := range req.Permissions {
+		if !allowedPermissions[p] {
+			return nil, &web.HttpError{StatusCode: 400, Error: errors.Errorf("invalid permission: %s", p)}
+		}
+	}
+
 	var entityName *string
 	if req.EntityName != "" {
 		entityName = &req.EntityName
 	}
 
 	rule := &models.ContactRule{
-		UserID:     *args.User,
-		RuleType:   req.RuleType,
-		EntityID:   req.EntityID,
-		EntityName: entityName,
+		UserID:      *args.User,
+		RuleType:    req.RuleType,
+		EntityID:    req.EntityID,
+		EntityName:  entityName,
+		Permissions: req.Permissions,
 	}
 
 	if err := c.repository.Create(args.Request.Context(), rule); err != nil {

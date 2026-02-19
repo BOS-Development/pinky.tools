@@ -153,13 +153,15 @@ func Test_ContactRulesController_CreateRule_Corporation(t *testing.T) {
 	userID := int64(42)
 	entityID := int64(2001)
 	reqBody := map[string]any{
-		"ruleType":   "corporation",
-		"entityId":   entityID,
-		"entityName": "Test Corp",
+		"ruleType":    "corporation",
+		"entityId":    entityID,
+		"entityName":  "Test Corp",
+		"permissions": []string{"for_sale_browse"},
 	}
 
 	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(r *models.ContactRule) bool {
-		return r.UserID == 42 && r.RuleType == "corporation" && *r.EntityID == 2001
+		return r.UserID == 42 && r.RuleType == "corporation" && *r.EntityID == 2001 &&
+			len(r.Permissions) == 1 && r.Permissions[0] == "for_sale_browse"
 	})).Return(nil)
 	mockApplier.On("ApplyRule", mock.Anything, mock.Anything).Return(nil).Maybe()
 
@@ -174,6 +176,7 @@ func Test_ContactRulesController_CreateRule_Corporation(t *testing.T) {
 	rule := result.(*models.ContactRule)
 	assert.Equal(t, "corporation", rule.RuleType)
 	assert.Equal(t, int64(2001), *rule.EntityID)
+	assert.Equal(t, []string{"for_sale_browse"}, rule.Permissions)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -190,7 +193,8 @@ func Test_ContactRulesController_CreateRule_Everyone(t *testing.T) {
 	}
 
 	mockRepo.On("Create", mock.Anything, mock.MatchedBy(func(r *models.ContactRule) bool {
-		return r.UserID == 42 && r.RuleType == "everyone" && r.EntityID == nil
+		return r.UserID == 42 && r.RuleType == "everyone" && r.EntityID == nil &&
+			len(r.Permissions) == 1 && r.Permissions[0] == "for_sale_browse"
 	})).Return(nil)
 	mockApplier.On("ApplyRule", mock.Anything, mock.Anything).Return(nil).Maybe()
 
@@ -204,6 +208,7 @@ func Test_ContactRulesController_CreateRule_Everyone(t *testing.T) {
 	assert.NotNil(t, result)
 	rule := result.(*models.ContactRule)
 	assert.Equal(t, "everyone", rule.RuleType)
+	assert.Equal(t, []string{"for_sale_browse"}, rule.Permissions)
 	mockRepo.AssertExpectations(t)
 }
 
@@ -247,6 +252,31 @@ func Test_ContactRulesController_CreateRule_MissingEntityID(t *testing.T) {
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_ContactRulesController_CreateRule_InvalidPermission(t *testing.T) {
+	mockRepo := new(MockContactRulesRepository)
+	mockApplier := new(MockContactRuleApplier)
+	mockRouter := &MockRouter{}
+
+	controller := controllers.NewContactRules(mockRouter, mockRepo, mockApplier)
+
+	userID := int64(42)
+	reqBody := map[string]any{
+		"ruleType":    "everyone",
+		"permissions": []string{"invalid_perm"},
+	}
+
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest("POST", "/v1/contact-rules", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.CreateRule(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+	assert.Contains(t, httpErr.Error.Error(), "invalid permission")
 }
 
 func Test_ContactRulesController_CreateRule_InvalidJSON(t *testing.T) {
