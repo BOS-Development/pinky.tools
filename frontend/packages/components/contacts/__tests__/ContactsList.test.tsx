@@ -197,6 +197,10 @@ describe('ContactsList Component', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({ id: 4, status: 'pending' }),
       })
       .mockResolvedValueOnce({
@@ -243,6 +247,10 @@ describe('ContactsList Component', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({ ...mockContacts[1], status: 'accepted' }),
       })
       .mockResolvedValueOnce({
@@ -286,6 +294,10 @@ describe('ContactsList Component', () => {
       })
       .mockResolvedValueOnce({
         ok: true,
+        json: async () => [],
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: async () => ({ ...mockContacts[1], status: 'rejected' }),
       })
       .mockResolvedValueOnce({
@@ -326,6 +338,10 @@ describe('ContactsList Component', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => mockContacts,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
       })
       .mockResolvedValueOnce({
         ok: true,
@@ -381,6 +397,10 @@ describe('ContactsList Component', () => {
   it('should display error message on failed request', async () => {
     mockUseSession.mockReturnValue(mockSession);
     (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],
+      })
       .mockResolvedValueOnce({
         ok: true,
         json: async () => [],
@@ -459,14 +479,14 @@ describe('ContactsList Component', () => {
     const { rerender } = render(<ContactsList />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
     // Re-render with same session
     rerender(<ContactsList />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
+      expect(global.fetch).toHaveBeenCalledTimes(2);
     });
   });
 });

@@ -25,7 +25,7 @@ dev-clean:
 	$(DOCKER_COMPOSE) \
 		-f docker-compose.yaml \
 		-f docker-compose.dev.yaml \
-		down
+		down --remove-orphans
 
 dev-destroy:
 	$(DOCKER_COMPOSE) \

@@ -285,6 +285,10 @@ type corporationInformation struct {
 	Name string `json:"name"`
 }
 
+type allianceInformation struct {
+	Name string `json:"name"`
+}
+
 func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int64, token, refresh string, expire time.Time) (*models.Corporation, error) {
 	jsons := fmt.Sprintf("[%d]", characterID)
 
@@ -342,10 +346,39 @@ func (c *EsiClient) GetCharacterCorporation(ctx context.Context, characterID int
 		return nil, errors.Wrap(err, "failed to unmarshal corporation information")
 	}
 
-	return &models.Corporation{
+	corp := &models.Corporation{
 		ID:   charAffiliation[0].CorporationID,
 		Name: info.Name,
-	}, nil
+	}
+
+	// Fetch alliance info if character is in an alliance
+	if charAffiliation[0].AllianceID > 0 {
+		corp.AllianceID = charAffiliation[0].AllianceID
+
+		allianceURL, err := url.Parse(fmt.Sprintf("%s/alliances/%d", c.baseURL, charAffiliation[0].AllianceID))
+		if err == nil {
+			allianceReq := &http.Request{
+				Method: "GET",
+				URL:    allianceURL,
+				Header: c.getAuthHeaders(token),
+			}
+			allianceRes, err := c.httpClient.Do(allianceReq)
+			if err == nil {
+				defer allianceRes.Body.Close()
+				if allianceRes.StatusCode == 200 {
+					var allianceInfo allianceInformation
+					allianceBody, err := io.ReadAll(allianceRes.Body)
+					if err == nil {
+						if json.Unmarshal(allianceBody, &allianceInfo) == nil {
+							corp.AllianceName = allianceInfo.Name
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return corp, nil
 }
 
 func (c *EsiClient) GetCorporationAssets(ctx context.Context, corpID int64, token, refresh string, expire time.Time) ([]*models.EveAsset, error) {

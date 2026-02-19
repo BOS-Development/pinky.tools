@@ -256,7 +256,7 @@ func (r *ForSaleItems) UpdateQuantity(ctx context.Context, tx *sql.Tx, itemID in
 	query := `
 		UPDATE for_sale_items
 		SET quantity_available = CASE
-		                           WHEN $2 > 0 THEN $2
+		                           WHEN $2::bigint > 0 THEN $2::bigint
 		                           ELSE quantity_available
 		                         END,
 		    is_active = ($2::bigint > 0),

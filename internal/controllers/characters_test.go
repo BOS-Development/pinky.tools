@@ -55,7 +55,7 @@ func Test_CharactersController_GetAllCharacters_Success(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 	expectedChars := []*repositories.Character{
@@ -89,7 +89,7 @@ func Test_CharactersController_GetAllCharacters_RepositoryError(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 	mockRepo.On("GetAll", mock.Anything, userID).Return(nil, errors.New("database error"))
@@ -114,7 +114,7 @@ func Test_CharactersController_GetCharacter_Success(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 	expectedChar := &repositories.Character{
@@ -148,7 +148,7 @@ func Test_CharactersController_GetCharacter_MissingID(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 
@@ -171,7 +171,7 @@ func Test_CharactersController_GetCharacter_NotFound(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 	mockRepo.On("Get", mock.Anything, "99999").Return(nil, nil)
@@ -197,7 +197,7 @@ func Test_CharactersController_AddCharacter_Success(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 	character := repositories.Character{
@@ -232,7 +232,7 @@ func Test_CharactersController_AddCharacter_InvalidJSON(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 
@@ -254,7 +254,7 @@ func Test_CharactersController_AddCharacter_RepositoryError(t *testing.T) {
 	mockUpdater := new(MockCharacterAssetUpdater)
 	mockRouter := &MockRouter{}
 
-	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater)
+	controller := controllers.NewCharacters(mockRouter, mockRepo, mockUpdater, nil, nil)
 
 	userID := int64(42)
 	character := repositories.Character{
