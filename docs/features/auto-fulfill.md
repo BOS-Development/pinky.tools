@@ -68,3 +68,8 @@ Automatically creates `purchase_transactions` (status: pending) when active buy 
 | `internal/controllers/autoBuyConfigs.go` | Accept min/max percentages, trigger fulfill |
 | `internal/controllers/buyOrders.go` | Accept minPricePerUnit, trigger fulfill |
 | `cmd/industry-tool/cmd/root.go` | Wire auto-fulfill updater |
+| `frontend/.../assets/AssetsList.tsx` | Auto-buy dialog: two percentage inputs (min + max) |
+| `frontend/.../marketplace/BuyOrders.tsx` | Buy order form: min/max price range, table shows range |
+| `frontend/.../marketplace/DemandViewer.tsx` | Seller view: shows only min price (floor), not max |
+| `frontend/.../marketplace/PurchaseHistory.tsx` | "Auto" badge on auto-fulfilled transactions |
+| `frontend/.../marketplace/PendingSales.tsx` | "Auto" badge on auto-fulfilled pending sales |

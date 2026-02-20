@@ -33,6 +33,8 @@ type PurchaseTransaction = {
   totalPrice: number;
   status: string;
   transactionNotes?: string;
+  buyOrderId?: number;
+  isAutoFulfilled: boolean;
   purchasedAt: string;
 };
 
@@ -200,7 +202,25 @@ export default function PurchaseHistory() {
             {transactions.map((transaction) => (
               <TableRow key={transaction.id}>
                 <TableCell>{formatDate(transaction.purchasedAt)}</TableCell>
-                <TableCell>{transaction.typeName}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    {transaction.typeName}
+                    {transaction.isAutoFulfilled && (
+                      <Chip
+                        label="Auto"
+                        size="small"
+                        sx={{
+                          fontSize: '0.65rem',
+                          fontWeight: 600,
+                          height: 20,
+                          background: 'rgba(16, 185, 129, 0.15)',
+                          color: '#10b981',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                        }}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
                 <TableCell align="right">{transaction.quantityPurchased.toLocaleString()}</TableCell>
                 <TableCell align="right">{transaction.pricePerUnit.toLocaleString()} ISK</TableCell>
                 <TableCell align="right">

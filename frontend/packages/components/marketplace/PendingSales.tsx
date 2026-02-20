@@ -41,6 +41,8 @@ type PendingSale = {
   status: string;
   contractKey?: string;
   transactionNotes?: string;
+  buyOrderId?: number;
+  isAutoFulfilled: boolean;
   purchasedAt: string;
 };
 
@@ -423,7 +425,25 @@ export default function PendingSales() {
                   {group.items.map((sale) => (
                     <TableRow key={sale.id}>
                       <TableCell>{formatDate(sale.purchasedAt)}</TableCell>
-                      <TableCell>{sale.typeName}</TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          {sale.typeName}
+                          {sale.isAutoFulfilled && (
+                            <Chip
+                              label="Auto"
+                              size="small"
+                              sx={{
+                                fontSize: '0.65rem',
+                                fontWeight: 600,
+                                height: 20,
+                                background: 'rgba(16, 185, 129, 0.15)',
+                                color: '#10b981',
+                                border: '1px solid rgba(16, 185, 129, 0.3)',
+                              }}
+                            />
+                          )}
+                        </Box>
+                      </TableCell>
                       <TableCell align="right">{sale.quantityPurchased.toLocaleString()}</TableCell>
                       <TableCell align="right">{sale.pricePerUnit.toLocaleString()} ISK</TableCell>
                       <TableCell align="right">
