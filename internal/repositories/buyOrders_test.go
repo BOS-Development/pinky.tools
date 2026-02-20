@@ -341,3 +341,298 @@ func Test_BuyOrders_Delete_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "buy order not found")
 }
+
+func Test_BuyOrders_UpsertAutoBuy(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	itemTypesRepo := repositories.NewItemTypeRepository(db)
+	autoBuyRepo := repositories.NewAutoBuyConfigs(db)
+	repo := repositories.NewBuyOrders(db)
+
+	// Create user
+	user := &repositories.User{ID: 5100, Name: "Auto Buyer"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	// Create item type
+	itemTypes := []models.EveInventoryType{
+		{TypeID: 70, TypeName: "Morphite", Volume: 0.01},
+	}
+	err = itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes)
+	assert.NoError(t, err)
+
+	// Create auto_buy_config
+	config := &models.AutoBuyConfig{
+		UserID:          5100,
+		OwnerType:       "character",
+		OwnerID:         12345,
+		LocationID:      60003760,
+		PricePercentage: 100.0,
+		PriceSource:     "jita_sell",
+	}
+	err = autoBuyRepo.Upsert(context.Background(), config)
+	assert.NoError(t, err)
+	assert.NotZero(t, config.ID)
+
+	// Test UpsertAutoBuy creates an order with auto_buy_config_id set
+	order := &models.BuyOrder{
+		BuyerUserID:     5100,
+		TypeID:          70,
+		LocationID:      60003760,
+		QuantityDesired: 5000,
+		MaxPricePerUnit: 80.0,
+		AutoBuyConfigID: &config.ID,
+	}
+
+	err = repo.UpsertAutoBuy(context.Background(), order)
+	assert.NoError(t, err)
+	assert.NotZero(t, order.ID)
+	assert.True(t, order.IsActive)
+	assert.NotZero(t, order.CreatedAt)
+	assert.NotZero(t, order.UpdatedAt)
+
+	// Verify via GetByID
+	retrieved, err := repo.GetByID(context.Background(), order.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(5100), retrieved.BuyerUserID)
+	assert.Equal(t, int64(70), retrieved.TypeID)
+	assert.Equal(t, int64(5000), retrieved.QuantityDesired)
+	assert.Equal(t, 80.0, retrieved.MaxPricePerUnit)
+	assert.NotNil(t, retrieved.AutoBuyConfigID)
+	assert.Equal(t, config.ID, *retrieved.AutoBuyConfigID)
+	assert.True(t, retrieved.IsActive)
+
+	// Test UpsertAutoBuy updates existing order on conflict
+	order.QuantityDesired = 10000
+	order.MaxPricePerUnit = 90.0
+	notes := "Updated by auto-buy"
+	order.Notes = &notes
+
+	err = repo.UpsertAutoBuy(context.Background(), order)
+	assert.NoError(t, err)
+
+	// Verify update
+	updated, err := repo.GetByID(context.Background(), order.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(10000), updated.QuantityDesired)
+	assert.Equal(t, 90.0, updated.MaxPricePerUnit)
+	assert.NotNil(t, updated.Notes)
+	assert.Equal(t, "Updated by auto-buy", *updated.Notes)
+
+	// Verify it's the same record (same ID, not a new row)
+	assert.Equal(t, order.ID, updated.ID)
+}
+
+func Test_BuyOrders_GetActiveAutoBuyOrders(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	itemTypesRepo := repositories.NewItemTypeRepository(db)
+	autoBuyRepo := repositories.NewAutoBuyConfigs(db)
+	repo := repositories.NewBuyOrders(db)
+
+	// Create user
+	user := &repositories.User{ID: 5110, Name: "Auto Buyer 2"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	// Create item types
+	itemTypes := []models.EveInventoryType{
+		{TypeID: 71, TypeName: "Fullerite-C50", Volume: 1.0},
+		{TypeID: 72, TypeName: "Fullerite-C60", Volume: 1.0},
+		{TypeID: 73, TypeName: "Fullerite-C70", Volume: 1.0},
+	}
+	err = itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes)
+	assert.NoError(t, err)
+
+	// Create auto_buy_config
+	config := &models.AutoBuyConfig{
+		UserID:          5110,
+		OwnerType:       "character",
+		OwnerID:         12346,
+		LocationID:      60003760,
+		PricePercentage: 95.0,
+		PriceSource:     "jita_sell",
+	}
+	err = autoBuyRepo.Upsert(context.Background(), config)
+	assert.NoError(t, err)
+
+	// Create multiple auto-buy orders
+	typeIDs := []int64{71, 72, 73}
+	for _, typeID := range typeIDs {
+		order := &models.BuyOrder{
+			BuyerUserID:     5110,
+			TypeID:          typeID,
+			LocationID:      60003760,
+			QuantityDesired: 1000,
+			MaxPricePerUnit: 50.0,
+			AutoBuyConfigID: &config.ID,
+		}
+		err = repo.UpsertAutoBuy(context.Background(), order)
+		assert.NoError(t, err)
+	}
+
+	// Verify GetActiveAutoBuyOrders returns all 3 active orders
+	active, err := repo.GetActiveAutoBuyOrders(context.Background(), config.ID)
+	assert.NoError(t, err)
+	assert.Len(t, active, 3)
+
+	for _, order := range active {
+		assert.Equal(t, int64(5110), order.BuyerUserID)
+		assert.True(t, order.IsActive)
+		assert.NotNil(t, order.AutoBuyConfigID)
+		assert.Equal(t, config.ID, *order.AutoBuyConfigID)
+	}
+}
+
+func Test_BuyOrders_DeactivateAutoBuyOrders(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	itemTypesRepo := repositories.NewItemTypeRepository(db)
+	autoBuyRepo := repositories.NewAutoBuyConfigs(db)
+	repo := repositories.NewBuyOrders(db)
+
+	// Create user
+	user := &repositories.User{ID: 5120, Name: "Auto Buyer 3"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	// Create item types
+	itemTypes := []models.EveInventoryType{
+		{TypeID: 74, TypeName: "Fullerite-C320", Volume: 1.0},
+		{TypeID: 75, TypeName: "Fullerite-C540", Volume: 1.0},
+	}
+	err = itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes)
+	assert.NoError(t, err)
+
+	// Create auto_buy_config
+	config := &models.AutoBuyConfig{
+		UserID:          5120,
+		OwnerType:       "character",
+		OwnerID:         12347,
+		LocationID:      60003760,
+		PricePercentage: 100.0,
+		PriceSource:     "jita_sell",
+	}
+	err = autoBuyRepo.Upsert(context.Background(), config)
+	assert.NoError(t, err)
+
+	// Create auto-buy orders
+	for _, typeID := range []int64{74, 75} {
+		order := &models.BuyOrder{
+			BuyerUserID:     5120,
+			TypeID:          typeID,
+			LocationID:      60003760,
+			QuantityDesired: 2000,
+			MaxPricePerUnit: 100.0,
+			AutoBuyConfigID: &config.ID,
+		}
+		err = repo.UpsertAutoBuy(context.Background(), order)
+		assert.NoError(t, err)
+	}
+
+	// Verify orders are active
+	active, err := repo.GetActiveAutoBuyOrders(context.Background(), config.ID)
+	assert.NoError(t, err)
+	assert.Len(t, active, 2)
+
+	// Deactivate all orders for the config
+	err = repo.DeactivateAutoBuyOrders(context.Background(), config.ID)
+	assert.NoError(t, err)
+
+	// Verify all orders are now inactive
+	active, err = repo.GetActiveAutoBuyOrders(context.Background(), config.ID)
+	assert.NoError(t, err)
+	assert.Len(t, active, 0)
+
+	// Verify orders still exist but are inactive via GetByUser
+	allOrders, err := repo.GetByUser(context.Background(), 5120)
+	assert.NoError(t, err)
+	assert.Len(t, allOrders, 2)
+	for _, order := range allOrders {
+		assert.False(t, order.IsActive)
+	}
+}
+
+func Test_BuyOrders_DeactivateAutoBuyOrder(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	itemTypesRepo := repositories.NewItemTypeRepository(db)
+	autoBuyRepo := repositories.NewAutoBuyConfigs(db)
+	repo := repositories.NewBuyOrders(db)
+
+	// Create user
+	user := &repositories.User{ID: 5130, Name: "Auto Buyer 4"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	// Create item types
+	itemTypes := []models.EveInventoryType{
+		{TypeID: 76, TypeName: "Carbon", Volume: 0.01},
+		{TypeID: 77, TypeName: "Silicon", Volume: 0.01},
+	}
+	err = itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes)
+	assert.NoError(t, err)
+
+	// Create auto_buy_config
+	config := &models.AutoBuyConfig{
+		UserID:          5130,
+		OwnerType:       "character",
+		OwnerID:         12348,
+		LocationID:      60003760,
+		PricePercentage: 100.0,
+		PriceSource:     "jita_sell",
+	}
+	err = autoBuyRepo.Upsert(context.Background(), config)
+	assert.NoError(t, err)
+
+	// Create two auto-buy orders
+	order1 := &models.BuyOrder{
+		BuyerUserID:     5130,
+		TypeID:          76,
+		LocationID:      60003760,
+		QuantityDesired: 3000,
+		MaxPricePerUnit: 25.0,
+		AutoBuyConfigID: &config.ID,
+	}
+	err = repo.UpsertAutoBuy(context.Background(), order1)
+	assert.NoError(t, err)
+
+	order2 := &models.BuyOrder{
+		BuyerUserID:     5130,
+		TypeID:          77,
+		LocationID:      60003760,
+		QuantityDesired: 4000,
+		MaxPricePerUnit: 30.0,
+		AutoBuyConfigID: &config.ID,
+	}
+	err = repo.UpsertAutoBuy(context.Background(), order2)
+	assert.NoError(t, err)
+
+	// Deactivate only order1
+	err = repo.DeactivateAutoBuyOrder(context.Background(), order1.ID)
+	assert.NoError(t, err)
+
+	// Verify order1 is inactive
+	retrieved1, err := repo.GetByID(context.Background(), order1.ID)
+	assert.NoError(t, err)
+	assert.False(t, retrieved1.IsActive)
+
+	// Verify order2 is still active
+	retrieved2, err := repo.GetByID(context.Background(), order2.ID)
+	assert.NoError(t, err)
+	assert.True(t, retrieved2.IsActive)
+
+	// Verify GetActiveAutoBuyOrders returns only order2
+	active, err := repo.GetActiveAutoBuyOrders(context.Background(), config.ID)
+	assert.NoError(t, err)
+	assert.Len(t, active, 1)
+	assert.Equal(t, order2.ID, active[0].ID)
+}

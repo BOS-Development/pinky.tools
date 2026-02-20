@@ -50,6 +50,108 @@ func (r *BuyOrders) Create(ctx context.Context, order *models.BuyOrder) error {
 	return nil
 }
 
+// UpsertAutoBuy creates or updates an auto-buy order using the unique index on
+// (buyer_user_id, type_id, location_id, auto_buy_config_id)
+func (r *BuyOrders) UpsertAutoBuy(ctx context.Context, order *models.BuyOrder) error {
+	query := `
+		INSERT INTO buy_orders (
+			buyer_user_id, type_id, location_id,
+			quantity_desired, max_price_per_unit, notes,
+			auto_buy_config_id, is_active
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+		ON CONFLICT (buyer_user_id, type_id, location_id, auto_buy_config_id)
+			WHERE auto_buy_config_id IS NOT NULL AND is_active = true
+		DO UPDATE SET
+			quantity_desired = EXCLUDED.quantity_desired,
+			max_price_per_unit = EXCLUDED.max_price_per_unit,
+			notes = EXCLUDED.notes,
+			updated_at = NOW()
+		RETURNING id, is_active, created_at, updated_at
+	`
+
+	err := r.db.QueryRowContext(ctx, query,
+		order.BuyerUserID,
+		order.TypeID,
+		order.LocationID,
+		order.QuantityDesired,
+		order.MaxPricePerUnit,
+		order.Notes,
+		order.AutoBuyConfigID,
+	).Scan(&order.ID, &order.IsActive, &order.CreatedAt, &order.UpdatedAt)
+
+	if err != nil {
+		return errors.Wrap(err, "failed to upsert auto-buy order")
+	}
+
+	return nil
+}
+
+// GetActiveAutoBuyOrders returns active buy orders linked to a specific auto-buy config
+func (r *BuyOrders) GetActiveAutoBuyOrders(ctx context.Context, autoBuyConfigID int64) ([]*models.BuyOrder, error) {
+	query := `
+		SELECT
+			id, buyer_user_id, type_id, location_id,
+			quantity_desired, max_price_per_unit, notes,
+			auto_buy_config_id, is_active, created_at, updated_at
+		FROM buy_orders
+		WHERE auto_buy_config_id = $1 AND is_active = true
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, autoBuyConfigID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query active auto-buy orders")
+	}
+	defer rows.Close()
+
+	orders := []*models.BuyOrder{}
+	for rows.Next() {
+		order := &models.BuyOrder{}
+		err := rows.Scan(
+			&order.ID, &order.BuyerUserID, &order.TypeID, &order.LocationID,
+			&order.QuantityDesired, &order.MaxPricePerUnit, &order.Notes,
+			&order.AutoBuyConfigID, &order.IsActive, &order.CreatedAt, &order.UpdatedAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan auto-buy order")
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+// DeactivateAutoBuyOrders deactivates all active buy orders for a given auto-buy config
+func (r *BuyOrders) DeactivateAutoBuyOrders(ctx context.Context, autoBuyConfigID int64) error {
+	query := `
+		UPDATE buy_orders
+		SET is_active = false, updated_at = NOW()
+		WHERE auto_buy_config_id = $1 AND is_active = true
+	`
+
+	_, err := r.db.ExecContext(ctx, query, autoBuyConfigID)
+	if err != nil {
+		return errors.Wrap(err, "failed to deactivate auto-buy orders")
+	}
+
+	return nil
+}
+
+// DeactivateAutoBuyOrder deactivates a single auto-buy order by ID
+func (r *BuyOrders) DeactivateAutoBuyOrder(ctx context.Context, orderID int64) error {
+	query := `
+		UPDATE buy_orders
+		SET is_active = false, updated_at = NOW()
+		WHERE id = $1 AND is_active = true
+	`
+
+	_, err := r.db.ExecContext(ctx, query, orderID)
+	if err != nil {
+		return errors.Wrap(err, "failed to deactivate auto-buy order")
+	}
+
+	return nil
+}
+
 // GetByID retrieves a buy order by ID with type name populated
 func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, error) {
 	query := `
@@ -63,6 +165,7 @@ func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, er
 			bo.quantity_desired,
 			bo.max_price_per_unit,
 			bo.notes,
+			bo.auto_buy_config_id,
 			bo.is_active,
 			bo.created_at,
 			bo.updated_at
@@ -84,6 +187,7 @@ func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, er
 		&order.QuantityDesired,
 		&order.MaxPricePerUnit,
 		&order.Notes,
+		&order.AutoBuyConfigID,
 		&order.IsActive,
 		&order.CreatedAt,
 		&order.UpdatedAt,
@@ -112,6 +216,7 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 			bo.quantity_desired,
 			bo.max_price_per_unit,
 			bo.notes,
+			bo.auto_buy_config_id,
 			bo.is_active,
 			bo.created_at,
 			bo.updated_at
@@ -142,6 +247,7 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 			&order.QuantityDesired,
 			&order.MaxPricePerUnit,
 			&order.Notes,
+			&order.AutoBuyConfigID,
 			&order.IsActive,
 			&order.CreatedAt,
 			&order.UpdatedAt,
@@ -168,6 +274,7 @@ func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) 
 			bo.quantity_desired,
 			bo.max_price_per_unit,
 			bo.notes,
+			bo.auto_buy_config_id,
 			bo.is_active,
 			bo.created_at,
 			bo.updated_at
@@ -202,6 +309,7 @@ func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) 
 			&order.QuantityDesired,
 			&order.MaxPricePerUnit,
 			&order.Notes,
+			&order.AutoBuyConfigID,
 			&order.IsActive,
 			&order.CreatedAt,
 			&order.UpdatedAt,

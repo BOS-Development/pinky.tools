@@ -109,8 +109,13 @@ var rootCmd = &cobra.Command{
 			log.Info("discord notifications disabled (no DISCORD_BOT_TOKEN)")
 		}
 
+		autoBuyConfigsRepository := repositories.NewAutoBuyConfigs(db)
+		autoBuyUpdater := updaters.NewAutoBuy(autoBuyConfigsRepository, buyOrdersRepository, marketPricesRepository)
+
 		assetUpdater.WithAutoSellUpdater(autoSellUpdater)
 		marketPricesUpdater.WithAutoSellUpdater(autoSellUpdater)
+		assetUpdater.WithAutoBuyUpdater(autoBuyUpdater)
+		marketPricesUpdater.WithAutoBuyUpdater(autoBuyUpdater)
 
 		controllers.NewStatic(router, sdeUpdater)
 		controllers.NewCharacters(router, charactersRepository, assetUpdater, esiClient, contactRulesUpdater)
@@ -129,6 +134,7 @@ var rootCmd = &cobra.Command{
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
 		controllers.NewAutoSellContainers(router, autoSellContainersRepository, autoSellUpdater, forSaleItemsRepository)
+		controllers.NewAutoBuyConfigs(router, autoBuyConfigsRepository, autoBuyUpdater, buyOrdersRepository)
 		controllers.NewReactions(router, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
 		controllers.NewContactRules(router, contactRulesRepository, contactRulesUpdater)
 		if discordClient != nil {

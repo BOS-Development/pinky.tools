@@ -69,15 +69,17 @@ type CorporationDivisions struct {
 }
 
 type StockpileMarker struct {
-	UserID          int64   `json:"userId"`
-	TypeID          int64   `json:"typeId"`
-	OwnerType       string  `json:"ownerType"`
-	OwnerID         int64   `json:"ownerId"`
-	LocationID      int64   `json:"locationId"`
-	ContainerID     *int64  `json:"containerId"`
-	DivisionNumber  *int    `json:"divisionNumber"`
-	DesiredQuantity int64   `json:"desiredQuantity"`
-	Notes           *string `json:"notes"`
+	UserID          int64    `json:"userId"`
+	TypeID          int64    `json:"typeId"`
+	OwnerType       string   `json:"ownerType"`
+	OwnerID         int64    `json:"ownerId"`
+	LocationID      int64    `json:"locationId"`
+	ContainerID     *int64   `json:"containerId"`
+	DivisionNumber  *int     `json:"divisionNumber"`
+	DesiredQuantity int64    `json:"desiredQuantity"`
+	Notes           *string  `json:"notes"`
+	PriceSource     *string  `json:"priceSource"`
+	PricePercentage *float64 `json:"pricePercentage"`
 }
 
 type MarketPrice struct {
@@ -184,18 +186,43 @@ type PurchaseTransaction struct {
 }
 
 type BuyOrder struct {
-	ID               int64     `json:"id"`
-	BuyerUserID      int64     `json:"buyerUserId"`
-	TypeID           int64     `json:"typeId"`
-	TypeName         string    `json:"typeName"`
-	LocationID       int64     `json:"locationId"`
-	LocationName     string    `json:"locationName"`
-	QuantityDesired  int64     `json:"quantityDesired"`
-	MaxPricePerUnit  float64   `json:"maxPricePerUnit"`
-	Notes            *string   `json:"notes"`
-	IsActive         bool      `json:"isActive"`
-	CreatedAt        time.Time `json:"createdAt"`
-	UpdatedAt        time.Time `json:"updatedAt"`
+	ID              int64     `json:"id"`
+	BuyerUserID     int64     `json:"buyerUserId"`
+	TypeID          int64     `json:"typeId"`
+	TypeName        string    `json:"typeName"`
+	LocationID      int64     `json:"locationId"`
+	LocationName    string    `json:"locationName"`
+	QuantityDesired int64     `json:"quantityDesired"`
+	MaxPricePerUnit float64   `json:"maxPricePerUnit"`
+	Notes           *string   `json:"notes"`
+	AutoBuyConfigID *int64    `json:"autoBuyConfigId"`
+	IsActive        bool      `json:"isActive"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+}
+
+type AutoBuyConfig struct {
+	ID              int64     `json:"id"`
+	UserID          int64     `json:"userId"`
+	OwnerType       string    `json:"ownerType"`
+	OwnerID         int64     `json:"ownerId"`
+	LocationID      int64     `json:"locationId"`
+	ContainerID     *int64    `json:"containerId"`
+	DivisionNumber  *int      `json:"divisionNumber"`
+	PricePercentage float64   `json:"pricePercentage"`
+	PriceSource     string    `json:"priceSource"`
+	IsActive        bool      `json:"isActive"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+}
+
+type StockpileDeficitItem struct {
+	TypeID          int64
+	DesiredQuantity int64
+	CurrentQuantity int64
+	Deficit         int64
+	PriceSource     *string
+	PricePercentage *float64
 }
 
 type StationSearchResult struct {
