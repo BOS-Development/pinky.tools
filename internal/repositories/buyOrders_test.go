@@ -369,7 +369,7 @@ func Test_BuyOrders_UpsertAutoBuy(t *testing.T) {
 		OwnerType:       "character",
 		OwnerID:         12345,
 		LocationID:      60003760,
-		PricePercentage: 100.0,
+		MaxPricePercentage: 100.0,
 		PriceSource:     "jita_sell",
 	}
 	err = autoBuyRepo.Upsert(context.Background(), config)
@@ -454,7 +454,7 @@ func Test_BuyOrders_GetActiveAutoBuyOrders(t *testing.T) {
 		OwnerType:       "character",
 		OwnerID:         12346,
 		LocationID:      60003760,
-		PricePercentage: 95.0,
+		MaxPricePercentage: 95.0,
 		PriceSource:     "jita_sell",
 	}
 	err = autoBuyRepo.Upsert(context.Background(), config)
@@ -516,7 +516,7 @@ func Test_BuyOrders_DeactivateAutoBuyOrders(t *testing.T) {
 		OwnerType:       "character",
 		OwnerID:         12347,
 		LocationID:      60003760,
-		PricePercentage: 100.0,
+		MaxPricePercentage: 100.0,
 		PriceSource:     "jita_sell",
 	}
 	err = autoBuyRepo.Upsert(context.Background(), config)
@@ -587,7 +587,7 @@ func Test_BuyOrders_DeactivateAutoBuyOrder(t *testing.T) {
 		OwnerType:       "character",
 		OwnerID:         12348,
 		LocationID:      60003760,
-		PricePercentage: 100.0,
+		MaxPricePercentage: 100.0,
 		PriceSource:     "jita_sell",
 	}
 	err = autoBuyRepo.Upsert(context.Background(), config)

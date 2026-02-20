@@ -21,15 +21,21 @@ type BuyOrdersRepository interface {
 	Delete(ctx context.Context, id int64, userID int64) error
 }
 
-type BuyOrdersController struct {
-	repository BuyOrdersRepository
-	permRepo   ContactPermissionsRepository
+type BuyOrdersAutoFulfillSyncer interface {
+	SyncForUser(ctx context.Context, userID int64) error
 }
 
-func NewBuyOrders(router Routerer, repository BuyOrdersRepository, permRepo ContactPermissionsRepository) *BuyOrdersController {
+type BuyOrdersController struct {
+	repository        BuyOrdersRepository
+	permRepo          ContactPermissionsRepository
+	autoFulfillSyncer BuyOrdersAutoFulfillSyncer
+}
+
+func NewBuyOrders(router Routerer, repository BuyOrdersRepository, permRepo ContactPermissionsRepository, autoFulfillSyncer BuyOrdersAutoFulfillSyncer) *BuyOrdersController {
 	controller := &BuyOrdersController{
-		repository: repository,
-		permRepo:   permRepo,
+		repository:        repository,
+		permRepo:          permRepo,
+		autoFulfillSyncer: autoFulfillSyncer,
 	}
 
 	router.RegisterRestAPIRoute("/v1/buy-orders", web.AuthAccessUser, controller.GetMyOrders, "GET")
@@ -73,6 +79,7 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 		TypeID          int64   `json:"typeId"`
 		LocationID      int64   `json:"locationId"`
 		QuantityDesired int64   `json:"quantityDesired"`
+		MinPricePerUnit float64 `json:"minPricePerUnit"`
 		MaxPricePerUnit float64 `json:"maxPricePerUnit"`
 		Notes           *string `json:"notes"`
 	}
@@ -107,10 +114,24 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 		}
 	}
 
+	if req.MinPricePerUnit < 0 {
+		return nil, &web.HttpError{
+			StatusCode: http.StatusBadRequest,
+			Error:      errors.New("minPricePerUnit must be non-negative"),
+		}
+	}
+
 	if req.MaxPricePerUnit < 0 {
 		return nil, &web.HttpError{
 			StatusCode: http.StatusBadRequest,
 			Error:      errors.New("maxPricePerUnit must be non-negative"),
+		}
+	}
+
+	if req.MinPricePerUnit > req.MaxPricePerUnit && req.MaxPricePerUnit > 0 {
+		return nil, &web.HttpError{
+			StatusCode: http.StatusBadRequest,
+			Error:      errors.New("minPricePerUnit must not exceed maxPricePerUnit"),
 		}
 	}
 
@@ -119,6 +140,7 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 		TypeID:          req.TypeID,
 		LocationID:      req.LocationID,
 		QuantityDesired: req.QuantityDesired,
+		MinPricePerUnit: req.MinPricePerUnit,
 		MaxPricePerUnit: req.MaxPricePerUnit,
 		Notes:           req.Notes,
 		IsActive:        true,
@@ -133,6 +155,15 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 	}
 
 	log.Info("buy order created", "orderId", order.ID, "userId", *args.User, "typeId", req.TypeID)
+
+	// Trigger auto-fulfill matching
+	if c.autoFulfillSyncer != nil {
+		go func() {
+			if err := c.autoFulfillSyncer.SyncForUser(context.Background(), *args.User); err != nil {
+				log.Error("failed to trigger auto-fulfill after buy order create", "error", err)
+			}
+		}()
+	}
 
 	return order, nil
 }
@@ -171,6 +202,7 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 	var req struct {
 		LocationID      int64   `json:"locationId"`
 		QuantityDesired int64   `json:"quantityDesired"`
+		MinPricePerUnit float64 `json:"minPricePerUnit"`
 		MaxPricePerUnit float64 `json:"maxPricePerUnit"`
 		Notes           *string `json:"notes"`
 		IsActive        *bool   `json:"isActive"`
@@ -199,6 +231,13 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 		}
 	}
 
+	if req.MinPricePerUnit < 0 {
+		return nil, &web.HttpError{
+			StatusCode: http.StatusBadRequest,
+			Error:      errors.New("minPricePerUnit must be non-negative"),
+		}
+	}
+
 	if req.MaxPricePerUnit < 0 {
 		return nil, &web.HttpError{
 			StatusCode: http.StatusBadRequest,
@@ -206,9 +245,17 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 		}
 	}
 
+	if req.MinPricePerUnit > req.MaxPricePerUnit && req.MaxPricePerUnit > 0 {
+		return nil, &web.HttpError{
+			StatusCode: http.StatusBadRequest,
+			Error:      errors.New("minPricePerUnit must not exceed maxPricePerUnit"),
+		}
+	}
+
 	// Update fields
 	order.LocationID = req.LocationID
 	order.QuantityDesired = req.QuantityDesired
+	order.MinPricePerUnit = req.MinPricePerUnit
 	order.MaxPricePerUnit = req.MaxPricePerUnit
 	order.Notes = req.Notes
 	if req.IsActive != nil {
@@ -224,6 +271,15 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 	}
 
 	log.Info("buy order updated", "orderId", id, "userId", *args.User)
+
+	// Trigger auto-fulfill matching
+	if c.autoFulfillSyncer != nil {
+		go func() {
+			if err := c.autoFulfillSyncer.SyncForUser(context.Background(), *args.User); err != nil {
+				log.Error("failed to trigger auto-fulfill after buy order update", "error", err)
+			}
+		}()
+	}
 
 	return order, nil
 }

@@ -141,12 +141,13 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 
 		// Resolve pricing: per-item override takes priority over config default
 		priceSource := config.PriceSource
-		pricePercentage := config.PricePercentage
+		maxPricePercentage := config.MaxPricePercentage
+		minPricePercentage := config.MinPricePercentage
 		if deficit.PriceSource != nil {
 			priceSource = *deficit.PriceSource
 		}
 		if deficit.PricePercentage != nil {
-			pricePercentage = *deficit.PricePercentage
+			maxPricePercentage = *deficit.PricePercentage
 		}
 
 		price, hasPrice := prices[deficit.TypeID]
@@ -166,14 +167,16 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 		}
 
 		activeTypes[deficit.TypeID] = true
-		computedPrice := *basePrice * pricePercentage / 100.0
+		computedMaxPrice := *basePrice * maxPricePercentage / 100.0
+		computedMinPrice := *basePrice * minPricePercentage / 100.0
 
 		order := &models.BuyOrder{
 			BuyerUserID:     config.UserID,
 			TypeID:          deficit.TypeID,
 			LocationID:      config.LocationID,
 			QuantityDesired: deficit.Deficit,
-			MaxPricePerUnit: computedPrice,
+			MinPricePerUnit: computedMinPrice,
+			MaxPricePerUnit: computedMaxPrice,
 			AutoBuyConfigID: &config.ID,
 			IsActive:        true,
 		}

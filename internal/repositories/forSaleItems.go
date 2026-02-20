@@ -417,3 +417,76 @@ func (r *ForSaleItems) DeactivateAutoSellListings(ctx context.Context, autoSellC
 
 	return nil
 }
+
+// GetMatchingForSaleItems finds active for-sale items matching a type_id with price in range,
+// excluding items owned by excludeUserID (to prevent self-purchase).
+func (r *ForSaleItems) GetMatchingForSaleItems(ctx context.Context, typeID int64, minPrice, maxPrice float64, excludeUserID int64) ([]*models.ForSaleItem, error) {
+	query := `
+		SELECT
+			f.id,
+			f.user_id,
+			f.type_id,
+			COALESCE(t.type_name, '') AS type_name,
+			f.owner_type,
+			f.owner_id,
+			'' AS owner_name,
+			f.location_id,
+			COALESCE(s.name, st.name, 'Unknown Location') AS location_name,
+			f.container_id,
+			f.division_number,
+			f.quantity_available,
+			f.price_per_unit,
+			f.notes,
+			f.auto_sell_container_id,
+			f.is_active,
+			f.created_at,
+			f.updated_at
+		FROM for_sale_items f
+		LEFT JOIN asset_item_types t ON f.type_id = t.type_id
+		LEFT JOIN solar_systems s ON f.location_id = s.solar_system_id
+		LEFT JOIN stations st ON f.location_id = st.station_id
+		WHERE f.type_id = $1
+			AND f.is_active = true
+			AND f.quantity_available > 0
+			AND f.price_per_unit >= $2
+			AND f.price_per_unit <= $3
+			AND f.user_id != $4
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, typeID, minPrice, maxPrice, excludeUserID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query matching for-sale items")
+	}
+	defer rows.Close()
+
+	items := []*models.ForSaleItem{}
+	for rows.Next() {
+		var item models.ForSaleItem
+		err = rows.Scan(
+			&item.ID,
+			&item.UserID,
+			&item.TypeID,
+			&item.TypeName,
+			&item.OwnerType,
+			&item.OwnerID,
+			&item.OwnerName,
+			&item.LocationID,
+			&item.LocationName,
+			&item.ContainerID,
+			&item.DivisionNumber,
+			&item.QuantityAvailable,
+			&item.PricePerUnit,
+			&item.Notes,
+			&item.AutoSellContainerID,
+			&item.IsActive,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan matching for-sale item")
+		}
+		items = append(items, &item)
+	}
+
+	return items, nil
+}

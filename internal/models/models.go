@@ -182,6 +182,8 @@ type PurchaseTransaction struct {
 	Status            string    `json:"status"`
 	ContractKey       *string   `json:"contractKey,omitempty"`
 	TransactionNotes  *string   `json:"transactionNotes"`
+	BuyOrderID        *int64    `json:"buyOrderId,omitempty"`
+	IsAutoFulfilled   bool      `json:"isAutoFulfilled"`
 	PurchasedAt       time.Time `json:"purchasedAt"`
 }
 
@@ -193,6 +195,7 @@ type BuyOrder struct {
 	LocationID      int64     `json:"locationId"`
 	LocationName    string    `json:"locationName"`
 	QuantityDesired int64     `json:"quantityDesired"`
+	MinPricePerUnit float64   `json:"minPricePerUnit"`
 	MaxPricePerUnit float64   `json:"maxPricePerUnit"`
 	Notes           *string   `json:"notes"`
 	AutoBuyConfigID *int64    `json:"autoBuyConfigId"`
@@ -202,18 +205,19 @@ type BuyOrder struct {
 }
 
 type AutoBuyConfig struct {
-	ID              int64     `json:"id"`
-	UserID          int64     `json:"userId"`
-	OwnerType       string    `json:"ownerType"`
-	OwnerID         int64     `json:"ownerId"`
-	LocationID      int64     `json:"locationId"`
-	ContainerID     *int64    `json:"containerId"`
-	DivisionNumber  *int      `json:"divisionNumber"`
-	PricePercentage float64   `json:"pricePercentage"`
-	PriceSource     string    `json:"priceSource"`
-	IsActive        bool      `json:"isActive"`
-	CreatedAt       time.Time `json:"createdAt"`
-	UpdatedAt       time.Time `json:"updatedAt"`
+	ID                 int64     `json:"id"`
+	UserID             int64     `json:"userId"`
+	OwnerType          string    `json:"ownerType"`
+	OwnerID            int64     `json:"ownerId"`
+	LocationID         int64     `json:"locationId"`
+	ContainerID        *int64    `json:"containerId"`
+	DivisionNumber     *int      `json:"divisionNumber"`
+	MinPricePercentage float64   `json:"minPricePercentage"`
+	MaxPricePercentage float64   `json:"maxPricePercentage"`
+	PriceSource        string    `json:"priceSource"`
+	IsActive           bool      `json:"isActive"`
+	CreatedAt          time.Time `json:"createdAt"`
+	UpdatedAt          time.Time `json:"updatedAt"`
 }
 
 type StockpileDeficitItem struct {

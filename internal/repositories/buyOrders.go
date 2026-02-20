@@ -24,10 +24,11 @@ func (r *BuyOrders) Create(ctx context.Context, order *models.BuyOrder) error {
 			type_id,
 			location_id,
 			quantity_desired,
+			min_price_per_unit,
 			max_price_per_unit,
 			notes,
 			is_active
-		) VALUES ($1, $2, $3, $4, $5, $6, $7)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING id, created_at, updated_at
 	`
 
@@ -38,6 +39,7 @@ func (r *BuyOrders) Create(ctx context.Context, order *models.BuyOrder) error {
 		order.TypeID,
 		order.LocationID,
 		order.QuantityDesired,
+		order.MinPricePerUnit,
 		order.MaxPricePerUnit,
 		order.Notes,
 		order.IsActive,
@@ -56,13 +58,14 @@ func (r *BuyOrders) UpsertAutoBuy(ctx context.Context, order *models.BuyOrder) e
 	query := `
 		INSERT INTO buy_orders (
 			buyer_user_id, type_id, location_id,
-			quantity_desired, max_price_per_unit, notes,
+			quantity_desired, min_price_per_unit, max_price_per_unit, notes,
 			auto_buy_config_id, is_active
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, true)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true)
 		ON CONFLICT (buyer_user_id, type_id, location_id, auto_buy_config_id)
 			WHERE auto_buy_config_id IS NOT NULL AND is_active = true
 		DO UPDATE SET
 			quantity_desired = EXCLUDED.quantity_desired,
+			min_price_per_unit = EXCLUDED.min_price_per_unit,
 			max_price_per_unit = EXCLUDED.max_price_per_unit,
 			notes = EXCLUDED.notes,
 			updated_at = NOW()
@@ -74,6 +77,7 @@ func (r *BuyOrders) UpsertAutoBuy(ctx context.Context, order *models.BuyOrder) e
 		order.TypeID,
 		order.LocationID,
 		order.QuantityDesired,
+		order.MinPricePerUnit,
 		order.MaxPricePerUnit,
 		order.Notes,
 		order.AutoBuyConfigID,
@@ -91,7 +95,7 @@ func (r *BuyOrders) GetActiveAutoBuyOrders(ctx context.Context, autoBuyConfigID 
 	query := `
 		SELECT
 			id, buyer_user_id, type_id, location_id,
-			quantity_desired, max_price_per_unit, notes,
+			quantity_desired, min_price_per_unit, max_price_per_unit, notes,
 			auto_buy_config_id, is_active, created_at, updated_at
 		FROM buy_orders
 		WHERE auto_buy_config_id = $1 AND is_active = true
@@ -108,11 +112,104 @@ func (r *BuyOrders) GetActiveAutoBuyOrders(ctx context.Context, autoBuyConfigID 
 		order := &models.BuyOrder{}
 		err := rows.Scan(
 			&order.ID, &order.BuyerUserID, &order.TypeID, &order.LocationID,
-			&order.QuantityDesired, &order.MaxPricePerUnit, &order.Notes,
+			&order.QuantityDesired, &order.MinPricePerUnit, &order.MaxPricePerUnit, &order.Notes,
 			&order.AutoBuyConfigID, &order.IsActive, &order.CreatedAt, &order.UpdatedAt,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan auto-buy order")
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+// GetAllActiveBuyOrders returns all active buy orders across all users
+func (r *BuyOrders) GetAllActiveBuyOrders(ctx context.Context) ([]*models.BuyOrder, error) {
+	query := `
+		SELECT
+			bo.id,
+			bo.buyer_user_id,
+			bo.type_id,
+			COALESCE(it.type_name, '') AS type_name,
+			bo.location_id,
+			COALESCE(st.name, ss.name, '') AS location_name,
+			bo.quantity_desired,
+			bo.min_price_per_unit,
+			bo.max_price_per_unit,
+			bo.notes,
+			bo.auto_buy_config_id,
+			bo.is_active,
+			bo.created_at,
+			bo.updated_at
+		FROM buy_orders bo
+		LEFT JOIN asset_item_types it ON bo.type_id = it.type_id
+		LEFT JOIN stations st ON bo.location_id = st.station_id
+		LEFT JOIN solar_systems ss ON bo.location_id = ss.solar_system_id
+		WHERE bo.is_active = true
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query all active buy orders")
+	}
+	defer rows.Close()
+
+	orders := []*models.BuyOrder{}
+	for rows.Next() {
+		order := &models.BuyOrder{}
+		err := rows.Scan(
+			&order.ID,
+			&order.BuyerUserID,
+			&order.TypeID,
+			&order.TypeName,
+			&order.LocationID,
+			&order.LocationName,
+			&order.QuantityDesired,
+			&order.MinPricePerUnit,
+			&order.MaxPricePerUnit,
+			&order.Notes,
+			&order.AutoBuyConfigID,
+			&order.IsActive,
+			&order.CreatedAt,
+			&order.UpdatedAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan buy order")
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
+}
+
+// GetActiveBuyOrdersForUser returns all active buy orders for a specific user
+func (r *BuyOrders) GetActiveBuyOrdersForUser(ctx context.Context, userID int64) ([]*models.BuyOrder, error) {
+	query := `
+		SELECT
+			id, buyer_user_id, type_id, location_id,
+			quantity_desired, min_price_per_unit, max_price_per_unit, notes,
+			auto_buy_config_id, is_active, created_at, updated_at
+		FROM buy_orders
+		WHERE buyer_user_id = $1 AND is_active = true
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query active buy orders for user")
+	}
+	defer rows.Close()
+
+	orders := []*models.BuyOrder{}
+	for rows.Next() {
+		order := &models.BuyOrder{}
+		err := rows.Scan(
+			&order.ID, &order.BuyerUserID, &order.TypeID, &order.LocationID,
+			&order.QuantityDesired, &order.MinPricePerUnit, &order.MaxPricePerUnit, &order.Notes,
+			&order.AutoBuyConfigID, &order.IsActive, &order.CreatedAt, &order.UpdatedAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan buy order")
 		}
 		orders = append(orders, order)
 	}
@@ -163,6 +260,7 @@ func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, er
 			bo.location_id,
 			COALESCE(st.name, ss.name, '') AS location_name,
 			bo.quantity_desired,
+			bo.min_price_per_unit,
 			bo.max_price_per_unit,
 			bo.notes,
 			bo.auto_buy_config_id,
@@ -185,6 +283,7 @@ func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, er
 		&order.LocationID,
 		&order.LocationName,
 		&order.QuantityDesired,
+		&order.MinPricePerUnit,
 		&order.MaxPricePerUnit,
 		&order.Notes,
 		&order.AutoBuyConfigID,
@@ -214,6 +313,7 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 			bo.location_id,
 			COALESCE(st.name, ss.name, '') AS location_name,
 			bo.quantity_desired,
+			bo.min_price_per_unit,
 			bo.max_price_per_unit,
 			bo.notes,
 			bo.auto_buy_config_id,
@@ -245,6 +345,7 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 			&order.LocationID,
 			&order.LocationName,
 			&order.QuantityDesired,
+			&order.MinPricePerUnit,
 			&order.MaxPricePerUnit,
 			&order.Notes,
 			&order.AutoBuyConfigID,
@@ -261,7 +362,8 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 	return orders, nil
 }
 
-// GetDemandForSeller returns active buy orders from users who have granted seller the for_sale_browse permission
+// GetDemandForSeller returns active buy orders from users who have granted seller the for_sale_browse permission.
+// Only exposes min_price_per_unit — max_price_per_unit is private to the buyer.
 func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) ([]*models.BuyOrder, error) {
 	query := `
 		SELECT DISTINCT
@@ -272,7 +374,7 @@ func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) 
 			bo.location_id,
 			COALESCE(st.name, ss.name, '') AS location_name,
 			bo.quantity_desired,
-			bo.max_price_per_unit,
+			bo.min_price_per_unit,
 			bo.notes,
 			bo.auto_buy_config_id,
 			bo.is_active,
@@ -307,7 +409,7 @@ func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) 
 			&order.LocationID,
 			&order.LocationName,
 			&order.QuantityDesired,
-			&order.MaxPricePerUnit,
+			&order.MinPricePerUnit,
 			&order.Notes,
 			&order.AutoBuyConfigID,
 			&order.IsActive,
@@ -329,10 +431,11 @@ func (r *BuyOrders) Update(ctx context.Context, order *models.BuyOrder) error {
 		UPDATE buy_orders
 		SET
 			quantity_desired = $2,
-			max_price_per_unit = $3,
-			notes = $4,
-			is_active = $5,
-			location_id = $6,
+			min_price_per_unit = $3,
+			max_price_per_unit = $4,
+			notes = $5,
+			is_active = $6,
+			location_id = $7,
 			updated_at = NOW()
 		WHERE id = $1
 		RETURNING updated_at
@@ -343,6 +446,7 @@ func (r *BuyOrders) Update(ctx context.Context, order *models.BuyOrder) error {
 		query,
 		order.ID,
 		order.QuantityDesired,
+		order.MinPricePerUnit,
 		order.MaxPricePerUnit,
 		order.Notes,
 		order.IsActive,
