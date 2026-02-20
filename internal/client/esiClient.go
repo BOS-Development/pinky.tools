@@ -242,7 +242,13 @@ func (c *EsiClient) GetPlayerOwnedStationInformation(ctx context.Context, token,
 		defer res.Body.Close()
 
 		if res.StatusCode == 403 {
-			// player does not have access to query this structure so just continue
+			// Player no longer has access — save as "Unknown Structure" so the
+			// station row exists (the Upsert preserves any real name already stored).
+			res.Body.Close()
+			stations = append(stations, models.Station{
+				ID:   id,
+				Name: "Unknown Structure",
+			})
 			continue
 		}
 

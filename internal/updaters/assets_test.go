@@ -106,11 +106,21 @@ func (m *mockCorpAssetsRepo) GetPlayerOwnedStationIDs(ctx context.Context, corp,
 }
 
 type mockAssetStationRepo struct {
-	upsertErr error
+	upsertErr      error
+	filterStaleIDs []int64
+	filterStaleErr error
 }
 
 func (m *mockAssetStationRepo) Upsert(ctx context.Context, stations []models.Station) error {
 	return m.upsertErr
+}
+
+func (m *mockAssetStationRepo) FilterStaleStationIDs(ctx context.Context, ids []int64, knownMaxAge, unknownMaxAge time.Duration) ([]int64, error) {
+	if m.filterStaleIDs != nil {
+		return m.filterStaleIDs, m.filterStaleErr
+	}
+	// Default: all IDs are stale (preserves existing test behavior)
+	return ids, m.filterStaleErr
 }
 
 type mockUserTimestampRepo struct {
