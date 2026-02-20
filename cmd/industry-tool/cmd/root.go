@@ -124,7 +124,7 @@ var rootCmd = &cobra.Command{
 		controllers.NewContacts(router, contactsRepository, contactPermissionsRepository, db)
 		controllers.NewContactPermissions(router, contactPermissionsRepository)
 		controllers.NewForSaleItems(router, forSaleItemsRepository, contactPermissionsRepository)
-		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository, purchaseNotifier)
+		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 		controllers.NewBuyOrders(router, buyOrdersRepository, contactPermissionsRepository)
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
