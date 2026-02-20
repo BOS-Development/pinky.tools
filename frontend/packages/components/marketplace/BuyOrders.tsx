@@ -39,6 +39,7 @@ export type BuyOrder = {
   locationId: number;
   locationName: string;
   quantityDesired: number;
+  minPricePerUnit: number;
   maxPricePerUnit: number;
   notes?: string;
   autoBuyConfigId?: number;
@@ -52,6 +53,7 @@ type BuyOrderFormData = {
   typeName?: string;
   locationId: number;
   quantityDesired: number;
+  minPricePerUnit: number;
   maxPricePerUnit: number;
   notes?: string;
 };
@@ -174,7 +176,7 @@ export default function BuyOrders() {
     setSelectedOrder(null);
     setSelectedItem(null);
     setSelectedStation(null);
-    setFormData({ quantityDesired: 0, maxPricePerUnit: 0, locationId: 0 });
+    setFormData({ quantityDesired: 0, minPricePerUnit: 0, maxPricePerUnit: 0, locationId: 0 });
     setDialogOpen(true);
   };
 
@@ -195,6 +197,7 @@ export default function BuyOrders() {
       typeName: order.typeName,
       locationId: order.locationId,
       quantityDesired: order.quantityDesired,
+      minPricePerUnit: order.minPricePerUnit,
       maxPricePerUnit: order.maxPricePerUnit,
       notes: order.notes,
     });
@@ -236,6 +239,7 @@ export default function BuyOrders() {
           typeId: formData.typeId,
           locationId: formData.locationId,
           quantityDesired: formData.quantityDesired,
+          minPricePerUnit: formData.minPricePerUnit || 0,
           maxPricePerUnit: formData.maxPricePerUnit,
           notes: formData.notes || null,
           ...(selectedOrder ? { isActive: true } : {}),
@@ -303,7 +307,7 @@ export default function BuyOrders() {
                       <TableCell>Item</TableCell>
                       <TableCell>Location</TableCell>
                       <TableCell align="right">Quantity Desired</TableCell>
-                      <TableCell align="right">Max Price/Unit</TableCell>
+                      <TableCell align="right">Price Range/Unit</TableCell>
                       <TableCell align="right">Total Budget</TableCell>
                       <TableCell>Status</TableCell>
                       <TableCell>Notes</TableCell>
@@ -317,7 +321,11 @@ export default function BuyOrders() {
                         <TableCell>{order.typeName}</TableCell>
                         <TableCell>{order.locationName || '-'}</TableCell>
                         <TableCell align="right">{formatNumber(order.quantityDesired)}</TableCell>
-                        <TableCell align="right">{formatISK(order.maxPricePerUnit)}</TableCell>
+                        <TableCell align="right">
+                          {order.minPricePerUnit > 0
+                            ? `${formatISK(order.minPricePerUnit)} - ${formatISK(order.maxPricePerUnit)}`
+                            : formatISK(order.maxPricePerUnit)}
+                        </TableCell>
                         <TableCell align="right">
                           {formatISK(order.quantityDesired * order.maxPricePerUnit)}
                         </TableCell>
@@ -499,14 +507,25 @@ export default function BuyOrders() {
               fullWidth
               required
             />
-            <TextField
-              label="Max Price Per Unit (ISK)"
-              type="number"
-              value={formData.maxPricePerUnit || ''}
-              onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseFloat(e.target.value) || 0 })}
-              fullWidth
-              required
-            />
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                label="Min Price Per Unit (ISK)"
+                type="number"
+                value={formData.minPricePerUnit || ''}
+                onChange={(e) => setFormData({ ...formData, minPricePerUnit: parseFloat(e.target.value) || 0 })}
+                fullWidth
+                helperText="Floor price for auto-fulfill (optional)"
+              />
+              <TextField
+                label="Max Price Per Unit (ISK)"
+                type="number"
+                value={formData.maxPricePerUnit || ''}
+                onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseFloat(e.target.value) || 0 })}
+                fullWidth
+                required
+                helperText="Maximum you're willing to pay"
+              />
+            </Box>
             <TextField
               label="Notes"
               multiline

@@ -34,7 +34,7 @@ func Test_BuyOrders_CreateOrder_Success(t *testing.T) {
 	}
 	assert.NoError(t, itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes))
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"typeId":          70,
@@ -71,7 +71,7 @@ func Test_BuyOrders_CreateOrder_InvalidQuantity(t *testing.T) {
 	buyOrdersRepo := repositories.NewBuyOrders(db)
 	permRepo := &MockContactPermissionsRepository{}
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"typeId":          70,
@@ -102,7 +102,7 @@ func Test_BuyOrders_CreateOrder_MissingLocationId(t *testing.T) {
 	buyOrdersRepo := repositories.NewBuyOrders(db)
 	permRepo := &MockContactPermissionsRepository{}
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"typeId":          70,
@@ -157,7 +157,7 @@ func Test_BuyOrders_GetMyOrders(t *testing.T) {
 		assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
 	}
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	req := httptest.NewRequest("GET", "/v1/buy-orders", nil)
 	args := &web.HandlerArgs{
@@ -204,7 +204,7 @@ func Test_BuyOrders_UpdateOrder_Success(t *testing.T) {
 	}
 	assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	// Update order
 	reqBody := map[string]interface{}{
@@ -265,7 +265,7 @@ func Test_BuyOrders_UpdateOrder_NotOwner(t *testing.T) {
 	}
 	assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	// Try to update as different user
 	reqBody := map[string]interface{}{
@@ -319,7 +319,7 @@ func Test_BuyOrders_DeleteOrder_Success(t *testing.T) {
 	}
 	assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	req := httptest.NewRequest("DELETE", "/v1/buy-orders/"+strconv.FormatInt(order.ID, 10), nil)
 	args := &web.HandlerArgs{
@@ -403,7 +403,7 @@ func Test_BuyOrders_GetDemand(t *testing.T) {
 		assert.NoError(t, buyOrdersRepo.Create(context.Background(), order))
 	}
 
-	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo, nil)
 
 	req := httptest.NewRequest("GET", "/v1/buy-orders/demand", nil)
 	args := &web.HandlerArgs{

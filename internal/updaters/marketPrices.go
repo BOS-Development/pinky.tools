@@ -32,11 +32,16 @@ type AutoBuyAllUsersSyncer interface {
 	SyncForAllUsers(ctx context.Context) error
 }
 
+type AutoFulfillAllUsersSyncer interface {
+	SyncForAllUsers(ctx context.Context) error
+}
+
 type MarketPrices struct {
-	marketPricesRepo MarketPricesRepository
-	esiClient        MarketPricesEsiClient
-	autoSellSyncer   AutoSellAllUsersSyncer
-	autoBuySyncer    AutoBuyAllUsersSyncer
+	marketPricesRepo    MarketPricesRepository
+	esiClient           MarketPricesEsiClient
+	autoSellSyncer      AutoSellAllUsersSyncer
+	autoBuySyncer       AutoBuyAllUsersSyncer
+	autoFulfillSyncer   AutoFulfillAllUsersSyncer
 }
 
 func NewMarketPrices(repo MarketPricesRepository, esiClient MarketPricesEsiClient) *MarketPrices {
@@ -146,6 +151,12 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 		}
 	}
 
+	if u.autoFulfillSyncer != nil {
+		if err := u.autoFulfillSyncer.SyncForAllUsers(ctx); err != nil {
+			log.Error("failed to sync auto-fulfill after market price update", "error", err)
+		}
+	}
+
 	return nil
 }
 
@@ -157,4 +168,9 @@ func (u *MarketPrices) WithAutoSellUpdater(syncer AutoSellAllUsersSyncer) {
 // WithAutoBuyUpdater sets the optional auto-buy syncer
 func (u *MarketPrices) WithAutoBuyUpdater(syncer AutoBuyAllUsersSyncer) {
 	u.autoBuySyncer = syncer
+}
+
+// WithAutoFulfillUpdater sets the optional auto-fulfill syncer
+func (u *MarketPrices) WithAutoFulfillUpdater(syncer AutoFulfillAllUsersSyncer) {
+	u.autoFulfillSyncer = syncer
 }

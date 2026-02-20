@@ -22,8 +22,8 @@ func (r *PurchaseTransactions) Create(ctx context.Context, tx *sql.Tx, purchase 
 	query := `
 		INSERT INTO purchase_transactions
 		(for_sale_item_id, buyer_user_id, seller_user_id, type_id, quantity_purchased,
-		 price_per_unit, total_price, status, transaction_notes, purchased_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+		 price_per_unit, total_price, status, transaction_notes, buy_order_id, is_auto_fulfilled, purchased_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
 		RETURNING id, purchased_at
 	`
 
@@ -37,6 +37,8 @@ func (r *PurchaseTransactions) Create(ctx context.Context, tx *sql.Tx, purchase 
 		purchase.TotalPrice,
 		purchase.Status,
 		purchase.TransactionNotes,
+		purchase.BuyOrderID,
+		purchase.IsAutoFulfilled,
 	).Scan(&purchase.ID, &purchase.PurchasedAt)
 
 	if err != nil {
@@ -44,6 +46,12 @@ func (r *PurchaseTransactions) Create(ctx context.Context, tx *sql.Tx, purchase 
 	}
 
 	return nil
+}
+
+// CreateAutoFulfill records an auto-fulfilled purchase transaction (within transaction)
+func (r *PurchaseTransactions) CreateAutoFulfill(ctx context.Context, tx *sql.Tx, purchase *models.PurchaseTransaction) error {
+	purchase.IsAutoFulfilled = true
+	return r.Create(ctx, tx, purchase)
 }
 
 // UpdateContractKeys updates contract keys for multiple purchase IDs
@@ -88,6 +96,8 @@ func (r *PurchaseTransactions) GetByBuyer(ctx context.Context, buyerUserID int64
 			pt.status,
 			pt.contract_key,
 			pt.transaction_notes,
+			pt.buy_order_id,
+			pt.is_auto_fulfilled,
 			pt.purchased_at
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
@@ -117,6 +127,8 @@ func (r *PurchaseTransactions) GetByBuyer(ctx context.Context, buyerUserID int64
 			&tx.Status,
 			&tx.ContractKey,
 			&tx.TransactionNotes,
+			&tx.BuyOrderID,
+			&tx.IsAutoFulfilled,
 			&tx.PurchasedAt,
 		)
 		if err != nil {
@@ -144,6 +156,8 @@ func (r *PurchaseTransactions) GetBySeller(ctx context.Context, sellerUserID int
 			pt.status,
 			pt.contract_key,
 			pt.transaction_notes,
+			pt.buy_order_id,
+			pt.is_auto_fulfilled,
 			pt.purchased_at
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
@@ -173,6 +187,8 @@ func (r *PurchaseTransactions) GetBySeller(ctx context.Context, sellerUserID int
 			&tx.Status,
 			&tx.ContractKey,
 			&tx.TransactionNotes,
+			&tx.BuyOrderID,
+			&tx.IsAutoFulfilled,
 			&tx.PurchasedAt,
 		)
 		if err != nil {
@@ -203,6 +219,8 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 			pt.status,
 			pt.contract_key,
 			pt.transaction_notes,
+			pt.buy_order_id,
+			pt.is_auto_fulfilled,
 			pt.purchased_at
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
@@ -239,6 +257,8 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 			&tx.Status,
 			&tx.ContractKey,
 			&tx.TransactionNotes,
+			&tx.BuyOrderID,
+			&tx.IsAutoFulfilled,
 			&tx.PurchasedAt,
 		)
 		if err != nil {
@@ -266,6 +286,8 @@ func (r *PurchaseTransactions) GetByID(ctx context.Context, purchaseID int64) (*
 			pt.status,
 			pt.contract_key,
 			pt.transaction_notes,
+			pt.buy_order_id,
+			pt.is_auto_fulfilled,
 			pt.purchased_at
 		FROM purchase_transactions pt
 		JOIN asset_item_types t ON pt.type_id = t.type_id
@@ -286,6 +308,8 @@ func (r *PurchaseTransactions) GetByID(ctx context.Context, purchaseID int64) (*
 		&tx.Status,
 		&tx.ContractKey,
 		&tx.TransactionNotes,
+		&tx.BuyOrderID,
+		&tx.IsAutoFulfilled,
 		&tx.PurchasedAt,
 	)
 

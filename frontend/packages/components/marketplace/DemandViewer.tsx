@@ -29,7 +29,7 @@ export type BuyOrder = {
   locationId: number;
   locationName: string;
   quantityDesired: number;
-  maxPricePerUnit: number;
+  minPricePerUnit: number;
   notes?: string;
   isActive: boolean;
   createdAt: string;
@@ -95,7 +95,7 @@ export default function DemandViewer() {
       };
     }
     acc[key].totalQuantity += order.quantityDesired;
-    acc[key].maxPrice = Math.max(acc[key].maxPrice, order.maxPricePerUnit);
+    acc[key].maxPrice = Math.max(acc[key].maxPrice, order.minPricePerUnit);
     acc[key].orderCount += 1;
     acc[key].orders.push(order);
     return acc;
@@ -166,7 +166,7 @@ export default function DemandViewer() {
                       <TableRow>
                         <TableCell>Item</TableCell>
                         <TableCell align="right">Total Quantity Wanted</TableCell>
-                        <TableCell align="right">Highest Price Offered</TableCell>
+                        <TableCell align="right">Highest Floor Price</TableCell>
                         <TableCell align="right">Potential Revenue</TableCell>
                         <TableCell align="center">Number of Orders</TableCell>
                       </TableRow>
@@ -204,8 +204,8 @@ export default function DemandViewer() {
                         <TableCell>Item</TableCell>
                         <TableCell>Location</TableCell>
                         <TableCell align="right">Quantity</TableCell>
-                        <TableCell align="right">Max Price/Unit</TableCell>
-                        <TableCell align="right">Total Budget</TableCell>
+                        <TableCell align="right">Min Price/Unit</TableCell>
+                        <TableCell align="right">Est. Revenue</TableCell>
                         <TableCell>Notes</TableCell>
                         <TableCell>Created</TableCell>
                       </TableRow>
@@ -216,9 +216,9 @@ export default function DemandViewer() {
                           <TableCell>{order.typeName}</TableCell>
                           <TableCell>{order.locationName || '-'}</TableCell>
                           <TableCell align="right">{formatNumber(order.quantityDesired)}</TableCell>
-                          <TableCell align="right">{formatISK(order.maxPricePerUnit)}</TableCell>
+                          <TableCell align="right">{formatISK(order.minPricePerUnit)}</TableCell>
                           <TableCell align="right">
-                            {formatISK(order.quantityDesired * order.maxPricePerUnit)}
+                            {formatISK(order.quantityDesired * order.minPricePerUnit)}
                           </TableCell>
                           <TableCell>{order.notes || '-'}</TableCell>
                           <TableCell>{formatDate(order.createdAt)}</TableCell>

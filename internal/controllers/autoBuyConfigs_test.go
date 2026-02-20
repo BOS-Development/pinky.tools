@@ -56,6 +56,16 @@ func (m *MockAutoBuyConfigsSyncer) SyncForUser(ctx context.Context, userID int64
 	return args.Error(0)
 }
 
+// Mock AutoBuyConfigsAutoFulfillSyncer
+type MockAutoBuyConfigsAutoFulfillSyncer struct {
+	mock.Mock
+}
+
+func (m *MockAutoBuyConfigsAutoFulfillSyncer) SyncForUser(ctx context.Context, userID int64) error {
+	args := m.Called(ctx, userID)
+	return args.Error(0)
+}
+
 // Mock BuyOrdersDeactivator
 type MockBuyOrdersDeactivator struct {
 	mock.Mock
@@ -85,9 +95,9 @@ func Test_AutoBuyConfigsController_GetMyConfigs_Success(t *testing.T) {
 			OwnerID:         456,
 			LocationID:      60003760,
 			ContainerID:     &containerID,
-			PricePercentage: 90.0,
-			PriceSource:     "jita_sell",
-			IsActive:        true,
+			MaxPricePercentage: 90.0,
+			PriceSource:        "jita_sell",
+			IsActive:           true,
 		},
 	}
 
@@ -100,7 +110,7 @@ func Test_AutoBuyConfigsController_GetMyConfigs_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.GetMyConfigs(args)
 
 	assert.Nil(t, httpErr)
@@ -108,7 +118,7 @@ func Test_AutoBuyConfigsController_GetMyConfigs_Success(t *testing.T) {
 
 	items := result.([]*models.AutoBuyConfig)
 	assert.Len(t, items, 1)
-	assert.Equal(t, 90.0, items[0].PricePercentage)
+	assert.Equal(t, 90.0, items[0].MaxPricePercentage)
 	assert.Equal(t, int64(9000), *items[0].ContainerID)
 
 	mockRepo.AssertExpectations(t)
@@ -127,7 +137,7 @@ func Test_AutoBuyConfigsController_GetMyConfigs_Unauthorized(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.GetMyConfigs(args)
 
 	assert.Nil(t, result)
@@ -152,7 +162,7 @@ func Test_AutoBuyConfigsController_GetMyConfigs_RepositoryError(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.GetMyConfigs(args)
 
 	assert.Nil(t, result)
@@ -178,7 +188,7 @@ func Test_AutoBuyConfigsController_CreateConfig_Success_Defaults(t *testing.T) {
 			c.OwnerID == 456 &&
 			c.LocationID == 60003760 &&
 			c.ContainerID == nil &&
-			c.PricePercentage == 90.0 &&
+			c.MaxPricePercentage == 90.0 &&
 			c.PriceSource == "jita_sell"
 	})).Return(nil)
 
@@ -187,10 +197,10 @@ func Test_AutoBuyConfigsController_CreateConfig_Success_Defaults(t *testing.T) {
 
 	// No priceSource or containerId sent — should default to "jita_sell" and nil container
 	body := map[string]interface{}{
-		"ownerType":       "character",
-		"ownerId":         456,
-		"locationId":      60003760,
-		"pricePercentage": 90.0,
+		"ownerType":          "character",
+		"ownerId":            456,
+		"locationId":         60003760,
+		"maxPricePercentage": 90.0,
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -203,7 +213,7 @@ func Test_AutoBuyConfigsController_CreateConfig_Success_Defaults(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, httpErr)
@@ -226,18 +236,18 @@ func Test_AutoBuyConfigsController_CreateConfig_Success_WithContainerID(t *testi
 			c.OwnerID == 456 &&
 			c.LocationID == 60003760 &&
 			c.ContainerID != nil && *c.ContainerID == 9000 &&
-			c.PricePercentage == 90.0 &&
+			c.MaxPricePercentage == 90.0 &&
 			c.PriceSource == "jita_sell"
 	})).Return(nil)
 
 	mockSyncer.On("SyncForUser", mock.Anything, userID).Return(nil)
 
 	body := map[string]interface{}{
-		"ownerType":       "character",
-		"ownerId":         456,
-		"locationId":      60003760,
-		"containerId":     9000,
-		"pricePercentage": 90.0,
+		"ownerType":          "character",
+		"ownerId":            456,
+		"locationId":         60003760,
+		"containerId":        9000,
+		"maxPricePercentage": 90.0,
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -250,7 +260,7 @@ func Test_AutoBuyConfigsController_CreateConfig_Success_WithContainerID(t *testi
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, httpErr)
@@ -276,7 +286,7 @@ func Test_AutoBuyConfigsController_CreateConfig_InvalidJSON(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, result)
@@ -293,9 +303,9 @@ func Test_AutoBuyConfigsController_CreateConfig_MissingOwnerType(t *testing.T) {
 	userID := int64(123)
 
 	body := map[string]interface{}{
-		"ownerId":         456,
-		"locationId":      60003760,
-		"pricePercentage": 90.0,
+		"ownerId":            456,
+		"locationId":         60003760,
+		"maxPricePercentage": 90.0,
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -308,7 +318,7 @@ func Test_AutoBuyConfigsController_CreateConfig_MissingOwnerType(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, result)
@@ -326,10 +336,10 @@ func Test_AutoBuyConfigsController_CreateConfig_InvalidPercentage(t *testing.T) 
 	userID := int64(123)
 
 	body := map[string]interface{}{
-		"ownerType":       "character",
-		"ownerId":         456,
-		"locationId":      60003760,
-		"pricePercentage": 250.0, // Over 200
+		"ownerType":          "character",
+		"ownerId":            456,
+		"locationId":         60003760,
+		"maxPricePercentage": 250.0, // Over 200
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -342,13 +352,13 @@ func Test_AutoBuyConfigsController_CreateConfig_InvalidPercentage(t *testing.T) 
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 400, httpErr.StatusCode)
-	assert.Contains(t, httpErr.Error.Error(), "pricePercentage must be between 0 and 200")
+	assert.Contains(t, httpErr.Error.Error(), "maxPricePercentage must be between 0 and 200")
 }
 
 func Test_AutoBuyConfigsController_CreateConfig_Unauthorized(t *testing.T) {
@@ -364,7 +374,7 @@ func Test_AutoBuyConfigsController_CreateConfig_Unauthorized(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, result)
@@ -381,17 +391,17 @@ func Test_AutoBuyConfigsController_CreateConfig_WithJitaBuy(t *testing.T) {
 	userID := int64(123)
 
 	mockRepo.On("Upsert", mock.Anything, mock.MatchedBy(func(c *models.AutoBuyConfig) bool {
-		return c.PriceSource == "jita_buy" && c.PricePercentage == 95.0
+		return c.PriceSource == "jita_buy" && c.MaxPricePercentage == 95.0
 	})).Return(nil)
 
 	mockSyncer.On("SyncForUser", mock.Anything, userID).Return(nil)
 
 	body := map[string]interface{}{
-		"ownerType":       "character",
-		"ownerId":         456,
-		"locationId":      60003760,
-		"pricePercentage": 95.0,
-		"priceSource":     "jita_buy",
+		"ownerType":          "character",
+		"ownerId":            456,
+		"locationId":         60003760,
+		"maxPricePercentage": 95.0,
+		"priceSource":        "jita_buy",
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -404,7 +414,7 @@ func Test_AutoBuyConfigsController_CreateConfig_WithJitaBuy(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, httpErr)
@@ -422,11 +432,11 @@ func Test_AutoBuyConfigsController_CreateConfig_InvalidPriceSource(t *testing.T)
 	userID := int64(123)
 
 	body := map[string]interface{}{
-		"ownerType":       "character",
-		"ownerId":         456,
-		"locationId":      60003760,
-		"pricePercentage": 90.0,
-		"priceSource":     "invalid_source",
+		"ownerType":          "character",
+		"ownerId":            456,
+		"locationId":         60003760,
+		"maxPricePercentage": 90.0,
+		"priceSource":        "invalid_source",
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -439,7 +449,7 @@ func Test_AutoBuyConfigsController_CreateConfig_InvalidPriceSource(t *testing.T)
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.CreateConfig(args)
 
 	assert.Nil(t, result)
@@ -460,26 +470,26 @@ func Test_AutoBuyConfigsController_UpdateConfig_Success(t *testing.T) {
 	configID := int64(1)
 
 	existingConfig := &models.AutoBuyConfig{
-		ID:              configID,
-		UserID:          userID,
-		OwnerType:       "character",
-		OwnerID:         456,
-		LocationID:      60003760,
-		ContainerID:     nil,
-		PricePercentage: 90.0,
-		PriceSource:     "jita_sell",
-		IsActive:        true,
+		ID:                 configID,
+		UserID:             userID,
+		OwnerType:          "character",
+		OwnerID:            456,
+		LocationID:         60003760,
+		ContainerID:        nil,
+		MaxPricePercentage: 90.0,
+		PriceSource:        "jita_sell",
+		IsActive:           true,
 	}
 
 	mockRepo.On("GetByID", mock.Anything, configID).Return(existingConfig, nil)
 	mockRepo.On("Upsert", mock.Anything, mock.MatchedBy(func(c *models.AutoBuyConfig) bool {
-		return c.ID == configID && c.PricePercentage == 85.0 && c.PriceSource == "jita_buy"
+		return c.ID == configID && c.MaxPricePercentage == 85.0 && c.PriceSource == "jita_buy"
 	})).Return(nil)
 	mockSyncer.On("SyncForUser", mock.Anything, userID).Return(nil)
 
 	body := map[string]interface{}{
-		"pricePercentage": 85.0,
-		"priceSource":     "jita_buy",
+		"maxPricePercentage": 85.0,
+		"priceSource":        "jita_buy",
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -492,7 +502,7 @@ func Test_AutoBuyConfigsController_UpdateConfig_Success(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.UpdateConfig(args)
 
 	assert.Nil(t, httpErr)
@@ -512,7 +522,7 @@ func Test_AutoBuyConfigsController_UpdateConfig_NotFound(t *testing.T) {
 	mockRepo.On("GetByID", mock.Anything, int64(999)).Return(nil, nil)
 
 	body := map[string]interface{}{
-		"pricePercentage": 85.0,
+		"maxPricePercentage": 85.0,
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -525,7 +535,7 @@ func Test_AutoBuyConfigsController_UpdateConfig_NotFound(t *testing.T) {
 		Params:  map[string]string{"id": "999"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.UpdateConfig(args)
 
 	assert.Nil(t, result)
@@ -545,17 +555,17 @@ func Test_AutoBuyConfigsController_UpdateConfig_NotOwner(t *testing.T) {
 	otherUserID := int64(999)
 
 	existingConfig := &models.AutoBuyConfig{
-		ID:              1,
-		UserID:          otherUserID, // Different owner
-		OwnerType:       "character",
-		OwnerID:         456,
-		PricePercentage: 90.0,
+		ID:                 1,
+		UserID:             otherUserID, // Different owner
+		OwnerType:          "character",
+		OwnerID:            456,
+		MaxPricePercentage: 90.0,
 	}
 
 	mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingConfig, nil)
 
 	body := map[string]interface{}{
-		"pricePercentage": 85.0,
+		"maxPricePercentage": 85.0,
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -568,7 +578,7 @@ func Test_AutoBuyConfigsController_UpdateConfig_NotOwner(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.UpdateConfig(args)
 
 	assert.Nil(t, result)
@@ -593,7 +603,7 @@ func Test_AutoBuyConfigsController_UpdateConfig_InvalidID(t *testing.T) {
 		Params:  map[string]string{"id": "invalid"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.UpdateConfig(args)
 
 	assert.Nil(t, result)
@@ -610,17 +620,17 @@ func Test_AutoBuyConfigsController_UpdateConfig_InvalidPercentage(t *testing.T) 
 	userID := int64(123)
 
 	existingConfig := &models.AutoBuyConfig{
-		ID:              1,
-		UserID:          userID,
-		OwnerType:       "character",
-		OwnerID:         456,
-		PricePercentage: 90.0,
+		ID:                 1,
+		UserID:             userID,
+		OwnerType:          "character",
+		OwnerID:            456,
+		MaxPricePercentage: 90.0,
 	}
 
 	mockRepo.On("GetByID", mock.Anything, int64(1)).Return(existingConfig, nil)
 
 	body := map[string]interface{}{
-		"pricePercentage": 0, // Invalid: must be > 0
+		"maxPricePercentage": 0, // Invalid: must be > 0
 	}
 	bodyBytes, _ := json.Marshal(body)
 
@@ -633,13 +643,13 @@ func Test_AutoBuyConfigsController_UpdateConfig_InvalidPercentage(t *testing.T) 
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.UpdateConfig(args)
 
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 400, httpErr.StatusCode)
-	assert.Contains(t, httpErr.Error.Error(), "pricePercentage must be between 0 and 200")
+	assert.Contains(t, httpErr.Error.Error(), "maxPricePercentage must be between 0 and 200")
 
 	mockRepo.AssertExpectations(t)
 }
@@ -665,7 +675,7 @@ func Test_AutoBuyConfigsController_DeleteConfig_Success(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.DeleteConfig(args)
 
 	assert.Nil(t, httpErr)
@@ -694,7 +704,7 @@ func Test_AutoBuyConfigsController_DeleteConfig_NotFound(t *testing.T) {
 		Params:  map[string]string{"id": "999"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.DeleteConfig(args)
 
 	assert.Nil(t, result)
@@ -719,7 +729,7 @@ func Test_AutoBuyConfigsController_DeleteConfig_InvalidID(t *testing.T) {
 		Params:  map[string]string{"id": "invalid"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.DeleteConfig(args)
 
 	assert.Nil(t, result)
@@ -740,7 +750,7 @@ func Test_AutoBuyConfigsController_DeleteConfig_Unauthorized(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.DeleteConfig(args)
 
 	assert.Nil(t, result)
@@ -766,7 +776,7 @@ func Test_AutoBuyConfigsController_DeleteConfig_DeactivationError(t *testing.T) 
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	controller := controllers.NewAutoBuyConfigs(mockRouter, mockRepo, mockSyncer, mockDeactivator, nil)
 	result, httpErr := controller.DeleteConfig(args)
 
 	assert.Nil(t, result)

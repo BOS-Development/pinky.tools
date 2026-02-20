@@ -111,11 +111,14 @@ var rootCmd = &cobra.Command{
 
 		autoBuyConfigsRepository := repositories.NewAutoBuyConfigs(db)
 		autoBuyUpdater := updaters.NewAutoBuy(autoBuyConfigsRepository, buyOrdersRepository, marketPricesRepository)
+		autoFulfillUpdater := updaters.NewAutoFulfill(db, buyOrdersRepository, forSaleItemsRepository, purchaseTransactionsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 
 		assetUpdater.WithAutoSellUpdater(autoSellUpdater)
 		marketPricesUpdater.WithAutoSellUpdater(autoSellUpdater)
 		assetUpdater.WithAutoBuyUpdater(autoBuyUpdater)
 		marketPricesUpdater.WithAutoBuyUpdater(autoBuyUpdater)
+		assetUpdater.WithAutoFulfillUpdater(autoFulfillUpdater)
+		marketPricesUpdater.WithAutoFulfillUpdater(autoFulfillUpdater)
 
 		controllers.NewStatic(router, sdeUpdater)
 		controllers.NewCharacters(router, charactersRepository, assetUpdater, esiClient, contactRulesUpdater)
@@ -130,11 +133,11 @@ var rootCmd = &cobra.Command{
 		controllers.NewContactPermissions(router, contactPermissionsRepository)
 		controllers.NewForSaleItems(router, forSaleItemsRepository, contactPermissionsRepository)
 		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
-		controllers.NewBuyOrders(router, buyOrdersRepository, contactPermissionsRepository)
+		controllers.NewBuyOrders(router, buyOrdersRepository, contactPermissionsRepository, autoFulfillUpdater)
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
 		controllers.NewAutoSellContainers(router, autoSellContainersRepository, autoSellUpdater, forSaleItemsRepository)
-		controllers.NewAutoBuyConfigs(router, autoBuyConfigsRepository, autoBuyUpdater, buyOrdersRepository)
+		controllers.NewAutoBuyConfigs(router, autoBuyConfigsRepository, autoBuyUpdater, buyOrdersRepository, autoFulfillUpdater)
 		controllers.NewReactions(router, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
 		controllers.NewContactRules(router, contactRulesRepository, contactRulesUpdater)
 		if discordClient != nil {

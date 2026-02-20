@@ -64,6 +64,10 @@ type AutoBuySyncer interface {
 	SyncForUser(ctx context.Context, userID int64) error
 }
 
+type AutoFulfillSyncer interface {
+	SyncForUser(ctx context.Context, userID int64) error
+}
+
 type Assets struct {
 	characterRepository               CharacterRepository
 	characterAssetsRepository         CharacterAssetsRepository
@@ -74,6 +78,7 @@ type Assets struct {
 	userTimestampRepository           UserTimestampRepository
 	autoSellSyncer                    AutoSellSyncer
 	autoBuySyncer                     AutoBuySyncer
+	autoFulfillSyncer                 AutoFulfillSyncer
 	concurrency                       int
 }
 
@@ -152,6 +157,12 @@ func (u *Assets) UpdateUserAssets(ctx context.Context, userID int64) error {
 		}
 	}
 
+	if u.autoFulfillSyncer != nil {
+		if err := u.autoFulfillSyncer.SyncForUser(ctx, userID); err != nil {
+			log.Error("failed to sync auto-fulfill after asset update", "userID", userID, "error", err)
+		}
+	}
+
 	if err := u.userTimestampRepository.UpdateAssetsLastUpdated(ctx, userID); err != nil {
 		log.Error("failed to update assets_last_updated_at", "userID", userID, "error", err)
 	}
@@ -167,6 +178,11 @@ func (u *Assets) WithAutoSellUpdater(syncer AutoSellSyncer) {
 // WithAutoBuyUpdater sets the optional auto-buy syncer
 func (u *Assets) WithAutoBuyUpdater(syncer AutoBuySyncer) {
 	u.autoBuySyncer = syncer
+}
+
+// WithAutoFulfillUpdater sets the optional auto-fulfill syncer
+func (u *Assets) WithAutoFulfillUpdater(syncer AutoFulfillSyncer) {
+	u.autoFulfillSyncer = syncer
 }
 
 // UpdateCharacterAssets updates assets for a single character

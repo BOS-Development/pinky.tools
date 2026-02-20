@@ -132,7 +132,8 @@ type AutoBuyConfig = {
   locationId: number;
   containerId?: number;
   divisionNumber?: number;
-  pricePercentage: number;
+  minPricePercentage: number;
+  maxPricePercentage: number;
   priceSource: string;
   isActive: boolean;
 };
@@ -273,7 +274,8 @@ export default function AssetsList(props: AssetsListProps) {
     divisionNumber?: number;
     containerName: string;
   } | null>(null);
-  const [autoBuyPercentage, setAutoBuyPercentage] = useState('100');
+  const [autoBuyMinPercentage, setAutoBuyMinPercentage] = useState('0');
+  const [autoBuyMaxPercentage, setAutoBuyMaxPercentage] = useState('100');
   const [autoBuyPriceSource, setAutoBuyPriceSource] = useState('jita_sell');
   const [submittingAutoBuy, setSubmittingAutoBuy] = useState(false);
 
@@ -444,7 +446,8 @@ export default function AssetsList(props: AssetsListProps) {
   const handleOpenAutoBuyDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number, containerName: string, divisionNumber?: number) => {
     const existing = getAutoBuyForContainer(containerId, ownerType, ownerId, locationId, divisionNumber);
     setAutoBuyContainer({ ownerType, ownerId, locationId, containerId, divisionNumber, containerName });
-    setAutoBuyPercentage(existing ? existing.pricePercentage.toString() : '100');
+    setAutoBuyMinPercentage(existing ? existing.minPricePercentage.toString() : '0');
+    setAutoBuyMaxPercentage(existing ? existing.maxPricePercentage.toString() : '100');
     setAutoBuyPriceSource(existing ? existing.priceSource : 'jita_sell');
     setAutoBuyDialogOpen(true);
   };
@@ -467,7 +470,8 @@ export default function AssetsList(props: AssetsListProps) {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            pricePercentage: parseFloat(autoBuyPercentage),
+            minPricePercentage: parseFloat(autoBuyMinPercentage),
+            maxPricePercentage: parseFloat(autoBuyMaxPercentage),
             priceSource: autoBuyPriceSource,
           }),
         });
@@ -485,7 +489,8 @@ export default function AssetsList(props: AssetsListProps) {
             locationId: autoBuyContainer.locationId,
             containerId: autoBuyContainer.containerId,
             divisionNumber: autoBuyContainer.divisionNumber,
-            pricePercentage: parseFloat(autoBuyPercentage),
+            minPricePercentage: parseFloat(autoBuyMinPercentage),
+            maxPricePercentage: parseFloat(autoBuyMaxPercentage),
             priceSource: autoBuyPriceSource,
           }),
         });
@@ -1397,7 +1402,7 @@ export default function AssetsList(props: AssetsListProps) {
                 {autoBuyConfig && (
                   <Chip
                     icon={<AutoBuyIcon />}
-                    label={`Auto-Buy @ ${autoBuyConfig.pricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
+                    label={`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
                     size="small"
                     sx={{
                       fontSize: '0.7rem',
@@ -2153,18 +2158,32 @@ export default function AssetsList(props: AssetsListProps) {
                   ))}
                 </Select>
               </FormControl>
-              <TextField
-                fullWidth
-                label={`Price Percentage of ${getPriceSourceLabel(autoBuyPriceSource)}`}
-                type="number"
-                value={autoBuyPercentage}
-                onChange={(e) => setAutoBuyPercentage(e.target.value)}
-                InputProps={{
-                  inputProps: { min: 1, max: 200, step: 0.5 },
-                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                }}
-                helperText={`Buy orders will have max price at ${autoBuyPercentage}% of ${getPriceSourceLabel(autoBuyPriceSource).toLowerCase()}`}
-              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  fullWidth
+                  label={`Min % of ${getPriceSourceLabel(autoBuyPriceSource)}`}
+                  type="number"
+                  value={autoBuyMinPercentage}
+                  onChange={(e) => setAutoBuyMinPercentage(e.target.value)}
+                  InputProps={{
+                    inputProps: { min: 0, max: 200, step: 0.5 },
+                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                  }}
+                  helperText="Floor price for auto-fulfill matching"
+                />
+                <TextField
+                  fullWidth
+                  label={`Max % of ${getPriceSourceLabel(autoBuyPriceSource)}`}
+                  type="number"
+                  value={autoBuyMaxPercentage}
+                  onChange={(e) => setAutoBuyMaxPercentage(e.target.value)}
+                  InputProps={{
+                    inputProps: { min: 1, max: 200, step: 0.5 },
+                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                  }}
+                  helperText="Ceiling price for buy orders"
+                />
+              </Box>
             </Box>
           </DialogContent>
           <DialogActions>
@@ -2188,7 +2207,7 @@ export default function AssetsList(props: AssetsListProps) {
             <Button
               onClick={handleSaveAutoBuy}
               variant="contained"
-              disabled={submittingAutoBuy || !autoBuyPercentage || parseFloat(autoBuyPercentage) <= 0 || parseFloat(autoBuyPercentage) > 200}
+              disabled={submittingAutoBuy || !autoBuyMaxPercentage || parseFloat(autoBuyMaxPercentage) <= 0 || parseFloat(autoBuyMaxPercentage) > 200 || parseFloat(autoBuyMinPercentage) < 0 || parseFloat(autoBuyMinPercentage) > parseFloat(autoBuyMaxPercentage)}
             >
               {submittingAutoBuy ? 'Saving...' : 'Save'}
             </Button>

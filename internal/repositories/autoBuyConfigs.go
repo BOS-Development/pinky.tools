@@ -20,7 +20,8 @@ func NewAutoBuyConfigs(db *sql.DB) *AutoBuyConfigs {
 func (r *AutoBuyConfigs) GetByUser(ctx context.Context, userID int64) ([]*models.AutoBuyConfig, error) {
 	query := `
 		SELECT id, user_id, owner_type, owner_id, location_id, container_id,
-			division_number, price_percentage, price_source, is_active, created_at, updated_at
+			division_number, min_price_percentage, max_price_percentage, price_source,
+			is_active, created_at, updated_at
 		FROM auto_buy_configs
 		WHERE user_id = $1 AND is_active = true
 		ORDER BY created_at DESC
@@ -38,7 +39,8 @@ func (r *AutoBuyConfigs) GetByUser(ctx context.Context, userID int64) ([]*models
 		err = rows.Scan(
 			&item.ID, &item.UserID, &item.OwnerType, &item.OwnerID,
 			&item.LocationID, &item.ContainerID, &item.DivisionNumber,
-			&item.PricePercentage, &item.PriceSource, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+			&item.MinPricePercentage, &item.MaxPricePercentage, &item.PriceSource,
+			&item.IsActive, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan auto-buy config")
@@ -53,7 +55,8 @@ func (r *AutoBuyConfigs) GetByUser(ctx context.Context, userID int64) ([]*models
 func (r *AutoBuyConfigs) GetAllActive(ctx context.Context) ([]*models.AutoBuyConfig, error) {
 	query := `
 		SELECT id, user_id, owner_type, owner_id, location_id, container_id,
-			division_number, price_percentage, price_source, is_active, created_at, updated_at
+			division_number, min_price_percentage, max_price_percentage, price_source,
+			is_active, created_at, updated_at
 		FROM auto_buy_configs
 		WHERE is_active = true
 	`
@@ -70,7 +73,8 @@ func (r *AutoBuyConfigs) GetAllActive(ctx context.Context) ([]*models.AutoBuyCon
 		err = rows.Scan(
 			&item.ID, &item.UserID, &item.OwnerType, &item.OwnerID,
 			&item.LocationID, &item.ContainerID, &item.DivisionNumber,
-			&item.PricePercentage, &item.PriceSource, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+			&item.MinPricePercentage, &item.MaxPricePercentage, &item.PriceSource,
+			&item.IsActive, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan auto-buy config")
@@ -85,12 +89,14 @@ func (r *AutoBuyConfigs) GetAllActive(ctx context.Context) ([]*models.AutoBuyCon
 func (r *AutoBuyConfigs) Upsert(ctx context.Context, config *models.AutoBuyConfig) error {
 	query := `
 		INSERT INTO auto_buy_configs
-		(user_id, owner_type, owner_id, location_id, container_id, division_number, price_percentage, price_source, is_active, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW())
+		(user_id, owner_type, owner_id, location_id, container_id, division_number,
+		 min_price_percentage, max_price_percentage, price_source, is_active, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, NOW())
 		ON CONFLICT (user_id, owner_type, owner_id, location_id, coalesce(container_id, 0), coalesce(division_number, 0))
 		WHERE is_active = true
 		DO UPDATE SET
-			price_percentage = EXCLUDED.price_percentage,
+			min_price_percentage = EXCLUDED.min_price_percentage,
+			max_price_percentage = EXCLUDED.max_price_percentage,
 			price_source = EXCLUDED.price_source,
 			updated_at = NOW()
 		RETURNING id, is_active, created_at, updated_at
@@ -103,7 +109,8 @@ func (r *AutoBuyConfigs) Upsert(ctx context.Context, config *models.AutoBuyConfi
 		config.LocationID,
 		config.ContainerID,
 		config.DivisionNumber,
-		config.PricePercentage,
+		config.MinPricePercentage,
+		config.MaxPricePercentage,
 		config.PriceSource,
 	).Scan(&config.ID, &config.IsActive, &config.CreatedAt, &config.UpdatedAt)
 
@@ -143,7 +150,8 @@ func (r *AutoBuyConfigs) Delete(ctx context.Context, id int64, userID int64) err
 func (r *AutoBuyConfigs) GetByID(ctx context.Context, id int64) (*models.AutoBuyConfig, error) {
 	query := `
 		SELECT id, user_id, owner_type, owner_id, location_id, container_id,
-			division_number, price_percentage, price_source, is_active, created_at, updated_at
+			division_number, min_price_percentage, max_price_percentage, price_source,
+			is_active, created_at, updated_at
 		FROM auto_buy_configs
 		WHERE id = $1
 	`
@@ -152,7 +160,8 @@ func (r *AutoBuyConfigs) GetByID(ctx context.Context, id int64) (*models.AutoBuy
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&item.ID, &item.UserID, &item.OwnerType, &item.OwnerID,
 		&item.LocationID, &item.ContainerID, &item.DivisionNumber,
-		&item.PricePercentage, &item.PriceSource, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+		&item.MinPricePercentage, &item.MaxPricePercentage, &item.PriceSource,
+		&item.IsActive, &item.CreatedAt, &item.UpdatedAt,
 	)
 
 	if err == sql.ErrNoRows {

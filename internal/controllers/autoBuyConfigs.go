@@ -25,10 +25,15 @@ type BuyOrdersDeactivator interface {
 	DeactivateAutoBuyOrders(ctx context.Context, autoBuyConfigID int64) error
 }
 
+type AutoBuyConfigsAutoFulfillSyncer interface {
+	SyncForUser(ctx context.Context, userID int64) error
+}
+
 type AutoBuyConfigs struct {
-	repository       AutoBuyConfigsRepository
-	syncer           AutoBuyConfigsSyncer
-	buyOrderDeactor  BuyOrdersDeactivator
+	repository        AutoBuyConfigsRepository
+	syncer            AutoBuyConfigsSyncer
+	buyOrderDeactor   BuyOrdersDeactivator
+	autoFulfillSyncer AutoBuyConfigsAutoFulfillSyncer
 }
 
 func NewAutoBuyConfigs(
@@ -36,11 +41,13 @@ func NewAutoBuyConfigs(
 	repository AutoBuyConfigsRepository,
 	syncer AutoBuyConfigsSyncer,
 	buyOrderDeactor BuyOrdersDeactivator,
+	autoFulfillSyncer AutoBuyConfigsAutoFulfillSyncer,
 ) *AutoBuyConfigs {
 	controller := &AutoBuyConfigs{
-		repository:      repository,
-		syncer:          syncer,
-		buyOrderDeactor: buyOrderDeactor,
+		repository:        repository,
+		syncer:            syncer,
+		buyOrderDeactor:   buyOrderDeactor,
+		autoFulfillSyncer: autoFulfillSyncer,
 	}
 
 	router.RegisterRestAPIRoute("/v1/auto-buy", web.AuthAccessUser, controller.GetMyConfigs, "GET")
@@ -72,13 +79,14 @@ func (c *AutoBuyConfigs) CreateConfig(args *web.HandlerArgs) (any, *web.HttpErro
 	}
 
 	var req struct {
-		OwnerType       string  `json:"ownerType"`
-		OwnerID         int64   `json:"ownerId"`
-		LocationID      int64   `json:"locationId"`
-		ContainerID     *int64  `json:"containerId"`
-		DivisionNumber  *int    `json:"divisionNumber"`
-		PricePercentage float64 `json:"pricePercentage"`
-		PriceSource     string  `json:"priceSource"`
+		OwnerType          string  `json:"ownerType"`
+		OwnerID            int64   `json:"ownerId"`
+		LocationID         int64   `json:"locationId"`
+		ContainerID        *int64  `json:"containerId"`
+		DivisionNumber     *int    `json:"divisionNumber"`
+		MinPricePercentage float64 `json:"minPricePercentage"`
+		MaxPricePercentage float64 `json:"maxPricePercentage"`
+		PriceSource        string  `json:"priceSource"`
 	}
 
 	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
@@ -94,8 +102,14 @@ func (c *AutoBuyConfigs) CreateConfig(args *web.HandlerArgs) (any, *web.HttpErro
 	if req.LocationID == 0 {
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("locationId is required")}
 	}
-	if req.PricePercentage <= 0 || req.PricePercentage > 200 {
-		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("pricePercentage must be between 0 and 200")}
+	if req.MinPricePercentage < 0 || req.MinPricePercentage > 200 {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("minPricePercentage must be between 0 and 200")}
+	}
+	if req.MaxPricePercentage <= 0 || req.MaxPricePercentage > 200 {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("maxPricePercentage must be between 0 and 200")}
+	}
+	if req.MinPricePercentage > req.MaxPricePercentage {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("minPricePercentage must not exceed maxPricePercentage")}
 	}
 
 	if req.PriceSource == "" {
@@ -106,24 +120,28 @@ func (c *AutoBuyConfigs) CreateConfig(args *web.HandlerArgs) (any, *web.HttpErro
 	}
 
 	config := &models.AutoBuyConfig{
-		UserID:          *args.User,
-		OwnerType:       req.OwnerType,
-		OwnerID:         req.OwnerID,
-		LocationID:      req.LocationID,
-		ContainerID:     req.ContainerID,
-		DivisionNumber:  req.DivisionNumber,
-		PricePercentage: req.PricePercentage,
-		PriceSource:     req.PriceSource,
+		UserID:             *args.User,
+		OwnerType:          req.OwnerType,
+		OwnerID:            req.OwnerID,
+		LocationID:         req.LocationID,
+		ContainerID:        req.ContainerID,
+		DivisionNumber:     req.DivisionNumber,
+		MinPricePercentage: req.MinPricePercentage,
+		MaxPricePercentage: req.MaxPricePercentage,
+		PriceSource:        req.PriceSource,
 	}
 
 	if err := c.repository.Upsert(args.Request.Context(), config); err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to create auto-buy config")}
 	}
 
-	// Trigger immediate sync
+	// Trigger immediate sync (auto-buy then auto-fulfill)
 	go func() {
 		ctx := context.Background()
 		_ = c.syncer.SyncForUser(ctx, config.UserID)
+		if c.autoFulfillSyncer != nil {
+			_ = c.autoFulfillSyncer.SyncForUser(ctx, config.UserID)
+		}
 	}()
 
 	return config, nil
@@ -157,16 +175,23 @@ func (c *AutoBuyConfigs) UpdateConfig(args *web.HandlerArgs) (any, *web.HttpErro
 	}
 
 	var req struct {
-		PricePercentage float64 `json:"pricePercentage"`
-		PriceSource     string  `json:"priceSource"`
+		MinPricePercentage float64 `json:"minPricePercentage"`
+		MaxPricePercentage float64 `json:"maxPricePercentage"`
+		PriceSource        string  `json:"priceSource"`
 	}
 
 	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
 	}
 
-	if req.PricePercentage <= 0 || req.PricePercentage > 200 {
-		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("pricePercentage must be between 0 and 200")}
+	if req.MinPricePercentage < 0 || req.MinPricePercentage > 200 {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("minPricePercentage must be between 0 and 200")}
+	}
+	if req.MaxPricePercentage <= 0 || req.MaxPricePercentage > 200 {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("maxPricePercentage must be between 0 and 200")}
+	}
+	if req.MinPricePercentage > req.MaxPricePercentage {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("minPricePercentage must not exceed maxPricePercentage")}
 	}
 
 	if req.PriceSource != "" {
@@ -176,15 +201,19 @@ func (c *AutoBuyConfigs) UpdateConfig(args *web.HandlerArgs) (any, *web.HttpErro
 		existing.PriceSource = req.PriceSource
 	}
 
-	existing.PricePercentage = req.PricePercentage
+	existing.MinPricePercentage = req.MinPricePercentage
+	existing.MaxPricePercentage = req.MaxPricePercentage
 	if err := c.repository.Upsert(args.Request.Context(), existing); err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update auto-buy config")}
 	}
 
-	// Trigger immediate sync
+	// Trigger immediate sync (auto-buy then auto-fulfill)
 	go func() {
 		ctx := context.Background()
 		_ = c.syncer.SyncForUser(ctx, existing.UserID)
+		if c.autoFulfillSyncer != nil {
+			_ = c.autoFulfillSyncer.SyncForUser(ctx, existing.UserID)
+		}
 	}()
 
 	return existing, nil
