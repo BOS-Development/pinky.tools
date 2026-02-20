@@ -110,6 +110,33 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 		}
 	}
 
+	// Compute per-unit costs for each intermediate reaction using batch ME.
+	// This traces intermediates back to their raw moon goo inputs so that
+	// complex reaction margins reflect actual production cost, not market price.
+	// We use the same runs-per-cycle as the complex reactions to get accurate batch ME.
+	intermediateRawCostPerUnit := make(map[int64]float64)
+	intermediateJobCostPerUnit := make(map[int64]float64)
+	for productTypeID, simpleReaction := range simpleReactions {
+		simpleMats := materialsByReaction[simpleReaction.BlueprintTypeID]
+		secsPerRun := ComputeSecsPerRun(simpleReaction.Time, teFactor)
+		runsPerCycle := ComputeRunsPerCycle(secsPerRun, params.CycleDays)
+		if runsPerCycle <= 0 {
+			continue
+		}
+		var batchCost float64
+		for _, mat := range simpleMats {
+			batchQty := ComputeBatchQty(runsPerCycle, mat.Quantity, meFactor)
+			price := getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+			batchCost += price * float64(batchQty)
+		}
+		jobCostPerRun := computeJobCost(simpleMats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		totalProduced := float64(simpleReaction.ProductQuantity) * float64(runsPerCycle)
+		if totalProduced > 0 {
+			intermediateRawCostPerUnit[productTypeID] = batchCost / totalProduced
+			intermediateJobCostPerUnit[productTypeID] = (jobCostPerRun * float64(runsPerCycle)) / totalProduced
+		}
+	}
+
 	reactions := []*models.Reaction{}
 
 	for _, r := range data.Reactions {
@@ -119,7 +146,7 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 		mats := materialsByReaction[r.BlueprintTypeID]
 		isComplex := !SimpleGroups[r.GroupName]
 
-		// Calculate materials
+		// Calculate materials using batch ME for accurate cost/profit
 		reactionMaterials := []*models.ReactionMaterial{}
 		var inputCostPerRun float64
 		var inputVolumePerRun float64
@@ -132,7 +159,16 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 				numIntermediates++
 			}
 
-			price := getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+			// For intermediates in complex reactions, use raw material production cost
+			// instead of market price so margins reflect actual production cost
+			var price float64
+			if isIntermediate && isComplex {
+				price = intermediateRawCostPerUnit[mat.TypeID]
+			} else {
+				price = getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+			}
+
+			// Display values use per-run adjQty
 			cost := price * float64(adjQty)
 			volume := mat.Volume * float64(adjQty)
 
@@ -147,12 +183,26 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 				IsIntermediate: isIntermediate,
 			})
 
-			inputCostPerRun += cost
-			inputVolumePerRun += volume
+			// Aggregate costs use batch ME (actual consumption across all runs)
+			if runsPerCycle > 0 {
+				batchQty := ComputeBatchQty(runsPerCycle, mat.Quantity, meFactor)
+				inputCostPerRun += price * float64(batchQty) / float64(runsPerCycle)
+				inputVolumePerRun += mat.Volume * float64(batchQty) / float64(runsPerCycle)
+			}
 		}
 
-		// Job cost
-		jobCostPerRun := computeJobCost(mats, meFactor, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		// Job cost: complexJobCostPerRun is this reaction's own job cost (used by plan),
+		// jobCostPerRun includes intermediate production job costs (used for per-row margin)
+		complexJobCostPerRun := computeJobCost(mats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		jobCostPerRun := complexJobCostPerRun
+		if isComplex && runsPerCycle > 0 {
+			for _, mat := range mats {
+				if reactionProductIDs[mat.TypeID] {
+					batchQty := ComputeBatchQty(runsPerCycle, mat.Quantity, meFactor)
+					jobCostPerRun += intermediateJobCostPerUnit[mat.TypeID] * float64(batchQty) / float64(runsPerCycle)
+				}
+			}
+		}
 
 		// Output value
 		outputPrice := getPrice(r.ProductTypeID, params.OutputPrice, data.JitaPrices)
@@ -195,8 +245,9 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 			SecsPerRun:        secsPerRun,
 			ComplexInstances:  complexInstances,
 			NumIntermediates:  numIntermediates,
-			InputCostPerRun:   math.Round(inputCostPerRun*100) / 100,
-			JobCostPerRun:     math.Round(jobCostPerRun*100) / 100,
+			InputCostPerRun:      math.Round(inputCostPerRun*100) / 100,
+			JobCostPerRun:        math.Round(jobCostPerRun*100) / 100,
+			ComplexJobCostPerRun: math.Round(complexJobCostPerRun*100) / 100,
 			OutputValuePerRun: math.Round(outputValuePerRun*100) / 100,
 			OutputFeesPerRun:  math.Round(outputFeesPerRun*100) / 100,
 			ShippingInPerRun:  math.Round(shippingInPerRun*100) / 100,
@@ -256,18 +307,23 @@ func computeComplexInstances(mats []*repositories.ReactionMaterialRow, simpleRea
 	return result
 }
 
-// computeJobCost calculates the industry job cost for one run of a reaction
-func computeJobCost(mats []*repositories.ReactionMaterialRow, meFactor float64, adjustedPrices map[int64]float64, costIndex, facilityTax float64) float64 {
-	var baseJobCost float64
+// computeJobCost calculates the industry job cost for one run of a reaction.
+// EVE uses base quantities (ME 0), not ME-adjusted quantities, for EIV calculation.
+// The total cost is: EIV × system_cost_index + EIV × scc_surcharge + EIV × facility_tax
+// All three components are additive and applied independently to the EIV.
+// SCC surcharge for reactions is 4% (increased from 1.5% in the Viridian expansion).
+const sccSurchargeRate = 0.04
+
+func computeJobCost(mats []*repositories.ReactionMaterialRow, adjustedPrices map[int64]float64, costIndex, facilityTax float64) float64 {
+	var eiv float64
 	for _, mat := range mats {
-		adjQty := ComputeAdjQty(mat.Quantity, meFactor)
 		adjPrice, ok := adjustedPrices[mat.TypeID]
 		if !ok {
 			continue
 		}
-		baseJobCost += float64(adjQty) * adjPrice
+		eiv += float64(mat.Quantity) * adjPrice
 	}
-	return baseJobCost * costIndex * (1.0 + facilityTax/100.0)
+	return eiv * (costIndex + sccSurchargeRate + facilityTax/100.0)
 }
 
 // getPrice resolves price for a type using the specified method

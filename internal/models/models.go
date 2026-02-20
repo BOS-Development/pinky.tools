@@ -587,8 +587,9 @@ type Reaction struct {
 	SecsPerRun        int                `json:"secs_per_run"`
 	ComplexInstances  int                `json:"complex_instances"`
 	NumIntermediates  int                `json:"num_intermediates"`
-	InputCostPerRun   float64            `json:"input_cost_per_run"`
-	JobCostPerRun     float64            `json:"job_cost_per_run"`
+	InputCostPerRun      float64            `json:"input_cost_per_run"`
+	JobCostPerRun        float64            `json:"job_cost_per_run"`
+	ComplexJobCostPerRun float64            `json:"-"` // complex-only job cost, used by plan (excludes intermediate job costs)
 	OutputValuePerRun float64            `json:"output_value_per_run"`
 	OutputFeesPerRun  float64            `json:"output_fees_per_run"`
 	ShippingInPerRun  float64            `json:"shipping_in_per_run"`

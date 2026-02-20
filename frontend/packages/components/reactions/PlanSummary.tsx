@@ -162,56 +162,75 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                   <TableCell align="right">Instances</TableCell>
                   <TableCell align="right">Lines</TableCell>
                   <TableCell align="right">Runs</TableCell>
-                  <TableCell align="right">Profit/Cycle</TableCell>
+                  <TableCell align="right">Produced</TableCell>
+                  <TableCell align="right">Net Profit</TableCell>
                   <TableCell align="right">Margin</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {selectedReactions.map((r) => {
-                  const instances = selections[r.reaction_type_id] || 0;
-                  const lines = instances * r.complex_instances;
-                  const cycleProfitTotal = r.profit_per_cycle * lines;
+                {(() => {
+                  let totalNetProfit = 0;
+                  let totalRevenue = 0;
                   return (
-                    <TableRow
-                      key={r.reaction_type_id}
-                      sx={{ '&:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.02)' } }}
-                    >
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <img
-                            src={`https://images.evetech.net/types/${r.product_type_id}/icon?size=32`}
-                            alt=""
-                            width={24}
-                            height={24}
-                            style={{ borderRadius: 2 }}
-                          />
-                          {r.product_name}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">{instances}</TableCell>
-                      <TableCell align="right">{lines}</TableCell>
-                      <TableCell align="right">{formatNumber(r.runs_per_cycle)}</TableCell>
-                      <TableCell align="right" sx={{ color: getValueColor(cycleProfitTotal) }}>
-                        {formatISK(cycleProfitTotal)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ color: getValueColor(r.margin) }}>
-                        {r.margin.toFixed(2)}%
-                      </TableCell>
-                    </TableRow>
+                    <>
+                      {selectedReactions.map((r) => {
+                        const instances = selections[r.reaction_type_id] || 0;
+                        const lines = instances * r.complex_instances;
+                        const cycleProfitTotal = r.profit_per_cycle * lines;
+                        const cycleRevenue = r.output_value_per_run * r.runs_per_cycle * lines;
+                        totalNetProfit += cycleProfitTotal;
+                        totalRevenue += cycleRevenue;
+                        return (
+                          <TableRow
+                            key={r.reaction_type_id}
+                            sx={{ '&:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.02)' } }}
+                          >
+                            <TableCell>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <img
+                                  src={`https://images.evetech.net/types/${r.product_type_id}/icon?size=32`}
+                                  alt=""
+                                  width={24}
+                                  height={24}
+                                  style={{ borderRadius: 2 }}
+                                />
+                                {r.product_name}
+                              </Box>
+                            </TableCell>
+                            <TableCell align="right">{instances}</TableCell>
+                            <TableCell align="right">{lines}</TableCell>
+                            <TableCell align="right">{formatNumber(r.runs_per_cycle)}</TableCell>
+                            <TableCell align="right">{formatNumber(r.product_qty_per_run * r.runs_per_cycle * lines)}</TableCell>
+                            <TableCell align="right" sx={{ color: getValueColor(cycleProfitTotal) }}>
+                              {formatISK(cycleProfitTotal)}
+                            </TableCell>
+                            <TableCell align="right" sx={{ color: getValueColor(r.margin) }}>
+                              {r.margin.toFixed(2)}%
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                      {(() => {
+                        const totalMargin = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
+                        return (
+                          <TableRow sx={{ '& td': { fontWeight: 'bold', borderTop: '2px solid rgba(255,255,255,0.1)' } }}>
+                            <TableCell>Total</TableCell>
+                            <TableCell />
+                            <TableCell align="right">{summary.complex_slots}</TableCell>
+                            <TableCell />
+                            <TableCell />
+                            <TableCell align="right" sx={{ color: getValueColor(totalNetProfit) }}>
+                              {formatISK(totalNetProfit)}
+                            </TableCell>
+                            <TableCell align="right" sx={{ color: getValueColor(totalMargin) }}>
+                              {totalMargin.toFixed(2)}%
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })()}
+                    </>
                   );
-                })}
-                <TableRow sx={{ '& td': { fontWeight: 'bold', borderTop: '2px solid rgba(255,255,255,0.1)' } }}>
-                  <TableCell>Total</TableCell>
-                  <TableCell />
-                  <TableCell align="right">{summary.complex_slots}</TableCell>
-                  <TableCell />
-                  <TableCell align="right" sx={{ color: getValueColor(summary.profit) }}>
-                    {formatISK(summary.profit)}
-                  </TableCell>
-                  <TableCell align="right" sx={{ color: getValueColor(summary.margin) }}>
-                    {summary.margin.toFixed(2)}%
-                  </TableCell>
-                </TableRow>
+                })()}
               </TableBody>
             </Table>
           </TableContainer>
