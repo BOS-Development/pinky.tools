@@ -36,6 +36,8 @@ export type BuyOrder = {
   buyerUserId: number;
   typeId: number;
   typeName: string;
+  locationId: number;
+  locationName: string;
   quantityDesired: number;
   maxPricePerUnit: number;
   notes?: string;
@@ -47,6 +49,7 @@ export type BuyOrder = {
 type BuyOrderFormData = {
   typeId: number;
   typeName?: string;
+  locationId: number;
   quantityDesired: number;
   maxPricePerUnit: number;
   notes?: string;
@@ -57,6 +60,12 @@ type ItemType = {
   TypeName: string;
   Volume: number;
   IconID?: number;
+};
+
+type StationOption = {
+  stationId: number;
+  name: string;
+  solarSystemName: string;
 };
 
 export default function BuyOrders() {
@@ -72,8 +81,12 @@ export default function BuyOrders() {
   const [itemOptions, setItemOptions] = useState<ItemType[]>([]);
   const [itemSearchLoading, setItemSearchLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
+  const [stationOptions, setStationOptions] = useState<StationOption[]>([]);
+  const [stationSearchLoading, setStationSearchLoading] = useState(false);
+  const [selectedStation, setSelectedStation] = useState<StationOption | null>(null);
   const hasFetchedRef = useRef(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const stationSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (session && !hasFetchedRef.current) {
@@ -126,10 +139,41 @@ export default function BuyOrders() {
     }, 300);
   };
 
+  const searchStations = async (query: string) => {
+    if (!query || query.length < 2) {
+      setStationOptions([]);
+      return;
+    }
+
+    setStationSearchLoading(true);
+    try {
+      const response = await fetch(`/api/stations/search?q=${encodeURIComponent(query)}`);
+      if (!response.ok) throw new Error('Failed to search stations');
+      const data = await response.json();
+      setStationOptions(data || []);
+    } catch (error) {
+      console.error('Error searching stations:', error);
+      setStationOptions([]);
+    } finally {
+      setStationSearchLoading(false);
+    }
+  };
+
+  const handleStationSearch = (value: string) => {
+    if (stationSearchTimeoutRef.current) {
+      clearTimeout(stationSearchTimeoutRef.current);
+    }
+
+    stationSearchTimeoutRef.current = setTimeout(() => {
+      searchStations(value);
+    }, 300);
+  };
+
   const handleCreate = () => {
     setSelectedOrder(null);
     setSelectedItem(null);
-    setFormData({ quantityDesired: 0, maxPricePerUnit: 0 });
+    setSelectedStation(null);
+    setFormData({ quantityDesired: 0, maxPricePerUnit: 0, locationId: 0 });
     setDialogOpen(true);
   };
 
@@ -140,9 +184,15 @@ export default function BuyOrders() {
       TypeName: order.typeName,
       Volume: 0,
     });
+    setSelectedStation({
+      stationId: order.locationId,
+      name: order.locationName,
+      solarSystemName: '',
+    });
     setFormData({
       typeId: order.typeId,
       typeName: order.typeName,
+      locationId: order.locationId,
       quantityDesired: order.quantityDesired,
       maxPricePerUnit: order.maxPricePerUnit,
       notes: order.notes,
@@ -169,7 +219,7 @@ export default function BuyOrders() {
   };
 
   const handleSave = async () => {
-    if (!formData.typeId || !formData.quantityDesired || formData.maxPricePerUnit === undefined) {
+    if (!formData.typeId || !formData.locationId || !formData.quantityDesired || formData.maxPricePerUnit === undefined) {
       showSnackbar('Please fill in all required fields', 'error');
       return;
     }
@@ -183,6 +233,7 @@ export default function BuyOrders() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           typeId: formData.typeId,
+          locationId: formData.locationId,
           quantityDesired: formData.quantityDesired,
           maxPricePerUnit: formData.maxPricePerUnit,
           notes: formData.notes || null,
@@ -249,6 +300,7 @@ export default function BuyOrders() {
                   <TableHead>
                     <TableRow>
                       <TableCell>Item</TableCell>
+                      <TableCell>Location</TableCell>
                       <TableCell align="right">Quantity Desired</TableCell>
                       <TableCell align="right">Max Price/Unit</TableCell>
                       <TableCell align="right">Total Budget</TableCell>
@@ -262,6 +314,7 @@ export default function BuyOrders() {
                     {orders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell>{order.typeName}</TableCell>
+                        <TableCell>{order.locationName || '-'}</TableCell>
                         <TableCell align="right">{formatNumber(order.quantityDesired)}</TableCell>
                         <TableCell align="right">{formatISK(order.maxPricePerUnit)}</TableCell>
                         <TableCell align="right">
@@ -367,6 +420,49 @@ export default function BuyOrders() {
                     endAdornment: (
                       <>
                         {itemSearchLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
+                  }}
+                />
+              )}
+              fullWidth
+            />
+            <Autocomplete
+              value={selectedStation}
+              onChange={(_, newValue) => {
+                setSelectedStation(newValue);
+                if (newValue) {
+                  setFormData({ ...formData, locationId: newValue.stationId });
+                } else {
+                  setFormData({ ...formData, locationId: 0 });
+                }
+              }}
+              onInputChange={(_, value) => handleStationSearch(value)}
+              options={stationOptions}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.stationId === value.stationId}
+              loading={stationSearchLoading}
+              renderOption={(props, option) => (
+                <Box component="li" {...props}>
+                  <Box>
+                    <Typography variant="body2">{option.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">{option.solarSystemName}</Typography>
+                  </Box>
+                </Box>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Station"
+                  placeholder="Search for a station..."
+                  required
+                  helperText="Where you want items delivered"
+                  InputProps={{
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {stationSearchLoading ? <CircularProgress color="inherit" size={20} /> : null}
                         {params.InputProps.endAdornment}
                       </>
                     ),
