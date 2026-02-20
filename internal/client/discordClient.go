@@ -7,10 +7,46 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/pkg/errors"
 )
+
+// DiscordAPIError represents a known Discord API error with a user-friendly message
+type DiscordAPIError struct {
+	StatusCode int
+	Code       int    `json:"code"`
+	Message    string `json:"message"`
+	UserMsg    string // friendly message for the end user
+}
+
+func (e *DiscordAPIError) Error() string {
+	return e.UserMsg
+}
+
+// Known Discord error codes → user-friendly messages
+var discordErrorMessages = map[int]string{
+	50007: "Cannot send DMs to this user. They may have DMs disabled in their Discord privacy settings.",
+	50001: "The bot does not have access to this channel. Check the bot's permissions in your Discord server.",
+	50013: "The bot is missing permissions to send messages in this channel.",
+	10003: "Unknown channel. The channel may have been deleted.",
+}
+
+// parseDiscordError reads the response body and returns a DiscordAPIError if possible
+func parseDiscordError(statusCode int, body []byte) error {
+	var apiErr DiscordAPIError
+	if err := json.Unmarshal(body, &apiErr); err == nil && apiErr.Code != 0 {
+		apiErr.StatusCode = statusCode
+		if msg, ok := discordErrorMessages[apiErr.Code]; ok {
+			apiErr.UserMsg = msg
+		} else {
+			apiErr.UserMsg = fmt.Sprintf("Discord error: %s", apiErr.Message)
+		}
+		return &apiErr
+	}
+	return fmt.Errorf("discord API error: status %d, body: %s", statusCode, strings.TrimSpace(string(body)))
+}
 
 //go:generate mockgen -source=./discordClient.go -destination=./discordClient_mock_test.go -package=client_test
 
@@ -100,7 +136,7 @@ func (c *DiscordClient) SendDM(ctx context.Context, discordUserID string, embed 
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to create DM channel: status %d, body: %s", resp.StatusCode, string(body))
+		return errors.Wrap(parseDiscordError(resp.StatusCode, body), "failed to create DM channel")
 	}
 
 	var dmResp discordCreateDMResponse
@@ -134,7 +170,7 @@ func (c *DiscordClient) SendChannelMessage(ctx context.Context, channelID string
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to send message: status %d, body: %s", resp.StatusCode, string(body))
+		return errors.Wrap(parseDiscordError(resp.StatusCode, body), "failed to send message")
 	}
 
 	return nil

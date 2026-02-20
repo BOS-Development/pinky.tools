@@ -371,6 +371,10 @@ func (c *DiscordNotifications) TestTarget(args *web.HandlerArgs) (any, *web.Http
 	}
 
 	if err := c.notifier.SendTestNotification(args.Request.Context(), target, link); err != nil {
+		var discordErr *client.DiscordAPIError
+		if errors.As(err, &discordErr) {
+			return nil, &web.HttpError{StatusCode: 400, Error: errors.New(discordErr.UserMsg)}
+		}
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to send test notification")}
 	}
 
