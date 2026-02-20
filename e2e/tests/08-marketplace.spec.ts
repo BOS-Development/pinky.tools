@@ -119,11 +119,18 @@ test.describe('Marketplace', () => {
     await alicePage.getByRole('button', { name: /Create Buy Order/i }).click();
 
     // Search for item
-    const itemSearch = alicePage.getByPlaceholder(/Start typing/i);
+    const itemSearch = alicePage.getByPlaceholder(/Start typing to search/i);
     await itemSearch.fill('Pyerite');
 
     // Select from autocomplete dropdown (use .first() since full SDE has many Pyerite-related types)
     await alicePage.getByRole('option', { name: /Pyerite/i }).first().click();
+
+    // Search for station
+    const stationSearch = alicePage.getByPlaceholder(/Search for a station/i);
+    await stationSearch.fill('Jita');
+
+    // Select Jita station from autocomplete
+    await alicePage.getByRole('option', { name: /Jita/i }).first().click();
 
     // Fill in quantity and price
     const qtyInput = alicePage.getByLabel(/Quantity Desired/i);
@@ -135,8 +142,9 @@ test.describe('Marketplace', () => {
     // Create the order
     await alicePage.getByRole('button', { name: /Create/i }).click();
 
-    // Verify buy order appears
+    // Verify buy order appears with location
     await expect(alicePage.getByText('Pyerite').first()).toBeVisible({ timeout: 5000 });
+    await expect(alicePage.getByText('Jita').first()).toBeVisible({ timeout: 5000 });
   });
 
   test('can switch between all marketplace tabs', async ({ alicePage }) => {

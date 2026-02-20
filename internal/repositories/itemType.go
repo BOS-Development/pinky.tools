@@ -167,3 +167,43 @@ func (r *ItemTypeRepository) GetItemTypeByName(ctx context.Context, typeName str
 
 	return &item, nil
 }
+
+// SearchStations searches for stations by name (case-insensitive, partial match)
+func (r *ItemTypeRepository) SearchStations(ctx context.Context, query string, limit int) ([]models.StationSearchResult, error) {
+	if limit <= 0 {
+		limit = 20
+	}
+
+	searchQuery := `
+		SELECT s.station_id, s.name, ss.name AS solar_system_name
+		FROM stations s
+		LEFT JOIN solar_systems ss ON s.solar_system_id = ss.solar_system_id
+		WHERE LOWER(s.name) LIKE LOWER($1)
+		ORDER BY
+			CASE
+				WHEN LOWER(s.name) = LOWER($3) THEN 1
+				WHEN LOWER(s.name) LIKE LOWER($3) || '%' THEN 2
+				ELSE 3
+			END,
+			s.name
+		LIMIT $2
+	`
+
+	rows, err := r.db.QueryContext(ctx, searchQuery, "%"+query+"%", limit, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to search stations")
+	}
+	defer rows.Close()
+
+	results := []models.StationSearchResult{}
+	for rows.Next() {
+		var result models.StationSearchResult
+		err := rows.Scan(&result.StationID, &result.Name, &result.SolarSystemName)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan station")
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}

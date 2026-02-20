@@ -38,6 +38,7 @@ func Test_BuyOrders_CreateOrder_Success(t *testing.T) {
 
 	reqBody := map[string]interface{}{
 		"typeId":          70,
+		"locationId":      60003760,
 		"quantityDesired": 100000,
 		"maxPricePerUnit": 6,
 	}
@@ -74,6 +75,7 @@ func Test_BuyOrders_CreateOrder_InvalidQuantity(t *testing.T) {
 
 	reqBody := map[string]interface{}{
 		"typeId":          70,
+		"locationId":      60003760,
 		"quantityDesired": -100,
 		"maxPricePerUnit": 6,
 	}
@@ -90,6 +92,36 @@ func Test_BuyOrders_CreateOrder_InvalidQuantity(t *testing.T) {
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 400, httpErr.StatusCode)
 	assert.Contains(t, httpErr.Error.Error(), "quantityDesired must be positive")
+}
+
+func Test_BuyOrders_CreateOrder_MissingLocationId(t *testing.T) {
+	db, err := setupDatabase()
+	assert.NoError(t, err)
+
+	userID := int64(6011)
+	buyOrdersRepo := repositories.NewBuyOrders(db)
+	permRepo := &MockContactPermissionsRepository{}
+
+	controller := controllers.NewBuyOrders(&MockRouter{}, buyOrdersRepo, permRepo)
+
+	reqBody := map[string]interface{}{
+		"typeId":          70,
+		"quantityDesired": 100,
+		"maxPricePerUnit": 6,
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest("POST", "/v1/buy-orders", bytes.NewReader(body))
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+	}
+
+	result, httpErr := controller.CreateOrder(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+	assert.Contains(t, httpErr.Error.Error(), "locationId is required")
 }
 
 func Test_BuyOrders_GetMyOrders(t *testing.T) {
@@ -117,6 +149,7 @@ func Test_BuyOrders_GetMyOrders(t *testing.T) {
 		order := &models.BuyOrder{
 			BuyerUserID:     userID,
 			TypeID:          71 + int64(i%2),
+			LocationID:      60003760,
 			QuantityDesired: int64(10000 * (i + 1)),
 			MaxPricePerUnit: float64(10 + i),
 			IsActive:        true,
@@ -164,6 +197,7 @@ func Test_BuyOrders_UpdateOrder_Success(t *testing.T) {
 	order := &models.BuyOrder{
 		BuyerUserID:     userID,
 		TypeID:          73,
+		LocationID:      60003760,
 		QuantityDesired: 50000,
 		MaxPricePerUnit: 20,
 		IsActive:        true,
@@ -174,6 +208,7 @@ func Test_BuyOrders_UpdateOrder_Success(t *testing.T) {
 
 	// Update order
 	reqBody := map[string]interface{}{
+		"locationId":      60003760,
 		"quantityDesired": 75000,
 		"maxPricePerUnit": 25,
 	}
@@ -223,6 +258,7 @@ func Test_BuyOrders_UpdateOrder_NotOwner(t *testing.T) {
 	order := &models.BuyOrder{
 		BuyerUserID:     ownerID,
 		TypeID:          74,
+		LocationID:      60003760,
 		QuantityDesired: 25000,
 		MaxPricePerUnit: 30,
 		IsActive:        true,
@@ -233,6 +269,7 @@ func Test_BuyOrders_UpdateOrder_NotOwner(t *testing.T) {
 
 	// Try to update as different user
 	reqBody := map[string]interface{}{
+		"locationId":      60003760,
 		"quantityDesired": 50000,
 		"maxPricePerUnit": 35,
 	}
@@ -275,6 +312,7 @@ func Test_BuyOrders_DeleteOrder_Success(t *testing.T) {
 	order := &models.BuyOrder{
 		BuyerUserID:     userID,
 		TypeID:          75,
+		LocationID:      60003760,
 		QuantityDesired: 15000,
 		MaxPricePerUnit: 40,
 		IsActive:        true,
@@ -357,6 +395,7 @@ func Test_BuyOrders_GetDemand(t *testing.T) {
 		order := &models.BuyOrder{
 			BuyerUserID:     buyerID,
 			TypeID:          76,
+			LocationID:      60003760,
 			QuantityDesired: int64(5000 * (i + 1)),
 			MaxPricePerUnit: float64(50 + i*10),
 			IsActive:        true,

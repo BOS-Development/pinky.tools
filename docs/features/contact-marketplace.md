@@ -85,10 +85,12 @@ Complete contact system with granular permissions and extensible industrial serv
 - `id` (PK)
 - `buyer_user_id` (FK → users)
 - `type_id` (FK → asset_item_types)
+- `location_id` (bigint NOT NULL) — station/structure where buyer wants delivery
 - `quantity_desired`, `max_price_per_unit`
 - `notes`, `is_active`
 - Indexes on (buyer_user_id), (type_id), (is_active)
 - CHECK constraint positive quantity and price
+- Location name resolved via LEFT JOIN to `stations` and `solar_systems`
 
 ---
 
@@ -125,9 +127,13 @@ Complete contact system with granular permissions and extensible industrial serv
 - `GET /v1/buy-orders` - Get user's buy orders
 - `GET /v1/buy-orders/demand` - View buy orders from contacts (seller view)
 - `POST /v1/buy-orders` - Create buy order
-  - Body: `{ "typeId": 34, "quantityDesired": 1000, "maxPricePerUnit": 50000, "notes": "Urgent" }`
+  - Body: `{ "typeId": 34, "locationId": 60003760, "quantityDesired": 1000, "maxPricePerUnit": 50000, "notes": "Urgent" }`
 - `PUT /v1/buy-orders/{id}` - Update buy order
+  - Body: `{ "locationId": 60003760, "quantityDesired": 1000, "maxPricePerUnit": 50000, "notes": "Urgent", "isActive": true }`
 - `DELETE /v1/buy-orders/{id}` - Cancel buy order
+
+### Station Search Endpoint
+- `GET /v1/stations/search?q=...` - Search stations by name (partial, case-insensitive)
 
 ### Analytics Endpoints (Phase 6)
 - `GET /v1/analytics/sales` - Sales metrics with time filter

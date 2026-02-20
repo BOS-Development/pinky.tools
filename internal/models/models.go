@@ -188,12 +188,20 @@ type BuyOrder struct {
 	BuyerUserID      int64     `json:"buyerUserId"`
 	TypeID           int64     `json:"typeId"`
 	TypeName         string    `json:"typeName"`
+	LocationID       int64     `json:"locationId"`
+	LocationName     string    `json:"locationName"`
 	QuantityDesired  int64     `json:"quantityDesired"`
 	MaxPricePerUnit  float64   `json:"maxPricePerUnit"`
 	Notes            *string   `json:"notes"`
 	IsActive         bool      `json:"isActive"`
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
+}
+
+type StationSearchResult struct {
+	StationID       int64  `json:"stationId"`
+	Name            string `json:"name"`
+	SolarSystemName string `json:"solarSystemName"`
 }
 
 // Sales Analytics Models

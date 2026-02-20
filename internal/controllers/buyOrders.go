@@ -71,6 +71,7 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 
 	var req struct {
 		TypeID          int64   `json:"typeId"`
+		LocationID      int64   `json:"locationId"`
 		QuantityDesired int64   `json:"quantityDesired"`
 		MaxPricePerUnit float64 `json:"maxPricePerUnit"`
 		Notes           *string `json:"notes"`
@@ -92,6 +93,13 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 		}
 	}
 
+	if req.LocationID == 0 {
+		return nil, &web.HttpError{
+			StatusCode: http.StatusBadRequest,
+			Error:      errors.New("locationId is required"),
+		}
+	}
+
 	if req.QuantityDesired <= 0 {
 		return nil, &web.HttpError{
 			StatusCode: http.StatusBadRequest,
@@ -109,6 +117,7 @@ func (c *BuyOrdersController) CreateOrder(args *web.HandlerArgs) (any, *web.Http
 	order := &models.BuyOrder{
 		BuyerUserID:     *args.User,
 		TypeID:          req.TypeID,
+		LocationID:      req.LocationID,
 		QuantityDesired: req.QuantityDesired,
 		MaxPricePerUnit: req.MaxPricePerUnit,
 		Notes:           req.Notes,
@@ -160,6 +169,7 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 	}
 
 	var req struct {
+		LocationID      int64   `json:"locationId"`
 		QuantityDesired int64   `json:"quantityDesired"`
 		MaxPricePerUnit float64 `json:"maxPricePerUnit"`
 		Notes           *string `json:"notes"`
@@ -175,6 +185,13 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 	}
 
 	// Validate
+	if req.LocationID == 0 {
+		return nil, &web.HttpError{
+			StatusCode: http.StatusBadRequest,
+			Error:      errors.New("locationId is required"),
+		}
+	}
+
 	if req.QuantityDesired <= 0 {
 		return nil, &web.HttpError{
 			StatusCode: http.StatusBadRequest,
@@ -190,6 +207,7 @@ func (c *BuyOrdersController) UpdateOrder(args *web.HandlerArgs) (any, *web.Http
 	}
 
 	// Update fields
+	order.LocationID = req.LocationID
 	order.QuantityDesired = req.QuantityDesired
 	order.MaxPricePerUnit = req.MaxPricePerUnit
 	order.Notes = req.Notes

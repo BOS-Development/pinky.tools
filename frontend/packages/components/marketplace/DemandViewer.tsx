@@ -26,6 +26,8 @@ export type BuyOrder = {
   buyerUserId: number;
   typeId: number;
   typeName: string;
+  locationId: number;
+  locationName: string;
   quantityDesired: number;
   maxPricePerUnit: number;
   notes?: string;
@@ -200,6 +202,7 @@ export default function DemandViewer() {
                     <TableHead>
                       <TableRow>
                         <TableCell>Item</TableCell>
+                        <TableCell>Location</TableCell>
                         <TableCell align="right">Quantity</TableCell>
                         <TableCell align="right">Max Price/Unit</TableCell>
                         <TableCell align="right">Total Budget</TableCell>
@@ -211,6 +214,7 @@ export default function DemandViewer() {
                       {filteredDemand.map((order) => (
                         <TableRow key={order.id}>
                           <TableCell>{order.typeName}</TableCell>
+                          <TableCell>{order.locationName || '-'}</TableCell>
                           <TableCell align="right">{formatNumber(order.quantityDesired)}</TableCell>
                           <TableCell align="right">{formatISK(order.maxPricePerUnit)}</TableCell>
                           <TableCell align="right">
