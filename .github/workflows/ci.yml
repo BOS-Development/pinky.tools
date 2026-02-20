@@ -1,13 +1,6 @@
 name: CI
 
 on:
-    push:
-        paths-ignore:
-            - "**/**/*.md"
-            - "docs/**"
-            - ".vscode/**"
-            - ".github/**"
-        branches: [main, master]
     pull_request:
         paths-ignore:
             - "**/**/*.md"
