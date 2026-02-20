@@ -41,6 +41,11 @@ func (m *MockCharacterRepository) GetAll(ctx context.Context, baseUserID int64) 
 	return args.Get(0).([]*repositories.Character), args.Error(1)
 }
 
+func (m *MockCharacterRepository) UpdateCorporationID(ctx context.Context, characterID, userID, corporationID int64) error {
+	args := m.Called(ctx, characterID, userID, corporationID)
+	return args.Error(0)
+}
+
 type MockCharacterAssetUpdater struct {
 	mock.Mock
 }

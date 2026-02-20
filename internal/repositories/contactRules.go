@@ -193,12 +193,16 @@ func (r *ContactRules) GetEveryoneRules(ctx context.Context) ([]*models.ContactR
 	return items, nil
 }
 
-// GetUsersForCorporation returns all user IDs that have a given corporation, excluding a specific user
+// GetUsersForCorporation returns all user IDs that have a given corporation, excluding a specific user.
+// Checks both player_corporations (explicitly added corps) and characters (via corporation_id from ESI).
 func (r *ContactRules) GetUsersForCorporation(ctx context.Context, corpID int64, excludeUserID int64) ([]int64, error) {
 	query := `
-		SELECT DISTINCT user_id
-		FROM player_corporations
-		WHERE id = $1 AND user_id != $2
+		SELECT DISTINCT user_id FROM (
+			SELECT user_id FROM player_corporations WHERE id = $1
+			UNION
+			SELECT user_id FROM characters WHERE corporation_id = $1
+		) combined
+		WHERE user_id != $2
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, corpID, excludeUserID)
@@ -220,12 +224,18 @@ func (r *ContactRules) GetUsersForCorporation(ctx context.Context, corpID int64,
 	return userIDs, nil
 }
 
-// GetUsersForAlliance returns all user IDs that have a corporation in the given alliance
+// GetUsersForAlliance returns all user IDs that have a corporation in the given alliance.
+// Checks both player_corporations directly and characters whose corporation is in the alliance.
 func (r *ContactRules) GetUsersForAlliance(ctx context.Context, allianceID int64, excludeUserID int64) ([]int64, error) {
 	query := `
-		SELECT DISTINCT user_id
-		FROM player_corporations
-		WHERE alliance_id = $1 AND user_id != $2
+		SELECT DISTINCT user_id FROM (
+			SELECT user_id FROM player_corporations WHERE alliance_id = $1
+			UNION
+			SELECT c.user_id FROM characters c
+			JOIN player_corporations pc ON c.corporation_id = pc.id
+			WHERE pc.alliance_id = $1
+		) combined
+		WHERE user_id != $2
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, allianceID, excludeUserID)

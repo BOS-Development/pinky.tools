@@ -22,6 +22,7 @@ type CharacterRepository interface {
 	Get(ctx context.Context, id string) (*repositories.Character, error)
 	Add(ctx context.Context, character *repositories.Character) error
 	GetAll(ctx context.Context, baseUserID int64) ([]*repositories.Character, error)
+	UpdateCorporationID(ctx context.Context, characterID, userID, corporationID int64) error
 }
 
 type CharacterAssetUpdater interface {
@@ -129,18 +130,23 @@ func (c *Characters) AddCharacter(args *web.HandlerArgs) (interface{}, *web.Http
 		if err := c.updater.UpdateCharacterAssets(ctx, &character, character.UserID); err != nil {
 			log.Error("failed to update assets after adding character", "characterID", character.ID, "error", err)
 		}
-		// Look up the character's corporation and apply any matching contact rules
-		if c.esiClient != nil && c.contactRulesApplier != nil {
+		// Look up the character's corporation, store it, and apply any matching contact rules
+		if c.esiClient != nil {
 			corp, err := c.esiClient.GetCharacterCorporation(ctx, character.ID, character.EsiToken, character.EsiRefreshToken, character.EsiTokenExpiresOn)
 			if err != nil {
-				log.Error("failed to get character corporation for contact rules", "characterID", character.ID, "error", err)
+				log.Error("failed to get character corporation", "characterID", character.ID, "error", err)
 			} else {
-				allianceID := int64(0)
-				if corp.AllianceID > 0 {
-					allianceID = corp.AllianceID
+				if err := c.repository.UpdateCorporationID(ctx, character.ID, character.UserID, corp.ID); err != nil {
+					log.Error("failed to update character corporation_id", "characterID", character.ID, "corporationID", corp.ID, "error", err)
 				}
-				if err := c.contactRulesApplier.ApplyRulesForNewCorporation(ctx, character.UserID, corp.ID, allianceID); err != nil {
-					log.Error("failed to apply contact rules for new character", "characterID", character.ID, "corporationID", corp.ID, "error", err)
+				if c.contactRulesApplier != nil {
+					allianceID := int64(0)
+					if corp.AllianceID > 0 {
+						allianceID = corp.AllianceID
+					}
+					if err := c.contactRulesApplier.ApplyRulesForNewCorporation(ctx, character.UserID, corp.ID, allianceID); err != nil {
+						log.Error("failed to apply contact rules for new character", "characterID", character.ID, "corporationID", corp.ID, "error", err)
+					}
 				}
 			}
 		}
