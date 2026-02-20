@@ -98,6 +98,19 @@ where
 	return nil
 }
 
+func (r *CharacterRepository) UpdateCorporationID(ctx context.Context, characterID, userID, corporationID int64) error {
+	_, err := r.db.ExecContext(ctx, `
+update characters set
+	corporation_id = $1
+where
+	id = $2 and user_id = $3;
+	`, corporationID, characterID, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update character corporation_id")
+	}
+	return nil
+}
+
 func (r *CharacterRepository) Add(ctx context.Context, character *Character) error {
 	_, err := r.db.ExecContext(ctx, `
 insert into

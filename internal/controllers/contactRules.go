@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strconv"
 
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 	"github.com/annymsMthd/industry-tool/internal/web"
@@ -120,7 +121,7 @@ func (c *ContactRules) CreateRule(args *web.HandlerArgs) (any, *web.HttpError) {
 	go func() {
 		ctx := context.Background()
 		if err := c.applier.ApplyRule(ctx, rule); err != nil {
-			// Logged within ApplyRule
+			log.Error("failed to apply contact rule", "ruleID", rule.ID, "ruleType", rule.RuleType, "error", err)
 		}
 	}()
 

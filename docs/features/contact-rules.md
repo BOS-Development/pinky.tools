@@ -22,8 +22,8 @@ Contact rules allow users to automatically create connections with all members o
 
 | Type | Matching Logic | Entity Required |
 |------|---------------|-----------------|
-| `corporation` | All users with a `player_corporations` row matching the corp ID | Yes (corporation ID) |
-| `alliance` | All users with a `player_corporations` row matching the alliance ID | Yes (alliance ID) |
+| `corporation` | All users with a `player_corporations` or `characters` row matching the corp ID | Yes (corporation ID) |
+| `alliance` | All users with a `player_corporations` row matching the alliance ID, or characters whose corporation is in the alliance | Yes (alliance ID) |
 | `everyone` | All users in the system | No |
 
 ## Schema
@@ -53,6 +53,12 @@ Contact rules allow users to automatically create connections with all members o
 |--------|------|-------------|
 | `contact_rule_id` | bigint FK → contact_rules(id) ON DELETE CASCADE | Links auto-created contacts to their rule |
 
+### `characters` table additions
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `corporation_id` | bigint nullable | EVE corporation ID (populated from ESI on character add) |
+
 ### `player_corporations` table additions
 
 | Column | Type | Description |
@@ -72,9 +78,9 @@ Contact rules allow users to automatically create connections with all members o
 
 ## Auto-Contact Hooks
 
-1. **Rule created** → `ApplyRule()` finds all matching users and creates contacts
+1. **Rule created** → `ApplyRule()` finds all matching users (from both `player_corporations` and `characters` tables) and creates contacts
 2. **Corporation added** → `ApplyRulesForNewCorporation()` checks all active rules and creates contacts for the new user
-3. **Character added** → Looks up the character's corporation from ESI, then calls `ApplyRulesForNewCorporation()` to check all active rules
+3. **Character added** → Looks up the character's corporation from ESI, stores `corporation_id` on the character record, then calls `ApplyRulesForNewCorporation()` to check all active rules
 
 ## File Structure
 
@@ -82,6 +88,7 @@ Contact rules allow users to automatically create connections with all members o
 - `internal/database/migrations/20260219132354_contact_rules.*` — Table creation
 - `internal/database/migrations/20260219132355_add_contact_rule_id_to_contacts.*` — FK on contacts
 - `internal/database/migrations/20260219132356_add_alliance_to_player_corporations.*` — Alliance columns
+- `internal/database/migrations/20260220001437_add_corporation_id_to_characters.*` — Character corp tracking
 - `internal/models/models.go` — `ContactRule` struct, updated `Contact` and `Corporation`
 - `internal/repositories/contactRules.go` — CRUD, search, user matching
 - `internal/repositories/contacts.go` — `CreateAutoContact`, `contact_rule_id` scanning
