@@ -13,6 +13,13 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	// StationCacheKnownMaxAge is how long to cache stations with a real name before re-fetching.
+	StationCacheKnownMaxAge = 7 * 24 * time.Hour // 1 week
+	// StationCacheUnknownMaxAge is how long to cache stations with no access before retrying.
+	StationCacheUnknownMaxAge = 24 * time.Hour // 1 day
+)
+
 type CharacterAssetsRepository interface {
 	UpdateAssets(ctx context.Context, characterID, userID int64, assets []*models.EveAsset) error
 	GetAssembledContainers(ctx context.Context, character, user int64) ([]int64, error)
@@ -40,6 +47,7 @@ type PlayerCorporationRepository interface {
 
 type StationRepository interface {
 	Upsert(ctx context.Context, stations []models.Station) error
+	FilterStaleStationIDs(ctx context.Context, ids []int64, knownMaxAge, unknownMaxAge time.Duration) ([]int64, error)
 }
 
 type UserTimestampRepository interface {
@@ -235,7 +243,12 @@ func (u *Assets) UpdateCharacterAssets(ctx context.Context, char *repositories.C
 		return errors.Wrap(err, "failed to retrieve player owned station IDs")
 	}
 
-	stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, token, refresh, expire, playerOwnedStationIDs)
+	staleStationIDs, err := u.stationRepository.FilterStaleStationIDs(ctx, playerOwnedStationIDs, StationCacheKnownMaxAge, StationCacheUnknownMaxAge)
+	if err != nil {
+		return errors.Wrap(err, "failed to filter stale station IDs")
+	}
+
+	stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, token, refresh, expire, staleStationIDs)
 	if err != nil {
 		return errors.Wrap(err, "failed to get player owned station information from esi")
 	}
@@ -298,7 +311,12 @@ func (u *Assets) UpdateCorporationAssets(ctx context.Context, corp repositories.
 		return errors.Wrap(err, "failed to get corp player owned stations id")
 	}
 
-	stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, token, refresh, expire, stationIDs)
+	staleCorpStationIDs, err := u.stationRepository.FilterStaleStationIDs(ctx, stationIDs, StationCacheKnownMaxAge, StationCacheUnknownMaxAge)
+	if err != nil {
+		return errors.Wrap(err, "failed to filter stale corp station IDs")
+	}
+
+	stations, err := u.esiClient.GetPlayerOwnedStationInformation(ctx, token, refresh, expire, staleCorpStationIDs)
 	if err != nil {
 		return errors.Wrap(err, "failed to get player owned station information")
 	}
