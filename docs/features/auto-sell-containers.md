@@ -28,8 +28,8 @@ Auto-sell updater: SyncForUser / SyncForAllUsers
     ↓
 For each container:
     Get items from character_assets / corporation_assets
-    Get Jita buy prices from market_prices
-    Compute price = jitaBuy * percentage / 100
+    Get Jita prices from market_prices (buy, sell, or split based on price_source)
+    Compute price = basePrice * percentage / 100
     Upsert for-sale listings with auto_sell_container_id
     Deactivate listings for removed items / missing prices
 ```
@@ -37,10 +37,13 @@ For each container:
 ### Key Design Decisions
 
 #### 1. Price Source
-**Decision**: Use Jita buy price (best bid) as the base price.
-- Jita buy represents what buyers are willing to pay right now
-- Percentage allows sellers to price above or below market
-- Default 90% provides a slight discount to attract buyers
+**Decision**: Users choose from three Jita price sources (stored as `price_source` column):
+- **`jita_buy`** (default) — Best bid, what buyers are willing to pay right now
+- **`jita_sell`** — Lowest ask, the cheapest sell order on market
+- **`jita_split`** — Midpoint of buy and sell: `(buy + sell) / 2`
+
+Percentage is applied to the selected source (e.g., 90% of Jita Sell).
+If the selected price is unavailable (e.g., no sell orders for split), the listing is deactivated.
 
 #### 2. Sync Triggers
 **Decision**: Sync on both asset refresh and market price update.
@@ -73,6 +76,7 @@ create table auto_sell_containers (
     container_id bigint not null,         -- in-game item_id of the container
     division_number int,                  -- corporation hangar division (null for character)
     price_percentage numeric(5, 2) not null default 90.00,
+    price_source varchar(20) not null default 'jita_buy',  -- 'jita_buy', 'jita_sell', 'jita_split'
     is_active boolean not null default true,
     created_at timestamp not null default now(),
     updated_at timestamp not null default now(),

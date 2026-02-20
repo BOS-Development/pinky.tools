@@ -153,6 +153,7 @@ type AutoSellContainer struct {
 	ContainerID     int64     `json:"containerId"`
 	DivisionNumber  *int      `json:"divisionNumber"`
 	PricePercentage float64   `json:"pricePercentage"`
+	PriceSource     string    `json:"priceSource"`
 	IsActive        bool      `json:"isActive"`
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`
