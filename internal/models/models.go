@@ -153,6 +153,7 @@ type AutoSellContainer struct {
 	ContainerID     int64     `json:"containerId"`
 	DivisionNumber  *int      `json:"divisionNumber"`
 	PricePercentage float64   `json:"pricePercentage"`
+	PriceSource     string    `json:"priceSource"`
 	IsActive        bool      `json:"isActive"`
 	CreatedAt       time.Time `json:"createdAt"`
 	UpdatedAt       time.Time `json:"updatedAt"`
@@ -187,12 +188,65 @@ type BuyOrder struct {
 	BuyerUserID      int64     `json:"buyerUserId"`
 	TypeID           int64     `json:"typeId"`
 	TypeName         string    `json:"typeName"`
+	LocationID       int64     `json:"locationId"`
+	LocationName     string    `json:"locationName"`
 	QuantityDesired  int64     `json:"quantityDesired"`
 	MaxPricePerUnit  float64   `json:"maxPricePerUnit"`
 	Notes            *string   `json:"notes"`
 	IsActive         bool      `json:"isActive"`
 	CreatedAt        time.Time `json:"createdAt"`
 	UpdatedAt        time.Time `json:"updatedAt"`
+}
+
+type StationSearchResult struct {
+	StationID       int64  `json:"stationId"`
+	Name            string `json:"name"`
+	SolarSystemName string `json:"solarSystemName"`
+}
+
+// Discord Notification Models
+
+type DiscordLink struct {
+	ID              int64     `json:"id"`
+	UserID          int64     `json:"userId"`
+	DiscordUserID   string    `json:"discordUserId"`
+	DiscordUsername  string    `json:"discordUsername"`
+	AccessToken     string    `json:"-"`
+	RefreshToken    string    `json:"-"`
+	TokenExpiresAt  time.Time `json:"-"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+}
+
+type DiscordNotificationTarget struct {
+	ID          int64     `json:"id"`
+	UserID      int64     `json:"userId"`
+	TargetType  string    `json:"targetType"`
+	ChannelID   *string   `json:"channelId"`
+	GuildName   string    `json:"guildName"`
+	ChannelName string    `json:"channelName"`
+	IsActive    bool      `json:"isActive"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+type NotificationPreference struct {
+	ID        int64  `json:"id"`
+	TargetID  int64  `json:"targetId"`
+	EventType string `json:"eventType"`
+	IsEnabled bool   `json:"isEnabled"`
+}
+
+type DiscordGuild struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+}
+
+type DiscordChannel struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type int    `json:"type"`
 }
 
 // Sales Analytics Models

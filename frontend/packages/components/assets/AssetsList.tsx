@@ -52,6 +52,10 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Badge from '@mui/material/Badge';
 import Tooltip from '@mui/material/Tooltip';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
 
 // Combined sell + sync icon for auto-sell features
 const AutoSellIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' | 'large' }) => (
@@ -95,7 +99,22 @@ type AutoSellConfig = {
   containerId: number;
   divisionNumber?: number;
   pricePercentage: number;
+  priceSource: string;
   isActive: boolean;
+};
+
+const PRICE_SOURCE_OPTIONS = [
+  { value: 'jita_buy', label: 'Jita Buy (Best Bid)', abbrev: 'JBV' },
+  { value: 'jita_sell', label: 'Jita Sell (Lowest Ask)', abbrev: 'JSV' },
+  { value: 'jita_split', label: 'Jita Split (Buy+Sell avg)', abbrev: 'JSplit' },
+] as const;
+
+const getPriceSourceAbbrev = (source: string): string => {
+  return PRICE_SOURCE_OPTIONS.find(o => o.value === source)?.abbrev || 'JBV';
+};
+
+const getPriceSourceLabel = (source: string): string => {
+  return PRICE_SOURCE_OPTIONS.find(o => o.value === source)?.label || 'Jita Buy (Best Bid)';
 };
 
 function formatRelativeTime(date: Date): string {
@@ -206,6 +225,7 @@ export default function AssetsList(props: AssetsListProps) {
     containerName: string;
   } | null>(null);
   const [autoSellPercentage, setAutoSellPercentage] = useState('90');
+  const [autoSellPriceSource, setAutoSellPriceSource] = useState('jita_buy');
   const [submittingAutoSell, setSubmittingAutoSell] = useState(false);
 
   const handleQuantityChange = (value: string) => {
@@ -287,6 +307,7 @@ export default function AssetsList(props: AssetsListProps) {
     const existing = getAutoSellForContainer(containerId, ownerType, ownerId, locationId, divisionNumber);
     setAutoSellContainer({ ownerType, ownerId, locationId, containerId, divisionNumber, containerName });
     setAutoSellPercentage(existing ? existing.pricePercentage.toString() : '90');
+    setAutoSellPriceSource(existing ? existing.priceSource : 'jita_buy');
     setAutoSellDialogOpen(true);
   };
 
@@ -305,6 +326,7 @@ export default function AssetsList(props: AssetsListProps) {
           containerId: autoSellContainer.containerId,
           divisionNumber: autoSellContainer.divisionNumber,
           pricePercentage: parseFloat(autoSellPercentage),
+          priceSource: autoSellPriceSource,
         }),
       });
 
@@ -1200,7 +1222,7 @@ export default function AssetsList(props: AssetsListProps) {
                 {autoSellConfig && (
                   <Chip
                     icon={<AutoSellIcon />}
-                    label={`Auto-Sell @ ${autoSellConfig.pricePercentage}% JBV`}
+                    label={`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
                     size="small"
                     sx={{
                       fontSize: '0.7rem',
@@ -1845,11 +1867,26 @@ export default function AssetsList(props: AssetsListProps) {
                 <strong>Container:</strong> {autoSellContainer?.containerName}
               </Typography>
               <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
-                All items in this container will be automatically listed for sale at the specified percentage of Jita buy price. Listings sync on asset refresh and market price updates.
+                All items in this container will be automatically listed for sale at the specified percentage of the selected price source. Listings sync on asset refresh and market price updates.
               </Typography>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel id="price-source-label">Price Source</InputLabel>
+                <Select
+                  labelId="price-source-label"
+                  value={autoSellPriceSource}
+                  label="Price Source"
+                  onChange={(e) => setAutoSellPriceSource(e.target.value)}
+                >
+                  {PRICE_SOURCE_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <TextField
                 fullWidth
-                label="Price Percentage of Jita Buy"
+                label={`Price Percentage of ${getPriceSourceLabel(autoSellPriceSource)}`}
                 type="number"
                 value={autoSellPercentage}
                 onChange={(e) => setAutoSellPercentage(e.target.value)}
@@ -1857,7 +1894,7 @@ export default function AssetsList(props: AssetsListProps) {
                   inputProps: { min: 1, max: 200, step: 0.5 },
                   endAdornment: <InputAdornment position="end">%</InputAdornment>,
                 }}
-                helperText={`Items will be listed at ${autoSellPercentage}% of Jita buy price`}
+                helperText={`Items will be listed at ${autoSellPercentage}% of ${getPriceSourceLabel(autoSellPriceSource).toLowerCase()}`}
               />
             </Box>
           </DialogContent>

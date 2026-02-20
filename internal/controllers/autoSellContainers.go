@@ -25,6 +25,12 @@ type ForSaleItemsDeactivator interface {
 	DeactivateAutoSellListings(ctx context.Context, autoSellContainerID int64) error
 }
 
+var allowedPriceSources = map[string]bool{
+	"jita_buy":   true,
+	"jita_sell":  true,
+	"jita_split": true,
+}
+
 type AutoSellContainers struct {
 	repository     AutoSellContainersRepository
 	syncer         AutoSellSyncer
@@ -78,6 +84,7 @@ func (c *AutoSellContainers) CreateConfig(args *web.HandlerArgs) (any, *web.Http
 		ContainerID     int64   `json:"containerId"`
 		DivisionNumber  *int    `json:"divisionNumber"`
 		PricePercentage float64 `json:"pricePercentage"`
+		PriceSource     string  `json:"priceSource"`
 	}
 
 	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
@@ -100,6 +107,13 @@ func (c *AutoSellContainers) CreateConfig(args *web.HandlerArgs) (any, *web.Http
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("pricePercentage must be between 0 and 200")}
 	}
 
+	if req.PriceSource == "" {
+		req.PriceSource = "jita_buy"
+	}
+	if !allowedPriceSources[req.PriceSource] {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Errorf("invalid priceSource: %s", req.PriceSource)}
+	}
+
 	container := &models.AutoSellContainer{
 		UserID:          *args.User,
 		OwnerType:       req.OwnerType,
@@ -108,6 +122,7 @@ func (c *AutoSellContainers) CreateConfig(args *web.HandlerArgs) (any, *web.Http
 		ContainerID:     req.ContainerID,
 		DivisionNumber:  req.DivisionNumber,
 		PricePercentage: req.PricePercentage,
+		PriceSource:     req.PriceSource,
 	}
 
 	if err := c.repository.Upsert(args.Request.Context(), container); err != nil {
@@ -152,6 +167,7 @@ func (c *AutoSellContainers) UpdateConfig(args *web.HandlerArgs) (any, *web.Http
 
 	var req struct {
 		PricePercentage float64 `json:"pricePercentage"`
+		PriceSource     string  `json:"priceSource"`
 	}
 
 	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
@@ -160,6 +176,13 @@ func (c *AutoSellContainers) UpdateConfig(args *web.HandlerArgs) (any, *web.Http
 
 	if req.PricePercentage <= 0 || req.PricePercentage > 200 {
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("pricePercentage must be between 0 and 200")}
+	}
+
+	if req.PriceSource != "" {
+		if !allowedPriceSources[req.PriceSource] {
+			return nil, &web.HttpError{StatusCode: 400, Error: errors.Errorf("invalid priceSource: %s", req.PriceSource)}
+		}
+		existing.PriceSource = req.PriceSource
 	}
 
 	existing.PricePercentage = req.PricePercentage

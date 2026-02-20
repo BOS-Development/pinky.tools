@@ -119,4 +119,95 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.waitForTimeout(2000);
     await expect(alicePage.getByRole('cell', { name: 'Isogen' })).not.toBeVisible();
   });
+
+  test('Alice enables auto-sell with Jita Sell pricing', async ({ alicePage }) => {
+    await alicePage.goto('/inventory');
+    await alicePage.evaluate(() => localStorage.clear());
+    await alicePage.goto('/inventory');
+
+    // Wait for assets and expand Jita
+    await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
+    await alicePage.getByText('Jita IV - Moon 4').click();
+    await expect(alicePage.getByText('Minerals Box')).toBeVisible({ timeout: 10000 });
+
+    // Enable auto-sell
+    await alicePage.locator('button[aria-label="Enable Auto-Sell"]').click();
+
+    const dialog = alicePage.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // Select "Jita Sell" from price source dropdown
+    await dialog.getByLabel('Price Source').click();
+    await alicePage.getByRole('option', { name: /Jita Sell/i }).click();
+
+    // Set percentage to 90%
+    const percentageInput = dialog.getByLabel(/Price Percentage/i);
+    await percentageInput.clear();
+    await percentageInput.fill('90');
+
+    // Save
+    await dialog.getByRole('button', { name: /Save/i }).click();
+
+    // Dialog should close and chip should show JSV abbreviation
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    await expect(alicePage.getByText(/Auto-Sell @ 90% JSV/)).toBeVisible({ timeout: 5000 });
+
+    // Verify listing appears on marketplace
+    await alicePage.goto('/marketplace');
+    await expect(alicePage.getByText('Isogen')).toBeVisible({ timeout: 15000 });
+    await expect(alicePage.getByText('Auto').first()).toBeVisible();
+  });
+
+  test('Alice switches to Jita Split pricing', async ({ alicePage }) => {
+    await alicePage.goto('/inventory');
+    await alicePage.evaluate(() => localStorage.clear());
+    await alicePage.goto('/inventory');
+
+    // Wait for assets and expand Jita
+    await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
+    await alicePage.getByText('Jita IV - Moon 4').click();
+
+    // The container should show current auto-sell chip with JSV
+    await expect(alicePage.getByText(/Auto-Sell @ 90% JSV/)).toBeVisible({ timeout: 10000 });
+
+    // Edit auto-sell
+    await alicePage.locator('button[aria-label="Edit Auto-Sell"]').click();
+
+    const dialog = alicePage.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // Change price source to Jita Split
+    await dialog.getByLabel('Price Source').click();
+    await alicePage.getByRole('option', { name: /Jita Split/i }).click();
+
+    // Save
+    await dialog.getByRole('button', { name: /Save/i }).click();
+
+    // Chip should update to JSplit
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    await expect(alicePage.getByText(/Auto-Sell @ 90% JSplit/)).toBeVisible({ timeout: 5000 });
+  });
+
+  test('Alice disables Jita Split auto-sell to leave clean state', async ({ alicePage }) => {
+    await alicePage.goto('/inventory');
+    await alicePage.evaluate(() => localStorage.clear());
+    await alicePage.goto('/inventory');
+
+    // Wait for assets and expand Jita
+    await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
+    await alicePage.getByText('Jita IV - Moon 4').click();
+
+    await expect(alicePage.getByText(/Auto-Sell @ 90% JSplit/)).toBeVisible({ timeout: 10000 });
+
+    // Edit and disable
+    await alicePage.locator('button[aria-label="Edit Auto-Sell"]').click();
+
+    const dialog = alicePage.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+    await dialog.getByRole('button', { name: /Disable/i }).click();
+
+    // Verify disabled
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+    await expect(alicePage.getByText(/Auto-Sell @/)).not.toBeVisible({ timeout: 5000 });
+  });
 });

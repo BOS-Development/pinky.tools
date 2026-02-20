@@ -105,6 +105,7 @@ func Test_AutoSell_SyncForUser_Success(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -182,6 +183,7 @@ func Test_AutoSell_SyncForUser_NoJitaPrice_DeactivatesExisting(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -229,6 +231,7 @@ func Test_AutoSell_SyncForUser_ZeroBuyPrice_DeactivatesExisting(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -277,6 +280,7 @@ func Test_AutoSell_SyncForUser_ItemRemovedFromContainer_Deactivated(t *testing.T
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		// Container is now empty
@@ -325,6 +329,7 @@ func Test_AutoSell_SyncForUser_MultipleItems(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 80.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -372,6 +377,7 @@ func Test_AutoSell_SyncForUser_GetItemsError_ContinuesOtherContainers(t *testing
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		// GetItemsInContainer will fail
@@ -407,6 +413,7 @@ func Test_AutoSell_SyncForUser_GetPricesError_ContinuesOtherContainers(t *testin
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -445,6 +452,7 @@ func Test_AutoSell_SyncForUser_WithDivisionNumber(t *testing.T) {
 				ContainerID:     9000,
 				DivisionNumber:  &divNum,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -490,6 +498,7 @@ func Test_AutoSell_SyncForAllUsers_Success(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 			{
 				ID:              2,
@@ -499,6 +508,7 @@ func Test_AutoSell_SyncForAllUsers_Success(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9001,
 				PricePercentage: 85.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -564,6 +574,7 @@ func Test_AutoSell_SyncForUser_NilBuyPrice_DeactivatesExisting(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{
@@ -610,6 +621,7 @@ func Test_AutoSell_SyncForUser_EmptyContainer_NoItems(t *testing.T) {
 				LocationID:      60003760,
 				ContainerID:     9000,
 				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
 			},
 		},
 		containerItems: []*models.ContainerItem{},
@@ -628,6 +640,143 @@ func Test_AutoSell_SyncForUser_EmptyContainer_NoItems(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, forSaleRepo.upsertedItems, 0)
+}
+
+func Test_AutoSell_SyncForUser_JitaSellPricing(t *testing.T) {
+	containerID := int64(1)
+	sellPrice := 55.0
+
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              containerID,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     9000,
+				PricePercentage: 90.0,
+				PriceSource:     "jita_sell",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, SellPrice: &sellPrice},
+		},
+	}
+
+	u := newAutoSellUpdater(autoSellRepo, forSaleRepo, marketRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	assert.Len(t, forSaleRepo.upsertedItems, 1)
+
+	upserted := forSaleRepo.upsertedItems[0]
+	assert.Equal(t, 49.5, upserted.PricePerUnit) // 55 * 90 / 100
+	assert.True(t, upserted.IsActive)
+}
+
+func Test_AutoSell_SyncForUser_JitaSplitPricing(t *testing.T) {
+	containerID := int64(1)
+	buyPrice := 50.0
+	sellPrice := 55.0
+
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              containerID,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     9000,
+				PricePercentage: 90.0,
+				PriceSource:     "jita_split",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice, SellPrice: &sellPrice},
+		},
+	}
+
+	u := newAutoSellUpdater(autoSellRepo, forSaleRepo, marketRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	assert.Len(t, forSaleRepo.upsertedItems, 1)
+
+	upserted := forSaleRepo.upsertedItems[0]
+	assert.Equal(t, 47.25, upserted.PricePerUnit) // (50+55)/2 * 90 / 100 = 52.5 * 0.9
+	assert.True(t, upserted.IsActive)
+}
+
+func Test_AutoSell_SyncForUser_JitaSplitMissingSellPrice_Deactivates(t *testing.T) {
+	containerID := int64(1)
+	buyPrice := 50.0
+
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              containerID,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     9000,
+				PricePercentage: 90.0,
+				PriceSource:     "jita_split",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{
+			{
+				ID:                  99,
+				TypeID:              34,
+				AutoSellContainerID: &containerID,
+				IsActive:            true,
+			},
+		},
+	}
+
+	// Only buy price, no sell price — split can't be calculated
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice, SellPrice: nil},
+		},
+	}
+
+	u := newAutoSellUpdater(autoSellRepo, forSaleRepo, marketRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	// Deactivated twice: once from "nil split" path, once from "not in activeTypes" path
+	assert.Len(t, forSaleRepo.upsertedItems, 2)
+	assert.False(t, forSaleRepo.upsertedItems[0].IsActive)
+	assert.False(t, forSaleRepo.upsertedItems[1].IsActive)
 }
 
 func Test_AutoSell_Constructor(t *testing.T) {

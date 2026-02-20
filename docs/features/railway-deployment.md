@@ -30,6 +30,25 @@ Create at https://developers.eveonline.com/ with:
 
 Save your **Client ID** and **Client Secret**.
 
+### 3. Discord Bot & OAuth Application (Optional)
+
+To enable Discord purchase notifications, create a Discord application at https://discord.com/developers/applications:
+
+1. **Create Application** → Name it (e.g., "Pinky.Tools")
+2. **Bot** tab → Reset Token → Copy **Bot Token** (this is `DISCORD_BOT_TOKEN`)
+3. **Bot** tab → Enable "Message Content Intent" under Privileged Gateway Intents
+4. **OAuth2** tab → Copy **Client ID** and **Client Secret**
+5. **OAuth2** tab → Add redirect URL: `https://<railway-url>/api/discord/callback`
+
+**Bot Permissions** (for invite link): `Send Messages` (2048)
+
+**Bot Invite URL:**
+```
+https://discord.com/api/oauth2/authorize?client_id=<discord-client-id>&permissions=2048&scope=bot
+```
+
+Users must invite the bot to their Discord server before they can configure channel notifications. DM notifications work without a server invite.
+
 ## Environment Variables
 
 ### Backend (Service name: `Backend`)
@@ -44,6 +63,9 @@ DATABASE_NAME=${{Postgres.PGDATABASE}}
 BACKEND_KEY=<generated-secret>
 OAUTH_CLIENT_ID=<eve-client-id>
 OAUTH_CLIENT_SECRET=<eve-client-secret>
+
+# Discord notifications (optional)
+DISCORD_BOT_TOKEN=<discord-bot-token>
 ```
 
 ### Frontend (Service name: `Frontend`)
@@ -55,9 +77,15 @@ NEXTAUTH_URL=https://$RAILWAY_PUBLIC_DOMAIN/
 NEXTAUTH_SECRET=<generated-secret>
 EVE_CLIENT_ID=<eve-client-id>
 EVE_CLIENT_SECRET=<eve-client-secret>
+
+# Discord notifications (optional)
+DISCORD_CLIENT_ID=<discord-client-id>
+DISCORD_CLIENT_SECRET=<discord-client-secret>
 ```
 
 **Note:** `EVE_CLIENT_ID` and `OAUTH_CLIENT_ID` use the **same** EVE Online application credentials.
+
+**Note:** Discord variables are optional. If omitted, Discord notifications are disabled and the Settings page won't show Discord linking.
 
 ## Deployment Steps
 
@@ -88,10 +116,13 @@ EVE_CLIENT_SECRET=<eve-client-secret>
 4. Add environment variables (use generated URL for `NEXTAUTH_URL`)
 5. Wait for deployment
 
-### 4. Update EVE OAuth Callbacks
+### 4. Update OAuth Callbacks
 
 Update your EVE Online application at https://developers.eveonline.com/ with:
 - `https://<railway-url>/api/auth/callback`
+
+If using Discord, update your Discord application at https://discord.com/developers/applications with:
+- `https://<railway-url>/api/discord/callback`
 
 ### 5. Verify
 
@@ -106,6 +137,9 @@ Update your EVE Online application at https://developers.eveonline.com/ with:
 | OAuth callback fails | Check `NEXTAUTH_URL` matches Railway domain exactly (with `https://` and trailing `/`). Verify callback URL in EVE app: `https://<url>/api/auth/callback` |
 | Frontend can't reach backend | `BACKEND_URL` must be `http://backend.production.railway.internal:8081/`. Service name must be exactly `Backend` |
 | Docker build fails | Verify build args: Backend `--target final-backend`, Frontend `--target publish-ui` |
+| Discord linking fails | Check `DISCORD_CLIENT_ID` and `DISCORD_CLIENT_SECRET` are set on Frontend. Verify callback URL in Discord app: `https://<url>/api/discord/callback` |
+| Discord notifications not sending | Check `DISCORD_BOT_TOKEN` is set on Backend. Backend logs "discord notifications enabled" on startup if configured correctly |
+| Channel notifications fail | Bot must be invited to the Discord server. Use the bot invite URL with `Send Messages` permission |
 
 ---
 

@@ -96,6 +96,22 @@ func (u *AutoSell) SyncForAllUsers(ctx context.Context) error {
 	return nil
 }
 
+// resolveBasePrice returns the appropriate base price for the given price source.
+func resolveBasePrice(price *models.MarketPrice, priceSource string) *float64 {
+	switch priceSource {
+	case "jita_sell":
+		return price.SellPrice
+	case "jita_split":
+		if price.BuyPrice != nil && price.SellPrice != nil {
+			split := (*price.BuyPrice + *price.SellPrice) / 2.0
+			return &split
+		}
+		return nil
+	default: // "jita_buy"
+		return price.BuyPrice
+	}
+}
+
 func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSellContainer) error {
 	// Get items currently in the container from asset tables
 	items, err := u.autoSellRepo.GetItemsInContainer(ctx, container.OwnerType, container.OwnerID, container.ContainerID)
@@ -136,8 +152,12 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 	// For each item in the container, upsert a for-sale listing
 	for _, item := range items {
 		price, hasPrice := prices[item.TypeID]
-		if !hasPrice || price.BuyPrice == nil || *price.BuyPrice <= 0 {
-			// No Jita buy price — deactivate existing listing if any
+		basePrice := (*float64)(nil)
+		if hasPrice {
+			basePrice = resolveBasePrice(price, container.PriceSource)
+		}
+		if basePrice == nil || *basePrice <= 0 {
+			// No usable price — deactivate existing listing if any
 			if existing, ok := existingByType[item.TypeID]; ok {
 				existing.IsActive = false
 				if err := u.forSaleRepo.Upsert(ctx, existing); err != nil {
@@ -149,7 +169,7 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 		}
 
 		activeTypes[item.TypeID] = true
-		computedPrice := *price.BuyPrice * container.PricePercentage / 100.0
+		computedPrice := *basePrice * container.PricePercentage / 100.0
 
 		forSaleItem := &models.ForSaleItem{
 			UserID:              container.UserID,

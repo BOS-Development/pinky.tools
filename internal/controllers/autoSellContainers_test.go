@@ -176,12 +176,14 @@ func Test_AutoSellContainersController_CreateConfig_Success(t *testing.T) {
 			c.OwnerID == 456 &&
 			c.LocationID == 60003760 &&
 			c.ContainerID == 9000 &&
-			c.PricePercentage == 90.0
+			c.PricePercentage == 90.0 &&
+			c.PriceSource == "jita_buy"
 	})).Return(nil)
 
 	// The sync is triggered asynchronously, so we use mock.Anything for context
 	mockSyncer.On("SyncForUser", mock.Anything, userID).Return(nil)
 
+	// No priceSource sent — should default to "jita_buy"
 	body := map[string]interface{}{
 		"ownerType":       "character",
 		"ownerId":         456,
@@ -324,6 +326,84 @@ func Test_AutoSellContainersController_CreateConfig_Unauthorized(t *testing.T) {
 	assert.Equal(t, 401, httpErr.StatusCode)
 }
 
+func Test_AutoSellContainersController_CreateConfig_WithJitaSell(t *testing.T) {
+	mockRepo := new(MockAutoSellContainersRepository)
+	mockSyncer := new(MockAutoSellSyncer)
+	mockDeactivator := new(MockForSaleItemsDeactivator)
+	mockRouter := &MockRouter{}
+
+	userID := int64(123)
+
+	mockRepo.On("Upsert", mock.Anything, mock.MatchedBy(func(c *models.AutoSellContainer) bool {
+		return c.PriceSource == "jita_sell" && c.PricePercentage == 95.0
+	})).Return(nil)
+
+	mockSyncer.On("SyncForUser", mock.Anything, userID).Return(nil)
+
+	body := map[string]interface{}{
+		"ownerType":       "character",
+		"ownerId":         456,
+		"locationId":      60003760,
+		"containerId":     9000,
+		"pricePercentage": 95.0,
+		"priceSource":     "jita_sell",
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("POST", "/v1/auto-sell", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{},
+	}
+
+	controller := controllers.NewAutoSellContainers(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	result, httpErr := controller.CreateConfig(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	mockRepo.AssertExpectations(t)
+}
+
+func Test_AutoSellContainersController_CreateConfig_InvalidPriceSource(t *testing.T) {
+	mockRepo := new(MockAutoSellContainersRepository)
+	mockSyncer := new(MockAutoSellSyncer)
+	mockDeactivator := new(MockForSaleItemsDeactivator)
+	mockRouter := &MockRouter{}
+
+	userID := int64(123)
+
+	body := map[string]interface{}{
+		"ownerType":       "character",
+		"ownerId":         456,
+		"locationId":      60003760,
+		"containerId":     9000,
+		"pricePercentage": 90.0,
+		"priceSource":     "invalid_source",
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("POST", "/v1/auto-sell", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{},
+	}
+
+	controller := controllers.NewAutoSellContainers(mockRouter, mockRepo, mockSyncer, mockDeactivator)
+	result, httpErr := controller.CreateConfig(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+	assert.Contains(t, httpErr.Error.Error(), "invalid priceSource")
+}
+
 // --- UpdateConfig Tests ---
 
 func Test_AutoSellContainersController_UpdateConfig_Success(t *testing.T) {
@@ -343,17 +423,19 @@ func Test_AutoSellContainersController_UpdateConfig_Success(t *testing.T) {
 		LocationID:      60003760,
 		ContainerID:     9000,
 		PricePercentage: 90.0,
+		PriceSource:     "jita_buy",
 		IsActive:        true,
 	}
 
 	mockRepo.On("GetByID", mock.Anything, configID).Return(existingConfig, nil)
 	mockRepo.On("Upsert", mock.Anything, mock.MatchedBy(func(c *models.AutoSellContainer) bool {
-		return c.ID == configID && c.PricePercentage == 85.0
+		return c.ID == configID && c.PricePercentage == 85.0 && c.PriceSource == "jita_sell"
 	})).Return(nil)
 	mockSyncer.On("SyncForUser", mock.Anything, userID).Return(nil)
 
 	body := map[string]interface{}{
 		"pricePercentage": 85.0,
+		"priceSource":     "jita_sell",
 	}
 	bodyBytes, _ := json.Marshal(body)
 

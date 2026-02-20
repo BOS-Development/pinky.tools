@@ -33,6 +33,7 @@ func Test_BuyOrders_CreateAndGet(t *testing.T) {
 	order := &models.BuyOrder{
 		BuyerUserID:     5000,
 		TypeID:          60,
+		LocationID:      60003760,
 		QuantityDesired: 100000,
 		MaxPricePerUnit: 50,
 		IsActive:        true,
@@ -82,6 +83,7 @@ func Test_BuyOrders_GetByUser(t *testing.T) {
 		order := &models.BuyOrder{
 			BuyerUserID:     5010,
 			TypeID:          61 + int64(i%2),
+			LocationID:      60003760,
 			QuantityDesired: int64(10000 * (i + 1)),
 			MaxPricePerUnit: float64(50 + i),
 			IsActive:        true,
@@ -127,6 +129,7 @@ func Test_BuyOrders_Update(t *testing.T) {
 	order := &models.BuyOrder{
 		BuyerUserID:     5020,
 		TypeID:          63,
+		LocationID:      60003760,
 		QuantityDesired: 50000,
 		MaxPricePerUnit: 100,
 		IsActive:        true,
@@ -176,6 +179,7 @@ func Test_BuyOrders_Delete(t *testing.T) {
 	order := &models.BuyOrder{
 		BuyerUserID:     5030,
 		TypeID:          64,
+		LocationID:      60003760,
 		QuantityDesired: 25000,
 		MaxPricePerUnit: 150,
 		IsActive:        true,
@@ -253,6 +257,7 @@ func Test_BuyOrders_GetDemandForSeller(t *testing.T) {
 	order1 := &models.BuyOrder{
 		BuyerUserID:     5040,
 		TypeID:          65,
+		LocationID:      60003760,
 		QuantityDesired: 500000,
 		MaxPricePerUnit: 6,
 		IsActive:        true,
@@ -263,6 +268,7 @@ func Test_BuyOrders_GetDemandForSeller(t *testing.T) {
 	order2 := &models.BuyOrder{
 		BuyerUserID:     5040,
 		TypeID:          66,
+		LocationID:      60003760,
 		QuantityDesired: 250000,
 		MaxPricePerUnit: 15,
 		IsActive:        true,
@@ -274,6 +280,7 @@ func Test_BuyOrders_GetDemandForSeller(t *testing.T) {
 	order3 := &models.BuyOrder{
 		BuyerUserID:     5040,
 		TypeID:          65,
+		LocationID:      60003760,
 		QuantityDesired: 100000,
 		MaxPricePerUnit: 10,
 		IsActive:        false,
@@ -313,6 +320,7 @@ func Test_BuyOrders_Update_NotFound(t *testing.T) {
 
 	order := &models.BuyOrder{
 		ID:              999999,
+		LocationID:      60003760,
 		QuantityDesired: 100,
 		MaxPricePerUnit: 50,
 		IsActive:        true,

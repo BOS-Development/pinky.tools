@@ -86,6 +86,7 @@ var rootCmd = &cobra.Command{
 
 		contactRulesRepository := repositories.NewContactRules(db)
 		autoSellContainersRepository := repositories.NewAutoSellContainers(db)
+		discordNotificationsRepository := repositories.NewDiscordNotifications(db)
 
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient, usersRepository, settings.AssetUpdateConcurrency)
 		sdeUpdater := updaters.NewSde(sdeClient, esiClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
@@ -94,6 +95,19 @@ var rootCmd = &cobra.Command{
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
 		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository)
 		contactRulesUpdater := updaters.NewContactRules(contactsRepository, contactRulesRepository, contactPermissionsRepository, db)
+
+		// Discord integration (optional — only enabled when DISCORD_BOT_TOKEN is set)
+		var discordClient *client.DiscordClient
+		var purchaseNotifier controllers.PurchaseNotifierInterface
+		var notificationsUpdater *updaters.NotificationsUpdater
+		if settings.DiscordBotToken != "" {
+			discordClient = client.NewDiscordClient(settings.DiscordBotToken)
+			notificationsUpdater = updaters.NewNotifications(discordNotificationsRepository, discordClient)
+			purchaseNotifier = notificationsUpdater
+			log.Info("discord notifications enabled")
+		} else {
+			log.Info("discord notifications disabled (no DISCORD_BOT_TOKEN)")
+		}
 
 		assetUpdater.WithAutoSellUpdater(autoSellUpdater)
 		marketPricesUpdater.WithAutoSellUpdater(autoSellUpdater)
@@ -110,13 +124,16 @@ var rootCmd = &cobra.Command{
 		controllers.NewContacts(router, contactsRepository, contactPermissionsRepository, db)
 		controllers.NewContactPermissions(router, contactPermissionsRepository)
 		controllers.NewForSaleItems(router, forSaleItemsRepository, contactPermissionsRepository)
-		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository)
+		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 		controllers.NewBuyOrders(router, buyOrdersRepository, contactPermissionsRepository)
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
 		controllers.NewAutoSellContainers(router, autoSellContainersRepository, autoSellUpdater, forSaleItemsRepository)
 		controllers.NewReactions(router, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
 		controllers.NewContactRules(router, contactRulesRepository, contactRulesUpdater)
+		if discordClient != nil {
+			controllers.NewDiscordNotifications(router, discordNotificationsRepository, discordClient, notificationsUpdater)
+		}
 
 		group.Go(router.Run(ctx))
 
