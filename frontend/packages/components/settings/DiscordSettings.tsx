@@ -259,7 +259,9 @@ export default function DiscordSettings() {
       if (res.ok) {
         showSnackbar('Test notification sent!', 'success');
       } else {
-        showSnackbar('Failed to send test notification', 'error');
+        const data = await res.json().catch(() => null);
+        const message = data?.error || 'Failed to send test notification';
+        showSnackbar(message, 'error');
       }
     } catch {
       showSnackbar('Failed to send test notification', 'error');

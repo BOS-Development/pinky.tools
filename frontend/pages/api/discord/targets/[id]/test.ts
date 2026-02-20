@@ -33,7 +33,8 @@ export default async function handler(
     });
 
     if (response.status !== 200) {
-      return res.status(response.status).json({ error: "Failed to send test notification" });
+      const errorText = await response.text();
+      return res.status(response.status).json({ error: errorText || "Failed to send test notification" });
     }
 
     const data = await response.json();
