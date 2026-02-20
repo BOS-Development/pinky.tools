@@ -13,35 +13,35 @@ import (
 	"github.com/pkg/errors"
 )
 
-// DiscordAPIError represents a known Discord API error with a user-friendly message
+// DiscordAPIError represents a Discord API error mapped to an app-level error code
 type DiscordAPIError struct {
-	StatusCode int
-	Code       int    `json:"code"`
-	Message    string `json:"message"`
-	UserMsg    string // friendly message for the end user
+	StatusCode   int
+	DiscordCode  int    `json:"code"`
+	Message      string `json:"message"`
+	AppErrorCode string // app-level code sent to the frontend
 }
 
 func (e *DiscordAPIError) Error() string {
-	return e.UserMsg
+	return e.AppErrorCode
 }
 
-// Known Discord error codes → user-friendly messages
-var discordErrorMessages = map[int]string{
-	50007: "Cannot send DMs to this user. They must be in a server where the bot is a member, and have \"Allow direct messages from server members\" enabled in that server's privacy settings.",
-	50001: "The bot does not have access to this channel. Check the bot's permissions in your Discord server.",
-	50013: "The bot is missing permissions to send messages in this channel.",
-	10003: "Unknown channel. The channel may have been deleted.",
+// Discord error code → app-level error code (frontend maps these to messages)
+var discordErrorCodes = map[int]string{
+	50007: "discord_dm_disabled",
+	50001: "discord_no_channel_access",
+	50013: "discord_missing_permissions",
+	10003: "discord_unknown_channel",
 }
 
 // parseDiscordError reads the response body and returns a DiscordAPIError if possible
 func parseDiscordError(statusCode int, body []byte) error {
 	var apiErr DiscordAPIError
-	if err := json.Unmarshal(body, &apiErr); err == nil && apiErr.Code != 0 {
+	if err := json.Unmarshal(body, &apiErr); err == nil && apiErr.DiscordCode != 0 {
 		apiErr.StatusCode = statusCode
-		if msg, ok := discordErrorMessages[apiErr.Code]; ok {
-			apiErr.UserMsg = msg
+		if code, ok := discordErrorCodes[apiErr.DiscordCode]; ok {
+			apiErr.AppErrorCode = code
 		} else {
-			apiErr.UserMsg = fmt.Sprintf("Discord error: %s", apiErr.Message)
+			apiErr.AppErrorCode = "discord_unknown_error"
 		}
 		return &apiErr
 	}
