@@ -99,6 +99,16 @@ export default function SettingsModal({ open, onClose, settings, onSettingChange
             </Select>
           </FormControl>
 
+          <FormControlLabel
+            control={
+              <Switch
+                checked={settings.contract_sales}
+                onChange={(e) => onSettingChange('contract_sales', e.target.checked)}
+              />
+            }
+            label="Contract Sales (no broker fee / sales tax)"
+          />
+
           <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }}>Shipping</Typography>
 
           <FormControlLabel

@@ -173,13 +173,15 @@ The `runs_needed` formula naturally produces the correct number for any cycle le
 ### 3.9 Job Cost
 
 ```
-base_job_cost = sum(adj_qty × adjusted_price) for each input material
-job_cost      = base_job_cost × system_cost_index × (1.0 + facility_tax / 100)
+eiv      = sum(base_qty × adjusted_price) for each input material
+job_cost = eiv × (system_cost_index + scc_surcharge + facility_tax / 100)
 ```
 
 - `adjusted_price` comes from CCP's `market_prices` table (ESI endpoint), NOT from market orders
 - `system_cost_index` comes from `industry_cost_indices` table for the `'reaction'` activity
-- `facility_tax` is a user setting (make default 0%)
+- `scc_surcharge` is 4% (0.04) for reactions — fixed by CCP (Viridian expansion)
+- `facility_tax` is a user setting (default 0.25%)
+- All three components are additive and applied independently to the EIV
 
 ### 3.10 Output Value and Fees
 

@@ -46,7 +46,7 @@ func ComputePlan(selections []models.PlanSelection, params *CalcParams, data *Ca
 
 	// Track complex slots and financials
 	var totalComplexSlots int
-	var totalInvestment, totalRevenue float64
+	var totalRevenue, totalComplexJobCost, totalOutputFees, totalShipping float64
 
 	for _, sel := range selections {
 		reaction, ok := reactionByTypeID[sel.ReactionTypeID]
@@ -57,10 +57,11 @@ func ComputePlan(selections []models.PlanSelection, params *CalcParams, data *Ca
 		complexLines := sel.Instances * reaction.ComplexInstances
 		totalComplexSlots += complexLines
 
-		// Financials per complex reaction
-		costPerRun := reaction.InputCostPerRun + reaction.JobCostPerRun + reaction.ShippingInPerRun + reaction.ShippingOutPerRun + reaction.OutputFeesPerRun
-		totalInvestment += costPerRun * float64(reaction.RunsPerCycle) * float64(complexLines)
-		totalRevenue += reaction.OutputValuePerRun * float64(reaction.RunsPerCycle) * float64(complexLines)
+		runs := float64(reaction.RunsPerCycle) * float64(complexLines)
+		totalRevenue += reaction.OutputValuePerRun * runs
+		totalComplexJobCost += reaction.ComplexJobCostPerRun * runs
+		totalOutputFees += reaction.OutputFeesPerRun * runs
+		totalShipping += (reaction.ShippingInPerRun + reaction.ShippingOutPerRun) * runs
 
 		// Aggregate intermediate demand
 		mats := materialsByReaction[reaction.ReactionTypeID]
@@ -202,7 +203,27 @@ func ComputePlan(selections []models.PlanSelection, params *CalcParams, data *Ca
 		return shoppingList[i].Name < shoppingList[j].Name
 	})
 
-	// Plan summary
+	// Plan summary: investment = shopping list (raw mats) + all job costs + output fees + shipping
+	var shoppingCost float64
+	for _, item := range shoppingList {
+		shoppingCost += item.Cost
+	}
+
+	// Compute intermediate job costs
+	var totalIntermediateJobCost float64
+	for _, typeID := range intermediateTypeIDs {
+		simpleReaction, ok := simpleReactionByProduct[typeID]
+		if !ok {
+			continue
+		}
+		runs := intermediateRunsMap[typeID]
+		slots := intermediateSlotsMap[typeID]
+		mats := materialsByReaction[simpleReaction.BlueprintTypeID]
+		jobCostPerRun := computeJobCost(mats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		totalIntermediateJobCost += jobCostPerRun * float64(runs) * float64(slots)
+	}
+
+	totalInvestment := shoppingCost + totalComplexJobCost + totalIntermediateJobCost + totalOutputFees + totalShipping
 	totalSlots := totalIntermediateSlots + totalComplexSlots
 	profit := totalRevenue - totalInvestment
 	var margin float64

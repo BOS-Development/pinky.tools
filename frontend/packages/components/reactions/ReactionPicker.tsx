@@ -129,7 +129,7 @@ export default function ReactionPicker({ reactions, meFactor, selections, onSele
                   Group
                 </TableSortLabel>
               </TableCell>
-              <TableCell align="right">Runs</TableCell>
+              <TableCell align="right">Produced</TableCell>
               <TableCell align="right">Slots/Inst</TableCell>
               <TableCell align="right">
                 <TableSortLabel active={sortKey === 'output_value_per_run'} direction={sortDir} onClick={() => handleSort('output_value_per_run')}>
@@ -224,7 +224,7 @@ function ReactionRow({ reaction: r, instances, onInstanceChange, expanded, onTog
           </Box>
         </TableCell>
         <TableCell>{r.group_name}</TableCell>
-        <TableCell align="right">{formatNumber(r.runs_per_cycle)}</TableCell>
+        <TableCell align="right">{formatNumber(instances * r.complex_instances * r.runs_per_cycle * r.product_qty_per_run)}</TableCell>
         <TableCell align="right">{r.num_intermediates + r.complex_instances}</TableCell>
         <TableCell align="right">{formatISK(r.output_value_per_run)}</TableCell>
         <TableCell align="right" sx={{ color: getValueColor(r.profit_per_run) }}>
