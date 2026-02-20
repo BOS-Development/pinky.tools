@@ -18,6 +18,9 @@ type Settings struct {
 	EsiBaseURL             string
 	AssetUpdateConcurrency int
 	AssetUpdateIntervalSec int
+	DiscordBotToken        string
+	DiscordClientID        string
+	DiscordClientSecret    string
 }
 
 func GetSettings() (*Settings, error) {
@@ -64,6 +67,10 @@ func GetSettings() (*Settings, error) {
 	} else {
 		settings.AssetUpdateIntervalSec = 3600
 	}
+
+	settings.DiscordBotToken = os.Getenv("DISCORD_BOT_TOKEN")
+	settings.DiscordClientID = os.Getenv("DISCORD_CLIENT_ID")
+	settings.DiscordClientSecret = os.Getenv("DISCORD_CLIENT_SECRET")
 
 	return settings, nil
 }
