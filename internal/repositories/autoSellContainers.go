@@ -20,7 +20,7 @@ func NewAutoSellContainers(db *sql.DB) *AutoSellContainers {
 func (r *AutoSellContainers) GetByUser(ctx context.Context, userID int64) ([]*models.AutoSellContainer, error) {
 	query := `
 		SELECT id, user_id, owner_type, owner_id, location_id, container_id,
-			division_number, price_percentage, is_active, created_at, updated_at
+			division_number, price_percentage, price_source, is_active, created_at, updated_at
 		FROM auto_sell_containers
 		WHERE user_id = $1 AND is_active = true
 		ORDER BY created_at DESC
@@ -38,7 +38,7 @@ func (r *AutoSellContainers) GetByUser(ctx context.Context, userID int64) ([]*mo
 		err = rows.Scan(
 			&item.ID, &item.UserID, &item.OwnerType, &item.OwnerID,
 			&item.LocationID, &item.ContainerID, &item.DivisionNumber,
-			&item.PricePercentage, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+			&item.PricePercentage, &item.PriceSource, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan auto-sell container")
@@ -53,7 +53,7 @@ func (r *AutoSellContainers) GetByUser(ctx context.Context, userID int64) ([]*mo
 func (r *AutoSellContainers) GetAllActive(ctx context.Context) ([]*models.AutoSellContainer, error) {
 	query := `
 		SELECT id, user_id, owner_type, owner_id, location_id, container_id,
-			division_number, price_percentage, is_active, created_at, updated_at
+			division_number, price_percentage, price_source, is_active, created_at, updated_at
 		FROM auto_sell_containers
 		WHERE is_active = true
 	`
@@ -70,7 +70,7 @@ func (r *AutoSellContainers) GetAllActive(ctx context.Context) ([]*models.AutoSe
 		err = rows.Scan(
 			&item.ID, &item.UserID, &item.OwnerType, &item.OwnerID,
 			&item.LocationID, &item.ContainerID, &item.DivisionNumber,
-			&item.PricePercentage, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+			&item.PricePercentage, &item.PriceSource, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan auto-sell container")
@@ -85,12 +85,13 @@ func (r *AutoSellContainers) GetAllActive(ctx context.Context) ([]*models.AutoSe
 func (r *AutoSellContainers) Upsert(ctx context.Context, container *models.AutoSellContainer) error {
 	query := `
 		INSERT INTO auto_sell_containers
-		(user_id, owner_type, owner_id, location_id, container_id, division_number, price_percentage, is_active, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW())
+		(user_id, owner_type, owner_id, location_id, container_id, division_number, price_percentage, price_source, is_active, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW())
 		ON CONFLICT (user_id, owner_type, owner_id, location_id, container_id, coalesce(division_number, 0))
 		WHERE is_active = true
 		DO UPDATE SET
 			price_percentage = EXCLUDED.price_percentage,
+			price_source = EXCLUDED.price_source,
 			updated_at = NOW()
 		RETURNING id, is_active, created_at, updated_at
 	`
@@ -103,6 +104,7 @@ func (r *AutoSellContainers) Upsert(ctx context.Context, container *models.AutoS
 		container.ContainerID,
 		container.DivisionNumber,
 		container.PricePercentage,
+		container.PriceSource,
 	).Scan(&container.ID, &container.IsActive, &container.CreatedAt, &container.UpdatedAt)
 
 	if err != nil {
@@ -179,7 +181,7 @@ func (r *AutoSellContainers) GetItemsInContainer(ctx context.Context, ownerType 
 func (r *AutoSellContainers) GetByID(ctx context.Context, id int64) (*models.AutoSellContainer, error) {
 	query := `
 		SELECT id, user_id, owner_type, owner_id, location_id, container_id,
-			division_number, price_percentage, is_active, created_at, updated_at
+			division_number, price_percentage, price_source, is_active, created_at, updated_at
 		FROM auto_sell_containers
 		WHERE id = $1
 	`
@@ -188,7 +190,7 @@ func (r *AutoSellContainers) GetByID(ctx context.Context, id int64) (*models.Aut
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&item.ID, &item.UserID, &item.OwnerType, &item.OwnerID,
 		&item.LocationID, &item.ContainerID, &item.DivisionNumber,
-		&item.PricePercentage, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
+		&item.PricePercentage, &item.PriceSource, &item.IsActive, &item.CreatedAt, &item.UpdatedAt,
 	)
 
 	if err == sql.ErrNoRows {
