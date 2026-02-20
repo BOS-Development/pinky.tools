@@ -91,6 +91,62 @@ func (r *StockpileMarkers) Upsert(ctx context.Context, marker *models.StockpileM
 	return nil
 }
 
+// GetByContainerContext returns stockpile markers matching a specific container scope, keyed by TypeID.
+func (r *StockpileMarkers) GetByContainerContext(
+	ctx context.Context,
+	userID int64,
+	ownerType string,
+	ownerID int64,
+	locationID int64,
+	containerID int64,
+	divisionNumber *int,
+) (map[int64]*models.StockpileMarker, error) {
+	query := `
+		SELECT user_id, type_id, owner_type, owner_id, location_id,
+		       container_id, division_number, desired_quantity, notes,
+		       price_source, price_percentage
+		FROM stockpile_markers
+		WHERE user_id = $1
+		  AND owner_type = $2
+		  AND owner_id = $3
+		  AND location_id = $4
+		  AND COALESCE(container_id, 0::BIGINT) = COALESCE($5, 0::BIGINT)
+		  AND COALESCE(division_number, 0) = COALESCE($6, 0)
+	`
+
+	rows, err := r.db.QueryContext(ctx, query,
+		userID, ownerType, ownerID, locationID, containerID, divisionNumber,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stockpile markers for container context")
+	}
+	defer rows.Close()
+
+	markers := make(map[int64]*models.StockpileMarker)
+	for rows.Next() {
+		var marker models.StockpileMarker
+		err = rows.Scan(
+			&marker.UserID,
+			&marker.TypeID,
+			&marker.OwnerType,
+			&marker.OwnerID,
+			&marker.LocationID,
+			&marker.ContainerID,
+			&marker.DivisionNumber,
+			&marker.DesiredQuantity,
+			&marker.Notes,
+			&marker.PriceSource,
+			&marker.PricePercentage,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan stockpile marker")
+		}
+		markers[marker.TypeID] = &marker
+	}
+
+	return markers, nil
+}
+
 func (r *StockpileMarkers) Delete(ctx context.Context, marker *models.StockpileMarker) error {
 	query := `
 		DELETE FROM stockpile_markers

@@ -93,7 +93,7 @@ var rootCmd = &cobra.Command{
 		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
-		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository)
+		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository, stockpileMarkersRepository)
 		contactRulesUpdater := updaters.NewContactRules(contactsRepository, contactRulesRepository, contactPermissionsRepository, db)
 
 		// Discord integration (optional — only enabled when DISCORD_BOT_TOKEN is set)

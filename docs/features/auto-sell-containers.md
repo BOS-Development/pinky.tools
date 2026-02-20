@@ -151,8 +151,25 @@ create index idx_for_sale_auto_sell on for_sale_items(auto_sell_container_id) wh
 ### Tests
 | File | Purpose |
 |------|---------|
-| `internal/updaters/autoSell_test.go` | 16 unit tests for sync logic |
+| `internal/updaters/autoSell_test.go` | 22 unit tests for sync logic (including stockpile awareness) |
 | `internal/controllers/autoSellContainers_test.go` | 18 tests for CRUD endpoints |
+
+## Stockpile Marker Integration
+
+Auto-sell respects stockpile markers set on the same container. When syncing a container, the updater fetches stockpile markers matching the container's `(userID, ownerType, ownerID, locationID, containerID, divisionNumber)` scope. For each item:
+
+- **Has stockpile marker**: `sellableQuantity = itemQuantity - desiredQuantity`. Only the surplus above the stockpile target is listed for sale.
+- **No stockpile marker**: Full quantity is listed (existing behavior).
+- **Stockpile >= actual quantity**: Item is not listed. Any existing listing is deactivated.
+
+This is always-on behavior — no toggle needed. Stockpile markers naturally reserve inventory, and auto-sell only lists the surplus.
+
+### Example
+| Item | In Container | Stockpile Target | Listed for Sale |
+|------|-------------|-----------------|-----------------|
+| Tritanium | 1000 | 600 | 400 |
+| Pyerite | 500 | (none) | 500 |
+| Mexallon | 200 | 300 | 0 (not listed) |
 
 ## Edge Cases
 
@@ -163,6 +180,8 @@ create index idx_for_sale_auto_sell on for_sale_items(auto_sell_container_id) wh
 - **Nil buy price**: Same as no price — listing deactivated
 - **Auto-sell config deleted**: All associated for-sale listings deactivated first
 - **Duplicate config for same container**: Upserted via ON CONFLICT (updates percentage)
+- **Stockpile exceeds container quantity**: Item not listed, existing listing deactivated
+- **Stockpile repo error**: Container sync fails (logged, other containers unaffected)
 
 ## Frontend UX
 

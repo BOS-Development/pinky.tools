@@ -24,21 +24,28 @@ type AutoSellMarketPricesRepository interface {
 	GetPricesForTypes(ctx context.Context, typeIDs []int64, regionID int64) (map[int64]*models.MarketPrice, error)
 }
 
+type AutoSellStockpileRepository interface {
+	GetByContainerContext(ctx context.Context, userID int64, ownerType string, ownerID int64, locationID int64, containerID int64, divisionNumber *int) (map[int64]*models.StockpileMarker, error)
+}
+
 type AutoSell struct {
-	autoSellRepo AutoSellContainersRepository
-	forSaleRepo  AutoSellForSaleRepository
-	marketRepo   AutoSellMarketPricesRepository
+	autoSellRepo  AutoSellContainersRepository
+	forSaleRepo   AutoSellForSaleRepository
+	marketRepo    AutoSellMarketPricesRepository
+	stockpileRepo AutoSellStockpileRepository
 }
 
 func NewAutoSell(
 	autoSellRepo AutoSellContainersRepository,
 	forSaleRepo AutoSellForSaleRepository,
 	marketRepo AutoSellMarketPricesRepository,
+	stockpileRepo AutoSellStockpileRepository,
 ) *AutoSell {
 	return &AutoSell{
-		autoSellRepo: autoSellRepo,
-		forSaleRepo:  forSaleRepo,
-		marketRepo:   marketRepo,
+		autoSellRepo:  autoSellRepo,
+		forSaleRepo:   forSaleRepo,
+		marketRepo:    marketRepo,
+		stockpileRepo: stockpileRepo,
 	}
 }
 
@@ -119,6 +126,15 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 		return errors.Wrap(err, "failed to get items in container")
 	}
 
+	// Get stockpile markers for this container to reserve inventory
+	stockpileMarkers, err := u.stockpileRepo.GetByContainerContext(
+		ctx, container.UserID, container.OwnerType, container.OwnerID,
+		container.LocationID, container.ContainerID, container.DivisionNumber,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to get stockpile markers for container")
+	}
+
 	// Collect type IDs for market price lookup
 	typeIDs := make([]int64, 0, len(items))
 	for _, item := range items {
@@ -151,6 +167,23 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 
 	// For each item in the container, upsert a for-sale listing
 	for _, item := range items {
+		// Compute sellable quantity: subtract stockpile reservation if any
+		sellableQuantity := item.Quantity
+		if marker, ok := stockpileMarkers[item.TypeID]; ok {
+			sellableQuantity = item.Quantity - marker.DesiredQuantity
+		}
+		if sellableQuantity <= 0 {
+			// Entire quantity reserved by stockpile — deactivate existing listing if any
+			if existing, ok := existingByType[item.TypeID]; ok {
+				existing.IsActive = false
+				if err := u.forSaleRepo.Upsert(ctx, existing); err != nil {
+					log.Error("failed to deactivate auto-sell listing under stockpile",
+						"typeID", item.TypeID, "error", err)
+				}
+			}
+			continue
+		}
+
 		price, hasPrice := prices[item.TypeID]
 		basePrice := (*float64)(nil)
 		if hasPrice {
@@ -179,7 +212,7 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 			LocationID:          container.LocationID,
 			ContainerID:         &container.ContainerID,
 			DivisionNumber:      container.DivisionNumber,
-			QuantityAvailable:   item.Quantity,
+			QuantityAvailable:   sellableQuantity,
 			PricePerUnit:        computedPrice,
 			AutoSellContainerID: &container.ID,
 			IsActive:            true,
