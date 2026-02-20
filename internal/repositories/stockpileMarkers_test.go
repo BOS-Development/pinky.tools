@@ -372,3 +372,167 @@ func Test_StockpileMarkersShouldIsolateByUser(t *testing.T) {
 func stringPtr(s string) *string {
 	return &s
 }
+
+// Helper function to create float64 pointers
+func float64Ptr(f float64) *float64 {
+	return &f
+}
+
+func Test_StockpileMarkers_UpsertWithPricing(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	testUser := &repositories.User{
+		ID:   6100,
+		Name: "Pricing Test User",
+	}
+
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	// Create marker with PriceSource and PricePercentage set
+	priceSource := "jita_sell"
+	pricePercentage := 95.5
+	marker := &models.StockpileMarker{
+		UserID:          testUser.ID,
+		TypeID:          34, // Tritanium
+		OwnerType:       "character",
+		OwnerID:         61001,
+		LocationID:      60003760,
+		ContainerID:     nil,
+		DivisionNumber:  nil,
+		DesiredQuantity: 50000,
+		Notes:           stringPtr("With pricing"),
+		PriceSource:     &priceSource,
+		PricePercentage: &pricePercentage,
+	}
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Verify pricing fields persist via GetByUser
+	markers, err := stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1)
+
+	assert.Equal(t, int64(34), markers[0].TypeID)
+	assert.Equal(t, int64(50000), markers[0].DesiredQuantity)
+	assert.NotNil(t, markers[0].PriceSource)
+	assert.Equal(t, "jita_sell", *markers[0].PriceSource)
+	assert.NotNil(t, markers[0].PricePercentage)
+	assert.Equal(t, 95.5, *markers[0].PricePercentage)
+}
+
+func Test_StockpileMarkers_UpsertWithNilPricing(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	testUser := &repositories.User{
+		ID:   6110,
+		Name: "Nil Pricing Test User",
+	}
+
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	// Create marker without pricing fields (nil)
+	marker := &models.StockpileMarker{
+		UserID:          testUser.ID,
+		TypeID:          35, // Pyerite
+		OwnerType:       "character",
+		OwnerID:         61101,
+		LocationID:      60003760,
+		ContainerID:     nil,
+		DivisionNumber:  nil,
+		DesiredQuantity: 25000,
+		Notes:           nil,
+		PriceSource:     nil,
+		PricePercentage: nil,
+	}
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Verify pricing fields come back as nil
+	markers, err := stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1)
+
+	assert.Equal(t, int64(35), markers[0].TypeID)
+	assert.Equal(t, int64(25000), markers[0].DesiredQuantity)
+	assert.Nil(t, markers[0].PriceSource)
+	assert.Nil(t, markers[0].PricePercentage)
+}
+
+func Test_StockpileMarkers_UpdatePricing(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	testUser := &repositories.User{
+		ID:   6120,
+		Name: "Update Pricing Test User",
+	}
+
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	// Create marker without pricing
+	marker := &models.StockpileMarker{
+		UserID:          testUser.ID,
+		TypeID:          36, // Mexallon
+		OwnerType:       "character",
+		OwnerID:         61201,
+		LocationID:      60003760,
+		ContainerID:     nil,
+		DivisionNumber:  nil,
+		DesiredQuantity: 10000,
+		Notes:           nil,
+		PriceSource:     nil,
+		PricePercentage: nil,
+	}
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Verify initially no pricing
+	markers, err := stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1)
+	assert.Nil(t, markers[0].PriceSource)
+	assert.Nil(t, markers[0].PricePercentage)
+
+	// Update with pricing via Upsert (ON CONFLICT)
+	marker.PriceSource = stringPtr("jita_buy")
+	marker.PricePercentage = float64Ptr(110.0)
+	marker.DesiredQuantity = 15000
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Verify pricing is updated
+	markers, err = stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1, "Should still have only one marker after upsert")
+
+	assert.Equal(t, int64(36), markers[0].TypeID)
+	assert.Equal(t, int64(15000), markers[0].DesiredQuantity)
+	assert.NotNil(t, markers[0].PriceSource)
+	assert.Equal(t, "jita_buy", *markers[0].PriceSource)
+	assert.NotNil(t, markers[0].PricePercentage)
+	assert.Equal(t, 110.0, *markers[0].PricePercentage)
+}

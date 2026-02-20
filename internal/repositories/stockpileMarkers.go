@@ -19,7 +19,8 @@ func NewStockpileMarkers(db *sql.DB) *StockpileMarkers {
 func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*models.StockpileMarker, error) {
 	query := `
 		SELECT user_id, type_id, owner_type, owner_id, location_id,
-		       container_id, division_number, desired_quantity, notes
+		       container_id, division_number, desired_quantity, notes,
+		       price_source, price_percentage
 		FROM stockpile_markers
 		WHERE user_id = $1
 		ORDER BY type_id, location_id
@@ -44,6 +45,8 @@ func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*mode
 			&marker.DivisionNumber,
 			&marker.DesiredQuantity,
 			&marker.Notes,
+			&marker.PriceSource,
+			&marker.PricePercentage,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan stockpile marker")
@@ -57,12 +60,14 @@ func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*mode
 func (r *StockpileMarkers) Upsert(ctx context.Context, marker *models.StockpileMarker) error {
 	query := `
 		INSERT INTO stockpile_markers
-		(user_id, type_id, owner_type, owner_id, location_id, container_id, division_number, desired_quantity, notes, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+		(user_id, type_id, owner_type, owner_id, location_id, container_id, division_number, desired_quantity, notes, price_source, price_percentage, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
 		ON CONFLICT (user_id, type_id, owner_type, owner_id, location_id, COALESCE(container_id, 0::BIGINT), COALESCE(division_number, 0))
 		DO UPDATE SET
 			desired_quantity = EXCLUDED.desired_quantity,
 			notes = EXCLUDED.notes,
+			price_source = EXCLUDED.price_source,
+			price_percentage = EXCLUDED.price_percentage,
 			updated_at = NOW()
 	`
 
@@ -76,6 +81,8 @@ func (r *StockpileMarkers) Upsert(ctx context.Context, marker *models.StockpileM
 		marker.DivisionNumber,
 		marker.DesiredQuantity,
 		marker.Notes,
+		marker.PriceSource,
+		marker.PricePercentage,
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to upsert stockpile marker")

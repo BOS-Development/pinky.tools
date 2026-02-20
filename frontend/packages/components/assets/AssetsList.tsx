@@ -48,6 +48,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SellIcon from '@mui/icons-material/Sell';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Badge from '@mui/material/Badge';
@@ -77,6 +78,26 @@ const AutoSellIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' 
   </Badge>
 );
 
+// Combined cart + sync icon for auto-buy features
+const AutoBuyIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' | 'large' }) => (
+  <Badge
+    badgeContent={<AutorenewIcon sx={{ fontSize: '0.6rem' }} />}
+    sx={{
+      '& .MuiBadge-badge': {
+        minWidth: 'unset',
+        height: 'unset',
+        padding: 0,
+        backgroundColor: 'transparent',
+        color: 'inherit',
+        top: 2,
+        right: 2,
+      },
+    }}
+  >
+    <ShoppingCartIcon fontSize={fontSize} />
+  </Badge>
+);
+
 type ForSaleListing = {
   id: number;
   typeId: number;
@@ -97,6 +118,19 @@ type AutoSellConfig = {
   ownerId: number;
   locationId: number;
   containerId: number;
+  divisionNumber?: number;
+  pricePercentage: number;
+  priceSource: string;
+  isActive: boolean;
+};
+
+type AutoBuyConfig = {
+  id: number;
+  userId: number;
+  ownerType: string;
+  ownerId: number;
+  locationId: number;
+  containerId?: number;
   divisionNumber?: number;
   pricePercentage: number;
   priceSource: string;
@@ -227,6 +261,21 @@ export default function AssetsList(props: AssetsListProps) {
   const [autoSellPercentage, setAutoSellPercentage] = useState('90');
   const [autoSellPriceSource, setAutoSellPriceSource] = useState('jita_buy');
   const [submittingAutoSell, setSubmittingAutoSell] = useState(false);
+
+  // Auto-buy state
+  const [autoBuyConfigs, setAutoBuyConfigs] = useState<AutoBuyConfig[]>([]);
+  const [autoBuyDialogOpen, setAutoBuyDialogOpen] = useState(false);
+  const [autoBuyContainer, setAutoBuyContainer] = useState<{
+    ownerType: string;
+    ownerId: number;
+    locationId: number;
+    containerId: number;
+    divisionNumber?: number;
+    containerName: string;
+  } | null>(null);
+  const [autoBuyPercentage, setAutoBuyPercentage] = useState('100');
+  const [autoBuyPriceSource, setAutoBuyPriceSource] = useState('jita_sell');
+  const [submittingAutoBuy, setSubmittingAutoBuy] = useState(false);
 
   const handleQuantityChange = (value: string) => {
     // Remove all non-digit characters
@@ -368,6 +417,115 @@ export default function AssetsList(props: AssetsListProps) {
     }
   };
 
+  const fetchAutoBuyConfigs = async () => {
+    if (!session) return;
+
+    try {
+      const response = await fetch('/api/auto-buy');
+      if (response.ok) {
+        const data = await response.json();
+        setAutoBuyConfigs(data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch auto-buy configs:', error);
+    }
+  };
+
+  const getAutoBuyForContainer = (containerId: number, ownerType: string, ownerId: number, locationId: number, divisionNumber?: number): AutoBuyConfig | undefined => {
+    return autoBuyConfigs.find(config =>
+      (config.containerId || 0) === containerId &&
+      config.ownerType === ownerType &&
+      config.ownerId === ownerId &&
+      config.locationId === locationId &&
+      (config.divisionNumber || 0) === (divisionNumber || 0)
+    );
+  };
+
+  const handleOpenAutoBuyDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number, containerName: string, divisionNumber?: number) => {
+    const existing = getAutoBuyForContainer(containerId, ownerType, ownerId, locationId, divisionNumber);
+    setAutoBuyContainer({ ownerType, ownerId, locationId, containerId, divisionNumber, containerName });
+    setAutoBuyPercentage(existing ? existing.pricePercentage.toString() : '100');
+    setAutoBuyPriceSource(existing ? existing.priceSource : 'jita_sell');
+    setAutoBuyDialogOpen(true);
+  };
+
+  const handleSaveAutoBuy = async () => {
+    if (!autoBuyContainer || !session) return;
+
+    setSubmittingAutoBuy(true);
+    try {
+      const existing = getAutoBuyForContainer(
+        autoBuyContainer.containerId,
+        autoBuyContainer.ownerType,
+        autoBuyContainer.ownerId,
+        autoBuyContainer.locationId,
+        autoBuyContainer.divisionNumber
+      );
+
+      if (existing) {
+        const response = await fetch(`/api/auto-buy/${existing.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pricePercentage: parseFloat(autoBuyPercentage),
+            priceSource: autoBuyPriceSource,
+          }),
+        });
+        if (response.ok) {
+          setAutoBuyDialogOpen(false);
+          await fetchAutoBuyConfigs();
+        }
+      } else {
+        const response = await fetch('/api/auto-buy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ownerType: autoBuyContainer.ownerType,
+            ownerId: autoBuyContainer.ownerId,
+            locationId: autoBuyContainer.locationId,
+            containerId: autoBuyContainer.containerId,
+            divisionNumber: autoBuyContainer.divisionNumber,
+            pricePercentage: parseFloat(autoBuyPercentage),
+            priceSource: autoBuyPriceSource,
+          }),
+        });
+        if (response.ok) {
+          setAutoBuyDialogOpen(false);
+          await fetchAutoBuyConfigs();
+        }
+      }
+    } finally {
+      setSubmittingAutoBuy(false);
+    }
+  };
+
+  const handleDisableAutoBuy = async () => {
+    if (!autoBuyContainer || !session) return;
+
+    const existing = getAutoBuyForContainer(
+      autoBuyContainer.containerId,
+      autoBuyContainer.ownerType,
+      autoBuyContainer.ownerId,
+      autoBuyContainer.locationId,
+      autoBuyContainer.divisionNumber
+    );
+    if (!existing) return;
+
+    setSubmittingAutoBuy(true);
+    try {
+      const response = await fetch(`/api/auto-buy/${existing.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setAutoBuyDialogOpen(false);
+        await fetchAutoBuyConfigs();
+      }
+    } finally {
+      setSubmittingAutoBuy(false);
+    }
+  };
+
   const getListingForAsset = (asset: Asset, locationId: number, containerId?: number, divisionNumber?: number): ForSaleListing | undefined => {
     return forSaleListings.find(listing =>
       listing.typeId === asset.typeId &&
@@ -405,6 +563,7 @@ export default function AssetsList(props: AssetsListProps) {
       fetchForSaleListings();
       fetchAssetStatus();
       fetchAutoSellConfigs();
+      fetchAutoBuyConfigs();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1210,6 +1369,7 @@ export default function AssetsList(props: AssetsListProps) {
     const nodeId = `${parentId}-container-${container.id}`;
     const isExpanded = expandedNodes.has(nodeId);
     const autoSellConfig = getAutoSellForContainer(container.id, container.ownerType, container.ownerId, locationId, divisionNumber);
+    const autoBuyConfig = getAutoBuyForContainer(container.id, container.ownerType, container.ownerId, locationId, divisionNumber);
 
     return (
       <Box key={container.id}>
@@ -1234,11 +1394,39 @@ export default function AssetsList(props: AssetsListProps) {
                     }}
                   />
                 )}
+                {autoBuyConfig && (
+                  <Chip
+                    icon={<AutoBuyIcon />}
+                    label={`Auto-Buy @ ${autoBuyConfig.pricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
+                    size="small"
+                    sx={{
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      background: 'rgba(245, 158, 11, 0.15)',
+                      color: '#f59e0b',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      '& .MuiChip-icon': { color: '#f59e0b', fontSize: '0.9rem' },
+                    }}
+                  />
+                )}
               </Box>
             }
             secondary={`${container.assets.length} items`}
             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
           />
+          <Tooltip title={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}>
+            <IconButton
+              size="small"
+              aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAutoBuyDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
+              }}
+              sx={{ color: autoBuyConfig ? '#f59e0b' : undefined }}
+            >
+              <AutoBuyIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}>
             <IconButton
               size="small"
@@ -1922,6 +2110,87 @@ export default function AssetsList(props: AssetsListProps) {
               disabled={submittingAutoSell || !autoSellPercentage || parseFloat(autoSellPercentage) <= 0 || parseFloat(autoSellPercentage) > 200}
             >
               {submittingAutoSell ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Auto-Buy Configuration Dialog */}
+        <Dialog
+          open={autoBuyDialogOpen}
+          onClose={() => setAutoBuyDialogOpen(false)}
+          maxWidth="sm"
+          fullWidth
+        >
+          <DialogTitle>
+            {autoBuyContainer && getAutoBuyForContainer(
+              autoBuyContainer.containerId,
+              autoBuyContainer.ownerType,
+              autoBuyContainer.ownerId,
+              autoBuyContainer.locationId,
+              autoBuyContainer.divisionNumber
+            ) ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
+          </DialogTitle>
+          <DialogContent>
+            <Box sx={{ pt: 1 }}>
+              <Typography variant="body2" gutterBottom>
+                <strong>Container:</strong> {autoBuyContainer?.containerName}
+              </Typography>
+              <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
+                Buy orders will be automatically created for understocked stockpile items in this container at the specified percentage of the selected price source. Orders sync on asset refresh and market price updates.
+              </Typography>
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel id="auto-buy-price-source-label">Price Source</InputLabel>
+                <Select
+                  labelId="auto-buy-price-source-label"
+                  value={autoBuyPriceSource}
+                  label="Price Source"
+                  onChange={(e) => setAutoBuyPriceSource(e.target.value)}
+                >
+                  {PRICE_SOURCE_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <TextField
+                fullWidth
+                label={`Price Percentage of ${getPriceSourceLabel(autoBuyPriceSource)}`}
+                type="number"
+                value={autoBuyPercentage}
+                onChange={(e) => setAutoBuyPercentage(e.target.value)}
+                InputProps={{
+                  inputProps: { min: 1, max: 200, step: 0.5 },
+                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                }}
+                helperText={`Buy orders will have max price at ${autoBuyPercentage}% of ${getPriceSourceLabel(autoBuyPriceSource).toLowerCase()}`}
+              />
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            {autoBuyContainer && getAutoBuyForContainer(
+              autoBuyContainer.containerId,
+              autoBuyContainer.ownerType,
+              autoBuyContainer.ownerId,
+              autoBuyContainer.locationId,
+              autoBuyContainer.divisionNumber
+            ) && (
+              <Button
+                onClick={handleDisableAutoBuy}
+                color="error"
+                disabled={submittingAutoBuy}
+                sx={{ mr: 'auto' }}
+              >
+                Disable
+              </Button>
+            )}
+            <Button onClick={() => setAutoBuyDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSaveAutoBuy}
+              variant="contained"
+              disabled={submittingAutoBuy || !autoBuyPercentage || parseFloat(autoBuyPercentage) <= 0 || parseFloat(autoBuyPercentage) > 200}
+            >
+              {submittingAutoBuy ? 'Saving...' : 'Save'}
             </Button>
           </DialogActions>
         </Dialog>

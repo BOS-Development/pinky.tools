@@ -41,6 +41,7 @@ export type BuyOrder = {
   quantityDesired: number;
   maxPricePerUnit: number;
   notes?: string;
+  autoBuyConfigId?: number;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -321,29 +322,48 @@ export default function BuyOrders() {
                           {formatISK(order.quantityDesired * order.maxPricePerUnit)}
                         </TableCell>
                         <TableCell>
-                          <Chip
-                            label={order.isActive ? 'Active' : 'Inactive'}
-                            color={order.isActive ? 'success' : 'default'}
-                            size="small"
-                          />
+                          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
+                            <Chip
+                              label={order.isActive ? 'Active' : 'Inactive'}
+                              color={order.isActive ? 'success' : 'default'}
+                              size="small"
+                            />
+                            {order.autoBuyConfigId && (
+                              <Chip
+                                label="Auto"
+                                size="small"
+                                sx={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 600,
+                                  background: 'rgba(245, 158, 11, 0.15)',
+                                  color: '#f59e0b',
+                                  border: '1px solid rgba(245, 158, 11, 0.3)',
+                                }}
+                              />
+                            )}
+                          </Box>
                         </TableCell>
                         <TableCell>{order.notes || '-'}</TableCell>
                         <TableCell>{formatDate(order.createdAt)}</TableCell>
                         <TableCell align="right">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEdit(order)}
-                            title="Edit"
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDelete(order.id)}
-                            title="Cancel"
-                          >
-                            <DeleteIcon />
-                          </IconButton>
+                          {!order.autoBuyConfigId && (
+                            <>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleEdit(order)}
+                                title="Edit"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleDelete(order.id)}
+                                title="Cancel"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
