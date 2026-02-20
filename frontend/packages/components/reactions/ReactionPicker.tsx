@@ -118,7 +118,7 @@ export default function ReactionPicker({ reactions, meFactor, selections, onSele
           <TableHead>
             <TableRow>
               <TableCell sx={{ width: 40 }} />
-              <TableCell sx={{ width: 80 }}>Qty</TableCell>
+              <TableCell sx={{ width: 80 }}>Instances</TableCell>
               <TableCell>
                 <TableSortLabel active={sortKey === 'product_name'} direction={sortDir} onClick={() => handleSort('product_name')}>
                   Product
@@ -130,7 +130,7 @@ export default function ReactionPicker({ reactions, meFactor, selections, onSele
                 </TableSortLabel>
               </TableCell>
               <TableCell align="right">Runs</TableCell>
-              <TableCell align="right">Inst.</TableCell>
+              <TableCell align="right">Slots/Inst</TableCell>
               <TableCell align="right">
                 <TableSortLabel active={sortKey === 'output_value_per_run'} direction={sortDir} onClick={() => handleSort('output_value_per_run')}>
                   Output/Run
@@ -225,7 +225,7 @@ function ReactionRow({ reaction: r, instances, onInstanceChange, expanded, onTog
         </TableCell>
         <TableCell>{r.group_name}</TableCell>
         <TableCell align="right">{formatNumber(r.runs_per_cycle)}</TableCell>
-        <TableCell align="right">{r.complex_instances}</TableCell>
+        <TableCell align="right">{r.num_intermediates + r.complex_instances}</TableCell>
         <TableCell align="right">{formatISK(r.output_value_per_run)}</TableCell>
         <TableCell align="right" sx={{ color: getValueColor(r.profit_per_run) }}>
           {formatISK(r.profit_per_run)}

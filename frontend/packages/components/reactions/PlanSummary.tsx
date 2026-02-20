@@ -162,6 +162,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                   <TableCell align="right">Instances</TableCell>
                   <TableCell align="right">Lines</TableCell>
                   <TableCell align="right">Runs</TableCell>
+                  <TableCell align="right">Produced</TableCell>
                   <TableCell align="right">Profit/Cycle</TableCell>
                   <TableCell align="right">Margin</TableCell>
                 </TableRow>
@@ -191,6 +192,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                       <TableCell align="right">{instances}</TableCell>
                       <TableCell align="right">{lines}</TableCell>
                       <TableCell align="right">{formatNumber(r.runs_per_cycle)}</TableCell>
+                      <TableCell align="right">{formatNumber(r.product_qty_per_run * r.runs_per_cycle * lines)}</TableCell>
                       <TableCell align="right" sx={{ color: getValueColor(cycleProfitTotal) }}>
                         {formatISK(cycleProfitTotal)}
                       </TableCell>
@@ -204,6 +206,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                   <TableCell>Total</TableCell>
                   <TableCell />
                   <TableCell align="right">{summary.complex_slots}</TableCell>
+                  <TableCell />
                   <TableCell />
                   <TableCell align="right" sx={{ color: getValueColor(summary.profit) }}>
                     {formatISK(summary.profit)}
