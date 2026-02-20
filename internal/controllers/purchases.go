@@ -26,19 +26,25 @@ type ForSaleItemsForPurchases interface {
 	UpdateQuantity(ctx context.Context, tx *sql.Tx, itemID int64, newQuantity int64) error
 }
 
+type PurchaseNotifierInterface interface {
+	NotifyPurchase(ctx context.Context, purchase *models.PurchaseTransaction)
+}
+
 type Purchases struct {
 	db                     *sql.DB
 	repository             PurchaseTransactionsRepository
 	forSaleRepository      ForSaleItemsForPurchases
 	permissionsRepository  ContactPermissionsRepository
+	notifier               PurchaseNotifierInterface
 }
 
-func NewPurchases(router Routerer, db *sql.DB, repository PurchaseTransactionsRepository, forSaleRepository ForSaleItemsForPurchases, permissionsRepository ContactPermissionsRepository) *Purchases {
+func NewPurchases(router Routerer, db *sql.DB, repository PurchaseTransactionsRepository, forSaleRepository ForSaleItemsForPurchases, permissionsRepository ContactPermissionsRepository, notifier PurchaseNotifierInterface) *Purchases {
 	controller := &Purchases{
 		db:                    db,
 		repository:            repository,
 		forSaleRepository:     forSaleRepository,
 		permissionsRepository: permissionsRepository,
+		notifier:              notifier,
 	}
 
 	router.RegisterRestAPIRoute("/v1/purchases", web.AuthAccessUser, controller.PurchaseItem, "POST")
@@ -152,6 +158,11 @@ func (c *Purchases) PurchaseItem(args *web.HandlerArgs) (any, *web.HttpError) {
 	err = tx.Commit()
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to commit transaction")}
+	}
+
+	// 9. Send notifications (non-blocking, never fails the purchase)
+	if c.notifier != nil {
+		go c.notifier.NotifyPurchase(context.Background(), purchase)
 	}
 
 	return purchase, nil

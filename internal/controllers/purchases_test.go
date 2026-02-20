@@ -97,7 +97,7 @@ func Test_PurchaseItem_Success(t *testing.T) {
 
 	// Setup controller
 	purchaseRepo := repositories.NewPurchaseTransactions(db)
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	// Make purchase request
 	reqBody := map[string]interface{}{
@@ -191,7 +191,7 @@ func Test_PurchaseItem_EntireQuantity_MarksInactive(t *testing.T) {
 	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
 
 	purchaseRepo := repositories.NewPurchaseTransactions(db)
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	// Purchase entire quantity
 	reqBody := map[string]interface{}{
@@ -255,7 +255,7 @@ func Test_PurchaseItem_NoPermission(t *testing.T) {
 	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
 
 	purchaseRepo := repositories.NewPurchaseTransactions(db)
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"forSaleItemId":     item.ID,
@@ -310,7 +310,7 @@ func Test_PurchaseItem_SelfPurchase_Rejected(t *testing.T) {
 	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
 
 	purchaseRepo := repositories.NewPurchaseTransactions(db)
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"forSaleItemId":     item.ID,
@@ -387,7 +387,7 @@ func Test_PurchaseItem_QuantityExceeded(t *testing.T) {
 	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
 
 	purchaseRepo := repositories.NewPurchaseTransactions(db)
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"forSaleItemId":     item.ID,
@@ -465,7 +465,7 @@ func Test_MarkContractCreated_Success(t *testing.T) {
 	assert.NoError(t, purchaseRepo.Create(context.Background(), tx, purchase))
 	assert.NoError(t, tx.Commit())
 
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	// Mark as contract created
 	contractKey := "PT-4050-30000142-1234567890"
@@ -548,7 +548,7 @@ func Test_CompletePurchase_Success(t *testing.T) {
 	assert.NoError(t, purchaseRepo.Create(context.Background(), tx, purchase))
 	assert.NoError(t, tx.Commit())
 
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	req := httptest.NewRequest("POST", "/v1/purchases/"+strconv.FormatInt(purchase.ID, 10)+"/complete", nil)
 	args := &web.HandlerArgs{
@@ -622,7 +622,7 @@ func Test_CancelPurchase_RestoresQuantity(t *testing.T) {
 	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
 
 	// Make a purchase first
-	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo)
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, nil)
 
 	reqBody := map[string]interface{}{
 		"forSaleItemId":     item.ID,

@@ -96,6 +96,9 @@ export default function Navbar() {
           <Button color="inherit" href="/reactions">
             Reactions
           </Button>
+          <Button color="inherit" href="/settings">
+            Settings
+          </Button>
         </Toolbar>
       </AppBar>
       <Toolbar />
