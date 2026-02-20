@@ -7,10 +7,46 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/pkg/errors"
 )
+
+// DiscordAPIError represents a Discord API error mapped to an app-level error code
+type DiscordAPIError struct {
+	StatusCode   int
+	DiscordCode  int    `json:"code"`
+	Message      string `json:"message"`
+	AppErrorCode string // app-level code sent to the frontend
+}
+
+func (e *DiscordAPIError) Error() string {
+	return e.AppErrorCode
+}
+
+// Discord error code → app-level error code (frontend maps these to messages)
+var discordErrorCodes = map[int]string{
+	50007: "discord_dm_disabled",
+	50001: "discord_no_channel_access",
+	50013: "discord_missing_permissions",
+	10003: "discord_unknown_channel",
+}
+
+// parseDiscordError reads the response body and returns a DiscordAPIError if possible
+func parseDiscordError(statusCode int, body []byte) error {
+	var apiErr DiscordAPIError
+	if err := json.Unmarshal(body, &apiErr); err == nil && apiErr.DiscordCode != 0 {
+		apiErr.StatusCode = statusCode
+		if code, ok := discordErrorCodes[apiErr.DiscordCode]; ok {
+			apiErr.AppErrorCode = code
+		} else {
+			apiErr.AppErrorCode = "discord_unknown_error"
+		}
+		return &apiErr
+	}
+	return fmt.Errorf("discord API error: status %d, body: %s", statusCode, strings.TrimSpace(string(body)))
+}
 
 //go:generate mockgen -source=./discordClient.go -destination=./discordClient_mock_test.go -package=client_test
 
@@ -100,7 +136,7 @@ func (c *DiscordClient) SendDM(ctx context.Context, discordUserID string, embed 
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to create DM channel: status %d, body: %s", resp.StatusCode, string(body))
+		return errors.Wrap(parseDiscordError(resp.StatusCode, body), "failed to create DM channel")
 	}
 
 	var dmResp discordCreateDMResponse
@@ -134,7 +170,7 @@ func (c *DiscordClient) SendChannelMessage(ctx context.Context, channelID string
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("failed to send message: status %d, body: %s", resp.StatusCode, string(body))
+		return errors.Wrap(parseDiscordError(resp.StatusCode, body), "failed to send message")
 	}
 
 	return nil

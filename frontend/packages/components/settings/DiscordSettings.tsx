@@ -67,6 +67,15 @@ const EVENT_TYPES = [
   { value: 'purchase_created', label: 'New Purchase' },
 ];
 
+const DISCORD_ERROR_MESSAGES: Record<string, string> = {
+  discord_dm_disabled: 'Cannot send DMs to this user. They must be in a server where the bot is a member, and have "Allow direct messages from server members" enabled in that server\'s privacy settings.',
+  discord_no_channel_access: 'The bot does not have access to this channel. Check the bot\'s permissions in your Discord server.',
+  discord_missing_permissions: 'The bot is missing permissions to send messages in this channel.',
+  discord_unknown_channel: 'Unknown channel. The channel may have been deleted.',
+  discord_unknown_error: 'An unknown Discord error occurred. Please try again later.',
+  discord_send_failed: 'Failed to send test notification. Please try again later.',
+};
+
 export default function DiscordSettings() {
   const [link, setLink] = useState<DiscordLink | null>(null);
   const [targets, setTargets] = useState<NotificationTarget[]>([]);
@@ -259,7 +268,10 @@ export default function DiscordSettings() {
       if (res.ok) {
         showSnackbar('Test notification sent!', 'success');
       } else {
-        showSnackbar('Failed to send test notification', 'error');
+        const data = await res.json().catch(() => null);
+        const errorCode = data?.error || '';
+        const message = DISCORD_ERROR_MESSAGES[errorCode] || 'Failed to send test notification';
+        showSnackbar(message, 'error');
       }
     } catch {
       showSnackbar('Failed to send test notification', 'error');
