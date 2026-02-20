@@ -27,7 +27,7 @@ func (e *DiscordAPIError) Error() string {
 
 // Known Discord error codes → user-friendly messages
 var discordErrorMessages = map[int]string{
-	50007: "Cannot send DMs to this user. They may have DMs disabled in their Discord privacy settings.",
+	50007: "Cannot send DMs to this user. They must be in a server where the bot is a member, and have \"Allow direct messages from server members\" enabled in that server's privacy settings.",
 	50001: "The bot does not have access to this channel. Check the bot's permissions in your Discord server.",
 	50013: "The bot is missing permissions to send messages in this channel.",
 	10003: "Unknown channel. The channel may have been deleted.",
