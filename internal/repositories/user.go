@@ -44,6 +44,15 @@ func (r *UserRepository) Get(ctx context.Context, id int64) (*User, error) {
 	return &user, nil
 }
 
+func (r *UserRepository) GetUserName(ctx context.Context, userID int64) (string, error) {
+	var name string
+	err := r.db.QueryRowContext(ctx, "select name from users where id=$1", userID).Scan(&name)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get user name")
+	}
+	return name, nil
+}
+
 func (r *UserRepository) GetAllIDs(ctx context.Context) ([]int64, error) {
 	rows, err := r.db.QueryContext(ctx, "select id from users")
 	if err != nil {

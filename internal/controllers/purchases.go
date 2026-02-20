@@ -30,20 +30,26 @@ type PurchaseNotifierInterface interface {
 	NotifyPurchase(ctx context.Context, purchase *models.PurchaseTransaction)
 }
 
+type UsersForPurchases interface {
+	GetUserName(ctx context.Context, userID int64) (string, error)
+}
+
 type Purchases struct {
 	db                     *sql.DB
 	repository             PurchaseTransactionsRepository
 	forSaleRepository      ForSaleItemsForPurchases
 	permissionsRepository  ContactPermissionsRepository
+	usersRepository        UsersForPurchases
 	notifier               PurchaseNotifierInterface
 }
 
-func NewPurchases(router Routerer, db *sql.DB, repository PurchaseTransactionsRepository, forSaleRepository ForSaleItemsForPurchases, permissionsRepository ContactPermissionsRepository, notifier PurchaseNotifierInterface) *Purchases {
+func NewPurchases(router Routerer, db *sql.DB, repository PurchaseTransactionsRepository, forSaleRepository ForSaleItemsForPurchases, permissionsRepository ContactPermissionsRepository, usersRepository UsersForPurchases, notifier PurchaseNotifierInterface) *Purchases {
 	controller := &Purchases{
 		db:                    db,
 		repository:            repository,
 		forSaleRepository:     forSaleRepository,
 		permissionsRepository: permissionsRepository,
+		usersRepository:       usersRepository,
 		notifier:              notifier,
 	}
 
@@ -160,7 +166,15 @@ func (c *Purchases) PurchaseItem(args *web.HandlerArgs) (any, *web.HttpError) {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to commit transaction")}
 	}
 
-	// 9. Send notifications (non-blocking, never fails the purchase)
+	// 9. Populate fields for notification display
+	purchase.TypeName = item.TypeName
+	purchase.LocationName = item.LocationName
+	purchase.LocationID = item.LocationID
+	if buyerName, err := c.usersRepository.GetUserName(args.Request.Context(), buyerUserID); err == nil {
+		purchase.BuyerName = buyerName
+	}
+
+	// 10. Send notifications (non-blocking, never fails the purchase)
 	if c.notifier != nil {
 		go c.notifier.NotifyPurchase(context.Background(), purchase)
 	}

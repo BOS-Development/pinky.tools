@@ -8,6 +8,8 @@ import (
 	"github.com/annymsMthd/industry-tool/internal/client"
 	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 // PurchaseNotifier is the interface used by the purchases controller
@@ -100,6 +102,12 @@ func (u *NotificationsUpdater) SendTestNotification(ctx context.Context, target 
 	}
 }
 
+var iskPrinter = message.NewPrinter(language.English)
+
+func formatISK(value float64) string {
+	return iskPrinter.Sprintf("%.2f ISK", value)
+}
+
 func buildPurchaseEmbed(purchase *models.PurchaseTransaction) *client.DiscordEmbed {
 	return &client.DiscordEmbed{
 		Title:       "New Purchase",
@@ -113,17 +121,17 @@ func buildPurchaseEmbed(purchase *models.PurchaseTransaction) *client.DiscordEmb
 			},
 			{
 				Name:   "Quantity",
-				Value:  fmt.Sprintf("%d", purchase.QuantityPurchased),
+				Value:  iskPrinter.Sprintf("%d", purchase.QuantityPurchased),
 				Inline: true,
 			},
 			{
 				Name:   "Price Per Unit",
-				Value:  fmt.Sprintf("%.2f ISK", purchase.PricePerUnit),
+				Value:  formatISK(purchase.PricePerUnit),
 				Inline: true,
 			},
 			{
 				Name:   "Total",
-				Value:  fmt.Sprintf("%.2f ISK", purchase.TotalPrice),
+				Value:  formatISK(purchase.TotalPrice),
 				Inline: true,
 			},
 			{
