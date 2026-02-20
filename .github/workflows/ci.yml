@@ -150,7 +150,6 @@ jobs:
                   load: true
                   tags: industry-tool-frontend:latest
                   cache-from: type=gha,scope=e2e-frontend
-                  cache-to: type=gha,mode=max,scope=e2e-frontend
 
             - name: Run E2E tests
               env:

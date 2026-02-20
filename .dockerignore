@@ -1,2 +1,10 @@
 Dockerfile
+Dockerfile.*
 build
+.git
+.github
+.vscode
+docs
+e2e
+artifacts
+*.md
