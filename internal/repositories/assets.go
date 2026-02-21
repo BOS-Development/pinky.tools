@@ -1009,14 +1009,13 @@ func (r *Assets) GetStockpileDeficits(ctx context.Context, user int64) (*Stockpi
 			)
 			LEFT JOIN stockpile_markers stockpile ON (
 				stockpile.type_id = loc.type_id
-				AND stockpile.location_id = loc.location_id
+				AND stockpile.location_id = loc.station_id
 				AND stockpile.division_number = loc.division_number
 				AND stockpile.container_id IS NULL
 				AND stockpile.owner_id = loc.corporation_id
 			)
 			LEFT JOIN market_prices market ON (market.type_id = loc.type_id AND market.region_id = 10000002)
 			WHERE loc.user_id = $1
-				AND loc.location_type = 'station'
 				AND loc.location_flag LIKE 'CorpSAG%'
 				AND loc.station_id IS NOT NULL
 				AND (ca.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0

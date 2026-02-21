@@ -106,9 +106,9 @@ var characterNames = map[int64][]nameEntry{
 // Corporation assets keyed by corp ID
 var corpAssets = map[int64][]asset{
 	3001001: { // Stargazer Industries
-		{ItemID: 500001, LocationFlag: "CorpSAG1", LocationID: 60003760, LocationType: "station", Quantity: 100000, TypeID: 34}, // Tritanium
-		{ItemID: 500002, LocationFlag: "CorpSAG2", LocationID: 60003760, LocationType: "station", Quantity: 5, TypeID: 587, IsSingleton: true},    // Rifter
-		{ItemID: 500000, LocationFlag: "OfficeFolder", LocationID: 60003760, LocationType: "station", Quantity: 1, TypeID: 27},  // Office
+		{ItemID: 500000, LocationFlag: "OfficeFolder", LocationID: 60003760, LocationType: "item", Quantity: 1, TypeID: 27, IsSingleton: true}, // Office
+		{ItemID: 500001, LocationFlag: "CorpSAG1", LocationID: 500000, LocationType: "item", Quantity: 100000, TypeID: 34},                    // Tritanium
+		{ItemID: 500002, LocationFlag: "CorpSAG2", LocationID: 500000, LocationType: "item", Quantity: 5, TypeID: 587, IsSingleton: true},      // Rifter
 	},
 }
 
