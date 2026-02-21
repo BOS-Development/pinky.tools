@@ -80,6 +80,15 @@ func (m *mockAutoSellStockpileRepo) GetByContainerContext(ctx context.Context, u
 	return m.markers, m.markersErr
 }
 
+type mockAutoSellPurchaseRepo struct {
+	pendingQuantities    map[int64]int64
+	pendingQuantitiesErr error
+}
+
+func (m *mockAutoSellPurchaseRepo) GetPendingQuantitiesForSaleContext(ctx context.Context, sellerUserID int64, ownerType string, ownerID, locationID int64, containerID *int64, divisionNumber *int) (map[int64]int64, error) {
+	return m.pendingQuantities, m.pendingQuantitiesErr
+}
+
 // --- Helper ---
 
 func newAutoSellUpdater(
@@ -89,6 +98,8 @@ func newAutoSellUpdater(
 ) *updaters.AutoSell {
 	return updaters.NewAutoSell(autoSellRepo, forSaleRepo, marketRepo, &mockAutoSellStockpileRepo{
 		markers: map[int64]*models.StockpileMarker{},
+	}, &mockAutoSellPurchaseRepo{
+		pendingQuantities: map[int64]int64{},
 	})
 }
 
@@ -98,7 +109,19 @@ func newAutoSellUpdaterWithStockpile(
 	marketRepo *mockAutoSellMarketRepo,
 	stockpileRepo *mockAutoSellStockpileRepo,
 ) *updaters.AutoSell {
-	return updaters.NewAutoSell(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo)
+	return updaters.NewAutoSell(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo, &mockAutoSellPurchaseRepo{
+		pendingQuantities: map[int64]int64{},
+	})
+}
+
+func newAutoSellUpdaterWithPurchases(
+	autoSellRepo *mockAutoSellContainersRepo,
+	forSaleRepo *mockAutoSellForSaleRepo,
+	marketRepo *mockAutoSellMarketRepo,
+	stockpileRepo *mockAutoSellStockpileRepo,
+	purchaseRepo *mockAutoSellPurchaseRepo,
+) *updaters.AutoSell {
+	return updaters.NewAutoSell(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo, purchaseRepo)
 }
 
 func float64Ptr(v float64) *float64 {
@@ -809,6 +832,7 @@ func Test_AutoSell_Constructor(t *testing.T) {
 		&mockAutoSellForSaleRepo{},
 		&mockAutoSellMarketRepo{},
 		&mockAutoSellStockpileRepo{},
+		&mockAutoSellPurchaseRepo{},
 	)
 	assert.NotNil(t, u)
 }
@@ -1106,4 +1130,210 @@ func Test_AutoSell_StockpileRepoError_FailsContainer(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, forSaleRepo.upsertedItems, 0) // Nothing upserted due to error
+}
+
+// --- Pending Purchase Awareness Tests ---
+
+func Test_AutoSell_PendingPurchasesReduceQuantity(t *testing.T) {
+	containerID := int64(1)
+	buyPrice := 100.0
+
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              containerID,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     int64Ptr(9000),
+				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice},
+		},
+	}
+
+	stockpileRepo := &mockAutoSellStockpileRepo{
+		markers: map[int64]*models.StockpileMarker{},
+	}
+
+	purchaseRepo := &mockAutoSellPurchaseRepo{
+		pendingQuantities: map[int64]int64{
+			34: 300, // 300 units already committed to pending purchases
+		},
+	}
+
+	u := newAutoSellUpdaterWithPurchases(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	assert.Len(t, forSaleRepo.upsertedItems, 1)
+	assert.Equal(t, int64(700), forSaleRepo.upsertedItems[0].QuantityAvailable) // 1000 - 300 = 700
+	assert.True(t, forSaleRepo.upsertedItems[0].IsActive)
+}
+
+func Test_AutoSell_PendingPurchasesFullyCoverQuantity_Deactivates(t *testing.T) {
+	containerID := int64(1)
+	buyPrice := 100.0
+
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              containerID,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     int64Ptr(9000),
+				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{
+			{
+				ID:                  99,
+				TypeID:              34,
+				AutoSellContainerID: &containerID,
+				IsActive:            true,
+			},
+		},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice},
+		},
+	}
+
+	stockpileRepo := &mockAutoSellStockpileRepo{
+		markers: map[int64]*models.StockpileMarker{},
+	}
+
+	purchaseRepo := &mockAutoSellPurchaseRepo{
+		pendingQuantities: map[int64]int64{
+			34: 1000, // All units committed to pending purchases
+		},
+	}
+
+	u := newAutoSellUpdaterWithPurchases(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	// Deactivated from "sellable <= 0" path and "not in activeTypes" path
+	assert.Len(t, forSaleRepo.upsertedItems, 2)
+	assert.False(t, forSaleRepo.upsertedItems[0].IsActive)
+	assert.False(t, forSaleRepo.upsertedItems[1].IsActive)
+}
+
+func Test_AutoSell_StockpileAndPendingPurchasesCombined(t *testing.T) {
+	containerID := int64(1)
+	buyPrice := 100.0
+
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              containerID,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     int64Ptr(9000),
+				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice},
+		},
+	}
+
+	stockpileRepo := &mockAutoSellStockpileRepo{
+		markers: map[int64]*models.StockpileMarker{
+			34: {TypeID: 34, DesiredQuantity: 400}, // Reserve 400
+		},
+	}
+
+	purchaseRepo := &mockAutoSellPurchaseRepo{
+		pendingQuantities: map[int64]int64{
+			34: 200, // 200 already committed
+		},
+	}
+
+	u := newAutoSellUpdaterWithPurchases(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	assert.Len(t, forSaleRepo.upsertedItems, 1)
+	// 1000 - 400 (stockpile) - 200 (pending) = 400
+	assert.Equal(t, int64(400), forSaleRepo.upsertedItems[0].QuantityAvailable)
+	assert.True(t, forSaleRepo.upsertedItems[0].IsActive)
+}
+
+func Test_AutoSell_PurchaseRepoError_FailsContainer(t *testing.T) {
+	autoSellRepo := &mockAutoSellContainersRepo{
+		byUserContainers: []*models.AutoSellContainer{
+			{
+				ID:              1,
+				UserID:          42,
+				OwnerType:       "character",
+				OwnerID:         12345,
+				LocationID:      60003760,
+				ContainerID:     int64Ptr(9000),
+				PricePercentage: 90.0,
+				PriceSource:     "jita_buy",
+			},
+		},
+		containerItems: []*models.ContainerItem{
+			{TypeID: 34, Quantity: 1000},
+		},
+	}
+
+	forSaleRepo := &mockAutoSellForSaleRepo{
+		activeListings: []*models.ForSaleItem{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{}
+
+	stockpileRepo := &mockAutoSellStockpileRepo{
+		markers: map[int64]*models.StockpileMarker{},
+	}
+
+	purchaseRepo := &mockAutoSellPurchaseRepo{
+		pendingQuantitiesErr: fmt.Errorf("purchase db error"),
+	}
+
+	u := newAutoSellUpdaterWithPurchases(autoSellRepo, forSaleRepo, marketRepo, stockpileRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err) // SyncForUser logs per-container errors but returns nil
+	assert.Len(t, forSaleRepo.upsertedItems, 0)
 }

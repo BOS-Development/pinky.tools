@@ -408,6 +408,77 @@ func (r *PurchaseTransactions) CompleteWithContractID(ctx context.Context, purch
 	return nil
 }
 
+// GetPendingQuantitiesForSaleContext returns pending/contract_created purchase quantities
+// grouped by type_id, scoped to a specific seller's for-sale context (owner+location+container/division).
+func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
+	ctx context.Context,
+	sellerUserID int64,
+	ownerType string, ownerID, locationID int64,
+	containerID *int64, divisionNumber *int,
+) (map[int64]int64, error) {
+	query := `
+		SELECT pt.type_id, SUM(pt.quantity_purchased)
+		FROM purchase_transactions pt
+		JOIN for_sale_items f ON pt.for_sale_item_id = f.id
+		WHERE pt.seller_user_id = $1
+			AND pt.status IN ('pending', 'contract_created')
+			AND f.owner_type = $2
+			AND f.owner_id = $3
+			AND f.location_id = $4
+			AND COALESCE(f.container_id, 0) = COALESCE($5, 0)
+			AND COALESCE(f.division_number, 0) = COALESCE($6, 0)
+		GROUP BY pt.type_id
+	`
+
+	rows, err := r.db.QueryContext(ctx, query,
+		sellerUserID, ownerType, ownerID, locationID, containerID, divisionNumber,
+	)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query pending quantities for sale context")
+	}
+	defer rows.Close()
+
+	result := map[int64]int64{}
+	for rows.Next() {
+		var typeID, quantity int64
+		if err := rows.Scan(&typeID, &quantity); err != nil {
+			return nil, errors.Wrap(err, "failed to scan pending quantity")
+		}
+		result[typeID] = quantity
+	}
+
+	return result, nil
+}
+
+// GetPendingQuantitiesByBuyer returns pending/contract_created purchase quantities
+// grouped by type_id for a specific buyer.
+func (r *PurchaseTransactions) GetPendingQuantitiesByBuyer(ctx context.Context, buyerUserID int64) (map[int64]int64, error) {
+	query := `
+		SELECT type_id, SUM(quantity_purchased)
+		FROM purchase_transactions
+		WHERE buyer_user_id = $1
+			AND status IN ('pending', 'contract_created')
+		GROUP BY type_id
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, buyerUserID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query pending quantities by buyer")
+	}
+	defer rows.Close()
+
+	result := map[int64]int64{}
+	for rows.Next() {
+		var typeID, quantity int64
+		if err := rows.Scan(&typeID, &quantity); err != nil {
+			return nil, errors.Wrap(err, "failed to scan pending quantity")
+		}
+		result[typeID] = quantity
+	}
+
+	return result, nil
+}
+
 // UpdateStatus updates the status of a purchase transaction
 func (r *PurchaseTransactions) UpdateStatus(ctx context.Context, purchaseID int64, newStatus string) error {
 	query := `
