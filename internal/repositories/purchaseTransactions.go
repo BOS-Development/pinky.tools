@@ -425,7 +425,7 @@ func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
 			AND f.owner_type = $2
 			AND f.owner_id = $3
 			AND f.location_id = $4
-			AND COALESCE(f.container_id, 0) = COALESCE($5, 0)
+			AND COALESCE(f.container_id, 0::bigint) = COALESCE($5::bigint, 0::bigint)
 			AND COALESCE(f.division_number, 0) = COALESCE($6, 0)
 		GROUP BY pt.type_id
 	`

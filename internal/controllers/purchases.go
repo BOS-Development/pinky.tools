@@ -390,15 +390,15 @@ func (c *Purchases) CancelPurchase(args *web.HandlerArgs) (any, *web.HttpError) 
 
 	// Get current for-sale item
 	item, err := c.forSaleRepository.GetByID(args.Request.Context(), purchase.ForSaleItemID)
-	if err == nil {
-		// Item still exists, restore quantity
+	if err == nil && item.IsActive {
+		// Item still exists and is active, restore quantity
 		newQuantity := item.QuantityAvailable + purchase.QuantityPurchased
 		err = c.forSaleRepository.UpdateQuantity(args.Request.Context(), tx, item.ID, newQuantity)
 		if err != nil {
 			return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to restore quantity")}
 		}
 	}
-	// If item doesn't exist, that's OK - just cancel the purchase
+	// If item doesn't exist or is inactive, that's OK - just cancel the purchase
 
 	// Update purchase status
 	err = c.repository.UpdateStatus(args.Request.Context(), purchaseID, "cancelled")
