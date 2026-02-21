@@ -18,6 +18,11 @@ type PurchaseNotifier interface {
 	NotifyPurchase(ctx context.Context, purchase *models.PurchaseTransaction)
 }
 
+// ContractCreatedNotifier is the interface used by the purchases controller for contract creation
+type ContractCreatedNotifier interface {
+	NotifyContractCreated(ctx context.Context, purchase *models.PurchaseTransaction)
+}
+
 // PiStallNotifier is the interface used by the PI updater
 type PiStallNotifier interface {
 	NotifyPiStalls(ctx context.Context, userID int64, alerts []*PiStallAlert)
@@ -94,6 +99,47 @@ func (u *NotificationsUpdater) NotifyPurchase(ctx context.Context, purchase *mod
 
 		if sendErr != nil {
 			log.Error("failed to send notification", "target_id", target.ID, "target_type", target.TargetType, "error", sendErr)
+		}
+	}
+}
+
+// NotifyContractCreated sends notifications to the buyer when a seller creates a contract
+func (u *NotificationsUpdater) NotifyContractCreated(ctx context.Context, purchase *models.PurchaseTransaction) {
+	targets, err := u.repo.GetActiveTargetsForEvent(ctx, purchase.BuyerUserID, "contract_created")
+	if err != nil {
+		log.Error("failed to get notification targets", "user_id", purchase.BuyerUserID, "error", err)
+		return
+	}
+
+	if len(targets) == 0 {
+		return
+	}
+
+	embed := buildContractCreatedEmbed(purchase)
+
+	for _, target := range targets {
+		var sendErr error
+		switch target.TargetType {
+		case "dm":
+			link, err := u.repo.GetLinkByUser(ctx, target.UserID)
+			if err != nil || link == nil {
+				log.Error("failed to get discord link for DM target", "user_id", target.UserID, "error", err)
+				continue
+			}
+			sendErr = u.discordClient.SendDM(ctx, link.DiscordUserID, embed)
+		case "channel":
+			if target.ChannelID == nil {
+				log.Error("channel target has no channel_id", "target_id", target.ID)
+				continue
+			}
+			sendErr = u.discordClient.SendChannelMessage(ctx, *target.ChannelID, embed)
+		default:
+			log.Error("unknown target type", "target_type", target.TargetType, "target_id", target.ID)
+			continue
+		}
+
+		if sendErr != nil {
+			log.Error("failed to send contract created notification", "target_id", target.ID, "target_type", target.TargetType, "error", sendErr)
 		}
 	}
 }
@@ -225,6 +271,49 @@ var iskPrinter = message.NewPrinter(language.English)
 
 func formatISK(value float64) string {
 	return iskPrinter.Sprintf("%.2f ISK", value)
+}
+
+func buildContractCreatedEmbed(purchase *models.PurchaseTransaction) *client.DiscordEmbed {
+	fields := []client.DiscordEmbedField{
+		{
+			Name:   "Item",
+			Value:  purchase.TypeName,
+			Inline: true,
+		},
+		{
+			Name:   "Quantity",
+			Value:  iskPrinter.Sprintf("%d", purchase.QuantityPurchased),
+			Inline: true,
+		},
+		{
+			Name:   "Total",
+			Value:  formatISK(purchase.TotalPrice),
+			Inline: true,
+		},
+		{
+			Name:   "Location",
+			Value:  purchase.LocationName,
+			Inline: false,
+		},
+	}
+
+	if purchase.ContractKey != nil && *purchase.ContractKey != "" {
+		fields = append(fields, client.DiscordEmbedField{
+			Name:   "Contract Key",
+			Value:  fmt.Sprintf("`%s`", *purchase.ContractKey),
+			Inline: false,
+		})
+	}
+
+	return &client.DiscordEmbed{
+		Title:       "Contract Created",
+		Description: fmt.Sprintf("**%s** has created a contract for your purchase", purchase.SellerName),
+		Color:       0x3b82f6, // Primary blue
+		Fields:      fields,
+		Footer: &client.DiscordEmbedFooter{
+			Text: fmt.Sprintf("Pinky.Tools • %s", time.Now().UTC().Format("Jan 2, 2006 15:04 UTC")),
+		},
+	}
 }
 
 func buildPurchaseEmbed(purchase *models.PurchaseTransaction) *client.DiscordEmbed {

@@ -65,6 +65,7 @@ type Channel = {
 
 const EVENT_TYPES = [
   { value: 'purchase_created', label: 'New Purchase' },
+  { value: 'contract_created', label: 'Contract Created' },
   { value: 'pi_stall', label: 'PI Stall Alert' },
 ];
 

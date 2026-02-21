@@ -102,11 +102,13 @@ var rootCmd = &cobra.Command{
 		// Discord integration (optional — only enabled when DISCORD_BOT_TOKEN is set)
 		var discordClient *client.DiscordClient
 		var purchaseNotifier controllers.PurchaseNotifierInterface
+		var contractCreatedNotifier controllers.ContractCreatedNotifierInterface
 		var notificationsUpdater *updaters.NotificationsUpdater
 		if settings.DiscordBotToken != "" {
 			discordClient = client.NewDiscordClient(settings.DiscordBotToken)
 			notificationsUpdater = updaters.NewNotifications(discordNotificationsRepository, discordClient)
 			purchaseNotifier = notificationsUpdater
+			contractCreatedNotifier = notificationsUpdater
 			log.Info("discord notifications enabled")
 		} else {
 			log.Info("discord notifications disabled (no DISCORD_BOT_TOKEN)")
@@ -140,7 +142,7 @@ var rootCmd = &cobra.Command{
 		controllers.NewContacts(router, contactsRepository, contactPermissionsRepository, db)
 		controllers.NewContactPermissions(router, contactPermissionsRepository)
 		controllers.NewForSaleItems(router, forSaleItemsRepository, contactPermissionsRepository)
-		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
+		controllers.NewPurchases(router, db, purchaseTransactionsRepository, forSaleItemsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier, contractCreatedNotifier)
 		controllers.NewBuyOrders(router, buyOrdersRepository, contactPermissionsRepository, autoFulfillUpdater)
 		controllers.NewItemTypes(router, itemTypesRepository)
 		controllers.NewAnalytics(router, salesAnalyticsRepository)
