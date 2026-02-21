@@ -269,7 +269,7 @@ Each row expands to show which planets produce and consume the item, with charac
 
 | File | Purpose |
 |------|---------|
-| `internal/database/migrations/20260220113513_create_pi_tables.{up,down}.sql` | Schema |
+| `internal/database/migrations/20260221000943_create_pi_tables.{up,down}.sql` | Schema |
 | `internal/database/migrations/20260220131419_create_pi_launchpad_labels.{up,down}.sql` | Launchpad labels schema |
 | `internal/repositories/piPlanets.go` | CRUD for pi_planets, pi_pins, pi_pin_contents, pi_routes |
 | `internal/repositories/piTaxConfig.go` | CRUD for pi_tax_config |

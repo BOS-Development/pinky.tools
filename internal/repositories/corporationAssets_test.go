@@ -283,37 +283,27 @@ func Test_CorporationAssetsShouldGetPlayerOwnedStationIDs(t *testing.T) {
 	err = playerCorpsRepo.Upsert(context.Background(), testCorp)
 	assert.NoError(t, err)
 
-	// Create assets at multiple player-owned structures (location_type='item', location_flag='Hangar')
+	// Create OfficeFolder entries at multiple player-owned structures
 	assets := []*models.EveAsset{
 		{
 			ItemID:          5001,
 			IsBlueprintCopy: false,
-			IsSingleton:     false,
+			IsSingleton:     true,
 			LocationID:      1000000001, // Player structure 1
 			LocationType:    "item",
-			Quantity:        100,
-			TypeID:          34,
-			LocationFlag:    "Hangar",
+			Quantity:        1,
+			TypeID:          27, // Office
+			LocationFlag:    "OfficeFolder",
 		},
 		{
 			ItemID:          5002,
 			IsBlueprintCopy: false,
-			IsSingleton:     false,
+			IsSingleton:     true,
 			LocationID:      1000000002, // Player structure 2
 			LocationType:    "item",
-			Quantity:        50,
-			TypeID:          35,
-			LocationFlag:    "Hangar",
-		},
-		{
-			ItemID:          5003,
-			IsBlueprintCopy: false,
-			IsSingleton:     false,
-			LocationID:      1000000001, // Player structure 1 again
-			LocationType:    "item",
-			Quantity:        25,
-			TypeID:          36,
-			LocationFlag:    "Hangar",
+			Quantity:        1,
+			TypeID:          27, // Office
+			LocationFlag:    "OfficeFolder",
 		},
 	}
 

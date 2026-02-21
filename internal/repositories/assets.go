@@ -514,7 +514,7 @@ ORDER BY
 SELECT
 	corporation_assets.corporation_id,
 	player_corporations.name,
-	corporation_assets.location_id,
+	office.location_id as station_id,
 	SUBSTRING(corporation_assets.location_flag, 8, 1)::int as "division_number",
 	assetTypes.type_id,
 	assetTypes.type_name,
@@ -539,6 +539,12 @@ INNER JOIN
 	player_corporations player_corporations
 ON
 	player_corporations.id=corporation_assets.corporation_id
+INNER JOIN
+	corporation_assets office
+ON
+	office.item_id = corporation_assets.location_id
+	AND office.location_flag = 'OfficeFolder'
+	AND office.user_id = $1
 LEFT JOIN
 	stockpile_markers stockpile
 ON
@@ -546,7 +552,7 @@ ON
 	AND stockpile.type_id = corporation_assets.type_id
 	AND stockpile.owner_type = 'corporation'
 	AND stockpile.owner_id = corporation_assets.corporation_id
-	AND stockpile.location_id = corporation_assets.location_id
+	AND stockpile.location_id = office.location_id
 	AND stockpile.division_number = SUBSTRING(corporation_assets.location_flag, 8, 1)::int
 	AND stockpile.container_id IS NULL
 LEFT JOIN
@@ -556,9 +562,9 @@ ON
 	AND market.region_id = 10000002
 WHERE
 	corporation_assets.user_id=$1
-	AND NOT (is_singleton=true AND assetTypes.type_name like '%Container')
-	AND location_type='station'
-	AND location_flag like 'CorpSAG%';`
+	AND NOT (corporation_assets.is_singleton=true AND assetTypes.type_name like '%Container')
+	AND corporation_assets.location_type='item'
+	AND corporation_assets.location_flag like 'CorpSAG%';`
 
 	corpHangaredItems, err := r.db.QueryContext(ctx, corpHangaredItemsQuery, user)
 	if err != nil {
@@ -648,13 +654,13 @@ SELECT
 		ELSE 'item'
 	END as final_location_type,
 	SUBSTRING((SELECT location_flag FROM container_chain WHERE item_id = cc.container_id LIMIT 1), 8, 1)::int as division_number,
-	loc.name as container_name
+	COALESCE(loc.name, ait.type_name) as container_name
 FROM (SELECT DISTINCT container_id, corporation_id FROM container_chain) cc
 INNER JOIN asset_item_types ait ON ait.type_id = (
 	SELECT type_id FROM container_chain WHERE item_id = cc.container_id LIMIT 1
 )
 INNER JOIN player_corporations pc ON pc.id = cc.corporation_id
-INNER JOIN corporation_asset_location_names loc ON loc.item_id = cc.container_id
+LEFT JOIN corporation_asset_location_names loc ON loc.item_id = cc.container_id
 WHERE ait.type_name LIKE '%Container'
 ORDER BY cc.container_id;`
 
@@ -1003,14 +1009,13 @@ func (r *Assets) GetStockpileDeficits(ctx context.Context, user int64) (*Stockpi
 			)
 			LEFT JOIN stockpile_markers stockpile ON (
 				stockpile.type_id = loc.type_id
-				AND stockpile.location_id = loc.location_id
+				AND stockpile.location_id = loc.station_id
 				AND stockpile.division_number = loc.division_number
 				AND stockpile.container_id IS NULL
 				AND stockpile.owner_id = loc.corporation_id
 			)
 			LEFT JOIN market_prices market ON (market.type_id = loc.type_id AND market.region_id = 10000002)
 			WHERE loc.user_id = $1
-				AND loc.location_type = 'station'
 				AND loc.location_flag LIKE 'CorpSAG%'
 				AND loc.station_id IS NOT NULL
 				AND (ca.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
