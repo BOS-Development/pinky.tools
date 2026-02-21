@@ -109,7 +109,7 @@ func Test_AutoSellContainersController_GetMyConfigs_Success(t *testing.T) {
 	items := result.([]*models.AutoSellContainer)
 	assert.Len(t, items, 1)
 	assert.Equal(t, 90.0, items[0].PricePercentage)
-	assert.Equal(t, int64(9000), items[0].ContainerID)
+	assert.Equal(t, int64Ptr(9000), items[0].ContainerID)
 
 	mockRepo.AssertExpectations(t)
 }
