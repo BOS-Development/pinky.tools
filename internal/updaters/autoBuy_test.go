@@ -65,6 +65,15 @@ func (m *mockAutoBuyOrdersRepo) DeactivateAutoBuyOrder(ctx context.Context, orde
 	return m.deactivateOneErr
 }
 
+type mockAutoBuyPurchaseRepo struct {
+	pendingQuantities    map[int64]int64
+	pendingQuantitiesErr error
+}
+
+func (m *mockAutoBuyPurchaseRepo) GetPendingQuantitiesByBuyer(ctx context.Context, buyerUserID int64) (map[int64]int64, error) {
+	return m.pendingQuantities, m.pendingQuantitiesErr
+}
+
 // --- Helper ---
 
 func newAutoBuyUpdater(
@@ -72,7 +81,18 @@ func newAutoBuyUpdater(
 	buyOrderRepo *mockAutoBuyOrdersRepo,
 	marketRepo *mockAutoSellMarketRepo,
 ) *updaters.AutoBuy {
-	return updaters.NewAutoBuy(configRepo, buyOrderRepo, marketRepo)
+	return updaters.NewAutoBuy(configRepo, buyOrderRepo, marketRepo, &mockAutoBuyPurchaseRepo{
+		pendingQuantities: map[int64]int64{},
+	})
+}
+
+func newAutoBuyUpdaterWithPurchases(
+	configRepo *mockAutoBuyConfigsRepo,
+	buyOrderRepo *mockAutoBuyOrdersRepo,
+	marketRepo *mockAutoSellMarketRepo,
+	purchaseRepo *mockAutoBuyPurchaseRepo,
+) *updaters.AutoBuy {
+	return updaters.NewAutoBuy(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
 }
 
 // --- SyncForUser Tests ---
@@ -472,8 +492,149 @@ func Test_AutoBuy_Constructor(t *testing.T) {
 		&mockAutoBuyConfigsRepo{},
 		&mockAutoBuyOrdersRepo{},
 		&mockAutoSellMarketRepo{},
+		&mockAutoBuyPurchaseRepo{},
 	)
 	assert.NotNil(t, u)
+}
+
+// --- Pending Purchase Awareness Tests ---
+
+func Test_AutoBuy_PendingPurchasesReduceDeficit(t *testing.T) {
+	configID := int64(1)
+	buyPrice := 100.0
+
+	configRepo := &mockAutoBuyConfigsRepo{
+		byUserConfigs: []*models.AutoBuyConfig{
+			{
+				ID:                 configID,
+				UserID:             42,
+				OwnerType:          "character",
+				OwnerID:            12345,
+				LocationID:         60003760,
+				MaxPricePercentage: 110.0,
+				PriceSource:        "jita_buy",
+				IsActive:           true,
+			},
+		},
+		deficits: []*models.StockpileDeficitItem{
+			{TypeID: 34, DesiredQuantity: 1000, CurrentQuantity: 200, Deficit: 800},
+		},
+	}
+
+	buyOrderRepo := &mockAutoBuyOrdersRepo{
+		activeOrders: []*models.BuyOrder{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice},
+		},
+	}
+
+	purchaseRepo := &mockAutoBuyPurchaseRepo{
+		pendingQuantities: map[int64]int64{
+			34: 300, // 300 already in-flight
+		},
+	}
+
+	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	assert.Len(t, buyOrderRepo.upsertedOrders, 1)
+	assert.Equal(t, int64(500), buyOrderRepo.upsertedOrders[0].QuantityDesired) // 800 - 300 = 500
+	assert.True(t, buyOrderRepo.upsertedOrders[0].IsActive)
+}
+
+func Test_AutoBuy_PendingPurchasesFullyCoverDeficit_Deactivates(t *testing.T) {
+	configID := int64(1)
+	existingOrderID := int64(99)
+	buyPrice := 100.0
+
+	configRepo := &mockAutoBuyConfigsRepo{
+		byUserConfigs: []*models.AutoBuyConfig{
+			{
+				ID:                 configID,
+				UserID:             42,
+				OwnerType:          "character",
+				OwnerID:            12345,
+				LocationID:         60003760,
+				MaxPricePercentage: 110.0,
+				PriceSource:        "jita_buy",
+				IsActive:           true,
+			},
+		},
+		deficits: []*models.StockpileDeficitItem{
+			{TypeID: 34, DesiredQuantity: 1000, CurrentQuantity: 200, Deficit: 800},
+		},
+	}
+
+	buyOrderRepo := &mockAutoBuyOrdersRepo{
+		activeOrders: []*models.BuyOrder{
+			{
+				ID:              existingOrderID,
+				TypeID:          34,
+				AutoBuyConfigID: &configID,
+				IsActive:        true,
+			},
+		},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{
+		prices: map[int64]*models.MarketPrice{
+			34: {TypeID: 34, RegionID: 10000002, BuyPrice: &buyPrice},
+		},
+	}
+
+	purchaseRepo := &mockAutoBuyPurchaseRepo{
+		pendingQuantities: map[int64]int64{
+			34: 800, // Fully covers the deficit
+		},
+	}
+
+	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err)
+	assert.Len(t, buyOrderRepo.upsertedOrders, 0) // No new orders
+	// Deactivated from "pending covers deficit" path and "not in activeTypes" path
+	assert.Contains(t, buyOrderRepo.deactivatedIDs, existingOrderID)
+}
+
+func Test_AutoBuy_PurchaseRepoError_FailsConfig(t *testing.T) {
+	configRepo := &mockAutoBuyConfigsRepo{
+		byUserConfigs: []*models.AutoBuyConfig{
+			{
+				ID:                 1,
+				UserID:             42,
+				OwnerType:          "character",
+				OwnerID:            12345,
+				LocationID:         60003760,
+				MaxPricePercentage: 110.0,
+				PriceSource:        "jita_buy",
+				IsActive:           true,
+			},
+		},
+		deficits: []*models.StockpileDeficitItem{
+			{TypeID: 34, DesiredQuantity: 1000, CurrentQuantity: 200, Deficit: 800},
+		},
+	}
+
+	buyOrderRepo := &mockAutoBuyOrdersRepo{
+		activeOrders: []*models.BuyOrder{},
+	}
+
+	marketRepo := &mockAutoSellMarketRepo{}
+
+	purchaseRepo := &mockAutoBuyPurchaseRepo{
+		pendingQuantitiesErr: fmt.Errorf("purchase db error"),
+	}
+
+	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
+	err := u.SyncForUser(context.Background(), 42)
+
+	assert.NoError(t, err) // SyncForUser logs per-config errors but returns nil
+	assert.Len(t, buyOrderRepo.upsertedOrders, 0)
 }
 
 // --- Helper (local to this file, not redefining shared ones) ---

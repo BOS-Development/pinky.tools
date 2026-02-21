@@ -29,11 +29,16 @@ type AutoSellStockpileRepository interface {
 	GetByContainerContext(ctx context.Context, userID int64, ownerType string, ownerID int64, locationID int64, containerID int64, divisionNumber *int) (map[int64]*models.StockpileMarker, error)
 }
 
+type AutoSellPurchaseRepository interface {
+	GetPendingQuantitiesForSaleContext(ctx context.Context, sellerUserID int64, ownerType string, ownerID, locationID int64, containerID *int64, divisionNumber *int) (map[int64]int64, error)
+}
+
 type AutoSell struct {
 	autoSellRepo  AutoSellContainersRepository
 	forSaleRepo   AutoSellForSaleRepository
 	marketRepo    AutoSellMarketPricesRepository
 	stockpileRepo AutoSellStockpileRepository
+	purchaseRepo  AutoSellPurchaseRepository
 }
 
 func NewAutoSell(
@@ -41,12 +46,14 @@ func NewAutoSell(
 	forSaleRepo AutoSellForSaleRepository,
 	marketRepo AutoSellMarketPricesRepository,
 	stockpileRepo AutoSellStockpileRepository,
+	purchaseRepo AutoSellPurchaseRepository,
 ) *AutoSell {
 	return &AutoSell{
 		autoSellRepo:  autoSellRepo,
 		forSaleRepo:   forSaleRepo,
 		marketRepo:    marketRepo,
 		stockpileRepo: stockpileRepo,
+		purchaseRepo:  purchaseRepo,
 	}
 }
 
@@ -146,6 +153,15 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 		return errors.Wrap(err, "failed to get stockpile markers for container")
 	}
 
+	// Get pending purchase quantities to avoid re-listing committed items
+	pendingQuantities, err := u.purchaseRepo.GetPendingQuantitiesForSaleContext(
+		ctx, container.UserID, container.OwnerType, container.OwnerID,
+		container.LocationID, container.ContainerID, container.DivisionNumber,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to get pending purchase quantities")
+	}
+
 	// Collect type IDs for market price lookup
 	typeIDs := make([]int64, 0, len(items))
 	for _, item := range items {
@@ -178,10 +194,13 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 
 	// For each item in the container, upsert a for-sale listing
 	for _, item := range items {
-		// Compute sellable quantity: subtract stockpile reservation if any
+		// Compute sellable quantity: subtract stockpile reservation and pending purchases
 		sellableQuantity := item.Quantity
 		if marker, ok := stockpileMarkers[item.TypeID]; ok {
 			sellableQuantity = item.Quantity - marker.DesiredQuantity
+		}
+		if pending, ok := pendingQuantities[item.TypeID]; ok {
+			sellableQuantity -= pending
 		}
 		if sellableQuantity <= 0 {
 			// Entire quantity reserved by stockpile — deactivate existing listing if any

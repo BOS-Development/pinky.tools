@@ -25,21 +25,28 @@ type AutoBuyMarketPricesRepository interface {
 	GetPricesForTypes(ctx context.Context, typeIDs []int64, regionID int64) (map[int64]*models.MarketPrice, error)
 }
 
+type AutoBuyPurchaseRepository interface {
+	GetPendingQuantitiesByBuyer(ctx context.Context, buyerUserID int64) (map[int64]int64, error)
+}
+
 type AutoBuy struct {
 	configRepo   AutoBuyConfigsRepository
 	buyOrderRepo AutoBuyOrdersRepository
 	marketRepo   AutoBuyMarketPricesRepository
+	purchaseRepo AutoBuyPurchaseRepository
 }
 
 func NewAutoBuy(
 	configRepo AutoBuyConfigsRepository,
 	buyOrderRepo AutoBuyOrdersRepository,
 	marketRepo AutoBuyMarketPricesRepository,
+	purchaseRepo AutoBuyPurchaseRepository,
 ) *AutoBuy {
 	return &AutoBuy{
 		configRepo:   configRepo,
 		buyOrderRepo: buyOrderRepo,
 		marketRepo:   marketRepo,
+		purchaseRepo: purchaseRepo,
 	}
 }
 
@@ -103,6 +110,12 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 		return errors.Wrap(err, "failed to get stockpile deficits")
 	}
 
+	// Get pending purchase quantities to avoid inflated buy orders
+	pendingQuantities, err := u.purchaseRepo.GetPendingQuantitiesByBuyer(ctx, config.UserID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get pending purchase quantities")
+	}
+
 	// Collect type IDs for market price lookup
 	typeIDs := make([]int64, 0, len(deficits))
 	for _, d := range deficits {
@@ -135,7 +148,19 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 	activeTypes := make(map[int64]bool)
 
 	for _, deficit := range deficits {
-		if deficit.Deficit <= 0 {
+		// Subtract pending/in-flight purchases from the deficit
+		adjustedDeficit := deficit.Deficit
+		if pending, ok := pendingQuantities[deficit.TypeID]; ok {
+			adjustedDeficit -= pending
+		}
+		if adjustedDeficit <= 0 {
+			// Deficit fully covered by pending purchases — deactivate existing order if any
+			if existing, ok := existingByType[deficit.TypeID]; ok {
+				if err := u.buyOrderRepo.DeactivateAutoBuyOrder(ctx, existing.ID); err != nil {
+					log.Error("failed to deactivate auto-buy order covered by pending purchases",
+						"typeID", deficit.TypeID, "error", err)
+				}
+			}
 			continue
 		}
 
@@ -174,7 +199,7 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 			BuyerUserID:     config.UserID,
 			TypeID:          deficit.TypeID,
 			LocationID:      config.LocationID,
-			QuantityDesired: deficit.Deficit,
+			QuantityDesired: adjustedDeficit,
 			MinPricePerUnit: computedMinPrice,
 			MaxPricePerUnit: computedMaxPrice,
 			AutoBuyConfigID: &config.ID,

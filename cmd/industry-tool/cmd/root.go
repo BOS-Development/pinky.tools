@@ -96,7 +96,7 @@ var rootCmd = &cobra.Command{
 		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
-		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository, stockpileMarkersRepository)
+		autoSellUpdater := updaters.NewAutoSell(autoSellContainersRepository, forSaleItemsRepository, marketPricesRepository, stockpileMarkersRepository, purchaseTransactionsRepository)
 		contactRulesUpdater := updaters.NewContactRules(contactsRepository, contactRulesRepository, contactPermissionsRepository, db)
 
 		// Discord integration (optional — only enabled when DISCORD_BOT_TOKEN is set)
@@ -113,7 +113,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		autoBuyConfigsRepository := repositories.NewAutoBuyConfigs(db)
-		autoBuyUpdater := updaters.NewAutoBuy(autoBuyConfigsRepository, buyOrdersRepository, marketPricesRepository)
+		autoBuyUpdater := updaters.NewAutoBuy(autoBuyConfigsRepository, buyOrdersRepository, marketPricesRepository, purchaseTransactionsRepository)
 		autoFulfillUpdater := updaters.NewAutoFulfill(db, buyOrdersRepository, forSaleItemsRepository, purchaseTransactionsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 
 		piUpdater := updaters.NewPiUpdater(usersRepository, charactersRepository, piPlanetsRepository, esiClient, systemRepository, sdeDataRepository)
