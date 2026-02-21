@@ -3,6 +3,7 @@ package updaters
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/client"
@@ -15,6 +16,25 @@ import (
 // PurchaseNotifier is the interface used by the purchases controller
 type PurchaseNotifier interface {
 	NotifyPurchase(ctx context.Context, purchase *models.PurchaseTransaction)
+}
+
+// PiStallNotifier is the interface used by the PI updater
+type PiStallNotifier interface {
+	NotifyPiStalls(ctx context.Context, userID int64, alerts []*PiStallAlert)
+}
+
+// PiStallAlert contains information about a single stalled planet
+type PiStallAlert struct {
+	CharacterName   string
+	PlanetType      string
+	SolarSystemName string
+	StalledPins     []PiStalledPin
+}
+
+// PiStalledPin describes a single stalled pin
+type PiStalledPin struct {
+	PinCategory string // "extractor" or "factory"
+	Reason      string // "expired", "stalled"
 }
 
 type NotificationsDiscordRepo interface {
@@ -99,6 +119,105 @@ func (u *NotificationsUpdater) SendTestNotification(ctx context.Context, target 
 		return u.discordClient.SendChannelMessage(ctx, *target.ChannelID, embed)
 	default:
 		return fmt.Errorf("unknown target type: %s", target.TargetType)
+	}
+}
+
+// NotifyPiStalls sends a single Discord notification for all newly stalled planets
+func (u *NotificationsUpdater) NotifyPiStalls(ctx context.Context, userID int64, alerts []*PiStallAlert) {
+	if len(alerts) == 0 {
+		return
+	}
+
+	targets, err := u.repo.GetActiveTargetsForEvent(ctx, userID, "pi_stall")
+	if err != nil {
+		log.Error("failed to get notification targets for pi_stall", "user_id", userID, "error", err)
+		return
+	}
+
+	if len(targets) == 0 {
+		return
+	}
+
+	embed := buildPiStallEmbed(alerts)
+
+	for _, target := range targets {
+		var sendErr error
+		switch target.TargetType {
+		case "dm":
+			link, err := u.repo.GetLinkByUser(ctx, target.UserID)
+			if err != nil || link == nil {
+				log.Error("failed to get discord link for DM target", "user_id", target.UserID, "error", err)
+				continue
+			}
+			sendErr = u.discordClient.SendDM(ctx, link.DiscordUserID, embed)
+		case "channel":
+			if target.ChannelID == nil {
+				log.Error("channel target has no channel_id", "target_id", target.ID)
+				continue
+			}
+			sendErr = u.discordClient.SendChannelMessage(ctx, *target.ChannelID, embed)
+		default:
+			log.Error("unknown target type", "target_type", target.TargetType, "target_id", target.ID)
+			continue
+		}
+
+		if sendErr != nil {
+			log.Error("failed to send pi stall notification", "target_id", target.ID, "target_type", target.TargetType, "error", sendErr)
+		}
+	}
+}
+
+func buildPiStallEmbed(alerts []*PiStallAlert) *client.DiscordEmbed {
+	description := fmt.Sprintf("**%d** planet(s) need attention", len(alerts))
+	if len(alerts) == 1 {
+		description = fmt.Sprintf("**%s**'s colony needs attention", alerts[0].CharacterName)
+	}
+
+	fields := []client.DiscordEmbedField{}
+	for _, alert := range alerts {
+		extractorCount := 0
+		factoryCount := 0
+		for _, pin := range alert.StalledPins {
+			switch pin.PinCategory {
+			case "extractor":
+				extractorCount++
+			case "factory":
+				factoryCount++
+			}
+		}
+
+		parts := []string{}
+		if extractorCount > 0 {
+			if extractorCount == 1 {
+				parts = append(parts, "1 extractor expired")
+			} else {
+				parts = append(parts, fmt.Sprintf("%d extractors expired", extractorCount))
+			}
+		}
+		if factoryCount > 0 {
+			if factoryCount == 1 {
+				parts = append(parts, "1 factory stalled")
+			} else {
+				parts = append(parts, fmt.Sprintf("%d factories stalled", factoryCount))
+			}
+		}
+
+		name := fmt.Sprintf("%s — %s (%s)", alert.CharacterName, alert.SolarSystemName, alert.PlanetType)
+		fields = append(fields, client.DiscordEmbedField{
+			Name:   name,
+			Value:  strings.Join(parts, ", "),
+			Inline: false,
+		})
+	}
+
+	return &client.DiscordEmbed{
+		Title:       "PI Stall Detected",
+		Description: description,
+		Color:       0xef4444, // Red for alert
+		Fields:      fields,
+		Footer: &client.DiscordEmbedFooter{
+			Text: fmt.Sprintf("Pinky.Tools • %s", time.Now().UTC().Format("Jan 2, 2006 15:04 UTC")),
+		},
 	}
 }
 

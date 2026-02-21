@@ -65,6 +65,7 @@ type Channel = {
 
 const EVENT_TYPES = [
   { value: 'purchase_created', label: 'New Purchase' },
+  { value: 'pi_stall', label: 'PI Stall Alert' },
 ];
 
 const DISCORD_ERROR_MESSAGES: Record<string, string> = {

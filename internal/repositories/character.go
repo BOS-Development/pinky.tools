@@ -28,6 +28,25 @@ func NewCharacterRepository(db *sql.DB) *CharacterRepository {
 	}
 }
 
+func (r *CharacterRepository) GetNames(ctx context.Context, userID int64) (map[int64]string, error) {
+	rows, err := r.db.QueryContext(ctx, `select id, name from characters where user_id = $1`, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query character names")
+	}
+	defer rows.Close()
+
+	names := map[int64]string{}
+	for rows.Next() {
+		var id int64
+		var name string
+		if err := rows.Scan(&id, &name); err != nil {
+			return nil, errors.Wrap(err, "failed to scan character name")
+		}
+		names[id] = name
+	}
+	return names, nil
+}
+
 func (r *CharacterRepository) GetAll(ctx context.Context, baseUserId int64) ([]*Character, error) {
 	rows, err := r.db.QueryContext(ctx, `
 select

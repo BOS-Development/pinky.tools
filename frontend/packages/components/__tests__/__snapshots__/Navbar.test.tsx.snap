@@ -90,6 +90,13 @@ exports[`Navbar Component should match snapshot when not authenticated 1`] = `
       </a>
       <a
         class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit css-plnrbk-MuiButtonBase-root-MuiButton-root"
+        href="/pi"
+        tabindex="0"
+      >
+        Planets
+      </a>
+      <a
+        class="MuiButtonBase-root MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit MuiButton-root MuiButton-text MuiButton-textInherit MuiButton-sizeMedium MuiButton-textSizeMedium MuiButton-colorInherit css-plnrbk-MuiButtonBase-root-MuiButton-root"
         href="/settings"
         tabindex="0"
       >

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -16,6 +17,32 @@ func NewSolarSystems(db *sql.DB) *SolarSystems {
 	return &SolarSystems{
 		db: db,
 	}
+}
+
+func (r *SolarSystems) GetNames(ctx context.Context, ids []int64) (map[int64]string, error) {
+	if len(ids) == 0 {
+		return map[int64]string{}, nil
+	}
+
+	names := map[int64]string{}
+	query := `select solar_system_id, name from solar_systems where solar_system_id = any($1)`
+
+	rows, err := r.db.QueryContext(ctx, query, pq.Array(ids))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query solar system names")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int64
+		var name string
+		if err := rows.Scan(&id, &name); err != nil {
+			return nil, errors.Wrap(err, "failed to scan solar system name")
+		}
+		names[id] = name
+	}
+
+	return names, nil
 }
 
 func (r *SolarSystems) Upsert(ctx context.Context, systems []models.SolarSystem) error {

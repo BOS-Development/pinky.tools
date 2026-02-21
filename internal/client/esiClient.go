@@ -778,6 +778,142 @@ func (c *EsiClient) GetUniverseNames(ctx context.Context, ids []int64) (map[int6
 	return result, nil
 }
 
+// PI ESI response types
+
+type EsiPiPlanet struct {
+	LastUpdate    string `json:"last_update"`
+	NumPins       int    `json:"num_pins"`
+	OwnerID       int64  `json:"owner_id"`
+	PlanetID      int64  `json:"planet_id"`
+	PlanetType    string `json:"planet_type"`
+	SolarSystemID int64  `json:"solar_system_id"`
+	UpgradeLevel  int    `json:"upgrade_level"`
+}
+
+type EsiPiColony struct {
+	Links  []EsiPiLink  `json:"links"`
+	Pins   []EsiPiPin   `json:"pins"`
+	Routes []EsiPiRoute `json:"routes"`
+}
+
+type EsiPiLink struct {
+	SourcePinID      int64 `json:"source_pin_id"`
+	DestinationPinID int64 `json:"destination_pin_id"`
+	LinkLevel        int   `json:"link_level"`
+}
+
+type EsiPiPin struct {
+	PinID            int64               `json:"pin_id"`
+	TypeID           int64               `json:"type_id"`
+	Latitude         float64             `json:"latitude"`
+	Longitude        float64             `json:"longitude"`
+	InstallTime      *string             `json:"install_time"`
+	ExpiryTime       *string             `json:"expiry_time"`
+	LastCycleStart   *string             `json:"last_cycle_start"`
+	SchematicID      *int                `json:"schematic_id"`
+	Contents         []EsiPiPinContent   `json:"contents"`
+	ExtractorDetails *EsiExtractorDetail `json:"extractor_details"`
+	FactoryDetails   *EsiFactoryDetail   `json:"factory_details"`
+}
+
+type EsiPiPinContent struct {
+	Amount float64 `json:"amount"`
+	TypeID int64   `json:"type_id"`
+}
+
+type EsiExtractorDetail struct {
+	CycleTime     int     `json:"cycle_time"`
+	HeadRadius    float64 `json:"head_radius"`
+	ProductTypeID int64   `json:"product_type_id"`
+	QtyPerCycle   int     `json:"qty_per_cycle"`
+	Heads         []struct {
+		HeadID    int     `json:"head_id"`
+		Latitude  float64 `json:"latitude"`
+		Longitude float64 `json:"longitude"`
+	} `json:"heads"`
+}
+
+type EsiFactoryDetail struct {
+	SchematicID int `json:"schematic_id"`
+}
+
+type EsiPiRoute struct {
+	RouteID          int64   `json:"route_id"`
+	SourcePinID      int64   `json:"source_pin_id"`
+	DestinationPinID int64   `json:"destination_pin_id"`
+	ContentTypeID    int64   `json:"content_type_id"`
+	Quantity         float64 `json:"quantity"`
+	Waypoints        []int64 `json:"waypoints"`
+}
+
+// GetCharacterPlanets fetches the list of PI colonies for a character.
+func (c *EsiClient) GetCharacterPlanets(ctx context.Context, characterID int64, token string) ([]*EsiPiPlanet, error) {
+	reqURL := fmt.Sprintf("%s/v1/characters/%d/planets/", c.baseURL, characterID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create character planets request")
+	}
+	req.Header = c.getAuthHeaders(token)
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch character planets")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("failed to get character planets, expected 200 got %d, %s", res.StatusCode, errText)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read character planets body")
+	}
+
+	var planets []*EsiPiPlanet
+	if err := json.Unmarshal(body, &planets); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal character planets")
+	}
+
+	return planets, nil
+}
+
+// GetCharacterPlanetDetails fetches the full colony layout for a single planet.
+func (c *EsiClient) GetCharacterPlanetDetails(ctx context.Context, characterID, planetID int64, token string) (*EsiPiColony, error) {
+	reqURL := fmt.Sprintf("%s/v3/characters/%d/planets/%d/", c.baseURL, characterID, planetID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create planet details request")
+	}
+	req.Header = c.getAuthHeaders(token)
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch planet details")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("failed to get planet details, expected 200 got %d, %s", res.StatusCode, errText)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read planet details body")
+	}
+
+	var colony EsiPiColony
+	if err := json.Unmarshal(body, &colony); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal planet details")
+	}
+
+	return &colony, nil
+}
+
 // RefreshedToken holds the result of a token refresh.
 type RefreshedToken struct {
 	AccessToken  string

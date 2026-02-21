@@ -74,6 +74,9 @@ var rootCmd = &cobra.Command{
 		salesAnalyticsRepository := repositories.NewSalesAnalytics(db)
 		sdeDataRepository := repositories.NewSdeDataRepository(db)
 		industryCostIndicesRepository := repositories.NewIndustryCostIndices(db)
+		piPlanetsRepository := repositories.NewPiPlanets(db)
+		piTaxConfigRepository := repositories.NewPiTaxConfig(db)
+		piLaunchpadLabelsRepository := repositories.NewPiLaunchpadLabels(db)
 
 		var esiClient *client.EsiClient
 		if settings.EsiBaseURL != "" {
@@ -113,6 +116,11 @@ var rootCmd = &cobra.Command{
 		autoBuyUpdater := updaters.NewAutoBuy(autoBuyConfigsRepository, buyOrdersRepository, marketPricesRepository)
 		autoFulfillUpdater := updaters.NewAutoFulfill(db, buyOrdersRepository, forSaleItemsRepository, purchaseTransactionsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 
+		piUpdater := updaters.NewPiUpdater(usersRepository, charactersRepository, piPlanetsRepository, esiClient, systemRepository, sdeDataRepository)
+		if notificationsUpdater != nil {
+			piUpdater.WithStallNotifier(notificationsUpdater)
+		}
+
 		assetUpdater.WithAutoSellUpdater(autoSellUpdater)
 		marketPricesUpdater.WithAutoSellUpdater(autoSellUpdater)
 		assetUpdater.WithAutoBuyUpdater(autoBuyUpdater)
@@ -143,6 +151,7 @@ var rootCmd = &cobra.Command{
 		if discordClient != nil {
 			controllers.NewDiscordNotifications(router, discordNotificationsRepository, discordClient, notificationsUpdater)
 		}
+		controllers.NewPi(router, piPlanetsRepository, piTaxConfigRepository, sdeDataRepository, charactersRepository, systemRepository, itemTypesRepository, marketPricesRepository, piLaunchpadLabelsRepository, stockpileMarkersRepository)
 
 		group.Go(router.Run(ctx))
 
@@ -174,6 +183,12 @@ var rootCmd = &cobra.Command{
 		assetsRunner := runners.NewAssetsRunner(assetUpdater, usersRepository, time.Duration(settings.AssetUpdateIntervalSec)*time.Second)
 		group.Go(func() error {
 			return assetsRunner.Run(ctx)
+		})
+
+		// Start PI update scheduler (configurable, default 1h)
+		piRunner := runners.NewPiRunner(piUpdater, time.Duration(settings.PiUpdateIntervalSec)*time.Second)
+		group.Go(func() error {
+			return piRunner.Run(ctx)
 		})
 
 		log.Info("services started")

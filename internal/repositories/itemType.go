@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -101,6 +102,30 @@ do update set
 	}
 
 	return nil
+}
+
+func (r *ItemTypeRepository) GetNames(ctx context.Context, ids []int64) (map[int64]string, error) {
+	if len(ids) == 0 {
+		return map[int64]string{}, nil
+	}
+
+	names := map[int64]string{}
+	rows, err := r.db.QueryContext(ctx, `select type_id, type_name from asset_item_types where type_id = any($1)`, pq.Array(ids))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query item type names")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var id int64
+		var name string
+		if err := rows.Scan(&id, &name); err != nil {
+			return nil, errors.Wrap(err, "failed to scan item type name")
+		}
+		names[id] = name
+	}
+
+	return names, nil
 }
 
 // SearchItemTypes searches for item types by name (case-insensitive, partial match)

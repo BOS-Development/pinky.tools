@@ -684,3 +684,71 @@ type PlanResponse struct {
 	ShoppingList  []*ShoppingItem    `json:"shopping_list"`
 	Summary       *PlanSummary       `json:"summary"`
 }
+
+// Planetary Industry Models
+
+type PiPlanet struct {
+	ID                  int64      `json:"id"`
+	CharacterID         int64      `json:"characterId"`
+	UserID              int64      `json:"userId"`
+	PlanetID            int64      `json:"planetId"`
+	PlanetType          string     `json:"planetType"`
+	SolarSystemID       int64      `json:"solarSystemId"`
+	UpgradeLevel        int        `json:"upgradeLevel"`
+	NumPins             int        `json:"numPins"`
+	LastUpdate          time.Time  `json:"lastUpdate"`
+	LastStallNotifiedAt *time.Time `json:"lastStallNotifiedAt,omitempty"`
+}
+
+type PiPin struct {
+	ID                     int64      `json:"id"`
+	CharacterID            int64      `json:"characterId"`
+	PlanetID               int64      `json:"planetId"`
+	PinID                  int64      `json:"pinId"`
+	TypeID                 int64      `json:"typeId"`
+	SchematicID            *int       `json:"schematicId"`
+	Latitude               *float64   `json:"latitude"`
+	Longitude              *float64   `json:"longitude"`
+	InstallTime            *time.Time `json:"installTime"`
+	ExpiryTime             *time.Time `json:"expiryTime"`
+	LastCycleStart         *time.Time `json:"lastCycleStart"`
+	ExtractorCycleTime     *int       `json:"extractorCycleTime"`
+	ExtractorHeadRadius    *float64   `json:"extractorHeadRadius"`
+	ExtractorProductTypeID *int64     `json:"extractorProductTypeId"`
+	ExtractorQtyPerCycle   *int       `json:"extractorQtyPerCycle"`
+	ExtractorNumHeads      *int       `json:"extractorNumHeads"`
+	PinCategory            string     `json:"pinCategory"`
+}
+
+type PiPinContent struct {
+	CharacterID int64 `json:"characterId"`
+	PlanetID    int64 `json:"planetId"`
+	PinID       int64 `json:"pinId"`
+	TypeID      int64 `json:"typeId"`
+	Amount      int64 `json:"amount"`
+}
+
+type PiRoute struct {
+	CharacterID      int64 `json:"characterId"`
+	PlanetID         int64 `json:"planetId"`
+	RouteID          int64 `json:"routeId"`
+	SourcePinID      int64 `json:"sourcePinId"`
+	DestinationPinID int64 `json:"destinationPinId"`
+	ContentTypeID    int64 `json:"contentTypeId"`
+	Quantity         int64 `json:"quantity"`
+}
+
+type PiTaxConfig struct {
+	ID       int64   `json:"id"`
+	UserID   int64   `json:"userId"`
+	PlanetID *int64  `json:"planetId"`
+	TaxRate  float64 `json:"taxRate"`
+}
+
+type PiLaunchpadLabel struct {
+	UserID      int64  `json:"userId"`
+	CharacterID int64  `json:"characterId"`
+	PlanetID    int64  `json:"planetId"`
+	PinID       int64  `json:"pinId"`
+	Label       string `json:"label"`
+}
