@@ -323,6 +323,91 @@ func (r *PurchaseTransactions) GetByID(ctx context.Context, purchaseID int64) (*
 	return &tx, nil
 }
 
+// GetContractCreatedWithKeys returns all purchases in contract_created status that have a contract_key set.
+func (r *PurchaseTransactions) GetContractCreatedWithKeys(ctx context.Context) ([]*models.PurchaseTransaction, error) {
+	query := `
+		SELECT
+			pt.id,
+			pt.for_sale_item_id,
+			pt.buyer_user_id,
+			pt.seller_user_id,
+			pt.type_id,
+			t.type_name,
+			pt.quantity_purchased,
+			pt.price_per_unit,
+			pt.total_price,
+			pt.status,
+			pt.contract_key,
+			pt.transaction_notes,
+			pt.buy_order_id,
+			pt.is_auto_fulfilled,
+			pt.purchased_at
+		FROM purchase_transactions pt
+		JOIN asset_item_types t ON pt.type_id = t.type_id
+		WHERE pt.status = 'contract_created' AND pt.contract_key IS NOT NULL
+		ORDER BY pt.buyer_user_id
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query contract_created purchases")
+	}
+	defer rows.Close()
+
+	transactions := []*models.PurchaseTransaction{}
+	for rows.Next() {
+		var tx models.PurchaseTransaction
+		err = rows.Scan(
+			&tx.ID,
+			&tx.ForSaleItemID,
+			&tx.BuyerUserID,
+			&tx.SellerUserID,
+			&tx.TypeID,
+			&tx.TypeName,
+			&tx.QuantityPurchased,
+			&tx.PricePerUnit,
+			&tx.TotalPrice,
+			&tx.Status,
+			&tx.ContractKey,
+			&tx.TransactionNotes,
+			&tx.BuyOrderID,
+			&tx.IsAutoFulfilled,
+			&tx.PurchasedAt,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan contract_created purchase")
+		}
+		transactions = append(transactions, &tx)
+	}
+
+	return transactions, nil
+}
+
+// CompleteWithContractID marks a purchase as completed and records the EVE contract ID.
+func (r *PurchaseTransactions) CompleteWithContractID(ctx context.Context, purchaseID int64, eveContractID int64) error {
+	query := `
+		UPDATE purchase_transactions
+		SET status = 'completed', contract_key = contract_key || ' [EVE:' || $2::text || ']'
+		WHERE id = $1 AND status = 'contract_created'
+	`
+
+	result, err := r.db.ExecContext(ctx, query, purchaseID, eveContractID)
+	if err != nil {
+		return errors.Wrap(err, "failed to complete purchase with contract ID")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("purchase transaction not found or not in contract_created status")
+	}
+
+	return nil
+}
+
 // UpdateStatus updates the status of a purchase transaction
 func (r *PurchaseTransactions) UpdateStatus(ctx context.Context, purchaseID int64, newStatus string) error {
 	query := `

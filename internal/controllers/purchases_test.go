@@ -665,3 +665,173 @@ func Test_CancelPurchase_RestoresQuantity(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "cancelled", cancelledPurchase.Status)
 }
+
+func Test_MarkContractCreated_AutoGeneratesKey(t *testing.T) {
+	db := setupPurchasesTestDB(t)
+
+	buyerID := int64(4080)
+	sellerID := int64(4081)
+	typeID := int64(58)
+
+	userRepo := repositories.NewUserRepository(db)
+	charRepo := repositories.NewCharacterRepository(db)
+	itemTypesRepo := repositories.NewItemTypeRepository(db)
+	forSaleRepo := repositories.NewForSaleItems(db)
+	permRepo := repositories.NewContactPermissions(db)
+	purchaseRepo := repositories.NewPurchaseTransactions(db)
+
+	buyer := &repositories.User{ID: buyerID, Name: "Buyer"}
+	seller := &repositories.User{ID: sellerID, Name: "Seller"}
+	assert.NoError(t, userRepo.Add(context.Background(), buyer))
+	assert.NoError(t, userRepo.Add(context.Background(), seller))
+
+	buyerChar := &repositories.Character{ID: buyerID * 10, Name: "Buyer Char", UserID: buyerID}
+	sellerChar := &repositories.Character{ID: sellerID * 10, Name: "Seller Char", UserID: sellerID}
+	assert.NoError(t, charRepo.Add(context.Background(), buyerChar))
+	assert.NoError(t, charRepo.Add(context.Background(), sellerChar))
+
+	itemTypes := []models.EveInventoryType{{TypeID: typeID, TypeName: "Veldspar", Volume: 0.1}}
+	assert.NoError(t, itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes))
+
+	item := &models.ForSaleItem{
+		UserID:            sellerID,
+		TypeID:            typeID,
+		OwnerType:         "character",
+		OwnerID:           sellerID * 10,
+		LocationID:        30000142,
+		QuantityAvailable: 500,
+		PricePerUnit:      10,
+		IsActive:          true,
+	}
+	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	assert.NoError(t, err)
+	defer tx.Rollback()
+
+	purchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       buyerID,
+		SellerUserID:      sellerID,
+		TypeID:            typeID,
+		QuantityPurchased: 100,
+		PricePerUnit:      10,
+		TotalPrice:        1000,
+		Status:            "pending",
+	}
+	assert.NoError(t, purchaseRepo.Create(context.Background(), tx, purchase))
+	assert.NoError(t, tx.Commit())
+
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, userRepo, nil)
+
+	// Mark as contract created WITHOUT providing a contractKey (empty body)
+	req := httptest.NewRequest("POST", "/v1/purchases/"+strconv.FormatInt(purchase.ID, 10)+"/mark-contract-created", nil)
+	args := &web.HandlerArgs{
+		Request: req,
+		Params:  map[string]string{"id": strconv.FormatInt(purchase.ID, 10)},
+		User:    &sellerID,
+	}
+
+	result, httpErr := controller.MarkContractCreated(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	// Verify auto-generated key format is PT-{purchaseID}
+	resultMap := result.(map[string]string)
+	expectedKey := "PT-" + strconv.FormatInt(purchase.ID, 10)
+	assert.Equal(t, expectedKey, resultMap["contractKey"])
+	assert.Equal(t, "contract_created", resultMap["status"])
+
+	// Verify key was persisted
+	updated, err := purchaseRepo.GetByID(context.Background(), purchase.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "contract_created", updated.Status)
+	assert.Equal(t, expectedKey, *updated.ContractKey)
+}
+
+func Test_MarkContractCreated_UsesProvidedKey(t *testing.T) {
+	db := setupPurchasesTestDB(t)
+
+	buyerID := int64(4090)
+	sellerID := int64(4091)
+	typeID := int64(59)
+
+	userRepo := repositories.NewUserRepository(db)
+	charRepo := repositories.NewCharacterRepository(db)
+	itemTypesRepo := repositories.NewItemTypeRepository(db)
+	forSaleRepo := repositories.NewForSaleItems(db)
+	permRepo := repositories.NewContactPermissions(db)
+	purchaseRepo := repositories.NewPurchaseTransactions(db)
+
+	buyer := &repositories.User{ID: buyerID, Name: "Buyer"}
+	seller := &repositories.User{ID: sellerID, Name: "Seller"}
+	assert.NoError(t, userRepo.Add(context.Background(), buyer))
+	assert.NoError(t, userRepo.Add(context.Background(), seller))
+
+	buyerChar := &repositories.Character{ID: buyerID * 10, Name: "Buyer Char", UserID: buyerID}
+	sellerChar := &repositories.Character{ID: sellerID * 10, Name: "Seller Char", UserID: sellerID}
+	assert.NoError(t, charRepo.Add(context.Background(), buyerChar))
+	assert.NoError(t, charRepo.Add(context.Background(), sellerChar))
+
+	itemTypes := []models.EveInventoryType{{TypeID: typeID, TypeName: "Scordite", Volume: 0.15}}
+	assert.NoError(t, itemTypesRepo.UpsertItemTypes(context.Background(), itemTypes))
+
+	item := &models.ForSaleItem{
+		UserID:            sellerID,
+		TypeID:            typeID,
+		OwnerType:         "character",
+		OwnerID:           sellerID * 10,
+		LocationID:        30000142,
+		QuantityAvailable: 800,
+		PricePerUnit:      15,
+		IsActive:          true,
+	}
+	assert.NoError(t, forSaleRepo.Upsert(context.Background(), item))
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	assert.NoError(t, err)
+	defer tx.Rollback()
+
+	purchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       buyerID,
+		SellerUserID:      sellerID,
+		TypeID:            typeID,
+		QuantityPurchased: 200,
+		PricePerUnit:      15,
+		TotalPrice:        3000,
+		Status:            "pending",
+	}
+	assert.NoError(t, purchaseRepo.Create(context.Background(), tx, purchase))
+	assert.NoError(t, tx.Commit())
+
+	controller := controllers.NewPurchases(&MockRouter{}, db, purchaseRepo, forSaleRepo, permRepo, userRepo, nil)
+
+	// Mark as contract created WITH a custom contractKey
+	customKey := "CUSTOM-BATCH-99"
+	reqBody := map[string]interface{}{
+		"contractKey": customKey,
+	}
+	body, _ := json.Marshal(reqBody)
+	req := httptest.NewRequest("POST", "/v1/purchases/"+strconv.FormatInt(purchase.ID, 10)+"/mark-contract-created", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		Params:  map[string]string{"id": strconv.FormatInt(purchase.ID, 10)},
+		User:    &sellerID,
+	}
+
+	result, httpErr := controller.MarkContractCreated(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	// Verify the custom key was used instead of auto-generated
+	resultMap := result.(map[string]string)
+	assert.Equal(t, customKey, resultMap["contractKey"])
+
+	// Verify persisted
+	updated, err := purchaseRepo.GetByID(context.Background(), purchase.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, customKey, *updated.ContractKey)
+}

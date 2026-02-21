@@ -191,6 +191,13 @@ var rootCmd = &cobra.Command{
 			return piRunner.Run(ctx)
 		})
 
+		// Start contract sync scheduler (15 minutes)
+		contractSyncUpdater := updaters.NewContractSync(purchaseTransactionsRepository, charactersRepository, esiClient)
+		contractSyncRunner := runners.NewContractSyncRunner(contractSyncUpdater, 15*time.Minute)
+		group.Go(func() error {
+			return contractSyncRunner.Run(ctx)
+		})
+
 		log.Info("services started")
 
 		eventChan := make(chan os.Signal, 1)

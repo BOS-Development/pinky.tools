@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"strconv"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
@@ -291,15 +292,18 @@ func (c *Purchases) MarkContractCreated(args *web.HandlerArgs) (any, *web.HttpEr
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update purchase status")}
 	}
 
-	// Update contract key if provided
+	// Auto-generate contract_key if not provided
+	contractKey := fmt.Sprintf("PT-%d", purchaseID)
 	if req.ContractKey != nil && *req.ContractKey != "" {
-		err = c.repository.UpdateContractKeys(args.Request.Context(), []int64{purchaseID}, *req.ContractKey)
-		if err != nil {
-			return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update contract key")}
-		}
+		contractKey = *req.ContractKey
 	}
 
-	return map[string]string{"status": "contract_created"}, nil
+	err = c.repository.UpdateContractKeys(args.Request.Context(), []int64{purchaseID}, contractKey)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update contract key")}
+	}
+
+	return map[string]string{"status": "contract_created", "contractKey": contractKey}, nil
 }
 
 // CompletePurchase marks a purchase as completed (buyer action)
