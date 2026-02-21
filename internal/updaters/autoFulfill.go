@@ -22,6 +22,7 @@ type AutoFulfillForSaleRepository interface {
 
 type AutoFulfillPurchaseRepository interface {
 	CreateAutoFulfill(ctx context.Context, tx *sql.Tx, purchase *models.PurchaseTransaction) error
+	GetPendingQuantityForBuyOrder(ctx context.Context, buyOrderID int64) (int64, error)
 }
 
 type AutoFulfillPermissionsRepository interface {
@@ -129,7 +130,16 @@ func (u *AutoFulfill) matchBuyOrder(ctx context.Context, order *models.BuyOrder)
 		return nil
 	}
 
-	remainingQuantity := order.QuantityDesired
+	// Subtract existing pending/contract_created purchases from desired quantity
+	existingPending, err := u.purchaseRepo.GetPendingQuantityForBuyOrder(ctx, order.ID)
+	if err != nil {
+		return errors.Wrap(err, "failed to get existing pending quantity for buy order")
+	}
+
+	remainingQuantity := order.QuantityDesired - existingPending
+	if remainingQuantity <= 0 {
+		return nil
+	}
 
 	for _, item := range items {
 		if remainingQuantity <= 0 {
