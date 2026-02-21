@@ -47,9 +47,6 @@ export let scopesArray = [
 export let playerScope = scopesArray.join(" ");
 
 export let corpScopesArray = [
-  "esi-wallet.read_corporation_wallet.v1",
-  "esi-search.search_structures.v1",
-  "esi-universe.read_structures.v1",
   "esi-wallet.read_corporation_wallets.v1",
   "esi-assets.read_corporation_assets.v1",
   "esi-corporations.read_blueprints.v1",
@@ -59,7 +56,6 @@ export let corpScopesArray = [
   "esi-corporations.read_container_logs.v1",
   "esi-industry.read_corporation_mining.v1",
   "esi-corporations.read_facilities.v1",
-  "esi-corporations.read_freelance_jobs.v1",
   "esi-corporations.read_divisions.v1",
 ];
 export let corpScope = corpScopesArray.join(" ");
