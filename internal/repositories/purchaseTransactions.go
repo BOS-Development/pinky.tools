@@ -479,6 +479,25 @@ func (r *PurchaseTransactions) GetPendingQuantitiesByBuyer(ctx context.Context, 
 	return result, nil
 }
 
+// GetPendingQuantityForBuyOrder returns the total quantity of pending/contract_created
+// purchases already created for a specific buy order.
+func (r *PurchaseTransactions) GetPendingQuantityForBuyOrder(ctx context.Context, buyOrderID int64) (int64, error) {
+	query := `
+		SELECT COALESCE(SUM(quantity_purchased), 0)
+		FROM purchase_transactions
+		WHERE buy_order_id = $1
+			AND status IN ('pending', 'contract_created')
+	`
+
+	var total int64
+	err := r.db.QueryRowContext(ctx, query, buyOrderID).Scan(&total)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to query pending quantity for buy order")
+	}
+
+	return total, nil
+}
+
 // UpdateStatus updates the status of a purchase transaction
 func (r *PurchaseTransactions) UpdateStatus(ctx context.Context, purchaseID int64, newStatus string) error {
 	query := `
