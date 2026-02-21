@@ -284,7 +284,7 @@ func (r *AutoBuyConfigs) GetStockpileDeficitsForConfig(ctx context.Context, conf
 					AND sm.owner_id = $3
 					AND sm.location_id = $4
 					AND sm.container_id IS NULL
-					AND COALESCE(sm.division_number, 0) = COALESCE($5, 0)
+					AND COALESCE(sm.division_number, 0) = COALESCE($5::integer, 0)
 				GROUP BY sm.type_id, sm.desired_quantity, sm.price_source, sm.price_percentage
 			`
 		}
