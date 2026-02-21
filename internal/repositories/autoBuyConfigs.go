@@ -259,16 +259,26 @@ func (r *AutoBuyConfigs) GetStockpileDeficitsForConfig(ctx context.Context, conf
 				SELECT
 					sm.type_id,
 					sm.desired_quantity,
-					COALESCE(SUM(ca.quantity), 0) AS current_quantity,
-					sm.desired_quantity - COALESCE(SUM(ca.quantity), 0) AS deficit,
+					COALESCE(SUM(items.quantity), 0) AS current_quantity,
+					sm.desired_quantity - COALESCE(SUM(items.quantity), 0) AS deficit,
 					sm.price_source,
 					sm.price_percentage
 				FROM stockpile_markers sm
-				LEFT JOIN corporation_assets ca
-					ON ca.type_id = sm.type_id
-					AND ca.corporation_id = sm.owner_id
-					AND ca.location_id = $4
-					AND ca.location_type = 'other'
+				LEFT JOIN (
+					SELECT ca.type_id, ca.corporation_id, SUM(ca.quantity) as quantity
+					FROM corporation_assets ca
+					INNER JOIN corporation_assets office ON (
+						office.item_id = ca.location_id
+						AND office.corporation_id = ca.corporation_id
+						AND office.user_id = ca.user_id
+						AND office.location_flag = 'OfficeFolder'
+						AND office.location_id = $4
+					)
+					WHERE ca.corporation_id = $3
+						AND ca.location_type = 'item'
+						AND ca.location_flag = 'CorpSAG' || $5::text
+					GROUP BY ca.type_id, ca.corporation_id
+				) items ON items.type_id = sm.type_id
 				WHERE sm.user_id = $1
 					AND sm.owner_type = $2
 					AND sm.owner_id = $3

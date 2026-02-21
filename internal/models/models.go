@@ -152,7 +152,7 @@ type AutoSellContainer struct {
 	OwnerType       string    `json:"ownerType"`
 	OwnerID         int64     `json:"ownerId"`
 	LocationID      int64     `json:"locationId"`
-	ContainerID     int64     `json:"containerId"`
+	ContainerID     *int64    `json:"containerId"`
 	DivisionNumber  *int      `json:"divisionNumber"`
 	PricePercentage float64   `json:"pricePercentage"`
 	PriceSource     string    `json:"priceSource"`

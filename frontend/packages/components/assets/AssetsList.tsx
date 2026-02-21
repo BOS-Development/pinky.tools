@@ -117,7 +117,7 @@ type AutoSellConfig = {
   ownerType: string;
   ownerId: number;
   locationId: number;
-  containerId: number;
+  containerId?: number;
   divisionNumber?: number;
   pricePercentage: number;
   priceSource: string;
@@ -255,7 +255,7 @@ export default function AssetsList(props: AssetsListProps) {
     ownerType: string;
     ownerId: number;
     locationId: number;
-    containerId: number;
+    containerId?: number;
     divisionNumber?: number;
     containerName: string;
   } | null>(null);
@@ -270,7 +270,7 @@ export default function AssetsList(props: AssetsListProps) {
     ownerType: string;
     ownerId: number;
     locationId: number;
-    containerId: number;
+    containerId?: number;
     divisionNumber?: number;
     containerName: string;
   } | null>(null);
@@ -344,9 +344,9 @@ export default function AssetsList(props: AssetsListProps) {
     }
   };
 
-  const getAutoSellForContainer = (containerId: number, ownerType: string, ownerId: number, locationId: number, divisionNumber?: number): AutoSellConfig | undefined => {
+  const getAutoSellForContainer = (containerId: number | undefined, ownerType: string, ownerId: number, locationId: number, divisionNumber?: number): AutoSellConfig | undefined => {
     return autoSellConfigs.find(config =>
-      config.containerId === containerId &&
+      (config.containerId || 0) === (containerId || 0) &&
       config.ownerType === ownerType &&
       config.ownerId === ownerId &&
       config.locationId === locationId &&
@@ -354,7 +354,7 @@ export default function AssetsList(props: AssetsListProps) {
     );
   };
 
-  const handleOpenAutoSellDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number, containerName: string, divisionNumber?: number) => {
+  const handleOpenAutoSellDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number | undefined, containerName: string, divisionNumber?: number) => {
     const existing = getAutoSellForContainer(containerId, ownerType, ownerId, locationId, divisionNumber);
     setAutoSellContainer({ ownerType, ownerId, locationId, containerId, divisionNumber, containerName });
     setAutoSellPercentage(existing ? existing.pricePercentage.toString() : '90');
@@ -433,9 +433,9 @@ export default function AssetsList(props: AssetsListProps) {
     }
   };
 
-  const getAutoBuyForContainer = (containerId: number, ownerType: string, ownerId: number, locationId: number, divisionNumber?: number): AutoBuyConfig | undefined => {
+  const getAutoBuyForContainer = (containerId: number | undefined, ownerType: string, ownerId: number, locationId: number, divisionNumber?: number): AutoBuyConfig | undefined => {
     return autoBuyConfigs.find(config =>
-      (config.containerId || 0) === containerId &&
+      (config.containerId || 0) === (containerId || 0) &&
       config.ownerType === ownerType &&
       config.ownerId === ownerId &&
       config.locationId === locationId &&
@@ -443,7 +443,7 @@ export default function AssetsList(props: AssetsListProps) {
     );
   };
 
-  const handleOpenAutoBuyDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number, containerName: string, divisionNumber?: number) => {
+  const handleOpenAutoBuyDialog = (ownerType: string, ownerId: number, locationId: number, containerId: number | undefined, containerName: string, divisionNumber?: number) => {
     const existing = getAutoBuyForContainer(containerId, ownerType, ownerId, locationId, divisionNumber);
     setAutoBuyContainer({ ownerType, ownerId, locationId, containerId, divisionNumber, containerName });
     setAutoBuyMinPercentage(existing ? existing.minPricePercentage.toString() : '0');
@@ -1456,16 +1456,78 @@ export default function AssetsList(props: AssetsListProps) {
   const renderCorporationHanger = (hanger: CorporationHanger, structureId: number) => {
     const nodeId = `structure-${structureId}-corp-${hanger.id}`;
     const isExpanded = expandedNodes.has(nodeId);
+    const autoSellConfig = getAutoSellForContainer(undefined, 'corporation', hanger.corporationId, structureId, hanger.id);
+    const autoBuyConfig = getAutoBuyForContainer(undefined, 'corporation', hanger.corporationId, structureId, hanger.id);
 
     return (
       <Box key={hanger.id}>
         <ListItemButton onClick={() => toggleNode(nodeId)} sx={{ pl: 2 }}>
           {isExpanded ? <ExpandLess /> : <ExpandMore />}
           <ListItemText
-            primary={`${hanger.corporationName} - ${hanger.name}`}
+            primary={
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                {`${hanger.corporationName} - ${hanger.name}`}
+                {autoSellConfig && (
+                  <Chip
+                    icon={<AutoSellIcon />}
+                    label={`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
+                    size="small"
+                    sx={{
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      background: 'rgba(59, 130, 246, 0.15)',
+                      color: '#3b82f6',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      '& .MuiChip-icon': { color: '#3b82f6', fontSize: '0.9rem' },
+                    }}
+                  />
+                )}
+                {autoBuyConfig && (
+                  <Chip
+                    icon={<AutoBuyIcon />}
+                    label={`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
+                    size="small"
+                    sx={{
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      background: 'rgba(245, 158, 11, 0.15)',
+                      color: '#f59e0b',
+                      border: '1px solid rgba(245, 158, 11, 0.3)',
+                      '& .MuiChip-icon': { color: '#f59e0b', fontSize: '0.9rem' },
+                    }}
+                  />
+                )}
+              </Box>
+            }
             secondary={`${hanger.assets.length} items, ${hanger.hangarContainers?.length || 0} containers`}
             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
           />
+          <Tooltip title={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}>
+            <IconButton
+              size="small"
+              aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAutoBuyDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
+              }}
+              sx={{ color: autoBuyConfig ? '#f59e0b' : undefined }}
+            >
+              <AutoBuyIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}>
+            <IconButton
+              size="small"
+              aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAutoSellDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
+              }}
+              sx={{ color: autoSellConfig ? '#3b82f6' : undefined }}
+            >
+              <AutoSellIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </ListItemButton>
         <Collapse in={isExpanded} timeout={150} unmountOnExit>
           <Box>
@@ -2057,10 +2119,10 @@ export default function AssetsList(props: AssetsListProps) {
           <DialogContent>
             <Box sx={{ pt: 1 }}>
               <Typography variant="body2" gutterBottom>
-                <strong>Container:</strong> {autoSellContainer?.containerName}
+                <strong>{autoSellContainer?.containerId ? 'Container' : 'Division'}:</strong> {autoSellContainer?.containerName}
               </Typography>
               <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
-                All items in this container will be automatically listed for sale at the specified percentage of the selected price source. Listings sync on asset refresh and market price updates.
+                All items in this {autoSellContainer?.containerId ? 'container' : 'hangar division'} will be automatically listed for sale at the specified percentage of the selected price source. Listings sync on asset refresh and market price updates.
               </Typography>
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel id="price-source-label">Price Source</InputLabel>
@@ -2138,10 +2200,10 @@ export default function AssetsList(props: AssetsListProps) {
           <DialogContent>
             <Box sx={{ pt: 1 }}>
               <Typography variant="body2" gutterBottom>
-                <strong>Container:</strong> {autoBuyContainer?.containerName}
+                <strong>{autoBuyContainer?.containerId ? 'Container' : 'Division'}:</strong> {autoBuyContainer?.containerName}
               </Typography>
               <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
-                Buy orders will be automatically created for understocked stockpile items in this container at the specified percentage of the selected price source. Orders sync on asset refresh and market price updates.
+                Buy orders will be automatically created for understocked stockpile items in this {autoBuyContainer?.containerId ? 'container' : 'hangar division'} at the specified percentage of the selected price source. Orders sync on asset refresh and market price updates.
               </Typography>
               <FormControl fullWidth sx={{ mb: 2 }}>
                 <InputLabel id="auto-buy-price-source-label">Price Source</InputLabel>

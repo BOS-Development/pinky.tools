@@ -12,6 +12,7 @@ type AutoSellContainersRepository interface {
 	GetByUser(ctx context.Context, userID int64) ([]*models.AutoSellContainer, error)
 	GetAllActive(ctx context.Context) ([]*models.AutoSellContainer, error)
 	GetItemsInContainer(ctx context.Context, ownerType string, ownerID int64, containerID int64) ([]*models.ContainerItem, error)
+	GetItemsInDivision(ctx context.Context, ownerType string, ownerID int64, locationID int64, divisionNumber int) ([]*models.ContainerItem, error)
 }
 
 type AutoSellForSaleRepository interface {
@@ -120,16 +121,26 @@ func resolveBasePrice(price *models.MarketPrice, priceSource string) *float64 {
 }
 
 func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSellContainer) error {
-	// Get items currently in the container from asset tables
-	items, err := u.autoSellRepo.GetItemsInContainer(ctx, container.OwnerType, container.OwnerID, container.ContainerID)
+	// Get items from asset tables — either from a specific container or a hangar division
+	var items []*models.ContainerItem
+	var err error
+	if container.ContainerID != nil {
+		items, err = u.autoSellRepo.GetItemsInContainer(ctx, container.OwnerType, container.OwnerID, *container.ContainerID)
+	} else if container.DivisionNumber != nil {
+		items, err = u.autoSellRepo.GetItemsInDivision(ctx, container.OwnerType, container.OwnerID, container.LocationID, *container.DivisionNumber)
+	}
 	if err != nil {
-		return errors.Wrap(err, "failed to get items in container")
+		return errors.Wrap(err, "failed to get items for auto-sell config")
 	}
 
-	// Get stockpile markers for this container to reserve inventory
+	// Get stockpile markers for this context to reserve inventory
+	var containerIDVal int64
+	if container.ContainerID != nil {
+		containerIDVal = *container.ContainerID
+	}
 	stockpileMarkers, err := u.stockpileRepo.GetByContainerContext(
 		ctx, container.UserID, container.OwnerType, container.OwnerID,
-		container.LocationID, container.ContainerID, container.DivisionNumber,
+		container.LocationID, containerIDVal, container.DivisionNumber,
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to get stockpile markers for container")
@@ -210,7 +221,7 @@ func (u *AutoSell) syncContainer(ctx context.Context, container *models.AutoSell
 			OwnerType:           container.OwnerType,
 			OwnerID:             container.OwnerID,
 			LocationID:          container.LocationID,
-			ContainerID:         &container.ContainerID,
+			ContainerID:         container.ContainerID,
 			DivisionNumber:      container.DivisionNumber,
 			QuantityAvailable:   sellableQuantity,
 			PricePerUnit:        computedPrice,

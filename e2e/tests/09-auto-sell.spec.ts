@@ -16,9 +16,10 @@ test.describe('Auto-Sell Containers', () => {
     // "Minerals Box" container should be visible after expanding
     await expect(alicePage.getByText('Minerals Box')).toBeVisible({ timeout: 10000 });
 
-    // Click the auto-sell toggle button on the Minerals Box container
-    // Use CSS selector to target only <button> elements (not div[role="button"] from ListItemButton)
-    await alicePage.locator('button[aria-label="Enable Auto-Sell"]').click();
+    // Click the auto-sell toggle button on the Minerals Box container row
+    // Scope to the ListItemButton containing "Minerals Box" to avoid ambiguity with corp hangar division buttons
+    const mineralsRow = alicePage.getByRole('button', { name: /Minerals Box/ });
+    await mineralsRow.getByLabel('Enable Auto-Sell').click();
 
     // Auto-sell dialog should appear with container name
     const dialog = alicePage.getByRole('dialog');
@@ -65,8 +66,9 @@ test.describe('Auto-Sell Containers', () => {
     // The container should show auto-sell chip
     await expect(alicePage.getByText(/Auto-Sell @ 90% JBV/)).toBeVisible({ timeout: 10000 });
 
-    // Click the auto-sell button (aria-label now says "Edit Auto-Sell")
-    await alicePage.locator('button[aria-label="Edit Auto-Sell"]').click();
+    // Click the auto-sell button on Minerals Box (aria-label now says "Edit Auto-Sell")
+    const mineralsRow = alicePage.getByRole('button', { name: /Minerals Box/ });
+    await mineralsRow.getByLabel('Edit Auto-Sell').click();
 
     // Dialog should show "Edit Auto-Sell"
     const dialog = alicePage.getByRole('dialog');
@@ -97,8 +99,9 @@ test.describe('Auto-Sell Containers', () => {
     // The container should show auto-sell chip
     await expect(alicePage.getByText(/Auto-Sell @ 80% JBV/)).toBeVisible({ timeout: 10000 });
 
-    // Click the auto-sell button
-    await alicePage.locator('button[aria-label="Edit Auto-Sell"]').click();
+    // Click the auto-sell button on Minerals Box
+    const mineralsRow = alicePage.getByRole('button', { name: /Minerals Box/ });
+    await mineralsRow.getByLabel('Edit Auto-Sell').click();
 
     // Dialog should show with "Disable" button
     const dialog = alicePage.getByRole('dialog');
@@ -130,8 +133,9 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.getByText('Jita IV - Moon 4').click();
     await expect(alicePage.getByText('Minerals Box')).toBeVisible({ timeout: 10000 });
 
-    // Enable auto-sell
-    await alicePage.locator('button[aria-label="Enable Auto-Sell"]').click();
+    // Enable auto-sell on Minerals Box
+    const mineralsRow = alicePage.getByRole('button', { name: /Minerals Box/ });
+    await mineralsRow.getByLabel('Enable Auto-Sell').click();
 
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
@@ -170,8 +174,9 @@ test.describe('Auto-Sell Containers', () => {
     // The container should show current auto-sell chip with JSV
     await expect(alicePage.getByText(/Auto-Sell @ 90% JSV/)).toBeVisible({ timeout: 10000 });
 
-    // Edit auto-sell
-    await alicePage.locator('button[aria-label="Edit Auto-Sell"]').click();
+    // Edit auto-sell on Minerals Box
+    const mineralsRow = alicePage.getByRole('button', { name: /Minerals Box/ });
+    await mineralsRow.getByLabel('Edit Auto-Sell').click();
 
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
@@ -199,8 +204,9 @@ test.describe('Auto-Sell Containers', () => {
 
     await expect(alicePage.getByText(/Auto-Sell @ 90% JSplit/)).toBeVisible({ timeout: 10000 });
 
-    // Edit and disable
-    await alicePage.locator('button[aria-label="Edit Auto-Sell"]').click();
+    // Edit and disable on Minerals Box
+    const mineralsRow = alicePage.getByRole('button', { name: /Minerals Box/ });
+    await mineralsRow.getByLabel('Edit Auto-Sell').click();
 
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
