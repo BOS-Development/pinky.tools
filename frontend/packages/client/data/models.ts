@@ -157,3 +157,191 @@ export type PlanResponse = {
   shopping_list: ShoppingItem[];
   summary: PlanSummary;
 };
+
+// Planetary Industry Types
+
+export type PiPinContent = {
+  typeId: number;
+  name: string;
+  amount: number;
+};
+
+export type PiExtractor = {
+  pinId: number;
+  typeId: number;
+  productTypeId: number;
+  productName: string;
+  qtyPerCycle: number;
+  cycleTimeSec: number;
+  ratePerHour: number;
+  expiryTime: string | null;
+  status: string;
+  numHeads: number;
+};
+
+export type PiFactory = {
+  pinId: number;
+  typeId: number;
+  schematicId: number;
+  schematicName: string;
+  outputTypeId: number;
+  outputName: string;
+  outputQty: number;
+  cycleTimeSec: number;
+  ratePerHour: number;
+  lastCycleStart: string | null;
+  status: string;
+  pinCategory: string;
+};
+
+export type PiLaunchpad = {
+  pinId: number;
+  typeId: number;
+  label?: string;
+  contents: PiPinContent[];
+};
+
+// Launchpad Detail Types
+
+export type LaunchpadInputRequirement = {
+  typeId: number;
+  name: string;
+  qtyPerCycle: number;
+  cyclesPerHour: number;
+  consumedPerHour: number;
+  currentStock: number;
+  depletionHours: number;
+};
+
+export type LaunchpadConnectedFactory = {
+  pinId: number;
+  schematicName: string;
+  outputName: string;
+  outputTypeId: number;
+  cycleTimeSec: number;
+  inputs: LaunchpadInputRequirement[];
+};
+
+export type LaunchpadDetailResponse = {
+  pinId: number;
+  characterId: number;
+  planetId: number;
+  label?: string;
+  contents: PiPinContent[];
+  factories: LaunchpadConnectedFactory[];
+};
+
+export type PiPlanet = {
+  planetId: number;
+  planetType: string;
+  solarSystemId: number;
+  solarSystemName: string;
+  characterId: number;
+  characterName: string;
+  upgradeLevel: number;
+  numPins: number;
+  lastUpdate: string;
+  status: string;
+  extractors: PiExtractor[];
+  factories: PiFactory[];
+  launchpads: PiLaunchpad[];
+};
+
+export type PiPlanetsResponse = {
+  planets: PiPlanet[];
+};
+
+export type PiTaxConfig = {
+  id?: number;
+  userId?: number;
+  planetId: number | null;
+  taxRate: number;
+};
+
+// PI Profit Types
+
+export type PiFactoryInput = {
+  typeId: number;
+  name: string;
+  tier: string;
+  quantity: number;
+  pricePerUnit: number;
+  costPerHour: number;
+  importTaxPerHour: number;
+  isLocal: boolean;
+};
+
+export type PiFactoryProfit = {
+  pinId: number;
+  schematicId: number;
+  schematicName: string;
+  outputTypeId: number;
+  outputName: string;
+  outputTier: string;
+  outputQty: number;
+  cycleTimeSec: number;
+  ratePerHour: number;
+  outputValuePerHour: number;
+  inputCostPerHour: number;
+  exportTaxPerHour: number;
+  importTaxPerHour: number;
+  profitPerHour: number;
+  inputs: PiFactoryInput[];
+};
+
+export type PiPlanetProfit = {
+  planetId: number;
+  planetType: string;
+  solarSystemId: number;
+  solarSystemName: string;
+  characterId: number;
+  characterName: string;
+  taxRate: number;
+  totalOutputValue: number;
+  totalInputCost: number;
+  totalExportTax: number;
+  totalImportTax: number;
+  netProfitPerHour: number;
+  factories: PiFactoryProfit[];
+};
+
+export type PiProfitResponse = {
+  planets: PiPlanetProfit[];
+  priceSource: string;
+  totalOutputValue: number;
+  totalInputCost: number;
+  totalExportTax: number;
+  totalImportTax: number;
+  totalProfit: number;
+};
+
+// PI Supply Chain Types
+
+export type SupplyChainPlanetEntry = {
+  characterId: number;
+  characterName: string;
+  planetId: number;
+  solarSystemName: string;
+  planetType: string;
+  ratePerHour: number;
+};
+
+export type SupplyChainItem = {
+  typeId: number;
+  name: string;
+  tier: number;
+  tierName: string;
+  producedPerHour: number;
+  consumedPerHour: number;
+  netPerHour: number;
+  stockpileQty: number;
+  depletionHours: number;
+  source: string;
+  producers: SupplyChainPlanetEntry[];
+  consumers: SupplyChainPlanetEntry[];
+  stockpileMarkers?: StockpileMarker[];
+};
+
+export type SupplyChainResponse = {
+  items: SupplyChainItem[];
+};

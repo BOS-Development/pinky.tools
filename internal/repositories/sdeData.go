@@ -736,6 +736,42 @@ func bulkUpsertTx[T any](ctx context.Context, tx *sql.Tx, query string, items []
 }
 
 // GetMetadataLastUpdateTime returns the last update time for SDE metadata
+func (r *SdeDataRepository) GetAllSchematics(ctx context.Context) ([]*models.SdePlanetSchematic, error) {
+	rows, err := r.db.QueryContext(ctx, `select schematic_id, name, cycle_time from sde_planet_schematics`)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query planet schematics")
+	}
+	defer rows.Close()
+
+	schematics := []*models.SdePlanetSchematic{}
+	for rows.Next() {
+		var s models.SdePlanetSchematic
+		if err := rows.Scan(&s.SchematicID, &s.Name, &s.CycleTime); err != nil {
+			return nil, errors.Wrap(err, "failed to scan planet schematic")
+		}
+		schematics = append(schematics, &s)
+	}
+	return schematics, nil
+}
+
+func (r *SdeDataRepository) GetAllSchematicTypes(ctx context.Context) ([]*models.SdePlanetSchematicType, error) {
+	rows, err := r.db.QueryContext(ctx, `select schematic_id, type_id, quantity, is_input from sde_planet_schematic_types`)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query planet schematic types")
+	}
+	defer rows.Close()
+
+	types := []*models.SdePlanetSchematicType{}
+	for rows.Next() {
+		var t models.SdePlanetSchematicType
+		if err := rows.Scan(&t.SchematicID, &t.TypeID, &t.Quantity, &t.IsInput); err != nil {
+			return nil, errors.Wrap(err, "failed to scan planet schematic type")
+		}
+		types = append(types, &t)
+	}
+	return types, nil
+}
+
 func (r *SdeDataRepository) GetMetadataLastUpdateTime(ctx context.Context) (*time.Time, error) {
 	query := `SELECT MAX(updated_at) FROM sde_metadata`
 

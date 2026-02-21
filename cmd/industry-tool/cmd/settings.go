@@ -21,6 +21,7 @@ type Settings struct {
 	DiscordBotToken        string
 	DiscordClientID        string
 	DiscordClientSecret    string
+	PiUpdateIntervalSec    int
 }
 
 func GetSettings() (*Settings, error) {
@@ -71,6 +72,15 @@ func GetSettings() (*Settings, error) {
 	settings.DiscordBotToken = os.Getenv("DISCORD_BOT_TOKEN")
 	settings.DiscordClientID = os.Getenv("DISCORD_CLIENT_ID")
 	settings.DiscordClientSecret = os.Getenv("DISCORD_CLIENT_SECRET")
+
+	if s := os.Getenv("PI_UPDATE_INTERVAL_SEC"); s != "" {
+		settings.PiUpdateIntervalSec, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "PI_UPDATE_INTERVAL_SEC '%s' is not a number", s)
+		}
+	} else {
+		settings.PiUpdateIntervalSec = 3600
+	}
 
 	return settings, nil
 }
