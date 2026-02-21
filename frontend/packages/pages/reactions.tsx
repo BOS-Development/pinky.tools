@@ -1,4 +1,4 @@
-import { PlanResponse, PlanSelection, ReactionsResponse, ReactionSystem } from "@industry-tool/client/data/models";
+import { AssetsResponse, PlanResponse, PlanSelection, ReactionsResponse, ReactionSystem } from "@industry-tool/client/data/models";
 import Navbar from "@industry-tool/components/Navbar";
 import PlanSummary from "@industry-tool/components/reactions/PlanSummary";
 import ReactionPicker from "@industry-tool/components/reactions/ReactionPicker";
@@ -10,6 +10,7 @@ import Container from '@mui/material/Container';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Typography from '@mui/material/Typography';
+import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type ReactionSettings = {
@@ -52,6 +53,7 @@ const DEFAULT_SETTINGS: ReactionSettings = {
 
 
 export default function Reactions() {
+    const { status } = useSession();
     const [tabIndex, setTabIndex] = useState(0);
     const [settings, setSettings] = useState<ReactionSettings>(DEFAULT_SETTINGS);
     const [selections, setSelections] = useState<Record<number, number>>({});
@@ -60,6 +62,8 @@ export default function Reactions() {
     const [planData, setPlanData] = useState<PlanResponse | null>(null);
     const [loading, setLoading] = useState(true);
     const [planLoading, setPlanLoading] = useState(false);
+    const [assets, setAssets] = useState<AssetsResponse | null>(null);
+    const [stockpileLocationId, setStockpileLocationId] = useState(0);
 
     // Load persisted state from localStorage after hydration
     const initialized = useRef(false);
@@ -73,6 +77,9 @@ export default function Reactions() {
 
             const savedSelections = localStorage.getItem('reactionSelections');
             if (savedSelections) setSelections(JSON.parse(savedSelections));
+
+            const savedLocation = localStorage.getItem('reactionStockpileLocationId');
+            if (savedLocation) setStockpileLocationId(parseInt(savedLocation, 10));
         } catch { }
         initialized.current = true;
     }, []);
@@ -83,7 +90,20 @@ export default function Reactions() {
         localStorage.setItem('reactionsTab', tabIndex.toString());
         localStorage.setItem('reactionSettings', JSON.stringify(settings));
         localStorage.setItem('reactionSelections', JSON.stringify(selections));
-    }, [tabIndex, settings, selections]);
+        localStorage.setItem('reactionStockpileLocationId', stockpileLocationId.toString());
+    }, [tabIndex, settings, selections, stockpileLocationId]);
+
+    // Fetch assets when authenticated
+    useEffect(() => {
+        if (status !== 'authenticated') return;
+        fetch('/api/assets/get')
+            .then(res => {
+                if (res.ok) return res.json();
+                throw new Error('Failed to fetch assets');
+            })
+            .then(data => setAssets(data))
+            .catch(err => console.error('Failed to fetch assets:', err));
+    }, [status]);
 
     // Fetch systems once
     useEffect(() => {
@@ -222,6 +242,10 @@ export default function Reactions() {
                             <ShoppingList
                                 planData={planData}
                                 loading={planLoading}
+                                assets={assets}
+                                isAuthenticated={status === 'authenticated'}
+                                stockpileLocationId={stockpileLocationId}
+                                onStockpileLocationChange={setStockpileLocationId}
                             />
                         )}
                         {tabIndex === 2 && (
