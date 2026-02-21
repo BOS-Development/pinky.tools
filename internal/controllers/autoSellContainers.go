@@ -81,7 +81,7 @@ func (c *AutoSellContainers) CreateConfig(args *web.HandlerArgs) (any, *web.Http
 		OwnerType       string  `json:"ownerType"`
 		OwnerID         int64   `json:"ownerId"`
 		LocationID      int64   `json:"locationId"`
-		ContainerID     int64   `json:"containerId"`
+		ContainerID     *int64  `json:"containerId"`
 		DivisionNumber  *int    `json:"divisionNumber"`
 		PricePercentage float64 `json:"pricePercentage"`
 		PriceSource     string  `json:"priceSource"`
@@ -100,8 +100,8 @@ func (c *AutoSellContainers) CreateConfig(args *web.HandlerArgs) (any, *web.Http
 	if req.LocationID == 0 {
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("locationId is required")}
 	}
-	if req.ContainerID == 0 {
-		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("containerId is required")}
+	if req.ContainerID == nil && req.DivisionNumber == nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("either containerId or divisionNumber is required")}
 	}
 	if req.PricePercentage <= 0 || req.PricePercentage > 200 {
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("pricePercentage must be between 0 and 200")}

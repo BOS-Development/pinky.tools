@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/pkg/errors"
@@ -87,7 +88,7 @@ func (r *AutoSellContainers) Upsert(ctx context.Context, container *models.AutoS
 		INSERT INTO auto_sell_containers
 		(user_id, owner_type, owner_id, location_id, container_id, division_number, price_percentage, price_source, is_active, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, true, NOW())
-		ON CONFLICT (user_id, owner_type, owner_id, location_id, container_id, coalesce(division_number, 0))
+		ON CONFLICT (user_id, owner_type, owner_id, location_id, coalesce(container_id, 0), coalesce(division_number, 0))
 		WHERE is_active = true
 		DO UPDATE SET
 			price_percentage = EXCLUDED.price_percentage,
@@ -170,6 +171,55 @@ func (r *AutoSellContainers) GetItemsInContainer(ctx context.Context, ownerType 
 		err = rows.Scan(&item.TypeID, &item.Quantity)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan container item")
+		}
+		items = append(items, &item)
+	}
+
+	return items, nil
+}
+
+// GetItemsInDivision returns items in a corp hangar division (no container), grouped by type_id with summed quantities.
+// For corporation owners, joins through OfficeFolder to resolve station_id → division items.
+// For character owners, queries items directly in the station hangar.
+func (r *AutoSellContainers) GetItemsInDivision(ctx context.Context, ownerType string, ownerID int64, locationID int64, divisionNumber int) ([]*models.ContainerItem, error) {
+	var query string
+	if ownerType == "character" {
+		query = `
+			SELECT type_id, SUM(quantity) as total_quantity
+			FROM character_assets
+			WHERE character_id = $1 AND location_id = $2 AND location_type = 'other' AND location_flag = 'Hangar'
+			GROUP BY type_id
+		`
+	} else {
+		query = fmt.Sprintf(`
+			SELECT ca.type_id, SUM(ca.quantity) as total_quantity
+			FROM corporation_assets ca
+			INNER JOIN corporation_assets office ON (
+				office.item_id = ca.location_id
+				AND office.corporation_id = ca.corporation_id
+				AND office.user_id = ca.user_id
+				AND office.location_flag = 'OfficeFolder'
+				AND office.location_id = $2
+			)
+			WHERE ca.corporation_id = $1
+				AND ca.location_type = 'item'
+				AND ca.location_flag = 'CorpSAG%d'
+			GROUP BY ca.type_id
+		`, divisionNumber)
+	}
+
+	rows, err := r.db.QueryContext(ctx, query, ownerID, locationID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query division items")
+	}
+	defer rows.Close()
+
+	items := []*models.ContainerItem{}
+	for rows.Next() {
+		var item models.ContainerItem
+		err = rows.Scan(&item.TypeID, &item.Quantity)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan division item")
 		}
 		items = append(items, &item)
 	}

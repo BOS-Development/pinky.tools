@@ -15,6 +15,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+func int64Ptr(v int64) *int64 { return &v }
+
 // Mock AutoSellContainersRepository
 type MockAutoSellContainersRepository struct {
 	mock.Mock
@@ -83,7 +85,7 @@ func Test_AutoSellContainersController_GetMyConfigs_Success(t *testing.T) {
 			OwnerType:       "character",
 			OwnerID:         456,
 			LocationID:      60003760,
-			ContainerID:     9000,
+			ContainerID:     int64Ptr(9000),
 			PricePercentage: 90.0,
 			IsActive:        true,
 		},
@@ -107,7 +109,7 @@ func Test_AutoSellContainersController_GetMyConfigs_Success(t *testing.T) {
 	items := result.([]*models.AutoSellContainer)
 	assert.Len(t, items, 1)
 	assert.Equal(t, 90.0, items[0].PricePercentage)
-	assert.Equal(t, int64(9000), items[0].ContainerID)
+	assert.Equal(t, int64Ptr(9000), items[0].ContainerID)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -175,7 +177,7 @@ func Test_AutoSellContainersController_CreateConfig_Success(t *testing.T) {
 			c.OwnerType == "character" &&
 			c.OwnerID == 456 &&
 			c.LocationID == 60003760 &&
-			c.ContainerID == 9000 &&
+			c.ContainerID != nil && *c.ContainerID == 9000 &&
 			c.PricePercentage == 90.0 &&
 			c.PriceSource == "jita_buy"
 	})).Return(nil)
@@ -421,7 +423,7 @@ func Test_AutoSellContainersController_UpdateConfig_Success(t *testing.T) {
 		OwnerType:       "character",
 		OwnerID:         456,
 		LocationID:      60003760,
-		ContainerID:     9000,
+		ContainerID:     int64Ptr(9000),
 		PricePercentage: 90.0,
 		PriceSource:     "jita_buy",
 		IsActive:        true,
