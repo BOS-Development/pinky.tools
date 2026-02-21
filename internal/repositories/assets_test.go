@@ -279,32 +279,33 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 	assert.NoError(t, err)
 
 	corpAssets := []*models.EveAsset{
+		// OfficeFolder items point to the station, CorpSAG items point to the office
 		{
 			ItemID:          5000,
 			IsBlueprintCopy: false,
-			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			IsSingleton:     true,
+			LocationID:      60003760, // station
+			LocationType:    "item",
 			Quantity:        1,
-			TypeID:          34,
+			TypeID:          27, // Office
 			LocationFlag:    "OfficeFolder",
 		},
 		{
 			ItemID:          6000,
 			IsBlueprintCopy: false,
-			IsSingleton:     false,
-			LocationID:      60003761,
-			LocationType:    "station",
+			IsSingleton:     true,
+			LocationID:      60003761, // station
+			LocationType:    "item",
 			Quantity:        1,
-			TypeID:          34,
+			TypeID:          27, // Office
 			LocationFlag:    "OfficeFolder",
 		},
 		{
 			ItemID:          5001,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      5000, // office item_id
+			LocationType:    "item",
 			Quantity:        200,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG1",
@@ -313,8 +314,8 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 			ItemID:          5002,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      5000, // office item_id
+			LocationType:    "item",
 			Quantity:        150,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG2",
@@ -324,8 +325,8 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 			ItemID:          5003,
 			IsBlueprintCopy: false,
 			IsSingleton:     true,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      5000, // office item_id
+			LocationType:    "item",
 			Quantity:        1,
 			TypeID:          3293, // Small Secure Container
 			LocationFlag:    "CorpSAG1",
@@ -946,11 +947,21 @@ func Test_AssetsShouldShowEmptyCorporationDivisions(t *testing.T) {
 
 	corpAssets := []*models.EveAsset{
 		{
+			ItemID:          7000,
+			IsBlueprintCopy: false,
+			IsSingleton:     true,
+			LocationID:      60003760, // station
+			LocationType:    "item",
+			Quantity:        1,
+			TypeID:          27, // Office
+			LocationFlag:    "OfficeFolder",
+		},
+		{
 			ItemID:          7001,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      7000, // office item_id
+			LocationType:    "item",
 			Quantity:        1,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG1",
@@ -1073,11 +1084,21 @@ func Test_AssetsShouldGetMixedCharacterAndCorporationAssets(t *testing.T) {
 
 	corpAssets := []*models.EveAsset{
 		{
+			ItemID:          8000,
+			IsBlueprintCopy: false,
+			IsSingleton:     true,
+			LocationID:      60003760, // station
+			LocationType:    "item",
+			Quantity:        1,
+			TypeID:          27, // Office
+			LocationFlag:    "OfficeFolder",
+		},
+		{
 			ItemID:          8002,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      8000, // office item_id
+			LocationType:    "item",
 			Quantity:        200,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG1",
@@ -1234,11 +1255,21 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 
 	corp1Assets := []*models.EveAsset{
 		{
+			ItemID:          9010,
+			IsBlueprintCopy: false,
+			IsSingleton:     true,
+			LocationID:      60003760, // station
+			LocationType:    "item",
+			Quantity:        1,
+			TypeID:          27, // Office
+			LocationFlag:    "OfficeFolder",
+		},
+		{
 			ItemID:          9002,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      9010, // office item_id
+			LocationType:    "item",
 			Quantity:        300,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG1",
@@ -1247,8 +1278,8 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 			ItemID:          9003,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      9010, // office item_id
+			LocationType:    "item",
 			Quantity:        150,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG2",
@@ -1260,11 +1291,21 @@ func Test_AssetsShouldAddCorporationHangersToExistingStations(t *testing.T) {
 
 	corp2Assets := []*models.EveAsset{
 		{
+			ItemID:          9020,
+			IsBlueprintCopy: false,
+			IsSingleton:     true,
+			LocationID:      60003760, // station
+			LocationType:    "item",
+			Quantity:        1,
+			TypeID:          27, // Office
+			LocationFlag:    "OfficeFolder",
+		},
+		{
 			ItemID:          9004,
 			IsBlueprintCopy: false,
 			IsSingleton:     false,
-			LocationID:      60003760,
-			LocationType:    "station",
+			LocationID:      9020, // office item_id
+			LocationType:    "item",
 			Quantity:        250,
 			TypeID:          34,
 			LocationFlag:    "CorpSAG1",

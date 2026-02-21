@@ -193,15 +193,10 @@ SELECT DISTINCT
     corporation_assets.location_id
 FROM
     corporation_assets corporation_assets
-INNER JOIN
-    asset_item_types assetTypes
-ON
-    assetTypes.type_id=corporation_assets.type_id
 WHERE
 	corporation_assets.corporation_id=$1 AND
 	corporation_assets.user_id=$2 AND
-    location_flag='Hangar' AND
-    location_type='item';
+    location_flag='OfficeFolder';
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, corp, user)
