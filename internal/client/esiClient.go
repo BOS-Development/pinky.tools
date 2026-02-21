@@ -921,6 +921,76 @@ type RefreshedToken struct {
 	Expiry       time.Time
 }
 
+// EsiContract represents a contract from the ESI contracts endpoint.
+type EsiContract struct {
+	ContractID     int64   `json:"contract_id"`
+	IssuerID       int64   `json:"issuer_id"`
+	AcceptorID     int64   `json:"acceptor_id"`
+	AssigneeID     int64   `json:"assignee_id"`
+	Type           string  `json:"type"`
+	Status         string  `json:"status"`
+	Title          string  `json:"title"`
+	DateCompleted  string  `json:"date_completed"`
+	DateExpired    string  `json:"date_expired"`
+	ForCorporation bool    `json:"for_corporation"`
+	Price          float64 `json:"price"`
+}
+
+// GetCharacterContracts fetches all contracts for a character from ESI.
+func (c *EsiClient) GetCharacterContracts(ctx context.Context, characterID int64, token, refresh string, expire time.Time) ([]*EsiContract, error) {
+	contracts := []*EsiContract{}
+
+	page := 1
+	for {
+		url, err := url.Parse(fmt.Sprintf("%s/v1/characters/%d/contracts/?page=%d", c.baseURL, characterID, page))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    url,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get character contracts")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, errors.New(fmt.Sprintf("failed to get character contracts, expected statusCode 200 got %d, %s", res.StatusCode, errText))
+		}
+
+		totalPagesStr := res.Header.Get("X-PAGES")
+		totalPages, err := strconv.Atoi(totalPagesStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse x-pages")
+		}
+
+		bytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageContracts := []*EsiContract{}
+		err = json.Unmarshal(bytes, &pageContracts)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal contracts")
+		}
+
+		contracts = append(contracts, pageContracts...)
+
+		if totalPages == page {
+			return contracts, nil
+		}
+
+		page++
+	}
+}
+
 // RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
 // Returns the new access token, refresh token, and expiry. The caller is responsible
 // for persisting these back to the database.

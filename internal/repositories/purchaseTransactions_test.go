@@ -399,3 +399,196 @@ func Test_PurchaseTransactions_UpdateContractKeys_EmptyArray(t *testing.T) {
 	err = repo.UpdateContractKeys(context.Background(), []int64{}, "some-key")
 	assert.NoError(t, err)
 }
+
+func Test_PurchaseTransactions_GetContractCreatedWithKeys(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	item, err := setupPurchaseTestData(t, db, 3060, 3061, 46, 30000156)
+	assert.NoError(t, err)
+
+	repo := repositories.NewPurchaseTransactions(db)
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	assert.NoError(t, err)
+	defer tx.Rollback()
+
+	// Create a contract_created purchase WITH a contract_key (should be returned)
+	purchase1 := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       3060,
+		SellerUserID:      3061,
+		TypeID:            46,
+		QuantityPurchased: 50,
+		PricePerUnit:      100,
+		TotalPrice:        5000,
+		Status:            "contract_created",
+	}
+	err = repo.Create(context.Background(), tx, purchase1)
+	assert.NoError(t, err)
+
+	// Create a pending purchase (should NOT be returned)
+	purchase2 := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       3060,
+		SellerUserID:      3061,
+		TypeID:            46,
+		QuantityPurchased: 30,
+		PricePerUnit:      100,
+		TotalPrice:        3000,
+		Status:            "pending",
+	}
+	err = repo.Create(context.Background(), tx, purchase2)
+	assert.NoError(t, err)
+
+	// Create a contract_created purchase WITHOUT a contract_key (should NOT be returned)
+	purchase3 := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       3060,
+		SellerUserID:      3061,
+		TypeID:            46,
+		QuantityPurchased: 20,
+		PricePerUnit:      100,
+		TotalPrice:        2000,
+		Status:            "contract_created",
+	}
+	err = repo.Create(context.Background(), tx, purchase3)
+	assert.NoError(t, err)
+
+	err = tx.Commit()
+	assert.NoError(t, err)
+
+	// Set contract_key only on purchase1
+	err = repo.UpdateContractKeys(context.Background(), []int64{purchase1.ID}, "PT-TEST-1")
+	assert.NoError(t, err)
+
+	// Update purchase2 status to contract_created but with a key (to test filtering)
+	err = repo.UpdateStatus(context.Background(), purchase2.ID, "contract_created")
+	assert.NoError(t, err)
+	err = repo.UpdateContractKeys(context.Background(), []int64{purchase2.ID}, "PT-TEST-2")
+	assert.NoError(t, err)
+
+	// Query
+	results, err := repo.GetContractCreatedWithKeys(context.Background())
+	assert.NoError(t, err)
+
+	// Should find purchase1 and purchase2 (both contract_created with keys), but not purchase3 (no key)
+	var foundIDs []int64
+	for _, r := range results {
+		if r.BuyerUserID == 3060 {
+			foundIDs = append(foundIDs, r.ID)
+			assert.NotNil(t, r.ContractKey)
+			assert.Equal(t, "contract_created", r.Status)
+		}
+	}
+	assert.Len(t, foundIDs, 2)
+	assert.Contains(t, foundIDs, purchase1.ID)
+	assert.Contains(t, foundIDs, purchase2.ID)
+}
+
+func Test_PurchaseTransactions_GetContractCreatedWithKeys_Empty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewPurchaseTransactions(db)
+
+	results, err := repo.GetContractCreatedWithKeys(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, results)
+	assert.Len(t, results, 0)
+}
+
+func Test_PurchaseTransactions_CompleteWithContractID(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	item, err := setupPurchaseTestData(t, db, 3070, 3071, 47, 30000157)
+	assert.NoError(t, err)
+
+	repo := repositories.NewPurchaseTransactions(db)
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	assert.NoError(t, err)
+	defer tx.Rollback()
+
+	purchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       3070,
+		SellerUserID:      3071,
+		TypeID:            47,
+		QuantityPurchased: 100,
+		PricePerUnit:      100,
+		TotalPrice:        10000,
+		Status:            "contract_created",
+	}
+	err = repo.Create(context.Background(), tx, purchase)
+	assert.NoError(t, err)
+	err = tx.Commit()
+	assert.NoError(t, err)
+
+	// Set a contract key first
+	err = repo.UpdateContractKeys(context.Background(), []int64{purchase.ID}, "PT-3070")
+	assert.NoError(t, err)
+
+	// Complete with EVE contract ID
+	err = repo.CompleteWithContractID(context.Background(), purchase.ID, 99999)
+	assert.NoError(t, err)
+
+	// Verify status changed and contract_key updated
+	updated, err := repo.GetByID(context.Background(), purchase.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "completed", updated.Status)
+	assert.Contains(t, *updated.ContractKey, "PT-3070")
+	assert.Contains(t, *updated.ContractKey, "[EVE:99999]")
+}
+
+func Test_PurchaseTransactions_CompleteWithContractID_NotContractCreated(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	item, err := setupPurchaseTestData(t, db, 3080, 3081, 48, 30000158)
+	assert.NoError(t, err)
+
+	repo := repositories.NewPurchaseTransactions(db)
+
+	tx, err := db.BeginTx(context.Background(), nil)
+	assert.NoError(t, err)
+	defer tx.Rollback()
+
+	// Create a purchase in pending status (not contract_created)
+	purchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       3080,
+		SellerUserID:      3081,
+		TypeID:            48,
+		QuantityPurchased: 50,
+		PricePerUnit:      100,
+		TotalPrice:        5000,
+		Status:            "pending",
+	}
+	err = repo.Create(context.Background(), tx, purchase)
+	assert.NoError(t, err)
+	err = tx.Commit()
+	assert.NoError(t, err)
+
+	// Should fail because status is not contract_created
+	err = repo.CompleteWithContractID(context.Background(), purchase.ID, 88888)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found or not in contract_created status")
+
+	// Verify status unchanged
+	unchanged, err := repo.GetByID(context.Background(), purchase.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, "pending", unchanged.Status)
+}
+
+func Test_PurchaseTransactions_CompleteWithContractID_NotFound(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewPurchaseTransactions(db)
+
+	err = repo.CompleteWithContractID(context.Background(), 999999, 77777)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found or not in contract_created status")
+}
