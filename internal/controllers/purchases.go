@@ -31,27 +31,33 @@ type PurchaseNotifierInterface interface {
 	NotifyPurchase(ctx context.Context, purchase *models.PurchaseTransaction)
 }
 
+type ContractCreatedNotifierInterface interface {
+	NotifyContractCreated(ctx context.Context, purchase *models.PurchaseTransaction)
+}
+
 type UsersForPurchases interface {
 	GetUserName(ctx context.Context, userID int64) (string, error)
 }
 
 type Purchases struct {
-	db                     *sql.DB
-	repository             PurchaseTransactionsRepository
-	forSaleRepository      ForSaleItemsForPurchases
-	permissionsRepository  ContactPermissionsRepository
-	usersRepository        UsersForPurchases
-	notifier               PurchaseNotifierInterface
+	db                      *sql.DB
+	repository              PurchaseTransactionsRepository
+	forSaleRepository       ForSaleItemsForPurchases
+	permissionsRepository   ContactPermissionsRepository
+	usersRepository         UsersForPurchases
+	notifier                PurchaseNotifierInterface
+	contractCreatedNotifier ContractCreatedNotifierInterface
 }
 
-func NewPurchases(router Routerer, db *sql.DB, repository PurchaseTransactionsRepository, forSaleRepository ForSaleItemsForPurchases, permissionsRepository ContactPermissionsRepository, usersRepository UsersForPurchases, notifier PurchaseNotifierInterface) *Purchases {
+func NewPurchases(router Routerer, db *sql.DB, repository PurchaseTransactionsRepository, forSaleRepository ForSaleItemsForPurchases, permissionsRepository ContactPermissionsRepository, usersRepository UsersForPurchases, notifier PurchaseNotifierInterface, contractCreatedNotifier ContractCreatedNotifierInterface) *Purchases {
 	controller := &Purchases{
-		db:                    db,
-		repository:            repository,
-		forSaleRepository:     forSaleRepository,
-		permissionsRepository: permissionsRepository,
-		usersRepository:       usersRepository,
-		notifier:              notifier,
+		db:                      db,
+		repository:              repository,
+		forSaleRepository:       forSaleRepository,
+		permissionsRepository:   permissionsRepository,
+		usersRepository:         usersRepository,
+		notifier:                notifier,
+		contractCreatedNotifier: contractCreatedNotifier,
 	}
 
 	router.RegisterRestAPIRoute("/v1/purchases", web.AuthAccessUser, controller.PurchaseItem, "POST")
@@ -301,6 +307,19 @@ func (c *Purchases) MarkContractCreated(args *web.HandlerArgs) (any, *web.HttpEr
 	err = c.repository.UpdateContractKeys(args.Request.Context(), []int64{purchaseID}, contractKey)
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update contract key")}
+	}
+
+	// Send notification to buyer (non-blocking)
+	if c.contractCreatedNotifier != nil {
+		purchase.ContractKey = &contractKey
+		if item, err := c.forSaleRepository.GetByID(args.Request.Context(), purchase.ForSaleItemID); err == nil && item != nil {
+			purchase.TypeName = item.TypeName
+			purchase.LocationName = item.LocationName
+		}
+		if sellerName, err := c.usersRepository.GetUserName(args.Request.Context(), purchase.SellerUserID); err == nil {
+			purchase.SellerName = sellerName
+		}
+		go c.contractCreatedNotifier.NotifyContractCreated(context.Background(), purchase)
 	}
 
 	return map[string]string{"status": "contract_created", "contractKey": contractKey}, nil

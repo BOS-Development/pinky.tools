@@ -172,6 +172,7 @@ type PurchaseTransaction struct {
 	BuyerUserID       int64     `json:"buyerUserId"`
 	BuyerName         string    `json:"buyerName"`
 	SellerUserID      int64     `json:"sellerUserId"`
+	SellerName        string    `json:"sellerName"`
 	TypeID            int64     `json:"typeId"`
 	TypeName          string    `json:"typeName"`
 	LocationID        int64     `json:"locationId"`

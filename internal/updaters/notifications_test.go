@@ -300,3 +300,105 @@ func Test_SendTestNotification_ChannelWithoutID(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "no channel_id")
 }
+
+func Test_NotifyContractCreated_SendsDM(t *testing.T) {
+	mockRepo := new(MockNotificationsDiscordRepo)
+	mockClient := new(MockDiscordClient)
+
+	notifier := updaters.NewNotifications(mockRepo, mockClient)
+
+	contractKey := "PT-42"
+	purchase := &models.PurchaseTransaction{
+		ID:                42,
+		BuyerUserID:       100,
+		BuyerName:         "Alice",
+		SellerUserID:      200,
+		SellerName:        "Bob",
+		TypeID:            34,
+		TypeName:          "Tritanium",
+		LocationName:      "Jita IV - Moon 4",
+		QuantityPurchased: 1000,
+		PricePerUnit:      5.0,
+		TotalPrice:        5000.0,
+		ContractKey:       &contractKey,
+		PurchasedAt:       time.Now(),
+	}
+
+	targets := []*models.DiscordNotificationTarget{
+		{
+			ID:         1,
+			UserID:     100,
+			TargetType: "dm",
+			IsActive:   true,
+		},
+	}
+
+	link := &models.DiscordLink{
+		ID:            1,
+		UserID:        100,
+		DiscordUserID: "discord-user-100",
+	}
+
+	mockRepo.On("GetActiveTargetsForEvent", mock.Anything, int64(100), "contract_created").Return(targets, nil)
+	mockRepo.On("GetLinkByUser", mock.Anything, int64(100)).Return(link, nil)
+	mockClient.On("SendDM", mock.Anything, "discord-user-100", mock.AnythingOfType("*client.DiscordEmbed")).Return(nil)
+
+	notifier.NotifyContractCreated(context.Background(), purchase)
+
+	mockRepo.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+}
+
+func Test_NotifyContractCreated_NoTargets(t *testing.T) {
+	mockRepo := new(MockNotificationsDiscordRepo)
+	mockClient := new(MockDiscordClient)
+
+	notifier := updaters.NewNotifications(mockRepo, mockClient)
+
+	purchase := &models.PurchaseTransaction{
+		BuyerUserID: 100,
+		PurchasedAt: time.Now(),
+	}
+
+	mockRepo.On("GetActiveTargetsForEvent", mock.Anything, int64(100), "contract_created").Return([]*models.DiscordNotificationTarget{}, nil)
+
+	notifier.NotifyContractCreated(context.Background(), purchase)
+
+	mockRepo.AssertExpectations(t)
+	mockClient.AssertNotCalled(t, "SendDM")
+	mockClient.AssertNotCalled(t, "SendChannelMessage")
+}
+
+func Test_NotifyContractCreated_SendError(t *testing.T) {
+	mockRepo := new(MockNotificationsDiscordRepo)
+	mockClient := new(MockDiscordClient)
+
+	notifier := updaters.NewNotifications(mockRepo, mockClient)
+
+	channelID := "channel-456"
+	contractKey := "PT-99"
+	purchase := &models.PurchaseTransaction{
+		BuyerUserID:       100,
+		SellerName:        "Bob",
+		TypeName:          "Tritanium",
+		LocationName:      "Jita",
+		QuantityPurchased: 100,
+		PricePerUnit:      5.0,
+		TotalPrice:        500.0,
+		ContractKey:       &contractKey,
+		PurchasedAt:       time.Now(),
+	}
+
+	targets := []*models.DiscordNotificationTarget{
+		{ID: 1, UserID: 100, TargetType: "channel", ChannelID: &channelID, IsActive: true},
+	}
+
+	mockRepo.On("GetActiveTargetsForEvent", mock.Anything, int64(100), "contract_created").Return(targets, nil)
+	mockClient.On("SendChannelMessage", mock.Anything, "channel-456", mock.AnythingOfType("*client.DiscordEmbed")).Return(errors.New("discord error"))
+
+	// Should not panic, just log
+	notifier.NotifyContractCreated(context.Background(), purchase)
+
+	mockRepo.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+}
