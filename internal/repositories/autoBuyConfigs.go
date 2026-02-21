@@ -3,6 +3,7 @@ package repositories
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/pkg/errors"
@@ -276,7 +277,7 @@ func (r *AutoBuyConfigs) GetStockpileDeficitsForConfig(ctx context.Context, conf
 					)
 					WHERE ca.corporation_id = $3
 						AND ca.location_type = 'item'
-						AND ca.location_flag = 'CorpSAG' || $5::text
+						AND ca.location_flag = $6
 					GROUP BY ca.type_id, ca.corporation_id
 				) items ON items.type_id = sm.type_id
 				WHERE sm.user_id = $1
@@ -284,7 +285,7 @@ func (r *AutoBuyConfigs) GetStockpileDeficitsForConfig(ctx context.Context, conf
 					AND sm.owner_id = $3
 					AND sm.location_id = $4
 					AND sm.container_id IS NULL
-					AND COALESCE(sm.division_number, 0) = COALESCE($5::integer, 0)
+					AND COALESCE(sm.division_number, 0) = COALESCE($5, 0)
 				GROUP BY sm.type_id, sm.desired_quantity, sm.price_source, sm.price_percentage
 			`
 		}
@@ -297,6 +298,15 @@ func (r *AutoBuyConfigs) GetStockpileDeficitsForConfig(ctx context.Context, conf
 		rows, err = r.db.QueryContext(ctx, query,
 			config.UserID, config.OwnerType, config.OwnerID,
 			config.LocationID, config.ContainerID, config.DivisionNumber,
+		)
+	} else if config.OwnerType == "corporation" {
+		var locationFlag string
+		if config.DivisionNumber != nil {
+			locationFlag = fmt.Sprintf("CorpSAG%d", *config.DivisionNumber)
+		}
+		rows, err = r.db.QueryContext(ctx, query,
+			config.UserID, config.OwnerType, config.OwnerID,
+			config.LocationID, config.DivisionNumber, locationFlag,
 		)
 	} else {
 		rows, err = r.db.QueryContext(ctx, query,

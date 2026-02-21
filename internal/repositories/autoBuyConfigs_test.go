@@ -590,3 +590,184 @@ func Test_AutoBuyConfigsWithDivisionNumber(t *testing.T) {
 	assert.NotNil(t, result)
 	assert.Equal(t, intPtr(5), result.DivisionNumber)
 }
+
+func Test_AutoBuyConfigsDeficitsCorpDivisionIsolation(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+	setupAutoBuyTestData(t, db, 7120, 71201)
+
+	ctx := context.Background()
+
+	// Set up corporation
+	playerCorpsRepo := repositories.NewPlayerCorporations(db)
+	corp := repositories.PlayerCorporation{
+		ID:              71202,
+		UserID:          7120,
+		Name:            "Test Corp Isolation",
+		EsiToken:        "token",
+		EsiRefreshToken: "refresh",
+		EsiExpiresOn:    time.Now().Add(time.Hour),
+	}
+	err = playerCorpsRepo.Upsert(ctx, corp)
+	assert.NoError(t, err)
+
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+	repo := repositories.NewAutoBuyConfigs(db)
+
+	divNum1 := 1
+	divNum3 := 3
+
+	// Stockpile marker for division 1: want 10000 Tritanium
+	marker1 := &models.StockpileMarker{
+		UserID:          7120,
+		TypeID:          34,
+		OwnerType:       "corporation",
+		OwnerID:         71202,
+		LocationID:      60003760,
+		DivisionNumber:  &divNum1,
+		DesiredQuantity: 10000,
+	}
+	err = stockpileRepo.Upsert(ctx, marker1)
+	assert.NoError(t, err)
+
+	// Stockpile marker for division 3: want 5000 Tritanium
+	marker3 := &models.StockpileMarker{
+		UserID:          7120,
+		TypeID:          34,
+		OwnerType:       "corporation",
+		OwnerID:         71202,
+		LocationID:      60003760,
+		DivisionNumber:  &divNum3,
+		DesiredQuantity: 5000,
+	}
+	err = stockpileRepo.Upsert(ctx, marker3)
+	assert.NoError(t, err)
+
+	// Office at station
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO corporation_assets
+		(corporation_id, user_id, item_id, is_blueprint_copy, is_singleton,
+		 location_id, location_type, quantity, type_id, location_flag, update_key)
+		VALUES
+			(71202, 7120, 3000001, false, true, 60003760, 'item', 1, 27, 'OfficeFolder', NOW())
+	`)
+	assert.NoError(t, err)
+
+	// Tritanium only in CorpSAG1 (division 1) — division 3 has nothing
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO corporation_assets
+		(corporation_id, user_id, item_id, is_blueprint_copy, is_singleton,
+		 location_id, location_type, quantity, type_id, location_flag, update_key)
+		VALUES
+			(71202, 7120, 3000002, false, false, 3000001, 'item', 4000, 34, 'CorpSAG1', NOW())
+	`)
+	assert.NoError(t, err)
+
+	// Query division 1: should see 4000 current, 6000 deficit
+	config1 := &models.AutoBuyConfig{
+		UserID:         7120,
+		OwnerType:      "corporation",
+		OwnerID:        71202,
+		LocationID:     60003760,
+		DivisionNumber: &divNum1,
+	}
+	deficits1, err := repo.GetStockpileDeficitsForConfig(ctx, config1)
+	assert.NoError(t, err)
+	assert.Len(t, deficits1, 1)
+	assert.Equal(t, int64(34), deficits1[0].TypeID)
+	assert.Equal(t, int64(4000), deficits1[0].CurrentQuantity)
+	assert.Equal(t, int64(6000), deficits1[0].Deficit)
+
+	// Query division 3: should see 0 current, 5000 deficit (no assets in CorpSAG3)
+	config3 := &models.AutoBuyConfig{
+		UserID:         7120,
+		OwnerType:      "corporation",
+		OwnerID:        71202,
+		LocationID:     60003760,
+		DivisionNumber: &divNum3,
+	}
+	deficits3, err := repo.GetStockpileDeficitsForConfig(ctx, config3)
+	assert.NoError(t, err)
+	assert.Len(t, deficits3, 1)
+	assert.Equal(t, int64(34), deficits3[0].TypeID)
+	assert.Equal(t, int64(0), deficits3[0].CurrentQuantity)
+	assert.Equal(t, int64(5000), deficits3[0].Deficit)
+}
+
+func Test_AutoBuyConfigsDeficitsCorpDivisionMultipleItems(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+	setupAutoBuyTestData(t, db, 7130, 71301)
+
+	ctx := context.Background()
+
+	playerCorpsRepo := repositories.NewPlayerCorporations(db)
+	corp := repositories.PlayerCorporation{
+		ID:              71302,
+		UserID:          7130,
+		Name:            "Test Corp Multi",
+		EsiToken:        "token",
+		EsiRefreshToken: "refresh",
+		EsiExpiresOn:    time.Now().Add(time.Hour),
+	}
+	err = playerCorpsRepo.Upsert(ctx, corp)
+	assert.NoError(t, err)
+
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+	repo := repositories.NewAutoBuyConfigs(db)
+
+	divNum := 2
+
+	// Want 10000 Tritanium and 5000 Pyerite in division 2
+	for _, m := range []*models.StockpileMarker{
+		{UserID: 7130, TypeID: 34, OwnerType: "corporation", OwnerID: 71302, LocationID: 60003760, DivisionNumber: &divNum, DesiredQuantity: 10000},
+		{UserID: 7130, TypeID: 35, OwnerType: "corporation", OwnerID: 71302, LocationID: 60003760, DivisionNumber: &divNum, DesiredQuantity: 5000},
+	} {
+		err = stockpileRepo.Upsert(ctx, m)
+		assert.NoError(t, err)
+	}
+
+	// Office + assets in CorpSAG2
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO corporation_assets
+		(corporation_id, user_id, item_id, is_blueprint_copy, is_singleton,
+		 location_id, location_type, quantity, type_id, location_flag, update_key)
+		VALUES
+			(71302, 7130, 4000001, false, true, 60003760, 'item', 1, 27, 'OfficeFolder', NOW()),
+			(71302, 7130, 4000002, false, false, 4000001, 'item', 3000, 34, 'CorpSAG2', NOW()),
+			(71302, 7130, 4000003, false, false, 4000001, 'item', 5000, 35, 'CorpSAG2', NOW())
+	`)
+	assert.NoError(t, err)
+
+	config := &models.AutoBuyConfig{
+		UserID:         7130,
+		OwnerType:      "corporation",
+		OwnerID:        71302,
+		LocationID:     60003760,
+		DivisionNumber: &divNum,
+	}
+
+	deficits, err := repo.GetStockpileDeficitsForConfig(ctx, config)
+	assert.NoError(t, err)
+	assert.Len(t, deficits, 2)
+
+	// Build a map for order-independent assertions
+	deficitMap := map[int64]*models.StockpileDeficitItem{}
+	for _, d := range deficits {
+		deficitMap[d.TypeID] = d
+	}
+
+	// Tritanium: 3000 of 10000
+	assert.Equal(t, int64(10000), deficitMap[34].DesiredQuantity)
+	assert.Equal(t, int64(3000), deficitMap[34].CurrentQuantity)
+	assert.Equal(t, int64(7000), deficitMap[34].Deficit)
+
+	// Pyerite: 5000 of 5000 (fully stocked, deficit 0)
+	assert.Equal(t, int64(5000), deficitMap[35].DesiredQuantity)
+	assert.Equal(t, int64(5000), deficitMap[35].CurrentQuantity)
+	assert.Equal(t, int64(0), deficitMap[35].Deficit)
+}
