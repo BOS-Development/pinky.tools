@@ -696,6 +696,201 @@ ORDER BY s.name
 	return results, nil
 }
 
+// ManufacturingBlueprintRow represents a manufacturing blueprint with its product info
+type ManufacturingBlueprintRow struct {
+	BlueprintTypeID int64
+	ProductTypeID   int64
+	ProductName     string
+	GroupName       string
+	ProductQuantity int
+	Time            int
+	ProductVolume   float64
+	MaxProdLimit    int
+}
+
+// ManufacturingMaterialRow represents an input material for a manufacturing blueprint
+type ManufacturingMaterialRow struct {
+	BlueprintTypeID int64
+	TypeID          int64
+	TypeName        string
+	Quantity        int
+	Volume          float64
+}
+
+// BlueprintSearchRow represents a blueprint search result
+type BlueprintSearchRow struct {
+	BlueprintTypeID int64
+	BlueprintName   string
+	ProductTypeID   int64
+	ProductName     string
+	Activity        string
+}
+
+// GetManufacturingBlueprint returns a single manufacturing blueprint with product info
+func (r *SdeDataRepository) GetManufacturingBlueprint(ctx context.Context, blueprintTypeID int64) (*ManufacturingBlueprintRow, error) {
+	query := `
+SELECT
+	ba.blueprint_type_id,
+	bp.type_id AS product_type_id,
+	ait.type_name AS product_name,
+	g.name AS group_name,
+	bp.quantity AS product_quantity,
+	ba.time,
+	COALESCE(ait.packaged_volume, ait.volume, 0) AS product_volume,
+	COALESCE(sb.max_production_limit, 0)
+FROM sde_blueprint_activities ba
+JOIN sde_blueprint_products bp ON bp.blueprint_type_id = ba.blueprint_type_id AND bp.activity = ba.activity
+JOIN asset_item_types ait ON ait.type_id = bp.type_id
+JOIN sde_groups g ON g.group_id = ait.group_id
+LEFT JOIN sde_blueprints sb ON sb.blueprint_type_id = ba.blueprint_type_id
+WHERE ba.activity = 'manufacturing'
+  AND ba.blueprint_type_id = $1
+`
+
+	var row ManufacturingBlueprintRow
+	err := r.db.QueryRowContext(ctx, query, blueprintTypeID).Scan(
+		&row.BlueprintTypeID,
+		&row.ProductTypeID,
+		&row.ProductName,
+		&row.GroupName,
+		&row.ProductQuantity,
+		&row.Time,
+		&row.ProductVolume,
+		&row.MaxProdLimit,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query manufacturing blueprint")
+	}
+
+	return &row, nil
+}
+
+// GetManufacturingMaterials returns input materials for a manufacturing blueprint
+func (r *SdeDataRepository) GetManufacturingMaterials(ctx context.Context, blueprintTypeID int64) ([]*ManufacturingMaterialRow, error) {
+	query := `
+SELECT
+	bm.blueprint_type_id,
+	bm.type_id,
+	ait.type_name,
+	bm.quantity,
+	COALESCE(ait.packaged_volume, ait.volume, 0) AS volume
+FROM sde_blueprint_materials bm
+JOIN asset_item_types ait ON ait.type_id = bm.type_id
+WHERE bm.activity = 'manufacturing'
+  AND bm.blueprint_type_id = $1
+ORDER BY ait.type_name
+`
+
+	rows, err := r.db.QueryContext(ctx, query, blueprintTypeID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query manufacturing materials")
+	}
+	defer rows.Close()
+
+	results := []*ManufacturingMaterialRow{}
+	for rows.Next() {
+		var row ManufacturingMaterialRow
+		err := rows.Scan(
+			&row.BlueprintTypeID,
+			&row.TypeID,
+			&row.TypeName,
+			&row.Quantity,
+			&row.Volume,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan manufacturing material row")
+		}
+		results = append(results, &row)
+	}
+
+	return results, nil
+}
+
+// SearchBlueprints searches blueprints by product name (ILIKE) for a given activity
+func (r *SdeDataRepository) SearchBlueprints(ctx context.Context, query string, activity string, limit int) ([]*BlueprintSearchRow, error) {
+	sqlQuery := `
+SELECT DISTINCT
+	ba.blueprint_type_id,
+	bpait.type_name AS blueprint_name,
+	bp.type_id AS product_type_id,
+	prodait.type_name AS product_name,
+	ba.activity
+FROM sde_blueprint_activities ba
+JOIN sde_blueprint_products bp ON bp.blueprint_type_id = ba.blueprint_type_id AND bp.activity = ba.activity
+JOIN asset_item_types prodait ON prodait.type_id = bp.type_id
+JOIN asset_item_types bpait ON bpait.type_id = ba.blueprint_type_id
+WHERE ba.activity = $1
+  AND prodait.type_name ILIKE '%' || $2 || '%'
+ORDER BY prodait.type_name
+LIMIT $3
+`
+
+	rows, err := r.db.QueryContext(ctx, sqlQuery, activity, query, limit)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to search blueprints")
+	}
+	defer rows.Close()
+
+	results := []*BlueprintSearchRow{}
+	for rows.Next() {
+		var row BlueprintSearchRow
+		err := rows.Scan(
+			&row.BlueprintTypeID,
+			&row.BlueprintName,
+			&row.ProductTypeID,
+			&row.ProductName,
+			&row.Activity,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan blueprint search row")
+		}
+		results = append(results, &row)
+	}
+
+	return results, nil
+}
+
+// GetManufacturingSystems returns systems with manufacturing cost indices
+func (r *SdeDataRepository) GetManufacturingSystems(ctx context.Context) ([]*models.ReactionSystem, error) {
+	query := `
+SELECT
+	i.system_id,
+	s.name,
+	s.security,
+	i.cost_index
+FROM industry_cost_indices i
+JOIN solar_systems s ON s.solar_system_id = i.system_id
+WHERE i.activity = 'manufacturing'
+ORDER BY s.name
+`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query manufacturing systems")
+	}
+	defer rows.Close()
+
+	results := []*models.ReactionSystem{}
+	for rows.Next() {
+		var sys models.ReactionSystem
+		err := rows.Scan(
+			&sys.SystemID,
+			&sys.Name,
+			&sys.SecurityStatus,
+			&sys.CostIndex,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan manufacturing system row")
+		}
+		results = append(results, &sys)
+	}
+
+	return results, nil
+}
+
 // batchUpsert executes upsert queries for a batch of items in a single transaction
 func batchUpsert[T any](db *sql.DB, ctx context.Context, upsertQuery string, items []T, execFn func(*sql.Stmt, T) error) error {
 	if len(items) == 0 {

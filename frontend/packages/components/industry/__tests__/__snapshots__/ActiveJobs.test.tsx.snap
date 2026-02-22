@@ -1,0 +1,451 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ActiveJobs Component should match snapshot when loading 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-wg1uo3"
+  >
+    <span
+      class="MuiCircularProgress-root MuiCircularProgress-indeterminate MuiCircularProgress-colorPrimary css-1wxecgq-MuiCircularProgress-root"
+      role="progressbar"
+      style="width: 40px; height: 40px;"
+    >
+      <svg
+        class="MuiCircularProgress-svg css-54pwck-MuiCircularProgress-svg"
+        viewBox="22 22 44 44"
+      >
+        <circle
+          class="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate css-19t5dcl-MuiCircularProgress-circle"
+          cx="44"
+          cy="44"
+          fill="none"
+          r="20.2"
+          stroke-width="3.6"
+        />
+      </svg>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
+<div>
+  <div
+    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+  >
+    <table
+      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    >
+      <thead
+        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      >
+        <tr
+          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        >
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
+            scope="col"
+          >
+            Source
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Blueprint
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Product
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Activity
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            Runs
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Character
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Time Left
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Duration
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            Cost
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            System
+          </th>
+        </tr>
+      </thead>
+      <tbody
+        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+      >
+        <tr
+          class="MuiTableRow-root css-1xtozoh-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1btjunt-MuiTableCell-root"
+            colspan="11"
+          >
+            No active industry jobs
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
+<div>
+  <div
+    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+  >
+    <table
+      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    >
+      <thead
+        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      >
+        <tr
+          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        >
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
+            scope="col"
+          >
+            Source
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Blueprint
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Product
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Activity
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            Runs
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Character
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Time Left
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Duration
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            Cost
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            System
+          </th>
+        </tr>
+      </thead>
+      <tbody
+        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+      >
+        <tr
+          class="MuiTableRow-root css-ky2cy3-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          >
+            <svg
+              aria-hidden="true"
+              aria-label="Character Job"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-qahz97-MuiSvgIcon-root"
+              data-mui-internal-clone-element="true"
+              data-testid="PersonIcon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"
+              />
+            </svg>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
+            >
+              Rifter Blueprint
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              Rifter
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              Manufacturing
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
+            >
+              10
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              Test Pilot
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <div
+              class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorSuccess MuiChip-outlinedSuccess css-fko4l-MuiChip-root"
+            >
+              <span
+                class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+              >
+                active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-17fxm6e-MuiTypography-root"
+            >
+              Ready
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              1h 0m
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              1.50M ISK
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              Jita
+            </p>
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root css-ky2cy3-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          >
+            <svg
+              aria-hidden="true"
+              aria-label="Corporation Job"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-64fxvi-MuiSvgIcon-root"
+              data-mui-internal-clone-element="true"
+              data-testid="CorporateFareIcon"
+              focusable="false"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M12 7V3H2v18h20V7zm-2 12H4v-2h6zm0-4H4v-2h6zm0-4H4V9h6zm0-4H4V5h6zm10 12h-8V9h8zm-2-8h-4v2h4zm0 4h-4v2h4z"
+              />
+            </svg>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
+            >
+              Reaction Blueprint
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              Reaction
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
+            >
+              100
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              Corp Alt
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <div
+              class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorInfo MuiChip-outlinedInfo css-mr7bkj-MuiChip-root"
+            >
+              <span
+                class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+              >
+                ready
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              Ready
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              2h 0m
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;

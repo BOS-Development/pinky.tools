@@ -43,16 +43,16 @@ var SimpleGroups = map[string]bool{
 
 // ComputeMEFactor calculates the material efficiency factor
 func ComputeMEFactor(rig, security string) float64 {
-	rigME := rigMEValue(rig)
-	secMult := securityMultiplier(security)
+	rigME := RigMEValue(rig)
+	secMult := SecurityMultiplier(security)
 	return 1.0 - rigME*secMult
 }
 
 // ComputeTEFactor calculates the time efficiency factor
 func ComputeTEFactor(skill int, structure, rig, security string) float64 {
-	rigTE := rigTEValue(rig)
-	structTE := structureTEValue(structure)
-	secMult := securityMultiplier(security)
+	rigTE := RigTEValue(rig)
+	structTE := StructureTEValue(structure)
+	secMult := SecurityMultiplier(security)
 	return (1.0 - float64(skill)*0.04) * (1.0 - structTE) * (1.0 - rigTE*secMult)
 }
 
@@ -126,10 +126,10 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 		var batchCost float64
 		for _, mat := range simpleMats {
 			batchQty := ComputeBatchQty(runsPerCycle, mat.Quantity, meFactor)
-			price := getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+			price := GetPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
 			batchCost += price * float64(batchQty)
 		}
-		jobCostPerRun := computeJobCost(simpleMats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		jobCostPerRun := ComputeReactionJobCost(simpleMats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
 		totalProduced := float64(simpleReaction.ProductQuantity) * float64(runsPerCycle)
 		if totalProduced > 0 {
 			intermediateRawCostPerUnit[productTypeID] = batchCost / totalProduced
@@ -165,7 +165,7 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 			if isIntermediate && isComplex {
 				price = intermediateRawCostPerUnit[mat.TypeID]
 			} else {
-				price = getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+				price = GetPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
 			}
 
 			// Display values use per-run adjQty
@@ -193,7 +193,7 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 
 		// Job cost: complexJobCostPerRun is this reaction's own job cost (used by plan),
 		// jobCostPerRun includes intermediate production job costs (used for per-row margin)
-		complexJobCostPerRun := computeJobCost(mats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		complexJobCostPerRun := ComputeReactionJobCost(mats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
 		jobCostPerRun := complexJobCostPerRun
 		if isComplex && runsPerCycle > 0 {
 			for _, mat := range mats {
@@ -205,7 +205,7 @@ func Calculate(params *CalcParams, data *CalcData) *models.ReactionsResponse {
 		}
 
 		// Output value
-		outputPrice := getPrice(r.ProductTypeID, params.OutputPrice, data.JitaPrices)
+		outputPrice := GetPrice(r.ProductTypeID, params.OutputPrice, data.JitaPrices)
 		outputValuePerRun := outputPrice * float64(r.ProductQuantity)
 		outputFeesPerRun := outputValuePerRun * (params.BrokerFee + params.SalesTax) / 100.0
 		outputVolumePerRun := r.ProductVolume * float64(r.ProductQuantity)
@@ -312,9 +312,9 @@ func computeComplexInstances(mats []*repositories.ReactionMaterialRow, simpleRea
 // The total cost is: EIV × system_cost_index + EIV × scc_surcharge + EIV × facility_tax
 // All three components are additive and applied independently to the EIV.
 // SCC surcharge for reactions is 4% (increased from 1.5% in the Viridian expansion).
-const sccSurchargeRate = 0.04
+const SccSurchargeRate = 0.04
 
-func computeJobCost(mats []*repositories.ReactionMaterialRow, adjustedPrices map[int64]float64, costIndex, facilityTax float64) float64 {
+func ComputeReactionJobCost(mats []*repositories.ReactionMaterialRow, adjustedPrices map[int64]float64, costIndex, facilityTax float64) float64 {
 	var eiv float64
 	for _, mat := range mats {
 		adjPrice, ok := adjustedPrices[mat.TypeID]
@@ -323,11 +323,11 @@ func computeJobCost(mats []*repositories.ReactionMaterialRow, adjustedPrices map
 		}
 		eiv += float64(mat.Quantity) * adjPrice
 	}
-	return eiv * (costIndex + sccSurchargeRate + facilityTax/100.0)
+	return eiv * (costIndex + SccSurchargeRate + facilityTax/100.0)
 }
 
 // getPrice resolves price for a type using the specified method
-func getPrice(typeID int64, method string, jitaPrices map[int64]*models.MarketPrice) float64 {
+func GetPrice(typeID int64, method string, jitaPrices map[int64]*models.MarketPrice) float64 {
 	mp, ok := jitaPrices[typeID]
 	if !ok {
 		return 0
@@ -351,7 +351,7 @@ func getPrice(typeID int64, method string, jitaPrices map[int64]*models.MarketPr
 	}
 }
 
-func rigMEValue(rig string) float64 {
+func RigMEValue(rig string) float64 {
 	switch rig {
 	case "t1":
 		return 0.02
@@ -362,7 +362,7 @@ func rigMEValue(rig string) float64 {
 	}
 }
 
-func rigTEValue(rig string) float64 {
+func RigTEValue(rig string) float64 {
 	switch rig {
 	case "t1":
 		return 0.20
@@ -373,7 +373,7 @@ func rigTEValue(rig string) float64 {
 	}
 }
 
-func structureTEValue(structure string) float64 {
+func StructureTEValue(structure string) float64 {
 	switch structure {
 	case "tatara":
 		return 0.25
@@ -382,7 +382,7 @@ func structureTEValue(structure string) float64 {
 	}
 }
 
-func securityMultiplier(security string) float64 {
+func SecurityMultiplier(security string) float64 {
 	switch security {
 	case "null":
 		return 1.1

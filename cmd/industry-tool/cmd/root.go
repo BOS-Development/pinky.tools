@@ -77,6 +77,9 @@ var rootCmd = &cobra.Command{
 		piPlanetsRepository := repositories.NewPiPlanets(db)
 		piTaxConfigRepository := repositories.NewPiTaxConfig(db)
 		piLaunchpadLabelsRepository := repositories.NewPiLaunchpadLabels(db)
+		characterSkillsRepository := repositories.NewCharacterSkills(db)
+		industryJobsRepository := repositories.NewIndustryJobs(db)
+		jobQueueRepository := repositories.NewJobQueue(db)
 
 		var esiClient *client.EsiClient
 		if settings.EsiBaseURL != "" {
@@ -118,6 +121,9 @@ var rootCmd = &cobra.Command{
 		autoBuyUpdater := updaters.NewAutoBuy(autoBuyConfigsRepository, buyOrdersRepository, marketPricesRepository, purchaseTransactionsRepository)
 		autoFulfillUpdater := updaters.NewAutoFulfill(db, buyOrdersRepository, forSaleItemsRepository, purchaseTransactionsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 
+		characterSkillsUpdater := updaters.NewCharacterSkillsUpdater(usersRepository, charactersRepository, characterSkillsRepository, esiClient)
+		industryJobsUpdater := updaters.NewIndustryJobsUpdater(usersRepository, charactersRepository, playerCorporationRepostiory, industryJobsRepository, jobQueueRepository, esiClient)
+
 		piUpdater := updaters.NewPiUpdater(usersRepository, charactersRepository, piPlanetsRepository, esiClient, systemRepository, sdeDataRepository)
 		if notificationsUpdater != nil {
 			piUpdater.WithStallNotifier(notificationsUpdater)
@@ -154,6 +160,7 @@ var rootCmd = &cobra.Command{
 			controllers.NewDiscordNotifications(router, discordNotificationsRepository, discordClient, notificationsUpdater)
 		}
 		controllers.NewPi(router, piPlanetsRepository, piTaxConfigRepository, sdeDataRepository, charactersRepository, systemRepository, itemTypesRepository, marketPricesRepository, piLaunchpadLabelsRepository, stockpileMarkersRepository)
+		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
 
 		group.Go(router.Run(ctx))
 
@@ -198,6 +205,18 @@ var rootCmd = &cobra.Command{
 		contractSyncRunner := runners.NewContractSyncRunner(contractSyncUpdater, 15*time.Minute)
 		group.Go(func() error {
 			return contractSyncRunner.Run(ctx)
+		})
+
+		// Start character skills update scheduler (configurable, default 6h)
+		skillsRunner := runners.NewCharacterSkillsRunner(characterSkillsUpdater, time.Duration(settings.SkillsUpdateIntervalSec)*time.Second)
+		group.Go(func() error {
+			return skillsRunner.Run(ctx)
+		})
+
+		// Start industry jobs update scheduler (configurable, default 10m)
+		industryJobsRunner := runners.NewIndustryJobsRunner(industryJobsUpdater, time.Duration(settings.IndustryJobsUpdateIntervalSec)*time.Second)
+		group.Go(func() error {
+			return industryJobsRunner.Run(ctx)
 		})
 
 		log.Info("services started")

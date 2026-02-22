@@ -1046,6 +1046,206 @@ func (c *EsiClient) GetCorporationContracts(ctx context.Context, corporationID i
 	}
 }
 
+// EsiSkillEntry represents one trained skill from the ESI skills endpoint.
+type EsiSkillEntry struct {
+	SkillID            int64 `json:"skill_id"`
+	TrainedSkillLevel  int   `json:"trained_skill_level"`
+	ActiveSkillLevel   int   `json:"active_skill_level"`
+	SkillpointsInSkill int64 `json:"skillpoints_in_skill"`
+}
+
+// EsiSkillsResponse represents the full response from the ESI skills endpoint.
+type EsiSkillsResponse struct {
+	Skills      []EsiSkillEntry `json:"skills"`
+	TotalSP     int64           `json:"total_sp"`
+	UnallocSP   int64           `json:"unallocated_sp"`
+}
+
+// GetCharacterSkills fetches all trained skills for a character from ESI.
+func (c *EsiClient) GetCharacterSkills(ctx context.Context, characterID int64, token string) (*EsiSkillsResponse, error) {
+	reqURL := fmt.Sprintf("%s/v4/characters/%d/skills/", c.baseURL, characterID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create character skills request")
+	}
+	req.Header = c.getAuthHeaders(token)
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch character skills")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("failed to get character skills, expected 200 got %d, %s", res.StatusCode, errText)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read character skills body")
+	}
+
+	var skillsResp EsiSkillsResponse
+	if err := json.Unmarshal(body, &skillsResp); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal character skills")
+	}
+
+	return &skillsResp, nil
+}
+
+// EsiIndustryJob represents an industry job from the ESI industry jobs endpoint.
+type EsiIndustryJob struct {
+	JobID                int64    `json:"job_id"`
+	InstallerID          int64    `json:"installer_id"`
+	FacilityID           int64    `json:"facility_id"`
+	StationID            int64    `json:"station_id"`
+	ActivityID           int      `json:"activity_id"`
+	BlueprintID          int64    `json:"blueprint_id"`
+	BlueprintTypeID      int64    `json:"blueprint_type_id"`
+	BlueprintLocationID  int64    `json:"blueprint_location_id"`
+	OutputLocationID     int64    `json:"output_location_id"`
+	Runs                 int      `json:"runs"`
+	Cost                 *float64 `json:"cost"`
+	LicensedRuns         *int     `json:"licensed_runs"`
+	Probability          *float64 `json:"probability"`
+	ProductTypeID        *int64   `json:"product_type_id"`
+	Status               string   `json:"status"`
+	Duration             int      `json:"duration"`
+	StartDate            string   `json:"start_date"`
+	EndDate              string   `json:"end_date"`
+	PauseDate            *string  `json:"pause_date"`
+	CompletedDate        *string  `json:"completed_date"`
+	CompletedCharacterID *int64   `json:"completed_character_id"`
+	SuccessfulRuns       *int     `json:"successful_runs"`
+	LocationID           int64    `json:"location_id"` // corporation endpoint uses location_id instead of station_id
+}
+
+// GetCharacterIndustryJobs fetches industry jobs for a character from ESI.
+func (c *EsiClient) GetCharacterIndustryJobs(ctx context.Context, characterID int64, token string, includeCompleted bool) ([]*EsiIndustryJob, error) {
+	jobs := []*EsiIndustryJob{}
+
+	page := 1
+	for {
+		reqURL := fmt.Sprintf("%s/v1/characters/%d/industry/jobs/?page=%d", c.baseURL, characterID, page)
+		if includeCompleted {
+			reqURL += "&include_completed=true"
+		}
+
+		parsedURL, err := url.Parse(reqURL)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    parsedURL,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get character industry jobs")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, fmt.Errorf("failed to get character industry jobs, expected 200 got %d, %s", res.StatusCode, errText)
+		}
+
+		totalPagesStr := res.Header.Get("X-PAGES")
+		totalPages := 1
+		if totalPagesStr != "" {
+			totalPages, err = strconv.Atoi(totalPagesStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse x-pages")
+			}
+		}
+
+		respBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageJobs := []*EsiIndustryJob{}
+		if err := json.Unmarshal(respBody, &pageJobs); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal industry jobs")
+		}
+
+		jobs = append(jobs, pageJobs...)
+
+		if totalPages == page {
+			return jobs, nil
+		}
+
+		page++
+	}
+}
+
+// GetCorporationIndustryJobs fetches industry jobs for a corporation from ESI.
+func (c *EsiClient) GetCorporationIndustryJobs(ctx context.Context, corporationID int64, token string, includeCompleted bool) ([]*EsiIndustryJob, error) {
+	jobs := []*EsiIndustryJob{}
+
+	page := 1
+	for {
+		reqURL := fmt.Sprintf("%s/v1/corporations/%d/industry/jobs/?page=%d", c.baseURL, corporationID, page)
+		if includeCompleted {
+			reqURL += "&include_completed=true"
+		}
+
+		parsedURL, err := url.Parse(reqURL)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    parsedURL,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get corporation industry jobs")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, fmt.Errorf("failed to get corporation industry jobs, expected 200 got %d, %s", res.StatusCode, errText)
+		}
+
+		totalPagesStr := res.Header.Get("X-PAGES")
+		totalPages := 1
+		if totalPagesStr != "" {
+			totalPages, err = strconv.Atoi(totalPagesStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse x-pages")
+			}
+		}
+
+		respBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageJobs := []*EsiIndustryJob{}
+		if err := json.Unmarshal(respBody, &pageJobs); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal industry jobs")
+		}
+
+		jobs = append(jobs, pageJobs...)
+
+		if totalPages == page {
+			return jobs, nil
+		}
+
+		page++
+	}
+}
+
 // RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
 // Returns the new access token, refresh token, and expiry. The caller is responsible
 // for persisting these back to the database.

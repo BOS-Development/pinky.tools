@@ -21,7 +21,9 @@ type Settings struct {
 	DiscordBotToken        string
 	DiscordClientID        string
 	DiscordClientSecret    string
-	PiUpdateIntervalSec    int
+	PiUpdateIntervalSec              int
+	SkillsUpdateIntervalSec          int
+	IndustryJobsUpdateIntervalSec    int
 }
 
 func GetSettings() (*Settings, error) {
@@ -80,6 +82,24 @@ func GetSettings() (*Settings, error) {
 		}
 	} else {
 		settings.PiUpdateIntervalSec = 3600
+	}
+
+	if s := os.Getenv("SKILLS_UPDATE_INTERVAL_SEC"); s != "" {
+		settings.SkillsUpdateIntervalSec, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "SKILLS_UPDATE_INTERVAL_SEC '%s' is not a number", s)
+		}
+	} else {
+		settings.SkillsUpdateIntervalSec = 21600 // 6 hours
+	}
+
+	if s := os.Getenv("INDUSTRY_JOBS_UPDATE_INTERVAL_SEC"); s != "" {
+		settings.IndustryJobsUpdateIntervalSec, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "INDUSTRY_JOBS_UPDATE_INTERVAL_SEC '%s' is not a number", s)
+		}
+	} else {
+		settings.IndustryJobsUpdateIntervalSec = 600 // 10 minutes
 	}
 
 	return settings, nil

@@ -140,6 +140,68 @@ var corpNames = map[int64]string{
 	3004001: "Scout Fleet",
 }
 
+// Character skills keyed by character ID
+type skillEntry struct {
+	SkillID            int64 `json:"skill_id"`
+	TrainedSkillLevel  int   `json:"trained_skill_level"`
+	ActiveSkillLevel   int   `json:"active_skill_level"`
+	SkillpointsInSkill int64 `json:"skillpoints_in_skill"`
+}
+
+type skillsResponse struct {
+	Skills  []skillEntry `json:"skills"`
+	TotalSP int64        `json:"total_sp"`
+}
+
+var characterSkills = map[int64]skillsResponse{
+	2001001: {
+		Skills: []skillEntry{
+			{SkillID: 3380, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},  // Industry
+			{SkillID: 3388, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},  // Advanced Industry
+			{SkillID: 45746, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 45255},  // Reactions
+		},
+		TotalSP: 5000000,
+	},
+	2002001: {
+		Skills: []skillEntry{
+			{SkillID: 3380, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 45255},
+		},
+		TotalSP: 2000000,
+	},
+}
+
+// Character industry jobs
+type industryJob struct {
+	JobID               int64   `json:"job_id"`
+	InstallerID         int64   `json:"installer_id"`
+	FacilityID          int64   `json:"facility_id"`
+	StationID           int64   `json:"station_id"`
+	ActivityID          int     `json:"activity_id"`
+	BlueprintID         int64   `json:"blueprint_id"`
+	BlueprintTypeID     int64   `json:"blueprint_type_id"`
+	BlueprintLocationID int64   `json:"blueprint_location_id"`
+	OutputLocationID    int64   `json:"output_location_id"`
+	Runs                int     `json:"runs"`
+	Cost                float64 `json:"cost"`
+	ProductTypeID       int64   `json:"product_type_id"`
+	Status              string  `json:"status"`
+	Duration            int     `json:"duration"`
+	StartDate           string  `json:"start_date"`
+	EndDate             string  `json:"end_date"`
+}
+
+var characterIndustryJobs = map[int64][]industryJob{
+	2001001: {
+		{
+			JobID: 500001, InstallerID: 2001001, FacilityID: 60003760, StationID: 60003760,
+			ActivityID: 1, BlueprintID: 9876, BlueprintTypeID: 787,
+			BlueprintLocationID: 60003760, OutputLocationID: 60003760,
+			Runs: 10, Cost: 1500000, ProductTypeID: 587, Status: "active",
+			Duration: 3600, StartDate: "2026-02-22T00:00:00Z", EndDate: "2026-02-22T01:00:00Z",
+		},
+	},
+}
+
 var marketOrders = []marketOrder{
 	// Tritanium sell
 	{OrderID: 1, TypeID: 34, LocationID: 60003760, VolumeTotal: 10000000, VolumeRemain: 5000000, MinVolume: 1, Price: 6.00, IsBuyOrder: false, Duration: 90, Issued: "2025-01-01T00:00:00Z", Range: "station"},
@@ -246,6 +308,37 @@ func main() {
 			}
 			w.Header().Set("X-Pages", "1")
 			writeJSON(w, assets)
+			return
+		}
+
+		// GET /characters/{id}/skills
+		if strings.HasSuffix(path, "/skills") || strings.HasSuffix(path, "/skills/") {
+			charID, ok := extractID(path, "/characters/", "/skills")
+			if !ok {
+				http.Error(w, "invalid character id", 400)
+				return
+			}
+			skills, ok := characterSkills[charID]
+			if !ok {
+				skills = skillsResponse{Skills: []skillEntry{}, TotalSP: 0}
+			}
+			writeJSON(w, skills)
+			return
+		}
+
+		// GET /characters/{id}/industry/jobs
+		if strings.Contains(path, "/industry/jobs") && r.Method == "GET" {
+			charID, ok := extractID(path, "/characters/", "/industry/jobs")
+			if !ok {
+				http.Error(w, "invalid character id", 400)
+				return
+			}
+			jobs, ok := characterIndustryJobs[charID]
+			if !ok {
+				jobs = []industryJob{}
+			}
+			w.Header().Set("X-Pages", "1")
+			writeJSON(w, jobs)
 			return
 		}
 
