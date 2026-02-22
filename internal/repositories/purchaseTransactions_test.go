@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"testing"
+	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
@@ -540,6 +541,13 @@ func Test_PurchaseTransactions_CompleteWithContractID(t *testing.T) {
 	assert.Equal(t, "completed", updated.Status)
 	assert.Contains(t, *updated.ContractKey, "PT-3070")
 	assert.Contains(t, *updated.ContractKey, "[EVE:99999]")
+
+	// Verify completed_at was set
+	var completedAt *time.Time
+	err = db.QueryRowContext(context.Background(),
+		`SELECT completed_at FROM purchase_transactions WHERE id = $1`, purchase.ID).Scan(&completedAt)
+	assert.NoError(t, err)
+	assert.NotNil(t, completedAt, "completed_at should be set when completing via contract ID")
 }
 
 func Test_PurchaseTransactions_CompleteWithContractID_NotContractCreated(t *testing.T) {
@@ -595,8 +603,8 @@ func Test_PurchaseTransactions_CompleteWithContractID_NotFound(t *testing.T) {
 
 // Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ContractCreatedWindow
 // verifies that 'pending' purchases are always counted, 'contract_created' purchases
-// are only counted within a 1-hour window (to cover ESI cache lag), and 'completed'
-// purchases are never counted.
+// are only counted within a 1-hour window, and 'completed' purchases are only counted
+// within a 1-hour window of completion (to cover ESI asset cache lag).
 func Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ContractCreatedWindow(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)
@@ -656,8 +664,8 @@ func Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ContractCreate
 	err = repo.Create(ctx, tx, staleContractPurchase)
 	assert.NoError(t, err)
 
-	// Create a completed purchase (should NOT be counted)
-	completedPurchase := &models.PurchaseTransaction{
+	// Create a recently completed purchase (within 1-hour window — should be counted)
+	recentCompletedPurchase := &models.PurchaseTransaction{
 		ForSaleItemID:     item.ID,
 		BuyerUserID:       buyerID,
 		SellerUserID:      sellerID,
@@ -667,7 +675,21 @@ func Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ContractCreate
 		TotalPrice:        30000,
 		Status:            "completed",
 	}
-	err = repo.Create(ctx, tx, completedPurchase)
+	err = repo.Create(ctx, tx, recentCompletedPurchase)
+	assert.NoError(t, err)
+
+	// Create a stale completed purchase (over 1 hour ago — should NOT be counted)
+	staleCompletedPurchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       buyerID,
+		SellerUserID:      sellerID,
+		TypeID:            typeID,
+		QuantityPurchased: 400,
+		PricePerUnit:      100,
+		TotalPrice:        40000,
+		Status:            "completed",
+	}
+	err = repo.Create(ctx, tx, staleCompletedPurchase)
 	assert.NoError(t, err)
 
 	err = tx.Commit()
@@ -684,11 +706,22 @@ func Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ContractCreate
 		staleContractPurchase.ID)
 	assert.NoError(t, err)
 
-	// Query pending quantities — should count pending (100) + recent contract_created (200) = 300
+	// Set completed_at: recent completed = NOW(), stale completed = 2 hours ago
+	_, err = db.ExecContext(ctx,
+		`UPDATE purchase_transactions SET completed_at = NOW() WHERE id = $1`,
+		recentCompletedPurchase.ID)
+	assert.NoError(t, err)
+
+	_, err = db.ExecContext(ctx,
+		`UPDATE purchase_transactions SET completed_at = NOW() - INTERVAL '2 hours' WHERE id = $1`,
+		staleCompletedPurchase.ID)
+	assert.NoError(t, err)
+
+	// Query pending quantities — should count pending (100) + recent contract_created (200) + recent completed (300) = 600
 	quantities, err := repo.GetPendingQuantitiesForSaleContext(
 		ctx, sellerID, "character", sellerID*10, locationID, nil, nil,
 	)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(300), quantities[typeID],
-		"should count pending (100) + recent contract_created (200), not stale contract_created (150) or completed (300)")
+	assert.Equal(t, int64(600), quantities[typeID],
+		"should count pending (100) + recent contract_created (200) + recent completed (300), not stale contract_created (150) or stale completed (400)")
 }
