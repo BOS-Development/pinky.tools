@@ -25,24 +25,28 @@ func Test_MarketPricesUpdaterShouldUpdateJitaMarket(t *testing.T) {
 	mockOrders := []*client.MarketOrder{
 		{
 			TypeID:       34,
+			LocationID:   60003760,
 			Price:        5.45,
 			IsBuyOrder:   true,
 			VolumeRemain: 10000,
 		},
 		{
 			TypeID:       34,
+			LocationID:   60003760,
 			Price:        5.50,
 			IsBuyOrder:   false,
 			VolumeRemain: 8000,
 		},
 		{
 			TypeID:       35,
+			LocationID:   60003760,
 			Price:        10.20,
 			IsBuyOrder:   true,
 			VolumeRemain: 5000,
 		},
 		{
 			TypeID:       35,
+			LocationID:   60003760,
 			Price:        10.30,
 			IsBuyOrder:   false,
 			VolumeRemain: 3000,
@@ -178,7 +182,7 @@ func Test_MarketPricesUpdater_DeleteError(t *testing.T) {
 	mockESIClient := NewMockMarketPricesEsiClient(ctrl)
 
 	mockOrders := []*client.MarketOrder{
-		{TypeID: 34, Price: 5.50, IsBuyOrder: false, VolumeRemain: 1000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.50, IsBuyOrder: false, VolumeRemain: 1000},
 	}
 
 	mockRepo.EXPECT().
@@ -217,7 +221,7 @@ func Test_MarketPricesUpdater_UpsertError(t *testing.T) {
 	mockESIClient := NewMockMarketPricesEsiClient(ctrl)
 
 	mockOrders := []*client.MarketOrder{
-		{TypeID: 34, Price: 5.50, IsBuyOrder: false, VolumeRemain: 1000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.50, IsBuyOrder: false, VolumeRemain: 1000},
 	}
 
 	mockRepo.EXPECT().
@@ -297,8 +301,8 @@ func Test_MarketPricesUpdater_OnlyBuyOrders(t *testing.T) {
 
 	// Only buy orders for type 34
 	mockOrders := []*client.MarketOrder{
-		{TypeID: 34, Price: 5.40, IsBuyOrder: true, VolumeRemain: 1000},
-		{TypeID: 34, Price: 5.45, IsBuyOrder: true, VolumeRemain: 2000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.40, IsBuyOrder: true, VolumeRemain: 1000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.45, IsBuyOrder: true, VolumeRemain: 2000},
 	}
 
 	mockRepo.EXPECT().
@@ -343,8 +347,8 @@ func Test_MarketPricesUpdater_OnlySellOrders(t *testing.T) {
 
 	// Only sell orders for type 34
 	mockOrders := []*client.MarketOrder{
-		{TypeID: 34, Price: 5.60, IsBuyOrder: false, VolumeRemain: 1000},
-		{TypeID: 34, Price: 5.50, IsBuyOrder: false, VolumeRemain: 2000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.60, IsBuyOrder: false, VolumeRemain: 1000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.50, IsBuyOrder: false, VolumeRemain: 2000},
 	}
 
 	mockRepo.EXPECT().
@@ -389,12 +393,12 @@ func Test_MarketPricesUpdater_MultiplePricesPicksBest(t *testing.T) {
 
 	// Multiple buy and sell orders - should pick best of each
 	mockOrders := []*client.MarketOrder{
-		{TypeID: 34, Price: 5.40, IsBuyOrder: true, VolumeRemain: 1000},
-		{TypeID: 34, Price: 5.45, IsBuyOrder: true, VolumeRemain: 2000},  // Best buy
-		{TypeID: 34, Price: 5.42, IsBuyOrder: true, VolumeRemain: 1500},
-		{TypeID: 34, Price: 5.55, IsBuyOrder: false, VolumeRemain: 800},
-		{TypeID: 34, Price: 5.50, IsBuyOrder: false, VolumeRemain: 1200}, // Best sell
-		{TypeID: 34, Price: 5.60, IsBuyOrder: false, VolumeRemain: 900},
+		{TypeID: 34, LocationID: 60003760, Price: 5.40, IsBuyOrder: true, VolumeRemain: 1000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.45, IsBuyOrder: true, VolumeRemain: 2000},  // Best buy
+		{TypeID: 34, LocationID: 60003760, Price: 5.42, IsBuyOrder: true, VolumeRemain: 1500},
+		{TypeID: 34, LocationID: 60003760, Price: 5.55, IsBuyOrder: false, VolumeRemain: 800},
+		{TypeID: 34, LocationID: 60003760, Price: 5.50, IsBuyOrder: false, VolumeRemain: 1200}, // Best sell
+		{TypeID: 34, LocationID: 60003760, Price: 5.60, IsBuyOrder: false, VolumeRemain: 900},
 	}
 
 	mockRepo.EXPECT().
@@ -456,4 +460,82 @@ func Test_MarketPricesUpdater_GetLastUpdateTimeError(t *testing.T) {
 	err := updater.UpdateJitaMarket(context.Background())
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get last market price update time")
+}
+
+func Test_MarketPricesUpdater_FiltersNonJitaOrders(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := NewMockMarketPricesRepository(ctrl)
+	mockESIClient := NewMockMarketPricesEsiClient(ctrl)
+
+	// Mix of Jita 4-4 and non-Jita orders
+	mockOrders := []*client.MarketOrder{
+		// Jita 4-4 orders (should be included)
+		{TypeID: 34, LocationID: 60003760, Price: 5.45, IsBuyOrder: true, VolumeRemain: 10000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.50, IsBuyOrder: false, VolumeRemain: 8000},
+		// Perimeter orders (should be filtered out)
+		{TypeID: 34, LocationID: 60003466, Price: 5.48, IsBuyOrder: true, VolumeRemain: 5000},
+		{TypeID: 34, LocationID: 60003466, Price: 5.49, IsBuyOrder: false, VolumeRemain: 3000},
+		// Citadel order (should be filtered out)
+		{TypeID: 35, LocationID: 1028858195912, Price: 10.00, IsBuyOrder: false, VolumeRemain: 2000},
+		// Jita 4-4 order for type 35 (should be included)
+		{TypeID: 35, LocationID: 60003760, Price: 10.30, IsBuyOrder: false, VolumeRemain: 1000},
+	}
+
+	mockRepo.EXPECT().
+		GetLastUpdateTime(gomock.Any(), int64(10000002)).
+		Return(nil, nil).
+		Times(1)
+
+	mockESIClient.EXPECT().
+		GetMarketOrders(gomock.Any(), int64(10000002)).
+		Return(mockOrders, nil).
+		Times(1)
+
+	mockRepo.EXPECT().
+		DeleteAllForRegion(gomock.Any(), int64(10000002)).
+		Return(nil).
+		Times(1)
+
+	mockRepo.EXPECT().
+		UpsertPrices(gomock.Any(), gomock.Any()).
+		DoAndReturn(func(ctx context.Context, prices []models.MarketPrice) error {
+			assert.Equal(t, 2, len(prices))
+
+			// Find type 34 - should only have Jita 4-4 prices
+			var price34 *models.MarketPrice
+			var price35 *models.MarketPrice
+			for _, p := range prices {
+				if p.TypeID == 34 {
+					price34 = &p
+				}
+				if p.TypeID == 35 {
+					price35 = &p
+				}
+			}
+
+			// Type 34: only Jita orders (buy 5.45, sell 5.50), not Perimeter (buy 5.48, sell 5.49)
+			assert.NotNil(t, price34)
+			assert.NotNil(t, price34.BuyPrice)
+			assert.NotNil(t, price34.SellPrice)
+			assert.Equal(t, 5.45, *price34.BuyPrice)
+			assert.Equal(t, 5.50, *price34.SellPrice)
+			assert.Equal(t, int64(18000), *price34.DailyVolume) // Only Jita volume
+
+			// Type 35: only Jita sell order (10.30), not citadel (10.00)
+			assert.NotNil(t, price35)
+			assert.Nil(t, price35.BuyPrice)
+			assert.NotNil(t, price35.SellPrice)
+			assert.Equal(t, 10.30, *price35.SellPrice)
+			assert.Equal(t, int64(1000), *price35.DailyVolume) // Only Jita volume
+
+			return nil
+		}).
+		Times(1)
+
+	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
+
+	err := updater.UpdateJitaMarket(context.Background())
+	assert.NoError(t, err)
 }
