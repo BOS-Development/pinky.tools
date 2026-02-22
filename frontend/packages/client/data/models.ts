@@ -69,6 +69,14 @@ export type StockpileMarker = {
   notes?: string;
 };
 
+// Item Type Search Result (Go struct has no json tags -> PascalCase)
+export type EveInventoryType = {
+  TypeID: number;
+  TypeName: string;
+  Volume: number;
+  IconID: number | null;
+};
+
 // Reactions Calculator Types
 
 export type ReactionMaterial = {

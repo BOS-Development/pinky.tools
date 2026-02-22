@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -872,6 +873,232 @@ ORDER BY
 	return response, nil
 }
 
+type orphanStockpileRow struct {
+	TypeID          int64
+	TypeName        string
+	Volume          float64
+	OwnerType       string
+	OwnerID         int64
+	LocationID      int64
+	ContainerID     *int64
+	DivisionNumber  *int
+	DesiredQuantity int64
+	UnitPrice       float64
+}
+
+// InjectOrphanStockpileRows adds phantom asset rows for stockpile markers that have no matching asset.
+func (r *Assets) InjectOrphanStockpileRows(ctx context.Context, userID int64, response *AssetsResponse) error {
+	query := `
+		SELECT
+			sm.type_id, ait.type_name, ait.volume,
+			sm.owner_type, sm.owner_id, sm.location_id,
+			sm.container_id, sm.division_number, sm.desired_quantity,
+			COALESCE(mp.buy_price, 0) as unit_price
+		FROM stockpile_markers sm
+		INNER JOIN asset_item_types ait ON ait.type_id = sm.type_id
+		LEFT JOIN market_prices mp ON mp.type_id = sm.type_id AND mp.region_id = 10000002
+		WHERE sm.user_id = $1
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to query stockpile markers for phantom rows")
+	}
+	defer rows.Close()
+
+	var markers []*orphanStockpileRow
+	for rows.Next() {
+		var m orphanStockpileRow
+		err = rows.Scan(
+			&m.TypeID, &m.TypeName, &m.Volume,
+			&m.OwnerType, &m.OwnerID, &m.LocationID,
+			&m.ContainerID, &m.DivisionNumber, &m.DesiredQuantity,
+			&m.UnitPrice,
+		)
+		if err != nil {
+			return errors.Wrap(err, "failed to scan orphan stockpile row")
+		}
+		markers = append(markers, &m)
+	}
+
+	if err = rows.Err(); err != nil {
+		return errors.Wrap(err, "error iterating orphan stockpile rows")
+	}
+
+	// Build set of existing asset keys to avoid duplicates
+	type assetKey struct {
+		typeID         int64
+		ownerID        int64
+		locationID     int64
+		containerID    int64 // 0 for no container
+		divisionNumber int   // 0 for no division
+	}
+
+	existing := make(map[assetKey]bool)
+	for _, structure := range response.Structures {
+		for _, a := range structure.HangarAssets {
+			existing[assetKey{a.TypeID, a.OwnerID, structure.ID, 0, 0}] = true
+		}
+		for _, c := range structure.HangarContainers {
+			for _, a := range c.Assets {
+				existing[assetKey{a.TypeID, a.OwnerID, structure.ID, c.ID, 0}] = true
+			}
+		}
+		for _, h := range structure.CorporationHangers {
+			for _, a := range h.Assets {
+				existing[assetKey{a.TypeID, a.OwnerID, structure.ID, 0, int(h.ID)}] = true
+			}
+			for _, c := range h.HangarContainers {
+				for _, a := range c.Assets {
+					existing[assetKey{a.TypeID, a.OwnerID, structure.ID, c.ID, int(h.ID)}] = true
+				}
+			}
+		}
+	}
+
+	// Look up owner names
+	charNames := make(map[int64]string)
+	corpNames := make(map[int64]string)
+	for _, m := range markers {
+		cid := int64(0)
+		if m.ContainerID != nil {
+			cid = *m.ContainerID
+		}
+		div := 0
+		if m.DivisionNumber != nil {
+			div = *m.DivisionNumber
+		}
+		if existing[assetKey{m.TypeID, m.OwnerID, m.LocationID, cid, div}] {
+			continue
+		}
+		if m.OwnerType == "character" {
+			charNames[m.OwnerID] = ""
+		} else {
+			corpNames[m.OwnerID] = ""
+		}
+	}
+
+	if len(charNames) > 0 {
+		ids := make([]int64, 0, len(charNames))
+		for id := range charNames {
+			ids = append(ids, id)
+		}
+		nameRows, err := r.db.QueryContext(ctx, `SELECT id, name FROM characters WHERE id = ANY($1)`, pq.Array(ids))
+		if err != nil {
+			return errors.Wrap(err, "failed to query character names for phantom rows")
+		}
+		defer nameRows.Close()
+		for nameRows.Next() {
+			var id int64
+			var name string
+			if err := nameRows.Scan(&id, &name); err != nil {
+				return errors.Wrap(err, "failed to scan character name")
+			}
+			charNames[id] = name
+		}
+	}
+
+	if len(corpNames) > 0 {
+		ids := make([]int64, 0, len(corpNames))
+		for id := range corpNames {
+			ids = append(ids, id)
+		}
+		nameRows, err := r.db.QueryContext(ctx, `SELECT id, name FROM player_corporations WHERE id = ANY($1)`, pq.Array(ids))
+		if err != nil {
+			return errors.Wrap(err, "failed to query corporation names for phantom rows")
+		}
+		defer nameRows.Close()
+		for nameRows.Next() {
+			var id int64
+			var name string
+			if err := nameRows.Scan(&id, &name); err != nil {
+				return errors.Wrap(err, "failed to scan corporation name")
+			}
+			corpNames[id] = name
+		}
+	}
+
+	// Inject phantom rows
+	for _, m := range markers {
+		cid := int64(0)
+		if m.ContainerID != nil {
+			cid = *m.ContainerID
+		}
+		div := 0
+		if m.DivisionNumber != nil {
+			div = *m.DivisionNumber
+		}
+		if existing[assetKey{m.TypeID, m.OwnerID, m.LocationID, cid, div}] {
+			continue
+		}
+
+		ownerName := ""
+		if m.OwnerType == "character" {
+			ownerName = charNames[m.OwnerID]
+		} else {
+			ownerName = corpNames[m.OwnerID]
+		}
+
+		delta := -m.DesiredQuantity
+		deficitValue := float64(m.DesiredQuantity) * m.UnitPrice
+		phantom := &Asset{
+			Name:            m.TypeName,
+			TypeID:          m.TypeID,
+			Quantity:        0,
+			Volume:          0,
+			OwnerType:       m.OwnerType,
+			OwnerName:       ownerName,
+			OwnerID:         m.OwnerID,
+			DesiredQuantity: &m.DesiredQuantity,
+			StockpileDelta:  &delta,
+			UnitPrice:       &m.UnitPrice,
+			TotalValue:      nil,
+			DeficitValue:    &deficitValue,
+		}
+
+		for _, structure := range response.Structures {
+			if structure.ID != m.LocationID {
+				continue
+			}
+
+			if m.ContainerID != nil {
+				// Inject into a container
+				if m.DivisionNumber != nil {
+					// Corp container
+					for _, h := range structure.CorporationHangers {
+						if int(h.ID) == *m.DivisionNumber {
+							for _, c := range h.HangarContainers {
+								if c.ID == *m.ContainerID {
+									c.Assets = append(c.Assets, phantom)
+								}
+							}
+						}
+					}
+				} else {
+					// Character container
+					for _, c := range structure.HangarContainers {
+						if c.ID == *m.ContainerID {
+							c.Assets = append(c.Assets, phantom)
+						}
+					}
+				}
+			} else if m.DivisionNumber != nil {
+				// Corp hanger direct assets
+				for _, h := range structure.CorporationHangers {
+					if int(h.ID) == *m.DivisionNumber {
+						h.Assets = append(h.Assets, phantom)
+					}
+				}
+			} else {
+				// Personal hangar
+				structure.HangarAssets = append(structure.HangarAssets, phantom)
+			}
+		}
+	}
+
+	return nil
+}
+
 type StockpileItem struct {
 	Name            string   `json:"name"`
 	TypeID          int64    `json:"typeId"`
@@ -1066,6 +1293,90 @@ func (r *Assets) GetStockpileDeficits(ctx context.Context, user int64) (*Stockpi
 				AND loc.station_id IS NOT NULL
 				AND NOT (ca.is_singleton = true AND assetTypes.type_name LIKE '%Container')
 				AND (ca.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
+
+			UNION ALL
+
+			-- Orphan character stockpile markers (no matching asset in inventory)
+			SELECT
+				assetTypes.type_name as name,
+				stockpile.type_id,
+				0 as quantity,
+				assetTypes.volume as volume,
+				'character' as owner_type,
+				characters.name as owner_name,
+				stockpile.owner_id as owner_id,
+				stockpile.desired_quantity,
+				(0 - stockpile.desired_quantity) as stockpile_delta,
+				stockpile.desired_quantity * COALESCE(market.buy_price, 0) as deficit_value,
+				stations.name as structure_name,
+				systems.name as solar_system,
+				regions.name as region,
+				NULL::text as container_name
+			FROM stockpile_markers stockpile
+			INNER JOIN characters ON characters.id = stockpile.owner_id
+			INNER JOIN asset_item_types assetTypes ON assetTypes.type_id = stockpile.type_id
+			INNER JOIN stations ON stockpile.location_id = stations.station_id
+			INNER JOIN solar_systems systems ON stations.solar_system_id = systems.solar_system_id
+			INNER JOIN constellations ON systems.constellation_id = constellations.constellation_id
+			INNER JOIN regions ON constellations.region_id = regions.region_id
+			LEFT JOIN market_prices market ON (market.type_id = stockpile.type_id AND market.region_id = 10000002)
+			WHERE stockpile.user_id = $1
+				AND stockpile.owner_type = 'character'
+				AND stockpile.container_id IS NULL
+				AND stockpile.division_number IS NULL
+				AND NOT EXISTS (
+					SELECT 1 FROM character_assets ca
+					WHERE ca.user_id = $1
+					  AND ca.character_id = stockpile.owner_id
+					  AND ca.type_id = stockpile.type_id
+					  AND ca.location_id = stockpile.location_id
+					  AND ca.location_type = 'station'
+					  AND ca.location_flag IN ('Hangar', 'Deliveries', 'AssetSafety')
+				)
+
+			UNION ALL
+
+			-- Orphan corporation stockpile markers (no matching asset in inventory)
+			SELECT
+				assetTypes.type_name as name,
+				stockpile.type_id,
+				0 as quantity,
+				assetTypes.volume as volume,
+				'corporation' as owner_type,
+				corps.name as owner_name,
+				stockpile.owner_id as owner_id,
+				stockpile.desired_quantity,
+				(0 - stockpile.desired_quantity) as stockpile_delta,
+				stockpile.desired_quantity * COALESCE(market.buy_price, 0) as deficit_value,
+				stations.name as structure_name,
+				systems.name as solar_system,
+				regions.name as region,
+				NULL::text as container_name
+			FROM stockpile_markers stockpile
+			INNER JOIN player_corporations corps ON corps.id = stockpile.owner_id
+			INNER JOIN asset_item_types assetTypes ON assetTypes.type_id = stockpile.type_id
+			INNER JOIN stations ON stockpile.location_id = stations.station_id
+			INNER JOIN solar_systems systems ON stations.solar_system_id = systems.solar_system_id
+			INNER JOIN constellations ON systems.constellation_id = constellations.constellation_id
+			INNER JOIN regions ON constellations.region_id = regions.region_id
+			LEFT JOIN market_prices market ON (market.type_id = stockpile.type_id AND market.region_id = 10000002)
+			WHERE stockpile.user_id = $1
+				AND stockpile.owner_type = 'corporation'
+				AND stockpile.container_id IS NULL
+				AND NOT EXISTS (
+					SELECT 1 FROM corporation_asset_locations loc
+					INNER JOIN corporation_assets ca ON (
+						ca.item_id = loc.item_id
+						AND ca.corporation_id = loc.corporation_id
+						AND ca.user_id = loc.user_id
+					)
+					WHERE loc.user_id = $1
+					  AND loc.corporation_id = stockpile.owner_id
+					  AND loc.type_id = stockpile.type_id
+					  AND loc.station_id = stockpile.location_id
+					  AND loc.location_flag LIKE 'CorpSAG%'
+					  AND (stockpile.division_number IS NULL OR loc.division_number = stockpile.division_number)
+				)
 		)
 		SELECT * FROM all_deficits
 		ORDER BY deficit_value DESC NULLS LAST, structure_name, name

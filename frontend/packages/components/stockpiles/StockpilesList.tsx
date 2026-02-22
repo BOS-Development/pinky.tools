@@ -105,8 +105,8 @@ export default function StockpilesList() {
   const totalVolume = useMemo(() => {
     return filteredItems.reduce((sum, item) => {
       const deficit = Math.abs(item.stockpileDelta);
-      // item.volume is total volume (per-unit × quantity), so divide by quantity to get per-unit volume
-      const perUnitVolume = item.quantity > 0 ? item.volume / item.quantity : 0;
+      // item.volume is total volume (per-unit × quantity) for existing items, or per-unit volume for orphan markers (quantity=0)
+      const perUnitVolume = item.quantity > 0 ? item.volume / item.quantity : item.volume;
       return sum + (deficit * perUnitVolume);
     }, 0);
   }, [filteredItems]);

@@ -446,3 +446,214 @@ func Test_StockpileDeficits_ContainerRecursion(t *testing.T) {
 	assert.True(t, foundProteins, "Should find Proteins deficit")
 	assert.True(t, foundWater, "Should find Water deficit")
 }
+
+func Test_StockpileDeficits_OrphanCharacterMarker(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Create user and character
+	_, err = db.ExecContext(ctx, `INSERT INTO users (id, name) VALUES (1001, 'Test User')`)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO characters (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on)
+		VALUES (2001001, 1001, 'Test Char', 'token', 'refresh', NOW())
+	`)
+	require.NoError(t, err)
+
+	// Create item type and location data
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO asset_item_types (type_id, type_name, volume) VALUES (34, 'Tritanium', 0.01)
+	`)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `INSERT INTO regions (region_id, name) VALUES (10000002, 'The Forge')`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO constellations (constellation_id, name, region_id) VALUES (20000020, 'Kimotoro', 10000002)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (30000142, 'Jita', 20000020, 1.0)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station)
+		VALUES (60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 30000142, 1000035, true)
+	`)
+	require.NoError(t, err)
+
+	// Create market price
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO market_prices (type_id, region_id, buy_price, sell_price, daily_volume, updated_at)
+		VALUES (34, 10000002, 5.45, 5.50, 1000000, NOW())
+	`)
+	require.NoError(t, err)
+
+	// Create stockpile marker with NO matching asset
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+	err = stockpileRepo.Upsert(ctx, &models.StockpileMarker{
+		UserID:          1001,
+		TypeID:          34,
+		OwnerType:       "character",
+		OwnerID:         2001001,
+		LocationID:      60003760,
+		DesiredQuantity: 10000,
+	})
+	require.NoError(t, err)
+
+	// Execute
+	assetsRepo := repositories.NewAssets(db)
+	result, err := assetsRepo.GetStockpileDeficits(ctx, 1001)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Should include the orphan marker
+	require.Len(t, result.Items, 1, "Should return orphan marker as deficit")
+
+	item := result.Items[0]
+	assert.Equal(t, "Tritanium", item.Name)
+	assert.Equal(t, int64(0), item.Quantity, "Quantity should be 0 for orphan marker")
+	assert.Equal(t, int64(10000), item.DesiredQuantity)
+	assert.Equal(t, int64(-10000), item.StockpileDelta, "Full deficit")
+	assert.Equal(t, "character", item.OwnerType)
+	assert.Equal(t, "Test Char", item.OwnerName)
+	assert.Equal(t, "Jita IV - Moon 4 - Caldari Navy Assembly Plant", item.StructureName)
+	assert.Equal(t, "Jita", item.SolarSystem)
+	assert.Equal(t, "The Forge", item.Region)
+	assert.InDelta(t, 54500.0, item.DeficitValue, 0.01, "deficit (10000) * buy_price (5.45)")
+}
+
+func Test_StockpileDeficits_OrphanCorpMarker(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Setup user and corporation
+	_, err = db.ExecContext(ctx, `INSERT INTO users (id, name) VALUES (1002, 'Test User 2')`)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO player_corporations (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on)
+		VALUES (3001001, 1002, 'Test Corp', 'token', 'refresh', NOW())
+	`)
+	require.NoError(t, err)
+
+	// Create item type and location data
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO asset_item_types (type_id, type_name, volume) VALUES (35, 'Pyerite', 0.01)
+	`)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `INSERT INTO regions (region_id, name) VALUES (10000002, 'The Forge')`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO constellations (constellation_id, name, region_id) VALUES (20000020, 'Kimotoro', 10000002)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (30000142, 'Jita', 20000020, 1.0)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station)
+		VALUES (60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 30000142, 1000035, true)
+	`)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO market_prices (type_id, region_id, buy_price, sell_price, daily_volume, updated_at)
+		VALUES (35, 10000002, 10.20, 10.30, 500000, NOW())
+	`)
+	require.NoError(t, err)
+
+	// Create orphan corp stockpile marker
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+	err = stockpileRepo.Upsert(ctx, &models.StockpileMarker{
+		UserID:          1002,
+		TypeID:          35,
+		OwnerType:       "corporation",
+		OwnerID:         3001001,
+		LocationID:      60003760,
+		DesiredQuantity: 5000,
+	})
+	require.NoError(t, err)
+
+	// Execute
+	assetsRepo := repositories.NewAssets(db)
+	result, err := assetsRepo.GetStockpileDeficits(ctx, 1002)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	require.Len(t, result.Items, 1, "Should return orphan corp marker as deficit")
+
+	item := result.Items[0]
+	assert.Equal(t, "Pyerite", item.Name)
+	assert.Equal(t, int64(0), item.Quantity)
+	assert.Equal(t, int64(5000), item.DesiredQuantity)
+	assert.Equal(t, int64(-5000), item.StockpileDelta)
+	assert.Equal(t, "corporation", item.OwnerType)
+	assert.Equal(t, "Test Corp", item.OwnerName)
+	assert.InDelta(t, 51000.0, item.DeficitValue, 0.01, "deficit (5000) * buy_price (10.20)")
+}
+
+func Test_StockpileDeficits_NoDoubleCounting(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	// Setup user, character, location, item type
+	_, err = db.ExecContext(ctx, `INSERT INTO users (id, name) VALUES (1003, 'Test User 3')`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO characters (id, user_id, name, esi_token, esi_refresh_token, esi_token_expires_on)
+		VALUES (2003001, 1003, 'Test Char 3', 'token', 'refresh', NOW())
+	`)
+	require.NoError(t, err)
+
+	_, err = db.ExecContext(ctx, `INSERT INTO asset_item_types (type_id, type_name, volume) VALUES (34, 'Tritanium', 0.01)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO regions (region_id, name) VALUES (10000002, 'The Forge')`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO constellations (constellation_id, name, region_id) VALUES (20000020, 'Kimotoro', 10000002)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (30000142, 'Jita', 20000020, 1.0)`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station)
+		VALUES (60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 30000142, 1000035, true)
+	`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO market_prices (type_id, region_id, buy_price, sell_price, daily_volume, updated_at)
+		VALUES (34, 10000002, 5.45, 5.50, 1000000, NOW())
+	`)
+	require.NoError(t, err)
+
+	// Create an asset AND a matching stockpile marker (deficit)
+	_, err = db.ExecContext(ctx, `
+		INSERT INTO character_assets
+		(character_id, user_id, item_id, update_key, is_blueprint_copy, is_singleton,
+		 location_id, location_type, quantity, type_id, location_flag)
+		VALUES (2003001, 1003, 9001, 'key1', false, false, 60003760, 'station', 3000, 34, 'Hangar')
+	`)
+	require.NoError(t, err)
+
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+	err = stockpileRepo.Upsert(ctx, &models.StockpileMarker{
+		UserID:          1003,
+		TypeID:          34,
+		OwnerType:       "character",
+		OwnerID:         2003001,
+		LocationID:      60003760,
+		DesiredQuantity: 10000,
+	})
+	require.NoError(t, err)
+
+	// Execute
+	assetsRepo := repositories.NewAssets(db)
+	result, err := assetsRepo.GetStockpileDeficits(ctx, 1003)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	// Should only return 1 item — from the existing asset section, NOT duplicated by orphan section
+	require.Len(t, result.Items, 1, "Should NOT double-count items that have both asset and marker")
+	assert.Equal(t, int64(3000), result.Items[0].Quantity, "Should show actual quantity, not 0")
+	assert.Equal(t, int64(-7000), result.Items[0].StockpileDelta, "Deficit = 3000 - 10000")
+}

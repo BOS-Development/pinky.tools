@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { AssetsResponse, Asset, AssetContainer, CorporationHanger, StockpileMarker } from "@industry-tool/client/data/models";
+import AddStockpileDialog from './AddStockpileDialog';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import { formatISK, formatNumber, formatCompact } from '@industry-tool/utils/formatting';
@@ -226,6 +227,13 @@ export default function AssetsList(props: AssetsListProps) {
   } | null>(null);
   const [desiredQuantity, setDesiredQuantity] = useState('');
   const [notes, setNotes] = useState('');
+  const [addStockpileDialogOpen, setAddStockpileDialogOpen] = useState(false);
+  const [addStockpileContext, setAddStockpileContext] = useState<{
+    locationId: number;
+    containerId?: number;
+    divisionNumber?: number;
+    owners: { ownerType: string; ownerId: number; ownerName: string }[];
+  } | null>(null);
   const desiredQuantityInputRef = useRef<HTMLInputElement>(null);
   const [refreshingPrices, setRefreshingPrices] = useState(false);
   const [assetStatus, setAssetStatus] = useState<{ lastUpdatedAt: string | null; nextUpdateAt: string | null } | null>(null);
@@ -1027,6 +1035,71 @@ export default function AssetsList(props: AssetsListProps) {
     });
   };
 
+  const handleOpenAddStockpileDialog = (locationId: number, owners: { ownerType: string; ownerId: number; ownerName: string }[], containerId?: number, divisionNumber?: number) => {
+    setAddStockpileContext({ locationId, containerId, divisionNumber, owners });
+    setAddStockpileDialogOpen(true);
+  };
+
+  const handleAddStockpileSaved = (phantomAsset: Asset) => {
+    if (!addStockpileContext) return;
+    const { locationId, containerId, divisionNumber } = addStockpileContext;
+
+    // Update existing asset row if it matches, otherwise append phantom row
+    const upsertAsset = (assets: Asset[]): Asset[] => {
+      const idx = assets.findIndex(a => a.typeId === phantomAsset.typeId && a.ownerId === phantomAsset.ownerId);
+      if (idx >= 0) {
+        const copy = [...assets];
+        copy[idx] = {
+          ...copy[idx],
+          desiredQuantity: phantomAsset.desiredQuantity,
+          stockpileDelta: copy[idx].quantity - phantomAsset.desiredQuantity,
+        };
+        return copy;
+      }
+      return [...assets, phantomAsset];
+    };
+
+    setAssets(prev => ({
+      ...prev,
+      structures: prev.structures.map(structure => {
+        if (structure.id !== locationId) return structure;
+
+        if (containerId) {
+          if (divisionNumber) {
+            return {
+              ...structure,
+              corporationHangers: structure.corporationHangers?.map(h =>
+                h.id === divisionNumber
+                  ? { ...h, hangarContainers: h.hangarContainers?.map(c =>
+                      c.id === containerId ? { ...c, assets: upsertAsset(c.assets) } : c
+                    )}
+                  : h
+              ),
+            };
+          }
+          return {
+            ...structure,
+            hangarContainers: structure.hangarContainers?.map(c =>
+              c.id === containerId ? { ...c, assets: upsertAsset(c.assets) } : c
+            ),
+          };
+        } else if (divisionNumber) {
+          return {
+            ...structure,
+            corporationHangers: structure.corporationHangers?.map(h =>
+              h.id === divisionNumber ? { ...h, assets: upsertAsset(h.assets) } : h
+            ),
+          };
+        } else {
+          return {
+            ...structure,
+            hangarAssets: upsertAsset(structure.hangarAssets || []),
+          };
+        }
+      }),
+    }));
+  };
+
   const handleOpenListingDialog = (asset: Asset, locationId: number, containerId?: number, divisionNumber?: number, existingListing?: ForSaleListing) => {
     setListingAsset({ asset, locationId, containerId, divisionNumber });
 
@@ -1419,6 +1492,17 @@ export default function AssetsList(props: AssetsListProps) {
             secondary={`${container.assets.length} items`}
             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
           />
+          <Tooltip title="Add Stockpile">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAddStockpileDialog(locationId, [{ ownerType: container.ownerType, ownerId: container.ownerId, ownerName: container.ownerName }], container.id, divisionNumber);
+              }}
+            >
+              <InventoryIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}>
             <IconButton
               size="small"
@@ -1502,6 +1586,17 @@ export default function AssetsList(props: AssetsListProps) {
             secondary={`${hanger.assets.length} items, ${hanger.hangarContainers?.length || 0} containers`}
             primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
           />
+          <Tooltip title="Add Stockpile">
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenAddStockpileDialog(structureId, [{ ownerType: 'corporation', ownerId: hanger.corporationId, ownerName: hanger.corporationName }], undefined, hanger.id);
+              }}
+            >
+              <InventoryIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}>
             <IconButton
               size="small"
@@ -1768,6 +1863,22 @@ export default function AssetsList(props: AssetsListProps) {
                                 secondary={`${structure.hangarAssets.length} items`}
                                 primaryTypographyProps={{ fontWeight: 600 }}
                               />
+                              <Tooltip title="Add Stockpile">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const seen = new Map<string, { ownerType: string; ownerId: number; ownerName: string }>();
+                                    for (const a of structure.hangarAssets) {
+                                      const key = `${a.ownerType}:${a.ownerId}`;
+                                      if (!seen.has(key)) seen.set(key, { ownerType: a.ownerType, ownerId: a.ownerId, ownerName: a.ownerName });
+                                    }
+                                    handleOpenAddStockpileDialog(structure.id, Array.from(seen.values()));
+                                  }}
+                                >
+                                  <InventoryIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
                             </ListItemButton>
                             <Collapse in={expandedNodes.has(`structure-${structure.id}-hangar`)} timeout={150} unmountOnExit>
                               {renderAssetsTable(structure.hangarAssets, true, structure.id)}
@@ -2275,6 +2386,19 @@ export default function AssetsList(props: AssetsListProps) {
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Add Stockpile Dialog */}
+        {addStockpileContext && (
+          <AddStockpileDialog
+            open={addStockpileDialogOpen}
+            onClose={() => setAddStockpileDialogOpen(false)}
+            onSaved={handleAddStockpileSaved}
+            locationId={addStockpileContext.locationId}
+            containerId={addStockpileContext.containerId}
+            divisionNumber={addStockpileContext.divisionNumber}
+            owners={addStockpileContext.owners}
+          />
+        )}
       </Container>
     </>
   );

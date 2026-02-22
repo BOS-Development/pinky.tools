@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`AddStockpileDialog Component should match snapshot when open with multiple owners 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`AddStockpileDialog Component should match snapshot when open with single owner 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
+
+exports[`AddStockpileDialog Component should pass containerId and divisionNumber when provided 1`] = `
+<div
+  aria-hidden="true"
+/>
+`;
