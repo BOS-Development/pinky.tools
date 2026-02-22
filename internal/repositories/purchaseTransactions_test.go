@@ -592,3 +592,78 @@ func Test_PurchaseTransactions_CompleteWithContractID_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not found or not in contract_created status")
 }
+
+// Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ExcludesContractCreated
+// verifies that only 'pending' purchases are counted — not 'contract_created'.
+// Once a contract is created, EVE removes the items from the seller's hangar,
+// so ESI asset counts already reflect the reduction.
+func Test_PurchaseTransactions_GetPendingQuantitiesForSaleContext_ExcludesContractCreated(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+	sellerID := int64(3090)
+	buyerID := int64(3091)
+	typeID := int64(49)
+	locationID := int64(30000159)
+
+	item, err := setupPurchaseTestData(t, db, buyerID, sellerID, typeID, locationID)
+	assert.NoError(t, err)
+
+	repo := repositories.NewPurchaseTransactions(db)
+
+	// Create a pending purchase (should be counted)
+	tx, err := db.BeginTx(ctx, nil)
+	assert.NoError(t, err)
+	pendingPurchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       buyerID,
+		SellerUserID:      sellerID,
+		TypeID:            typeID,
+		QuantityPurchased: 100,
+		PricePerUnit:      100,
+		TotalPrice:        10000,
+		Status:            "pending",
+	}
+	err = repo.Create(ctx, tx, pendingPurchase)
+	assert.NoError(t, err)
+
+	// Create a contract_created purchase (should NOT be counted)
+	contractCreatedPurchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       buyerID,
+		SellerUserID:      sellerID,
+		TypeID:            typeID,
+		QuantityPurchased: 200,
+		PricePerUnit:      100,
+		TotalPrice:        20000,
+		Status:            "contract_created",
+	}
+	err = repo.Create(ctx, tx, contractCreatedPurchase)
+	assert.NoError(t, err)
+
+	// Create a completed purchase (should NOT be counted)
+	completedPurchase := &models.PurchaseTransaction{
+		ForSaleItemID:     item.ID,
+		BuyerUserID:       buyerID,
+		SellerUserID:      sellerID,
+		TypeID:            typeID,
+		QuantityPurchased: 300,
+		PricePerUnit:      100,
+		TotalPrice:        30000,
+		Status:            "completed",
+	}
+	err = repo.Create(ctx, tx, completedPurchase)
+	assert.NoError(t, err)
+
+	err = tx.Commit()
+	assert.NoError(t, err)
+
+	// Query pending quantities — should only count the 'pending' purchase (100)
+	quantities, err := repo.GetPendingQuantitiesForSaleContext(
+		ctx, sellerID, "character", sellerID*10, locationID, nil, nil,
+	)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(100), quantities[typeID],
+		"only pending purchases should be counted, not contract_created or completed")
+}
