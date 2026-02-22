@@ -410,8 +410,10 @@ func (r *PurchaseTransactions) CompleteWithContractID(ctx context.Context, purch
 
 // GetPendingQuantitiesForSaleContext returns pending purchase quantities
 // grouped by type_id, scoped to a specific seller's for-sale context (owner+location+container/division).
-// Only counts 'pending' status — once a contract is created ('contract_created'), the items
-// are removed from the seller's inventory by EVE, so ESI asset counts already reflect that.
+// Counts 'pending' purchases and 'contract_created' purchases within the last hour.
+// Once a contract is created, EVE removes the items from the seller's hangar, but ESI
+// asset caches can take up to an hour to refresh. During that window we still need to
+// reserve the quantity to avoid auto-sell creating duplicate listings.
 func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
 	ctx context.Context,
 	sellerUserID int64,
@@ -423,7 +425,9 @@ func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
 		FROM purchase_transactions pt
 		JOIN for_sale_items f ON pt.for_sale_item_id = f.id
 		WHERE pt.seller_user_id = $1
-			AND pt.status = 'pending'
+			AND (pt.status = 'pending'
+				OR (pt.status = 'contract_created'
+					AND pt.contract_created_at > NOW() - INTERVAL '1 hour'))
 			AND f.owner_type = $2
 			AND f.owner_id = $3
 			AND f.location_id = $4
@@ -500,15 +504,17 @@ func (r *PurchaseTransactions) GetPendingQuantityForBuyOrder(ctx context.Context
 	return total, nil
 }
 
-// UpdateStatus updates the status of a purchase transaction
+// UpdateStatus updates the status of a purchase transaction.
+// When transitioning to 'contract_created', also sets contract_created_at to NOW().
 func (r *PurchaseTransactions) UpdateStatus(ctx context.Context, purchaseID int64, newStatus string) error {
 	query := `
 		UPDATE purchase_transactions
-		SET status = $2
+		SET status = $2,
+			contract_created_at = CASE WHEN $3 = 'contract_created' THEN NOW() ELSE contract_created_at END
 		WHERE id = $1
 	`
 
-	result, err := r.db.ExecContext(ctx, query, purchaseID, newStatus)
+	result, err := r.db.ExecContext(ctx, query, purchaseID, newStatus, newStatus)
 	if err != nil {
 		return errors.Wrap(err, "failed to update purchase status")
 	}
