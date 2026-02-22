@@ -12,6 +12,7 @@ import (
 )
 
 const JitaRegionID = 10000002
+const JitaStationID = 60003760
 const UpdateInterval = 6 * time.Hour
 
 type MarketPricesRepository interface {
@@ -78,9 +79,12 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 		return errors.Wrap(err, "failed to fetch market orders from ESI")
 	}
 
-	// Group orders by type_id
+	// Group orders by type_id, filtering to Jita 4-4 station only
 	ordersByType := make(map[int64][]*client.MarketOrder)
 	for _, order := range orders {
+		if order.LocationID != JitaStationID {
+			continue
+		}
 		ordersByType[order.TypeID] = append(ordersByType[order.TypeID], order)
 	}
 
