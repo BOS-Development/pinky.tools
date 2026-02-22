@@ -110,11 +110,12 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 		return errors.Wrap(err, "failed to get stockpile deficits")
 	}
 
-	// Get pending purchase quantities to avoid inflated buy orders
-	pendingQuantities, err := u.purchaseRepo.GetPendingQuantitiesByBuyer(ctx, config.UserID)
-	if err != nil {
-		return errors.Wrap(err, "failed to get pending purchase quantities")
-	}
+	// NOTE: We intentionally do NOT subtract pending purchase quantities here.
+	// Auto-fulfill handles pending tracking via GetPendingQuantityForBuyOrder.
+	// Subtracting pending in auto-buy caused buy orders to be deactivated when
+	// fully covered by pending purchases, then recreated with new IDs when
+	// the deficit grew — which reset the pending count in auto-fulfill and
+	// produced duplicate purchases.
 
 	// Collect type IDs for market price lookup
 	typeIDs := make([]int64, 0, len(deficits))
@@ -148,19 +149,7 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 	activeTypes := make(map[int64]bool)
 
 	for _, deficit := range deficits {
-		// Subtract pending/in-flight purchases from the deficit
-		adjustedDeficit := deficit.Deficit
-		if pending, ok := pendingQuantities[deficit.TypeID]; ok {
-			adjustedDeficit -= pending
-		}
-		if adjustedDeficit <= 0 {
-			// Deficit fully covered by pending purchases — deactivate existing order if any
-			if existing, ok := existingByType[deficit.TypeID]; ok {
-				if err := u.buyOrderRepo.DeactivateAutoBuyOrder(ctx, existing.ID); err != nil {
-					log.Error("failed to deactivate auto-buy order covered by pending purchases",
-						"typeID", deficit.TypeID, "error", err)
-				}
-			}
+		if deficit.Deficit <= 0 {
 			continue
 		}
 
@@ -199,7 +188,7 @@ func (u *AutoBuy) syncConfig(ctx context.Context, config *models.AutoBuyConfig) 
 			BuyerUserID:     config.UserID,
 			TypeID:          deficit.TypeID,
 			LocationID:      config.LocationID,
-			QuantityDesired: adjustedDeficit,
+			QuantityDesired: deficit.Deficit,
 			MinPricePerUnit: computedMinPrice,
 			MaxPricePerUnit: computedMaxPrice,
 			AutoBuyConfigID: &config.ID,

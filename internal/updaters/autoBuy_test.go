@@ -497,9 +497,13 @@ func Test_AutoBuy_Constructor(t *testing.T) {
 	assert.NotNil(t, u)
 }
 
-// --- Pending Purchase Awareness Tests ---
+// --- Buy Order Stability Tests ---
+// Auto-buy no longer subtracts pending purchases from the deficit.
+// Auto-fulfill handles pending tracking via GetPendingQuantityForBuyOrder.
+// This prevents buy order IDs from cycling (deactivate→recreate) which caused
+// auto-fulfill to create duplicate purchases.
 
-func Test_AutoBuy_PendingPurchasesReduceDeficit(t *testing.T) {
+func Test_AutoBuy_DeficitUsedAsQuantity_NoPendingSubtraction(t *testing.T) {
 	configID := int64(1)
 	buyPrice := 100.0
 
@@ -531,24 +535,21 @@ func Test_AutoBuy_PendingPurchasesReduceDeficit(t *testing.T) {
 		},
 	}
 
-	purchaseRepo := &mockAutoBuyPurchaseRepo{
-		pendingQuantities: map[int64]int64{
-			34: 300, // 300 already in-flight
-		},
-	}
-
-	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
+	// Even though there are pending purchases, auto-buy uses the raw deficit
+	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, &mockAutoBuyPurchaseRepo{
+		pendingQuantities: map[int64]int64{34: 300},
+	})
 	err := u.SyncForUser(context.Background(), 42)
 
 	assert.NoError(t, err)
 	assert.Len(t, buyOrderRepo.upsertedOrders, 1)
-	assert.Equal(t, int64(500), buyOrderRepo.upsertedOrders[0].QuantityDesired) // 800 - 300 = 500
+	// Full deficit used, not deficit minus pending
+	assert.Equal(t, int64(800), buyOrderRepo.upsertedOrders[0].QuantityDesired)
 	assert.True(t, buyOrderRepo.upsertedOrders[0].IsActive)
 }
 
-func Test_AutoBuy_PendingPurchasesFullyCoverDeficit_Deactivates(t *testing.T) {
+func Test_AutoBuy_DeficitWithPendingFullyCovered_StillUpsertsOrder(t *testing.T) {
 	configID := int64(1)
-	existingOrderID := int64(99)
 	buyPrice := 100.0
 
 	configRepo := &mockAutoBuyConfigsRepo{
@@ -570,14 +571,7 @@ func Test_AutoBuy_PendingPurchasesFullyCoverDeficit_Deactivates(t *testing.T) {
 	}
 
 	buyOrderRepo := &mockAutoBuyOrdersRepo{
-		activeOrders: []*models.BuyOrder{
-			{
-				ID:              existingOrderID,
-				TypeID:          34,
-				AutoBuyConfigID: &configID,
-				IsActive:        true,
-			},
-		},
+		activeOrders: []*models.BuyOrder{},
 	}
 
 	marketRepo := &mockAutoSellMarketRepo{
@@ -586,55 +580,18 @@ func Test_AutoBuy_PendingPurchasesFullyCoverDeficit_Deactivates(t *testing.T) {
 		},
 	}
 
-	purchaseRepo := &mockAutoBuyPurchaseRepo{
-		pendingQuantities: map[int64]int64{
-			34: 800, // Fully covers the deficit
-		},
-	}
-
-	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
+	// Pending fully covers the deficit, but auto-buy still upserts (auto-fulfill handles pending)
+	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, &mockAutoBuyPurchaseRepo{
+		pendingQuantities: map[int64]int64{34: 800},
+	})
 	err := u.SyncForUser(context.Background(), 42)
 
 	assert.NoError(t, err)
-	assert.Len(t, buyOrderRepo.upsertedOrders, 0) // No new orders
-	// Deactivated from "pending covers deficit" path and "not in activeTypes" path
-	assert.Contains(t, buyOrderRepo.deactivatedIDs, existingOrderID)
-}
-
-func Test_AutoBuy_PurchaseRepoError_FailsConfig(t *testing.T) {
-	configRepo := &mockAutoBuyConfigsRepo{
-		byUserConfigs: []*models.AutoBuyConfig{
-			{
-				ID:                 1,
-				UserID:             42,
-				OwnerType:          "character",
-				OwnerID:            12345,
-				LocationID:         60003760,
-				MaxPricePercentage: 110.0,
-				PriceSource:        "jita_buy",
-				IsActive:           true,
-			},
-		},
-		deficits: []*models.StockpileDeficitItem{
-			{TypeID: 34, DesiredQuantity: 1000, CurrentQuantity: 200, Deficit: 800},
-		},
-	}
-
-	buyOrderRepo := &mockAutoBuyOrdersRepo{
-		activeOrders: []*models.BuyOrder{},
-	}
-
-	marketRepo := &mockAutoSellMarketRepo{}
-
-	purchaseRepo := &mockAutoBuyPurchaseRepo{
-		pendingQuantitiesErr: fmt.Errorf("purchase db error"),
-	}
-
-	u := newAutoBuyUpdaterWithPurchases(configRepo, buyOrderRepo, marketRepo, purchaseRepo)
-	err := u.SyncForUser(context.Background(), 42)
-
-	assert.NoError(t, err) // SyncForUser logs per-config errors but returns nil
-	assert.Len(t, buyOrderRepo.upsertedOrders, 0)
+	// Order IS upserted (keeps the ID stable for auto-fulfill to track pending)
+	assert.Len(t, buyOrderRepo.upsertedOrders, 1)
+	assert.Equal(t, int64(800), buyOrderRepo.upsertedOrders[0].QuantityDesired)
+	// No deactivation — the buy order stays active
+	assert.Len(t, buyOrderRepo.deactivatedIDs, 0)
 }
 
 // --- Helper (local to this file, not redefining shared ones) ---
