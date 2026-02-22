@@ -11,6 +11,7 @@ import (
 type AssetsRepository interface {
 	GetUserAssets(ctx context.Context, user int64) (*repositories.AssetsResponse, error)
 	GetUserAssetsSummary(ctx context.Context, user int64) (*repositories.AssetsSummary, error)
+	InjectOrphanStockpileRows(ctx context.Context, userID int64, response *repositories.AssetsResponse) error
 }
 
 type Assets struct {
@@ -34,6 +35,14 @@ func (c *Assets) GetUserAssets(args *web.HandlerArgs) (any, *web.HttpError) {
 		return nil, &web.HttpError{
 			StatusCode: 500,
 			Error:      errors.Wrap(err, "failed to get user assets"),
+		}
+	}
+
+	err = c.repository.InjectOrphanStockpileRows(args.Request.Context(), *args.User, assets)
+	if err != nil {
+		return nil, &web.HttpError{
+			StatusCode: 500,
+			Error:      errors.Wrap(err, "failed to inject orphan stockpile rows"),
 		}
 	}
 

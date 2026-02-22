@@ -34,6 +34,11 @@ func (m *MockAssetsRepository) GetUserAssetsSummary(ctx context.Context, user in
 	return args.Get(0).(*repositories.AssetsSummary), args.Error(1)
 }
 
+func (m *MockAssetsRepository) InjectOrphanStockpileRows(ctx context.Context, userID int64, response *repositories.AssetsResponse) error {
+	args := m.Called(ctx, userID, response)
+	return args.Error(0)
+}
+
 func Test_AssetsController_GetUserAssets_Success(t *testing.T) {
 	mockRepo := new(MockAssetsRepository)
 	mockRouter := &MockRouter{}
@@ -59,6 +64,7 @@ func Test_AssetsController_GetUserAssets_Success(t *testing.T) {
 	}
 
 	mockRepo.On("GetUserAssets", mock.Anything, userID).Return(expectedResponse, nil)
+	mockRepo.On("InjectOrphanStockpileRows", mock.Anything, userID, expectedResponse).Return(nil)
 
 	req := httptest.NewRequest("GET", "/v1/assets/", nil)
 	args := &web.HandlerArgs{
@@ -115,6 +121,7 @@ func Test_AssetsController_GetUserAssets_EmptyResponse(t *testing.T) {
 	}
 
 	mockRepo.On("GetUserAssets", mock.Anything, userID).Return(emptyResponse, nil)
+	mockRepo.On("InjectOrphanStockpileRows", mock.Anything, userID, emptyResponse).Return(nil)
 
 	req := httptest.NewRequest("GET", "/v1/assets/", nil)
 	args := &web.HandlerArgs{

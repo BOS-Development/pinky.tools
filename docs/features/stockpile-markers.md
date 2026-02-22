@@ -5,8 +5,8 @@
 Stockpile markers let players set desired quantity targets on individual items in their inventory and track "deficits" — items whose current quantity falls below the target. The feature spans the full stack: a database table for marker storage, backend CRUD + deficit aggregation endpoints, and two frontend surfaces (inline markers on the assets page, dedicated deficits dashboard).
 
 **Key pages:**
-- `/inventory` — set, edit, and delete stockpile markers on any asset row
-- `/stockpiles` — view all items below target with deficit quantities and ISK costs
+- `/inventory` — set, edit, and delete stockpile markers on any asset row; add markers for items not yet in inventory via section-level "Add Stockpile" icons
+- `/stockpiles` — view all items below target with deficit quantities and ISK costs (includes orphan markers with zero quantity)
 
 ## Business Context
 
@@ -20,6 +20,8 @@ Industrial players in EVE Online maintain material buffers (minerals, components
 3. Know the ISK cost to fill all my deficits at current Jita buy prices
 4. Export my deficit list to Janice for quick appraisal
 5. Set markers on both personal character assets and corporation division assets
+6. Create stockpile markers for items I don't have yet (e.g., target 10,000 Tritanium at Jita even with zero in stock)
+7. See items with stockpile markers but zero current quantity on the inventory page as phantom rows
 
 ## Architecture
 
@@ -71,6 +73,15 @@ When you need to acquire missing items, you'll pay the buy price, not the sell p
 
 - **Character assets** — matched by `owner_id = character_id`
 - **Corporation assets** — matched by `owner_id = corporation_id` + `division_number`
+
+#### 5. Orphan Markers (Items Not in Inventory)
+
+**Decision:** Support creating stockpile markers for items that don't exist in the asset tables yet.
+
+- **Problem:** The original assets-first query (`FROM character_assets LEFT JOIN stockpile_markers`) silently drops markers with no matching asset row, making them invisible on both the inventory page and the deficits page.
+- **Solution — Inventory page:** `InjectOrphanStockpileRows` post-processes the `GetUserAssets` response, querying all stockpile markers and injecting phantom `Asset` rows (quantity=0) for markers that have no matching asset.
+- **Solution — Deficits page:** Two additional `UNION ALL` sections (sections 5 and 6) in `GetStockpileDeficits` use `NOT EXISTS` anti-joins against the asset tables to surface orphan markers with full deficit.
+- **Frontend dialog:** An "Add Stockpile" icon button appears on Personal Hangar, Container, and Corp Hanger section headers in the inventory page. The dialog auto-populates location/owner context from the section and provides item type search via `/api/item-types/search`. On save, a phantom asset is optimistically injected into local state.
 
 ## Database Schema
 
@@ -149,18 +160,24 @@ CRUD operations for the `stockpile_markers` table.
 
 **File:** `internal/repositories/assets.go` — `GetStockpileDeficits(ctx, user)`
 
-This is the most complex query in the system. It uses a CTE (`WITH all_deficits AS`) that combines four UNION ALL subqueries:
+This is the most complex query in the system. It uses a CTE (`WITH all_deficits AS`) that combines six UNION ALL subqueries:
 
 1. **Personal hangar items** — `character_assets` WHERE `location_flag IN ('Hangar', 'Deliveries', 'AssetSafety')`
 2. **Personal container items** — `character_assets` WHERE `location_type = 'item'` (items inside containers)
 3. **Corporation hangar items** — `corporation_asset_locations` WHERE `location_flag LIKE 'CorpSAG%'`
 4. **Corporation container items** — `corporation_asset_locations` WHERE `location_type = 'item'`
+5. **Orphan character markers** — `stockpile_markers` WHERE `owner_type = 'character'` with `NOT EXISTS` against `character_assets` (markers with no matching asset)
+6. **Orphan corporation markers** — `stockpile_markers` WHERE `owner_type = 'corporation'` with `NOT EXISTS` against `corporation_asset_locations` (markers with no matching asset)
 
-Each subquery:
+Subqueries 1-4 are asset-first (LEFT JOIN markers):
 - LEFT JOINs `stockpile_markers` (matching on type, location, container, owner)
 - LEFT JOINs `market_prices` (Jita region 10000002) for deficit cost
 - Filters to `(quantity - desired_quantity) < 0` (only deficit items)
 - Calculates `deficit_value = ABS(delta) * buy_price`
+
+Subqueries 5-6 are marker-first (NOT EXISTS anti-join):
+- Sets `quantity = 0`, `stockpile_delta = -desired_quantity`
+- Full deficit value calculated as `desired_quantity * buy_price`
 
 Results are ordered by `deficit_value DESC` (most expensive deficits first).
 
@@ -201,11 +218,32 @@ Each asset row in the table shows:
 - **Delete stockpile** button (trash icon) — confirms with `window.confirm()` then removes marker
 - **Below target filter** — toggle to show only items with negative delta
 
+Section headers have an **"Add Stockpile"** icon button (Inventory icon with Tooltip) on:
+- **Personal Hangar** — extracts unique owners from hangar assets, opens dialog with `locationId` and owner picker
+- **Container** — single owner from container context, opens dialog with `locationId` and `containerId`
+- **Corp Hanger** — single corporation owner, opens dialog with `locationId` and `divisionNumber`
+
 The stockpile dialog collects:
 - `desiredQuantity` — target quantity
 - Automatically populates `typeId`, `ownerId`, `ownerType`, `locationId`, `containerId`, `divisionNumber` from the asset context
 
 After upsert/delete, the local state is updated immediately (optimistic update) without refetching all assets.
+
+### Add Stockpile Dialog
+
+**File:** `frontend/packages/components/assets/AddStockpileDialog.tsx`
+
+MUI Dialog for creating stockpile markers on items not in inventory:
+- **Item type search** — MUI Autocomplete with debounced async search to `/api/item-types/search?q=...`, shows item icon (32px from evetech CDN) + name
+- **Owner picker** — MUI Select, shown only when multiple owners exist. Auto-selected when single owner.
+- **Desired quantity** — Number TextField
+- **Save** — POSTs to `/api/stockpiles/upsert`. On success, injects a phantom Asset (quantity=0) into local state for immediate display.
+
+### Phantom Row Injection
+
+**File:** `internal/repositories/assets.go` — `InjectOrphanStockpileRows(ctx, userID, response)`
+
+Called by the assets controller after `GetUserAssets`. Queries all stockpile markers for the user, builds a set of existing asset keys, and for each orphan marker (no matching asset), creates a phantom `Asset` with `Quantity=0`, `DesiredQuantity=desired`, `StockpileDelta=-desired`, `DeficitValue=desired*buyPrice` and injects it into the matching structure section.
 
 ### Stockpiles Deficits Page
 
@@ -275,7 +313,9 @@ Displays a table of all items below target across all characters and corporation
 - `internal/controllers/stockpiles.go` — Deficit aggregation controller
 
 ### Frontend
-- `frontend/packages/components/assets/AssetsList.tsx` — Inline marker UI
+- `frontend/packages/components/assets/AssetsList.tsx` — Inline marker UI + section-level "Add Stockpile" icons
+- `frontend/packages/components/assets/AddStockpileDialog.tsx` — Dialog for adding markers to items not in inventory
+- `frontend/packages/client/data/models.ts` — `EveInventoryType` type for item search results
 - `frontend/packages/components/stockpiles/StockpilesList.tsx` — Deficits dashboard
 - `frontend/packages/pages/stockpiles.tsx` — Page wrapper
 - `frontend/pages/stockpiles.tsx` — Next.js page entry
@@ -286,10 +326,16 @@ Displays a table of all items below target across all characters and corporation
 ### Tests
 - `internal/controllers/stockpiles_test.go` — Deficit controller tests
 - `internal/controllers/stockpileMarkers_test.go` — Marker controller tests
+- `internal/controllers/assets_test.go` — Assets controller tests (incl. phantom row injection mock)
 - `internal/repositories/stockpileMarkers_test.go` — Repository tests
-- `internal/repositories/stockpileDeficits_test.go` — Deficit query tests
+- `internal/repositories/stockpileDeficits_test.go` — Deficit query tests (incl. orphan marker tests)
+- `frontend/packages/components/assets/__tests__/AddStockpileDialog.test.tsx` — AddStockpileDialog snapshot and unit tests
 - `e2e/tests/05-stockpiles.spec.ts` — End-to-end tests
 
 ---
 
 **Status:** Complete
+
+### Changelog
+
+- **v2 — Orphan stockpile markers:** Added ability to create stockpile markers for items not currently in inventory. Backend injects phantom rows into inventory page and deficit query includes orphan markers via NOT EXISTS anti-joins. Frontend AddStockpileDialog opens from section headers on inventory page.
