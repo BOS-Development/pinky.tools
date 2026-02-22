@@ -510,11 +510,11 @@ func (r *PurchaseTransactions) UpdateStatus(ctx context.Context, purchaseID int6
 	query := `
 		UPDATE purchase_transactions
 		SET status = $2,
-			contract_created_at = CASE WHEN $2 = 'contract_created' THEN NOW() ELSE contract_created_at END
+			contract_created_at = CASE WHEN $3 = 'contract_created' THEN NOW() ELSE contract_created_at END
 		WHERE id = $1
 	`
 
-	result, err := r.db.ExecContext(ctx, query, purchaseID, newStatus)
+	result, err := r.db.ExecContext(ctx, query, purchaseID, newStatus, newStatus)
 	if err != nil {
 		return errors.Wrap(err, "failed to update purchase status")
 	}
