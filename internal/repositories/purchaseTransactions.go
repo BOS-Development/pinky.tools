@@ -387,7 +387,9 @@ func (r *PurchaseTransactions) GetContractCreatedWithKeys(ctx context.Context) (
 func (r *PurchaseTransactions) CompleteWithContractID(ctx context.Context, purchaseID int64, eveContractID int64) error {
 	query := `
 		UPDATE purchase_transactions
-		SET status = 'completed', contract_key = contract_key || ' [EVE:' || $2::text || ']'
+		SET status = 'completed',
+			completed_at = NOW(),
+			contract_key = contract_key || ' [EVE:' || $2::text || ']'
 		WHERE id = $1 AND status = 'contract_created'
 	`
 
@@ -410,8 +412,9 @@ func (r *PurchaseTransactions) CompleteWithContractID(ctx context.Context, purch
 
 // GetPendingQuantitiesForSaleContext returns pending purchase quantities
 // grouped by type_id, scoped to a specific seller's for-sale context (owner+location+container/division).
-// Counts 'pending' purchases and 'contract_created' purchases within the last hour.
-// Once a contract is created, EVE removes the items from the seller's hangar, but ESI
+// Counts 'pending' purchases, 'contract_created' purchases within the last hour,
+// and 'completed' purchases within the last hour.
+// Once a contract is created or completed, EVE removes the items from the seller's hangar, but ESI
 // asset caches can take up to an hour to refresh. During that window we still need to
 // reserve the quantity to avoid auto-sell creating duplicate listings.
 func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
@@ -427,7 +430,9 @@ func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
 		WHERE pt.seller_user_id = $1
 			AND (pt.status = 'pending'
 				OR (pt.status = 'contract_created'
-					AND pt.contract_created_at > NOW() - INTERVAL '1 hour'))
+					AND pt.contract_created_at > NOW() - INTERVAL '1 hour')
+				OR (pt.status = 'completed'
+					AND pt.completed_at > NOW() - INTERVAL '1 hour'))
 			AND f.owner_type = $2
 			AND f.owner_id = $3
 			AND f.location_id = $4
@@ -510,7 +515,8 @@ func (r *PurchaseTransactions) UpdateStatus(ctx context.Context, purchaseID int6
 	query := `
 		UPDATE purchase_transactions
 		SET status = $2,
-			contract_created_at = CASE WHEN $3 = 'contract_created' THEN NOW() ELSE contract_created_at END
+			contract_created_at = CASE WHEN $3 = 'contract_created' THEN NOW() ELSE contract_created_at END,
+			completed_at = CASE WHEN $3 = 'completed' THEN NOW() ELSE completed_at END
 		WHERE id = $1
 	`
 
