@@ -53,9 +53,28 @@ func (m *mockContractSyncCharRepo) UpdateTokens(ctx context.Context, id, userID 
 	return m.tokenUpdateErr
 }
 
+type mockContractSyncCorpRepo struct {
+	corpsByUser    map[int64][]repositories.PlayerCorporation
+	getErr         error
+	tokenUpdateErr error
+}
+
+func (m *mockContractSyncCorpRepo) Get(ctx context.Context, userID int64) ([]repositories.PlayerCorporation, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
+	return m.corpsByUser[userID], nil
+}
+
+func (m *mockContractSyncCorpRepo) UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error {
+	return m.tokenUpdateErr
+}
+
 type mockContractSyncEsiClient struct {
 	contractsByChar map[int64][]*client.EsiContract
+	contractsByCorp map[int64][]*client.EsiContract
 	contractsErr    error
+	corpContractErr error
 	refreshedToken  *client.RefreshedToken
 	refreshErr      error
 }
@@ -65,6 +84,13 @@ func (m *mockContractSyncEsiClient) GetCharacterContracts(ctx context.Context, c
 		return nil, m.contractsErr
 	}
 	return m.contractsByChar[characterID], nil
+}
+
+func (m *mockContractSyncEsiClient) GetCorporationContracts(ctx context.Context, corporationID int64, token, refresh string, expire time.Time) ([]*client.EsiContract, error) {
+	if m.corpContractErr != nil {
+		return nil, m.corpContractErr
+	}
+	return m.contractsByCorp[corporationID], nil
 }
 
 func (m *mockContractSyncEsiClient) RefreshAccessToken(ctx context.Context, refreshToken string) (*client.RefreshedToken, error) {
@@ -78,7 +104,11 @@ func (m *mockContractSyncEsiClient) RefreshAccessToken(ctx context.Context, refr
 
 func strPtr(s string) *string { return &s }
 
-// --- Tests ---
+func emptyCorpRepo() *mockContractSyncCorpRepo {
+	return &mockContractSyncCorpRepo{corpsByUser: map[int64][]repositories.PlayerCorporation{}}
+}
+
+// --- Character Contract Tests ---
 
 func Test_ContractSync_AutoCompletesMatchingContract(t *testing.T) {
 	key := "PT-42"
@@ -106,7 +136,7 @@ func Test_ContractSync_AutoCompletesMatchingContract(t *testing.T) {
 		},
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -123,7 +153,7 @@ func Test_ContractSync_NoActionWhenNoPurchases(t *testing.T) {
 	charRepo := &mockContractSyncCharRepo{}
 	esiClient := &mockContractSyncEsiClient{}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -156,7 +186,7 @@ func Test_ContractSync_SkipsCharacterWithoutScope(t *testing.T) {
 		},
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -189,7 +219,7 @@ func Test_ContractSync_NoMatchWhenTitleDoesNotContainKey(t *testing.T) {
 		},
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -224,7 +254,7 @@ func Test_ContractSync_MultiplePurchasesSameKeyAllCompleted(t *testing.T) {
 		},
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -265,7 +295,7 @@ func Test_ContractSync_IgnoresNonFinishedContracts(t *testing.T) {
 		},
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -302,7 +332,7 @@ func Test_ContractSync_ESIErrorLogsAndContinues(t *testing.T) {
 		contractsErr: errors.New("ESI unavailable"),
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	// SyncAll should not return an error — it logs per-user errors
@@ -341,7 +371,7 @@ func Test_ContractSync_RefreshesExpiredToken(t *testing.T) {
 		},
 	}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.NoError(t, err)
@@ -357,9 +387,208 @@ func Test_ContractSync_GetPurchasesError(t *testing.T) {
 	charRepo := &mockContractSyncCharRepo{}
 	esiClient := &mockContractSyncEsiClient{}
 
-	syncer := updaters.NewContractSync(purchaseRepo, charRepo, esiClient)
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
 	err := syncer.SyncAll(context.Background())
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "contract_created purchases")
+}
+
+// --- Corporation Contract Tests ---
+
+func Test_ContractSync_CorpContractMatchesAndCompletes(t *testing.T) {
+	key := "PT-50"
+	purchaseRepo := &mockContractSyncPurchaseRepo{
+		contractCreated: []*models.PurchaseTransaction{
+			{ID: 50, BuyerUserID: 100, ContractKey: &key},
+		},
+	}
+
+	// No character has the contract
+	charRepo := &mockContractSyncCharRepo{
+		charactersByUser: map[int64][]*repositories.Character{
+			100: {
+				{ID: 2001, UserID: 100, EsiToken: "tok", EsiRefreshToken: "ref",
+					EsiTokenExpiresOn: time.Now().Add(1 * time.Hour),
+					EsiScopes:         "esi-contracts.read_character_contracts.v1"},
+			},
+		},
+	}
+
+	corpRepo := &mockContractSyncCorpRepo{
+		corpsByUser: map[int64][]repositories.PlayerCorporation{
+			100: {
+				{ID: 5001, UserID: 100, EsiToken: "corp-tok", EsiRefreshToken: "corp-ref",
+					EsiExpiresOn: time.Now().Add(1 * time.Hour),
+					EsiScopes:    "esi-contracts.read_corporation_contracts.v1"},
+			},
+		},
+	}
+
+	esiClient := &mockContractSyncEsiClient{
+		contractsByChar: map[int64][]*client.EsiContract{
+			2001: {}, // character has no contracts
+		},
+		contractsByCorp: map[int64][]*client.EsiContract{
+			5001: {
+				{ContractID: 88888, Type: "item_exchange", Status: "finished", Title: "Corp delivery PT-50"},
+			},
+		},
+	}
+
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, corpRepo, esiClient)
+	err := syncer.SyncAll(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, purchaseRepo.completedCalls, 1)
+	assert.Equal(t, int64(50), purchaseRepo.completedCalls[0].PurchaseID)
+	assert.Equal(t, int64(88888), purchaseRepo.completedCalls[0].EveContractID)
+}
+
+func Test_ContractSync_SkipsCorporationWithoutScope(t *testing.T) {
+	key := "PT-60"
+	purchaseRepo := &mockContractSyncPurchaseRepo{
+		contractCreated: []*models.PurchaseTransaction{
+			{ID: 60, BuyerUserID: 100, ContractKey: &key},
+		},
+	}
+
+	charRepo := &mockContractSyncCharRepo{
+		charactersByUser: map[int64][]*repositories.Character{},
+	}
+
+	corpRepo := &mockContractSyncCorpRepo{
+		corpsByUser: map[int64][]repositories.PlayerCorporation{
+			100: {
+				{ID: 5001, UserID: 100, EsiToken: "corp-tok", EsiRefreshToken: "corp-ref",
+					EsiExpiresOn: time.Now().Add(1 * time.Hour),
+					EsiScopes:    "esi-assets.read_corporation_assets.v1"}, // wrong scope
+			},
+		},
+	}
+
+	esiClient := &mockContractSyncEsiClient{
+		contractsByCorp: map[int64][]*client.EsiContract{
+			5001: {
+				{ContractID: 99999, Type: "item_exchange", Status: "finished", Title: "PT-60 delivery"},
+			},
+		},
+	}
+
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, corpRepo, esiClient)
+	err := syncer.SyncAll(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, purchaseRepo.completedCalls, 0)
+}
+
+func Test_ContractSync_CorpTokenRefresh(t *testing.T) {
+	key := "PT-70"
+	purchaseRepo := &mockContractSyncPurchaseRepo{
+		contractCreated: []*models.PurchaseTransaction{
+			{ID: 70, BuyerUserID: 100, ContractKey: &key},
+		},
+	}
+
+	charRepo := &mockContractSyncCharRepo{
+		charactersByUser: map[int64][]*repositories.Character{},
+	}
+
+	corpRepo := &mockContractSyncCorpRepo{
+		corpsByUser: map[int64][]repositories.PlayerCorporation{
+			100: {
+				{ID: 5001, UserID: 100, EsiToken: "expired-tok", EsiRefreshToken: "corp-ref",
+					EsiExpiresOn: time.Now().Add(-1 * time.Hour), // expired
+					EsiScopes:    "esi-contracts.read_corporation_contracts.v1"},
+			},
+		},
+	}
+
+	esiClient := &mockContractSyncEsiClient{
+		refreshedToken: &client.RefreshedToken{
+			AccessToken:  "new-corp-tok",
+			RefreshToken: "new-corp-ref",
+			Expiry:       time.Now().Add(20 * time.Minute),
+		},
+		contractsByCorp: map[int64][]*client.EsiContract{
+			5001: {
+				{ContractID: 77777, Type: "item_exchange", Status: "finished", Title: "PT-70 materials"},
+			},
+		},
+	}
+
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, corpRepo, esiClient)
+	err := syncer.SyncAll(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, purchaseRepo.completedCalls, 1)
+	assert.Equal(t, int64(70), purchaseRepo.completedCalls[0].PurchaseID)
+}
+
+func Test_ContractSync_CorpESIErrorLogsAndContinues(t *testing.T) {
+	key := "PT-80"
+	purchaseRepo := &mockContractSyncPurchaseRepo{
+		contractCreated: []*models.PurchaseTransaction{
+			{ID: 80, BuyerUserID: 100, ContractKey: &key},
+		},
+	}
+
+	charRepo := &mockContractSyncCharRepo{
+		charactersByUser: map[int64][]*repositories.Character{},
+	}
+
+	corpRepo := &mockContractSyncCorpRepo{
+		corpsByUser: map[int64][]repositories.PlayerCorporation{
+			100: {
+				{ID: 5001, UserID: 100, EsiToken: "corp-tok", EsiRefreshToken: "corp-ref",
+					EsiExpiresOn: time.Now().Add(1 * time.Hour),
+					EsiScopes:    "esi-contracts.read_corporation_contracts.v1"},
+			},
+		},
+	}
+
+	esiClient := &mockContractSyncEsiClient{
+		corpContractErr: errors.New("ESI unavailable"),
+	}
+
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, corpRepo, esiClient)
+	err := syncer.SyncAll(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, purchaseRepo.completedCalls, 0)
+}
+
+func Test_ContractSync_NoCorporationsForBuyer(t *testing.T) {
+	key := "PT-90"
+	purchaseRepo := &mockContractSyncPurchaseRepo{
+		contractCreated: []*models.PurchaseTransaction{
+			{ID: 90, BuyerUserID: 100, ContractKey: &key},
+		},
+	}
+
+	charRepo := &mockContractSyncCharRepo{
+		charactersByUser: map[int64][]*repositories.Character{
+			100: {
+				{ID: 2001, UserID: 100, EsiToken: "tok", EsiRefreshToken: "ref",
+					EsiTokenExpiresOn: time.Now().Add(1 * time.Hour),
+					EsiScopes:         "esi-contracts.read_character_contracts.v1"},
+			},
+		},
+	}
+
+	esiClient := &mockContractSyncEsiClient{
+		contractsByChar: map[int64][]*client.EsiContract{
+			2001: {
+				{ContractID: 11111, Type: "item_exchange", Status: "finished", Title: "PT-90 delivery"},
+			},
+		},
+	}
+
+	// No corps for this buyer
+	syncer := updaters.NewContractSync(purchaseRepo, charRepo, emptyCorpRepo(), esiClient)
+	err := syncer.SyncAll(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, purchaseRepo.completedCalls, 1)
+	assert.Equal(t, int64(90), purchaseRepo.completedCalls[0].PurchaseID)
 }

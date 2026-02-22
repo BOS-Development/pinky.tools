@@ -341,3 +341,78 @@ func Test_ClientShouldHandleCharacterContractsError(t *testing.T) {
 	assert.Nil(t, contracts)
 	assert.Contains(t, err.Error(), "failed to get character contracts")
 }
+
+func Test_ClientShouldGetCorporationContracts(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockHTTPClient := NewMockHTTPDoer(ctrl)
+
+	mockContracts := []*client.EsiContract{
+		{
+			ContractID:     54321,
+			IssuerID:       100,
+			AcceptorID:     200,
+			AssigneeID:     5001,
+			Type:           "item_exchange",
+			Status:         "finished",
+			Title:          "Corp delivery PT-99",
+			DateCompleted:  "2025-01-15T12:00:00Z",
+			ForCorporation: true,
+			Price:          2000000.0,
+		},
+	}
+
+	contractsJSON, _ := json.Marshal(mockContracts)
+
+	mockResponse := &http.Response{
+		StatusCode: 200,
+		Header: http.Header{
+			"X-Pages": []string{"1"},
+		},
+		Body: io.NopCloser(bytes.NewReader(contractsJSON)),
+	}
+
+	mockHTTPClient.EXPECT().
+		Do(gomock.Any()).
+		DoAndReturn(func(req *http.Request) (*http.Response, error) {
+			assert.Equal(t, "GET", req.Method)
+			assert.Contains(t, req.URL.String(), "/v1/corporations/5001/contracts/")
+			return mockResponse, nil
+		}).
+		Times(1)
+
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "https://esi.test.com")
+
+	contracts, err := esiClient.GetCorporationContracts(context.Background(), 5001, "test-token", "test-refresh", time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(contracts))
+	assert.Equal(t, int64(54321), contracts[0].ContractID)
+	assert.Equal(t, "item_exchange", contracts[0].Type)
+	assert.Equal(t, "finished", contracts[0].Status)
+	assert.Equal(t, "Corp delivery PT-99", contracts[0].Title)
+	assert.True(t, contracts[0].ForCorporation)
+}
+
+func Test_ClientShouldHandleCorporationContractsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockHTTPClient := NewMockHTTPDoer(ctrl)
+
+	mockHTTPClient.EXPECT().
+		Do(gomock.Any()).
+		Return(&http.Response{
+			StatusCode: 403,
+			Header:     http.Header{"X-Pages": []string{"1"}},
+			Body:       io.NopCloser(bytes.NewReader([]byte(`{"error":"forbidden"}`))),
+		}, nil).
+		Times(1)
+
+	esiClient := client.NewEsiClientWithHTTPClient("test-client-id", "test-client-secret", mockHTTPClient, "https://esi.test.com")
+
+	contracts, err := esiClient.GetCorporationContracts(context.Background(), 5001, "bad-token", "ref", time.Now())
+	assert.Error(t, err)
+	assert.Nil(t, contracts)
+	assert.Contains(t, err.Error(), "failed to get corporation contracts")
+}

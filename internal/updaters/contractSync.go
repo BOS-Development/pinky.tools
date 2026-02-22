@@ -23,25 +23,34 @@ type ContractSyncCharacterRepository interface {
 	UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error
 }
 
+type ContractSyncCorporationRepository interface {
+	Get(ctx context.Context, userID int64) ([]repositories.PlayerCorporation, error)
+	UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error
+}
+
 type ContractSyncEsiClient interface {
 	GetCharacterContracts(ctx context.Context, characterID int64, token, refresh string, expire time.Time) ([]*client.EsiContract, error)
+	GetCorporationContracts(ctx context.Context, corporationID int64, token, refresh string, expire time.Time) ([]*client.EsiContract, error)
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*client.RefreshedToken, error)
 }
 
 type ContractSync struct {
 	purchaseRepo  ContractSyncPurchaseRepository
 	characterRepo ContractSyncCharacterRepository
+	corpRepo      ContractSyncCorporationRepository
 	esiClient     ContractSyncEsiClient
 }
 
 func NewContractSync(
 	purchaseRepo ContractSyncPurchaseRepository,
 	characterRepo ContractSyncCharacterRepository,
+	corpRepo ContractSyncCorporationRepository,
 	esiClient ContractSyncEsiClient,
 ) *ContractSync {
 	return &ContractSync{
 		purchaseRepo:  purchaseRepo,
 		characterRepo: characterRepo,
+		corpRepo:      corpRepo,
 		esiClient:     esiClient,
 	}
 }
@@ -101,6 +110,23 @@ func (u *ContractSync) syncBuyer(ctx context.Context, buyerUserID int64, allKeys
 		}
 	}
 
+	corps, err := u.corpRepo.Get(ctx, buyerUserID)
+	if err != nil {
+		log.Error("contract sync: failed to get buyer corporations", "buyerUserID", buyerUserID, "error", err)
+		return nil
+	}
+
+	for i := range corps {
+		if !strings.Contains(corps[i].EsiScopes, "esi-contracts.read_corporation_contracts.v1") {
+			continue
+		}
+
+		if err := u.syncCorporationContracts(ctx, &corps[i], buyerUserID, allKeys, keyToPurchases); err != nil {
+			log.Error("contract sync: failed for corporation",
+				"corporationID", corps[i].ID, "buyerUserID", buyerUserID, "error", err)
+		}
+	}
+
 	return nil
 }
 
@@ -132,12 +158,50 @@ func (u *ContractSync) syncCharacterContracts(
 		return errors.Wrapf(err, "failed to get contracts for character %d", char.ID)
 	}
 
+	u.matchContracts(ctx, contracts, allKeys, keyToPurchases)
+
+	return nil
+}
+
+func (u *ContractSync) syncCorporationContracts(
+	ctx context.Context,
+	corp *repositories.PlayerCorporation,
+	userID int64,
+	allKeys []string,
+	keyToPurchases map[string][]*models.PurchaseTransaction,
+) error {
+	token, refresh, expire := corp.EsiToken, corp.EsiRefreshToken, corp.EsiExpiresOn
+
+	if time.Now().After(expire) {
+		refreshed, err := u.esiClient.RefreshAccessToken(ctx, refresh)
+		if err != nil {
+			return errors.Wrapf(err, "failed to refresh token for corporation %d", corp.ID)
+		}
+		token = refreshed.AccessToken
+		refresh = refreshed.RefreshToken
+		expire = refreshed.Expiry
+
+		if err := u.corpRepo.UpdateTokens(ctx, corp.ID, userID, token, refresh, expire); err != nil {
+			log.Error("contract sync: failed to persist refreshed token", "corporationID", corp.ID, "error", err)
+		}
+	}
+
+	contracts, err := u.esiClient.GetCorporationContracts(ctx, corp.ID, token, refresh, expire)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get contracts for corporation %d", corp.ID)
+	}
+
+	u.matchContracts(ctx, contracts, allKeys, keyToPurchases)
+
+	return nil
+}
+
+func (u *ContractSync) matchContracts(ctx context.Context, contracts []*client.EsiContract, allKeys []string, keyToPurchases map[string][]*models.PurchaseTransaction) {
 	for _, contract := range contracts {
 		if contract.Status != "finished" || contract.Type != "item_exchange" {
 			continue
 		}
 
-		// Check if the contract title contains any known contract_key
 		for _, key := range allKeys {
 			if strings.Contains(contract.Title, key) {
 				u.completePurchases(ctx, keyToPurchases[key], contract.ContractID)
@@ -145,8 +209,6 @@ func (u *ContractSync) syncCharacterContracts(
 			}
 		}
 	}
-
-	return nil
 }
 
 func (u *ContractSync) completePurchases(ctx context.Context, purchases []*models.PurchaseTransaction, eveContractID int64) {

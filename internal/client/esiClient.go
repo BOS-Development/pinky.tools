@@ -991,6 +991,61 @@ func (c *EsiClient) GetCharacterContracts(ctx context.Context, characterID int64
 	}
 }
 
+// GetCorporationContracts fetches all contracts for a corporation from ESI.
+func (c *EsiClient) GetCorporationContracts(ctx context.Context, corporationID int64, token, refresh string, expire time.Time) ([]*EsiContract, error) {
+	contracts := []*EsiContract{}
+
+	page := 1
+	for {
+		url, err := url.Parse(fmt.Sprintf("%s/v1/corporations/%d/contracts/?page=%d", c.baseURL, corporationID, page))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    url,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get corporation contracts")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, errors.New(fmt.Sprintf("failed to get corporation contracts, expected statusCode 200 got %d, %s", res.StatusCode, errText))
+		}
+
+		totalPagesStr := res.Header.Get("X-PAGES")
+		totalPages, err := strconv.Atoi(totalPagesStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse x-pages")
+		}
+
+		bytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageContracts := []*EsiContract{}
+		err = json.Unmarshal(bytes, &pageContracts)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal contracts")
+		}
+
+		contracts = append(contracts, pageContracts...)
+
+		if totalPages == page {
+			return contracts, nil
+		}
+
+		page++
+	}
+}
+
 // RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
 // Returns the new access token, refresh token, and expiry. The caller is responsible
 // for persisting these back to the database.
