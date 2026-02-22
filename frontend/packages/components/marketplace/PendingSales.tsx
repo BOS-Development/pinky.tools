@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -65,6 +65,7 @@ export default function PendingSales() {
     message: '',
     severity: 'success',
   });
+  const contractKeyCache = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
     if (session) {
@@ -95,8 +96,14 @@ export default function PendingSales() {
       const key = `${sale.buyerUserId}-${sale.locationId}`;
 
       if (!groups.has(key)) {
-        // Generate contract key immediately for this group
-        const contractKey = sale.contractKey || generateContractKey(sale.buyerUserId, sale.locationId);
+        // Use existing key from backend, or a cached key, or generate once and cache
+        let contractKey = sale.contractKey;
+        if (!contractKey) {
+          if (!contractKeyCache.current.has(key)) {
+            contractKeyCache.current.set(key, generateContractKey(sale.buyerUserId, sale.locationId));
+          }
+          contractKey = contractKeyCache.current.get(key)!;
+        }
 
         groups.set(key, {
           buyerUserId: sale.buyerUserId,
