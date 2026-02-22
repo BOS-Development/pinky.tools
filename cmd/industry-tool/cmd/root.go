@@ -194,7 +194,7 @@ var rootCmd = &cobra.Command{
 		})
 
 		// Start contract sync scheduler (15 minutes)
-		contractSyncUpdater := updaters.NewContractSync(purchaseTransactionsRepository, charactersRepository, esiClient)
+		contractSyncUpdater := updaters.NewContractSync(purchaseTransactionsRepository, charactersRepository, playerCorporationRepostiory, esiClient)
 		contractSyncRunner := runners.NewContractSyncRunner(contractSyncUpdater, 15*time.Minute)
 		group.Go(func() error {
 			return contractSyncRunner.Run(ctx)
