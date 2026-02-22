@@ -1,6 +1,6 @@
 # Critical Rules
 
-1. **Create a feature branch before writing any code.** `git checkout -b feature/{name}` — do this before touching any files. Never commit directly to main.
+1. **Create a feature branch off an updated main before writing any code.** `git checkout main && git pull origin main && git checkout -b feature/{name}` — always branch from the latest main. Never branch from another feature branch. Never commit directly to main.
 2. **Always run tests with Makefile targets** (`make test-e2e-ci`, `make test-backend`, etc.) — never run test commands directly.
 3. **Write tests for every new backend file.** Every new repository, controller, and updater must have a corresponding `_test.go` file. When asked to "write tests," cover all three layers — not just controllers and updaters.
 4. **All changes must have tests.** Every code change — bug fixes, new features, refactors — must include corresponding test coverage. No code changes without tests.
