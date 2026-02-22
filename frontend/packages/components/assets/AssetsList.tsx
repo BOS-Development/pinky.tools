@@ -1052,7 +1052,7 @@ export default function AssetsList(props: AssetsListProps) {
         copy[idx] = {
           ...copy[idx],
           desiredQuantity: phantomAsset.desiredQuantity,
-          stockpileDelta: copy[idx].quantity - phantomAsset.desiredQuantity,
+          stockpileDelta: copy[idx].quantity - (phantomAsset.desiredQuantity ?? 0),
         };
         return copy;
       }
