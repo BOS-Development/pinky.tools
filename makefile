@@ -56,7 +56,7 @@ test-backend:
 	@echo "Running backend tests with coverage..."
 	@mkdir -p artifacts/coverage/backend
 	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm backend-test \
-		sh -c "go test -v -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
+		sh -c "go test -v -p 1 -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
 		       go tool cover -html=/artifacts/coverage/backend/coverage.out -o /artifacts/coverage/backend/coverage.html"
 	@echo "✓ Backend coverage report: artifacts/coverage/backend/coverage.html"
 

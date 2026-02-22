@@ -353,3 +353,102 @@ export type SupplyChainItem = {
 export type SupplyChainResponse = {
   items: SupplyChainItem[];
 };
+
+// Industry Job Manager Types
+
+export type IndustryJob = {
+  jobId: number;
+  installerId: number;
+  userId: number;
+  facilityId: number;
+  stationId: number;
+  activityId: number;
+  blueprintId: number;
+  blueprintTypeId: number;
+  blueprintLocationId: number;
+  outputLocationId: number;
+  runs: number;
+  cost?: number;
+  licensedRuns?: number;
+  probability?: number;
+  productTypeId?: number;
+  status: string;
+  duration: number;
+  startDate: string;
+  endDate: string;
+  pauseDate?: string;
+  completedDate?: string;
+  completedCharacterId?: number;
+  successfulRuns?: number;
+  solarSystemId?: number;
+  source: string;
+  updatedAt: string;
+  blueprintName?: string;
+  productName?: string;
+  installerName?: string;
+  systemName?: string;
+  activityName?: string;
+};
+
+export type IndustryJobQueueEntry = {
+  id: number;
+  userId: number;
+  characterId?: number;
+  blueprintTypeId: number;
+  activity: string;
+  runs: number;
+  meLevel: number;
+  teLevel: number;
+  systemId?: number;
+  facilityTax: number;
+  status: string;
+  esiJobId?: number;
+  productTypeId?: number;
+  estimatedCost?: number;
+  estimatedDuration?: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  blueprintName?: string;
+  productName?: string;
+  characterName?: string;
+  systemName?: string;
+  esiJobEndDate?: string;
+  esiJobSource?: string;
+};
+
+export type ManufacturingCalcResult = {
+  blueprintTypeId: number;
+  productTypeId: number;
+  productName: string;
+  runs: number;
+  meFactor: number;
+  teFactor: number;
+  secsPerRun: number;
+  totalDuration: number;
+  totalProducts: number;
+  inputCost: number;
+  jobCost: number;
+  totalCost: number;
+  outputValue: number;
+  profit: number;
+  margin: number;
+  materials: ManufacturingMaterial[];
+};
+
+export type ManufacturingMaterial = {
+  typeId: number;
+  name: string;
+  baseQty: number;
+  batchQty: number;
+  price: number;
+  cost: number;
+};
+
+export type BlueprintSearchResult = {
+  BlueprintTypeID: number;
+  BlueprintName: string;
+  ProductTypeID: number;
+  ProductName: string;
+  Activity: string;
+};

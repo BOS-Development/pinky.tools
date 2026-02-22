@@ -753,3 +753,106 @@ type PiLaunchpadLabel struct {
 	PinID       int64  `json:"pinId"`
 	Label       string `json:"label"`
 }
+
+// Industry Job Manager Models
+
+type CharacterSkill struct {
+	CharacterID  int64     `json:"characterId"`
+	UserID       int64     `json:"userId"`
+	SkillID      int64     `json:"skillId"`
+	TrainedLevel int       `json:"trainedLevel"`
+	ActiveLevel  int       `json:"activeLevel"`
+	Skillpoints  int64     `json:"skillpoints"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
+type IndustryJob struct {
+	JobID                int64      `json:"jobId"`
+	InstallerID          int64      `json:"installerId"`
+	UserID               int64      `json:"userId"`
+	FacilityID           int64      `json:"facilityId"`
+	StationID            int64      `json:"stationId"`
+	ActivityID           int        `json:"activityId"`
+	BlueprintID          int64      `json:"blueprintId"`
+	BlueprintTypeID      int64      `json:"blueprintTypeId"`
+	BlueprintLocationID  int64      `json:"blueprintLocationId"`
+	OutputLocationID     int64      `json:"outputLocationId"`
+	Runs                 int        `json:"runs"`
+	Cost                 *float64   `json:"cost"`
+	LicensedRuns         *int       `json:"licensedRuns"`
+	Probability          *float64   `json:"probability"`
+	ProductTypeID        *int64     `json:"productTypeId"`
+	Status               string     `json:"status"`
+	Duration             int        `json:"duration"`
+	StartDate            time.Time  `json:"startDate"`
+	EndDate              time.Time  `json:"endDate"`
+	PauseDate            *time.Time `json:"pauseDate"`
+	CompletedDate        *time.Time `json:"completedDate"`
+	CompletedCharacterID *int64     `json:"completedCharacterId"`
+	SuccessfulRuns       *int       `json:"successfulRuns"`
+	SolarSystemID        *int64     `json:"solarSystemId"`
+	Source               string     `json:"source"`
+	UpdatedAt            time.Time  `json:"updatedAt"`
+	// Enriched fields (joined from other tables)
+	BlueprintName string `json:"blueprintName,omitempty"`
+	ProductName   string `json:"productName,omitempty"`
+	InstallerName string `json:"installerName,omitempty"`
+	SystemName    string `json:"systemName,omitempty"`
+	ActivityName  string `json:"activityName,omitempty"`
+}
+
+type IndustryJobQueueEntry struct {
+	ID                int64      `json:"id"`
+	UserID            int64      `json:"userId"`
+	CharacterID       *int64     `json:"characterId"`
+	BlueprintTypeID   int64      `json:"blueprintTypeId"`
+	Activity          string     `json:"activity"`
+	Runs              int        `json:"runs"`
+	MELevel           int        `json:"meLevel"`
+	TELevel           int        `json:"teLevel"`
+	SystemID          *int64     `json:"systemId"`
+	FacilityTax       float64    `json:"facilityTax"`
+	Status            string     `json:"status"`
+	EsiJobID          *int64     `json:"esiJobId"`
+	ProductTypeID     *int64     `json:"productTypeId"`
+	EstimatedCost     *float64   `json:"estimatedCost"`
+	EstimatedDuration *int       `json:"estimatedDuration"`
+	Notes             *string    `json:"notes"`
+	CreatedAt         time.Time  `json:"createdAt"`
+	UpdatedAt         time.Time  `json:"updatedAt"`
+	// Enriched fields
+	BlueprintName string     `json:"blueprintName,omitempty"`
+	ProductName   string     `json:"productName,omitempty"`
+	CharacterName string     `json:"characterName,omitempty"`
+	SystemName    string     `json:"systemName,omitempty"`
+	EsiJobEndDate *time.Time `json:"esiJobEndDate,omitempty"`
+	EsiJobSource  string     `json:"esiJobSource,omitempty"`
+}
+
+type ManufacturingCalcResult struct {
+	BlueprintTypeID int64                   `json:"blueprintTypeId"`
+	ProductTypeID   int64                   `json:"productTypeId"`
+	ProductName     string                  `json:"productName"`
+	Runs            int                     `json:"runs"`
+	MEFactor        float64                 `json:"meFactor"`
+	TEFactor        float64                 `json:"teFactor"`
+	SecsPerRun      int                     `json:"secsPerRun"`
+	TotalDuration   int                     `json:"totalDuration"`
+	TotalProducts   int                     `json:"totalProducts"`
+	InputCost       float64                 `json:"inputCost"`
+	JobCost         float64                 `json:"jobCost"`
+	TotalCost       float64                 `json:"totalCost"`
+	OutputValue     float64                 `json:"outputValue"`
+	Profit          float64                 `json:"profit"`
+	Margin          float64                 `json:"margin"`
+	Materials       []*ManufacturingMaterial `json:"materials"`
+}
+
+type ManufacturingMaterial struct {
+	TypeID   int64   `json:"typeId"`
+	Name     string  `json:"name"`
+	BaseQty  int     `json:"baseQty"`
+	BatchQty int64   `json:"batchQty"`
+	Price    float64 `json:"price"`
+	Cost     float64 `json:"cost"`
+}

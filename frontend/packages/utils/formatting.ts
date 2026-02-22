@@ -87,6 +87,26 @@ export function formatNumber(value: number, decimals: number = 0): string {
 }
 
 /**
+ * Format duration in seconds to a human-readable string (e.g. "3d 5h 24m")
+ */
+export function formatDuration(totalSeconds: number): string {
+  if (totalSeconds <= 0) return '0s';
+
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}d`);
+  if (hours > 0) parts.push(`${hours}h`);
+  if (minutes > 0) parts.push(`${minutes}m`);
+  if (parts.length === 0 && seconds > 0) parts.push(`${seconds}s`);
+
+  return parts.join(' ');
+}
+
+/**
  * Format compact number (no decimals, with suffixes)
  */
 export function formatCompact(value: number): string {

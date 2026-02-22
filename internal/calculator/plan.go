@@ -147,7 +147,7 @@ func ComputePlan(selections []models.PlanSelection, params *CalcParams, data *Ca
 			if existing, ok := shoppingMap[mat.TypeID]; ok {
 				existing.Quantity += totalQty
 			} else {
-				price := getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+				price := GetPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
 				shoppingMap[mat.TypeID] = &models.ShoppingItem{
 					TypeID:   mat.TypeID,
 					Name:     mat.TypeName,
@@ -180,7 +180,7 @@ func ComputePlan(selections []models.PlanSelection, params *CalcParams, data *Ca
 			if existing, ok := shoppingMap[mat.TypeID]; ok {
 				existing.Quantity += totalQty
 			} else {
-				price := getPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
+				price := GetPrice(mat.TypeID, params.InputPrice, data.JitaPrices)
 				shoppingMap[mat.TypeID] = &models.ShoppingItem{
 					TypeID:   mat.TypeID,
 					Name:     mat.TypeName,
@@ -219,7 +219,7 @@ func ComputePlan(selections []models.PlanSelection, params *CalcParams, data *Ca
 		runs := intermediateRunsMap[typeID]
 		slots := intermediateSlotsMap[typeID]
 		mats := materialsByReaction[simpleReaction.BlueprintTypeID]
-		jobCostPerRun := computeJobCost(mats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
+		jobCostPerRun := ComputeReactionJobCost(mats, data.AdjustedPrices, data.CostIndex, params.FacilityTax)
 		totalIntermediateJobCost += jobCostPerRun * float64(runs) * float64(slots)
 	}
 
