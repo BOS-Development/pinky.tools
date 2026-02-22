@@ -408,8 +408,10 @@ func (r *PurchaseTransactions) CompleteWithContractID(ctx context.Context, purch
 	return nil
 }
 
-// GetPendingQuantitiesForSaleContext returns pending/contract_created purchase quantities
+// GetPendingQuantitiesForSaleContext returns pending purchase quantities
 // grouped by type_id, scoped to a specific seller's for-sale context (owner+location+container/division).
+// Only counts 'pending' status — once a contract is created ('contract_created'), the items
+// are removed from the seller's inventory by EVE, so ESI asset counts already reflect that.
 func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
 	ctx context.Context,
 	sellerUserID int64,
@@ -421,7 +423,7 @@ func (r *PurchaseTransactions) GetPendingQuantitiesForSaleContext(
 		FROM purchase_transactions pt
 		JOIN for_sale_items f ON pt.for_sale_item_id = f.id
 		WHERE pt.seller_user_id = $1
-			AND pt.status IN ('pending', 'contract_created')
+			AND pt.status = 'pending'
 			AND f.owner_type = $2
 			AND f.owner_id = $3
 			AND f.location_id = $4
