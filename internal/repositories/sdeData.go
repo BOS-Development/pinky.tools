@@ -809,9 +809,14 @@ ORDER BY ait.type_name
 	return results, nil
 }
 
-// SearchBlueprints searches blueprints by product name (ILIKE) for a given activity
+// SearchBlueprints searches blueprints by product name (ILIKE) for a given activity.
+// If activity is empty, searches across manufacturing and reaction activities.
 func (r *SdeDataRepository) SearchBlueprints(ctx context.Context, query string, activity string, limit int) ([]*BlueprintSearchRow, error) {
-	sqlQuery := `
+	var sqlQuery string
+	var args []interface{}
+
+	if activity != "" {
+		sqlQuery = `
 SELECT DISTINCT
 	ba.blueprint_type_id,
 	bpait.type_name AS blueprint_name,
@@ -827,8 +832,28 @@ WHERE ba.activity = $1
 ORDER BY prodait.type_name
 LIMIT $3
 `
+		args = []interface{}{activity, query, limit}
+	} else {
+		sqlQuery = `
+SELECT DISTINCT
+	ba.blueprint_type_id,
+	bpait.type_name AS blueprint_name,
+	bp.type_id AS product_type_id,
+	prodait.type_name AS product_name,
+	ba.activity
+FROM sde_blueprint_activities ba
+JOIN sde_blueprint_products bp ON bp.blueprint_type_id = ba.blueprint_type_id AND bp.activity = ba.activity
+JOIN asset_item_types prodait ON prodait.type_id = bp.type_id
+JOIN asset_item_types bpait ON bpait.type_id = ba.blueprint_type_id
+WHERE ba.activity IN ('manufacturing', 'reaction')
+  AND prodait.type_name ILIKE '%' || $1 || '%'
+ORDER BY prodait.type_name
+LIMIT $2
+`
+		args = []interface{}{query, limit}
+	}
 
-	rows, err := r.db.QueryContext(ctx, sqlQuery, activity, query, limit)
+	rows, err := r.db.QueryContext(ctx, sqlQuery, args...)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to search blueprints")
 	}
@@ -889,6 +914,44 @@ ORDER BY s.name
 	}
 
 	return results, nil
+}
+
+// BlueprintProductRow represents a blueprint found by product type ID
+type BlueprintProductRow struct {
+	BlueprintTypeID int64
+	Activity        string
+	ProductQuantity int
+}
+
+// GetBlueprintByProduct finds the blueprint that produces the given type_id
+// via manufacturing or reaction. Returns nil if no blueprint produces this item.
+// Prefers manufacturing over reaction when both exist.
+func (r *SdeDataRepository) GetBlueprintByProduct(ctx context.Context, productTypeID int64) (*BlueprintProductRow, error) {
+	query := `
+SELECT
+	bp.blueprint_type_id,
+	bp.activity,
+	bp.quantity
+FROM sde_blueprint_products bp
+WHERE bp.type_id = $1
+  AND bp.activity IN ('manufacturing', 'reaction')
+ORDER BY CASE bp.activity WHEN 'manufacturing' THEN 1 WHEN 'reaction' THEN 2 END
+LIMIT 1
+`
+
+	var row BlueprintProductRow
+	err := r.db.QueryRowContext(ctx, query, productTypeID).Scan(
+		&row.BlueprintTypeID,
+		&row.Activity,
+		&row.ProductQuantity,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query blueprint by product")
+	}
+	return &row, nil
 }
 
 // batchUpsert executes upsert queries for a batch of items in a single transaction

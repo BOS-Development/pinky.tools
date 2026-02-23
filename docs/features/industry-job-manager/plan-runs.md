@@ -1,0 +1,137 @@
+# Production Plan Runs
+
+## Overview
+
+Plan runs track each execution of a production plan. When a user generates jobs from a plan, a run record is created and all generated job queue entries are linked to that run and their originating plan step. This provides progress tracking at the plan execution level.
+
+## Status
+
+- **Phase**: Implemented
+- **Branch**: `fix/completed-purchase-hold`
+
+## How It Works
+
+### Data Flow
+
+1. User calls `POST /v1/industry/plans/{id}/generate` with `{ "quantity": N }`
+2. A `production_plan_run` is created with the plan ID, user ID, and requested quantity
+3. The plan step tree is walked depth-first (same algorithm as before)
+4. Each `industry_job_queue` entry is created with `plan_run_id` and `plan_step_id` set
+5. The response includes the run object alongside the created jobs
+
+### Run Status Derivation
+
+Run status is not stored — it is derived at query time from the statuses of its linked jobs:
+
+| Condition | Status |
+|-----------|--------|
+| No jobs linked | `pending` |
+| All jobs completed or cancelled | `completed` |
+| Any job active or completed (but not all done) | `in_progress` |
+| All jobs still planned | `pending` |
+
+### Job Summary
+
+Each run includes a `jobSummary` with counts by status:
+- `total` — total jobs in this run
+- `planned` — waiting to be started
+- `active` — matched to an ESI job
+- `completed` — ESI job delivered
+- `cancelled` — manually cancelled
+
+## Database Schema
+
+### `production_plan_runs` (new table)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | bigserial | Primary key |
+| `plan_id` | bigint | FK → `production_plans` ON DELETE CASCADE |
+| `user_id` | bigint | FK → `users` |
+| `quantity` | int | Requested production quantity |
+| `created_at` | timestamptz | When this run was generated |
+
+### `industry_job_queue` (added columns)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `plan_run_id` | bigint | FK → `production_plan_runs` ON DELETE SET NULL |
+| `plan_step_id` | bigint | Soft reference to `production_plan_steps` (no FK) |
+
+`plan_step_id` has no foreign key constraint because plan steps can be deleted and recreated between runs.
+
+## API
+
+### `GET /v1/industry/plans/{id}/runs`
+
+Lists all runs for a production plan with derived status and job summary.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "planId": 5,
+    "userId": 100,
+    "quantity": 10,
+    "createdAt": "2026-02-22T23:00:00Z",
+    "planName": "Rifter Plan",
+    "productName": "Rifter",
+    "status": "in_progress",
+    "jobSummary": {
+      "total": 5,
+      "planned": 2,
+      "active": 2,
+      "completed": 1,
+      "cancelled": 0
+    }
+  }
+]
+```
+
+### `GET /v1/industry/plans/{id}/runs/{runId}`
+
+Returns a single run with its full job list.
+
+**Response:** Same as above, plus a `jobs` array with full `IndustryJobQueueEntry` objects.
+
+### `DELETE /v1/industry/plans/{id}/runs/{runId}`
+
+Deletes a run. Jobs survive but lose their `plan_run_id` link (ON DELETE SET NULL).
+
+**Response:**
+```json
+{ "status": "deleted" }
+```
+
+### `POST /v1/industry/plans/{id}/generate` (modified)
+
+Now returns a `run` object in the response alongside `created` and `skipped`:
+
+```json
+{
+  "run": { "id": 1, "planId": 5, "userId": 100, "quantity": 10, ... },
+  "created": [...],
+  "skipped": [...]
+}
+```
+
+## File Structure
+
+| File | Purpose |
+|------|---------|
+| `internal/database/migrations/*_plan_runs.up.sql` | Migration: new table + ALTER job queue |
+| `internal/models/models.go` | `ProductionPlanRun`, `PlanRunJobSummary` structs |
+| `internal/repositories/planRuns.go` | Create, GetByPlan, GetByID, Delete |
+| `internal/repositories/jobQueue.go` | Added `plan_run_id`/`plan_step_id` to all queries |
+| `internal/controllers/productionPlans.go` | New handlers + modified GenerateJobs |
+| `cmd/industry-tool/cmd/root.go` | Wire up PlanRuns repository |
+| `frontend/pages/api/industry/plans/[id]/runs/index.ts` | GET proxy |
+| `frontend/pages/api/industry/plans/[id]/runs/[runId].ts` | GET + DELETE proxy |
+
+## Key Decisions
+
+1. **No stored status**: Run status is derived from job statuses at query time using SQL CASE expressions. This avoids stale data and complex synchronization.
+2. **Soft reference for `plan_step_id`**: No FK constraint to `production_plan_steps` because steps can be deleted/rebuilt between runs of the same plan.
+3. **ON DELETE SET NULL for `plan_run_id`**: If a run is deleted, jobs survive but lose their link. This is safer than cascading deletes of job entries.
+4. **LATERAL join for job counts**: Uses PostgreSQL LATERAL subquery for efficient per-run aggregation.

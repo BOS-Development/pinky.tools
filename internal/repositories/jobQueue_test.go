@@ -295,3 +295,55 @@ func Test_JobQueueShouldReturnEmptyForNoEntries(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, entries, 0)
 }
+
+func Test_JobQueueShouldCreateWithPlanRunAndStep(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 7070, Name: "Plan Run Queue User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Queue Plan",
+	})
+	assert.NoError(t, err)
+
+	run, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 10,
+	})
+	assert.NoError(t, err)
+
+	stepID := int64(42)
+	entry := &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            10,
+		FacilityTax:     1.0,
+		PlanRunID:       &run.ID,
+		PlanStepID:      &stepID,
+	}
+
+	created, err := queueRepo.Create(context.Background(), entry)
+	assert.NoError(t, err)
+	assert.NotNil(t, created)
+	assert.Equal(t, &run.ID, created.PlanRunID)
+	assert.Equal(t, &stepID, created.PlanStepID)
+
+	// Verify via GetByUser
+	entries, err := queueRepo.GetByUser(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Len(t, entries, 1)
+	assert.Equal(t, &run.ID, entries[0].PlanRunID)
+	assert.Equal(t, &stepID, entries[0].PlanStepID)
+}
