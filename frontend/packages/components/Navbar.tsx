@@ -102,6 +102,9 @@ export default function Navbar() {
           <Button color="inherit" href="/production-plans">
             Plans
           </Button>
+          <Button color="inherit" href="/plan-runs">
+            Runs
+          </Button>
           <Button color="inherit" href="/stations">
             Stations
           </Button>

@@ -6,8 +6,8 @@ Plan runs track each execution of a production plan. When a user generates jobs 
 
 ## Status
 
-- **Phase**: Implemented
-- **Branch**: `fix/completed-purchase-hold`
+- **Phase 1**: Complete — run creation, per-plan listing, run detail with jobs, delete
+- **Phase 2**: Complete — cross-plan runs list page, cancel plan run (cancels planned jobs only)
 
 ## How It Works
 
@@ -104,6 +104,19 @@ Deletes a run. Jobs survive but lose their `plan_run_id` link (ON DELETE SET NUL
 { "status": "deleted" }
 ```
 
+### `GET /v1/industry/plans/runs`
+
+Lists all runs across all plans for the user, with derived status and job summary. Same response format as per-plan listing.
+
+### `POST /v1/industry/plans/runs/{runId}/cancel`
+
+Cancels all `planned` jobs in a run. Active and completed jobs are not affected.
+
+**Response:**
+```json
+{ "status": "cancelled", "jobsCancelled": 3 }
+```
+
 ### `POST /v1/industry/plans/{id}/generate` (modified)
 
 Now returns a `run` object in the response alongside `created` and `skipped`:
@@ -122,12 +135,17 @@ Now returns a `run` object in the response alongside `created` and `skipped`:
 |------|---------|
 | `internal/database/migrations/*_plan_runs.up.sql` | Migration: new table + ALTER job queue |
 | `internal/models/models.go` | `ProductionPlanRun`, `PlanRunJobSummary` structs |
-| `internal/repositories/planRuns.go` | Create, GetByPlan, GetByID, Delete |
+| `internal/repositories/planRuns.go` | Create, GetByPlan, GetByUser, GetByID, Delete, CancelPlannedJobs |
 | `internal/repositories/jobQueue.go` | Added `plan_run_id`/`plan_step_id` to all queries |
 | `internal/controllers/productionPlans.go` | New handlers + modified GenerateJobs |
 | `cmd/industry-tool/cmd/root.go` | Wire up PlanRuns repository |
 | `frontend/pages/api/industry/plans/[id]/runs/index.ts` | GET proxy |
 | `frontend/pages/api/industry/plans/[id]/runs/[runId].ts` | GET + DELETE proxy |
+| `frontend/pages/api/industry/plans/runs.ts` | GET all runs proxy |
+| `frontend/pages/api/industry/plans/runs/[runId]/cancel.ts` | POST cancel proxy |
+| `frontend/packages/components/industry/PlanRunsList.tsx` | Plan runs list page component |
+| `frontend/packages/pages/plan-runs.tsx` | Page wrapper |
+| `frontend/pages/plan-runs.tsx` | Route |
 
 ## Key Decisions
 
@@ -135,3 +153,5 @@ Now returns a `run` object in the response alongside `created` and `skipped`:
 2. **Soft reference for `plan_step_id`**: No FK constraint to `production_plan_steps` because steps can be deleted/rebuilt between runs of the same plan.
 3. **ON DELETE SET NULL for `plan_run_id`**: If a run is deleted, jobs survive but lose their link. This is safer than cascading deletes of job entries.
 4. **LATERAL join for job counts**: Uses PostgreSQL LATERAL subquery for efficient per-run aggregation.
+5. **Cancel only planned jobs**: The cancel action targets only `planned` status jobs. Active jobs are already submitted in-game and cannot be recalled.
+6. **Bulk cancel via single UPDATE**: `CancelPlannedJobs` uses a single UPDATE statement rather than iterating individual jobs, for atomic bulk cancellation.

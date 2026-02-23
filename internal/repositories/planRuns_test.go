@@ -394,3 +394,171 @@ func Test_PlanRunsShouldDelete(t *testing.T) {
 	assert.Equal(t, job.ID, entries[0].ID)
 	assert.Nil(t, entries[0].PlanRunID)
 }
+
+func Test_PlanRunsShouldGetByUser(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+
+	user := &repositories.User{ID: 8580, Name: "GetByUser Test"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan1, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Rifter Plan",
+	})
+	assert.NoError(t, err)
+
+	plan2, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 588,
+		Name:          "Slasher Plan",
+	})
+	assert.NoError(t, err)
+
+	_, err = runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID: plan1.ID, UserID: user.ID, Quantity: 10,
+	})
+	assert.NoError(t, err)
+
+	_, err = runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID: plan2.ID, UserID: user.ID, Quantity: 5,
+	})
+	assert.NoError(t, err)
+
+	runs, err := runsRepo.GetByUser(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Len(t, runs, 2)
+	// Most recent first
+	assert.Equal(t, 5, runs[0].Quantity)
+	assert.Equal(t, "Slasher Plan", runs[0].PlanName)
+	assert.Equal(t, 10, runs[1].Quantity)
+	assert.Equal(t, "Rifter Plan", runs[1].PlanName)
+	assert.NotNil(t, runs[0].JobSummary)
+	assert.NotNil(t, runs[1].JobSummary)
+}
+
+func Test_PlanRunsShouldGetByUserEmpty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	runsRepo := repositories.NewPlanRuns(db)
+
+	runs, err := runsRepo.GetByUser(context.Background(), 99999)
+	assert.NoError(t, err)
+	assert.NotNil(t, runs)
+	assert.Len(t, runs, 0)
+}
+
+func Test_PlanRunsShouldCancelPlannedJobs(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 8590, Name: "Cancel Planned User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Cancel Test Plan",
+	})
+	assert.NoError(t, err)
+
+	run, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID: plan.ID, UserID: user.ID, Quantity: 1,
+	})
+	assert.NoError(t, err)
+
+	// Create 3 planned jobs and 1 active job
+	for i := 0; i < 3; i++ {
+		_, err = queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+			UserID:          user.ID,
+			BlueprintTypeID: 787,
+			Activity:        "manufacturing",
+			Runs:            1,
+			FacilityTax:     1.0,
+			PlanRunID:       &run.ID,
+		})
+		assert.NoError(t, err)
+	}
+	activeJob, err := queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 788,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run.ID,
+	})
+	assert.NoError(t, err)
+	err = queueRepo.LinkToEsiJob(context.Background(), activeJob.ID, 99999)
+	assert.NoError(t, err)
+
+	// Cancel planned jobs
+	cancelled, err := runsRepo.CancelPlannedJobs(context.Background(), run.ID, user.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(3), cancelled)
+
+	// Verify: active job still active, 3 planned now cancelled
+	fetched, err := runsRepo.GetByID(context.Background(), run.ID, user.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, fetched)
+	assert.Equal(t, 4, fetched.JobSummary.Total)
+	assert.Equal(t, 0, fetched.JobSummary.Planned)
+	assert.Equal(t, 1, fetched.JobSummary.Active)
+	assert.Equal(t, 3, fetched.JobSummary.Cancelled)
+}
+
+func Test_PlanRunsShouldCancelPlannedJobsNoneToCancel(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 8600, Name: "No Cancel User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "No Cancel Plan",
+	})
+	assert.NoError(t, err)
+
+	run, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID: plan.ID, UserID: user.ID, Quantity: 1,
+	})
+	assert.NoError(t, err)
+
+	// Create only a completed job
+	job, err := queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run.ID,
+	})
+	assert.NoError(t, err)
+	err = queueRepo.CompleteJob(context.Background(), job.ID)
+	assert.NoError(t, err)
+
+	// Cancel should return 0
+	cancelled, err := runsRepo.CancelPlannedJobs(context.Background(), run.ID, user.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), cancelled)
+}

@@ -534,8 +534,30 @@ export type PlanMaterial = {
 };
 
 export type GenerateJobsResult = {
+  run: PlanRun;
   created: IndustryJobQueueEntry[];
   skipped: GenerateJobSkipped[];
+};
+
+export type PlanRunJobSummary = {
+  total: number;
+  planned: number;
+  active: number;
+  completed: number;
+  cancelled: number;
+};
+
+export type PlanRun = {
+  id: number;
+  planId: number;
+  userId: number;
+  quantity: number;
+  createdAt: string;
+  planName?: string;
+  productName?: string;
+  status: string;
+  jobs?: IndustryJobQueueEntry[];
+  jobSummary?: PlanRunJobSummary;
 };
 
 export type GenerateJobSkipped = {

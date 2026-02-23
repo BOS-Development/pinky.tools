@@ -62,8 +62,10 @@ type ProductionPlansJobQueueRepository interface {
 type ProductionPlanRunsRepository interface {
 	Create(ctx context.Context, run *models.ProductionPlanRun) (*models.ProductionPlanRun, error)
 	GetByPlan(ctx context.Context, planID, userID int64) ([]*models.ProductionPlanRun, error)
+	GetByUser(ctx context.Context, userID int64) ([]*models.ProductionPlanRun, error)
 	GetByID(ctx context.Context, runID, userID int64) (*models.ProductionPlanRun, error)
 	Delete(ctx context.Context, runID, userID int64) error
+	CancelPlannedJobs(ctx context.Context, runID, userID int64) (int64, error)
 }
 
 type ProductionPlans struct {
@@ -105,6 +107,8 @@ func NewProductionPlans(
 	router.RegisterRestAPIRoute("/v1/industry/plans", web.AuthAccessUser, c.GetPlans, "GET")
 	router.RegisterRestAPIRoute("/v1/industry/plans", web.AuthAccessUser, c.CreatePlan, "POST")
 	router.RegisterRestAPIRoute("/v1/industry/plans/hangars", web.AuthAccessUser, c.GetHangars, "GET")
+	router.RegisterRestAPIRoute("/v1/industry/plans/runs", web.AuthAccessUser, c.GetAllRuns, "GET")
+	router.RegisterRestAPIRoute("/v1/industry/plans/runs/{runId}/cancel", web.AuthAccessUser, c.CancelPlanRun, "POST")
 	router.RegisterRestAPIRoute("/v1/industry/plans/{id}", web.AuthAccessUser, c.GetPlan, "GET")
 	router.RegisterRestAPIRoute("/v1/industry/plans/{id}", web.AuthAccessUser, c.UpdatePlan, "PUT")
 	router.RegisterRestAPIRoute("/v1/industry/plans/{id}", web.AuthAccessUser, c.DeletePlan, "DELETE")
@@ -832,6 +836,30 @@ func (c *ProductionPlans) GenerateJobs(args *web.HandlerArgs) (any, *web.HttpErr
 	walkStep(rootStep, req.Quantity)
 
 	return result, nil
+}
+
+// GetAllRuns lists all runs across all plans for the user.
+func (c *ProductionPlans) GetAllRuns(args *web.HandlerArgs) (any, *web.HttpError) {
+	runs, err := c.runsRepo.GetByUser(args.Request.Context(), *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get all plan runs")}
+	}
+	return runs, nil
+}
+
+// CancelPlanRun cancels all planned jobs in a run. Active/completed jobs are untouched.
+func (c *ProductionPlans) CancelPlanRun(args *web.HandlerArgs) (any, *web.HttpError) {
+	runID, err := parseID(args.Params["runId"])
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid run ID")}
+	}
+
+	cancelled, err := c.runsRepo.CancelPlannedJobs(args.Request.Context(), runID, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to cancel plan run")}
+	}
+
+	return map[string]any{"status": "cancelled", "jobsCancelled": cancelled}, nil
 }
 
 // GetPlanRuns lists all runs for a production plan.
