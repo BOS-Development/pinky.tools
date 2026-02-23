@@ -244,6 +244,19 @@ func (m *MockProductionPlanRunsRepository) Delete(ctx context.Context, runID, us
 	return args.Error(0)
 }
 
+func (m *MockProductionPlanRunsRepository) GetByUser(ctx context.Context, userID int64) ([]*models.ProductionPlanRun, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.ProductionPlanRun), args.Error(1)
+}
+
+func (m *MockProductionPlanRunsRepository) CancelPlannedJobs(ctx context.Context, runID, userID int64) (int64, error) {
+	args := m.Called(ctx, runID, userID)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 // --- Helper ---
 
 type productionPlanMocks struct {
@@ -1248,5 +1261,96 @@ func Test_ProductionPlans_DeletePlanRun_Success(t *testing.T) {
 	assert.NotNil(t, result)
 	resultMap := result.(map[string]string)
 	assert.Equal(t, "deleted", resultMap["status"])
+	mocks.runsRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_GetAllRuns_Success(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	runs := []*models.ProductionPlanRun{
+		{ID: 1, PlanID: 5, UserID: userID, Quantity: 10, PlanName: "Rifter Plan", ProductName: "Rifter", Status: "in_progress", JobSummary: &models.PlanRunJobSummary{Total: 5, Planned: 2, Active: 2, Completed: 1}},
+		{ID: 2, PlanID: 8, UserID: userID, Quantity: 3, PlanName: "Slasher Plan", ProductName: "Slasher", Status: "completed", JobSummary: &models.PlanRunJobSummary{Total: 3, Completed: 3}},
+	}
+	mocks.runsRepo.On("GetByUser", mock.Anything, userID).Return(runs, nil)
+
+	req := httptest.NewRequest("GET", "/v1/industry/plans/runs", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetAllRuns(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resultRuns := result.([]*models.ProductionPlanRun)
+	assert.Len(t, resultRuns, 2)
+	assert.Equal(t, "Rifter Plan", resultRuns[0].PlanName)
+	assert.Equal(t, "Slasher Plan", resultRuns[1].PlanName)
+	mocks.runsRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_GetAllRuns_Error(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	mocks.runsRepo.On("GetByUser", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/industry/plans/runs", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetAllRuns(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+	mocks.runsRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_CancelPlanRun_Success(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	mocks.runsRepo.On("CancelPlannedJobs", mock.Anything, int64(10), userID).Return(int64(3), nil)
+
+	req := httptest.NewRequest("POST", "/v1/industry/plans/runs/10/cancel", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"runId": "10"}}
+
+	result, httpErr := controller.CancelPlanRun(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resultMap := result.(map[string]any)
+	assert.Equal(t, "cancelled", resultMap["status"])
+	assert.Equal(t, int64(3), resultMap["jobsCancelled"])
+	mocks.runsRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_CancelPlanRun_InvalidID(t *testing.T) {
+	controller, _ := setupProductionPlansController()
+
+	userID := int64(100)
+	req := httptest.NewRequest("POST", "/v1/industry/plans/runs/abc/cancel", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"runId": "abc"}}
+
+	result, httpErr := controller.CancelPlanRun(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_ProductionPlans_CancelPlanRun_Error(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	mocks.runsRepo.On("CancelPlannedJobs", mock.Anything, int64(10), userID).Return(int64(0), errors.New("db error"))
+
+	req := httptest.NewRequest("POST", "/v1/industry/plans/runs/10/cancel", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"runId": "10"}}
+
+	result, httpErr := controller.CancelPlanRun(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
 	mocks.runsRepo.AssertExpectations(t)
 }

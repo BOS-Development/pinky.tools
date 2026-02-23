@@ -109,6 +109,91 @@ func (r *PlanRuns) GetByPlan(ctx context.Context, planID, userID int64) ([]*mode
 	return runs, nil
 }
 
+func (r *PlanRuns) GetByUser(ctx context.Context, userID int64) ([]*models.ProductionPlanRun, error) {
+	query := `
+		SELECT r.id, r.plan_id, r.user_id, r.quantity, r.created_at,
+		       COALESCE(p.name, ''),
+		       COALESCE(t.type_name, ''),
+		       COALESCE(counts.total, 0),
+		       COALESCE(counts.planned, 0),
+		       COALESCE(counts.active, 0),
+		       COALESCE(counts.completed, 0),
+		       COALESCE(counts.cancelled, 0),
+		       CASE
+		         WHEN COALESCE(counts.total, 0) = 0 THEN 'pending'
+		         WHEN COALESCE(counts.completed, 0) + COALESCE(counts.cancelled, 0) = counts.total THEN 'completed'
+		         WHEN COALESCE(counts.active, 0) > 0 OR COALESCE(counts.completed, 0) > 0 THEN 'in_progress'
+		         ELSE 'pending'
+		       END
+		FROM production_plan_runs r
+		JOIN production_plans p ON p.id = r.plan_id
+		LEFT JOIN asset_item_types t ON t.type_id = p.product_type_id
+		LEFT JOIN LATERAL (
+		  SELECT count(*) AS total,
+		         count(*) FILTER (WHERE q.status = 'planned') AS planned,
+		         count(*) FILTER (WHERE q.status = 'active') AS active,
+		         count(*) FILTER (WHERE q.status = 'completed') AS completed,
+		         count(*) FILTER (WHERE q.status = 'cancelled') AS cancelled
+		  FROM industry_job_queue q
+		  WHERE q.plan_run_id = r.id
+		) counts ON true
+		WHERE r.user_id = $1
+		ORDER BY r.created_at DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query plan runs by user")
+	}
+	defer rows.Close()
+
+	runs := []*models.ProductionPlanRun{}
+	for rows.Next() {
+		var run models.ProductionPlanRun
+		var summary models.PlanRunJobSummary
+		err = rows.Scan(
+			&run.ID,
+			&run.PlanID,
+			&run.UserID,
+			&run.Quantity,
+			&run.CreatedAt,
+			&run.PlanName,
+			&run.ProductName,
+			&summary.Total,
+			&summary.Planned,
+			&summary.Active,
+			&summary.Completed,
+			&summary.Cancelled,
+			&run.Status,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan plan run")
+		}
+		run.JobSummary = &summary
+		runs = append(runs, &run)
+	}
+
+	return runs, nil
+}
+
+func (r *PlanRuns) CancelPlannedJobs(ctx context.Context, runID, userID int64) (int64, error) {
+	result, err := r.db.ExecContext(ctx, `
+		UPDATE industry_job_queue
+		SET status = 'cancelled', updated_at = now()
+		WHERE plan_run_id = $1 AND user_id = $2 AND status = 'planned'
+	`, runID, userID)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to cancel planned jobs for run")
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get rows affected")
+	}
+
+	return rows, nil
+}
+
 func (r *PlanRuns) GetByID(ctx context.Context, runID, userID int64) (*models.ProductionPlanRun, error) {
 	query := `
 		SELECT r.id, r.plan_id, r.user_id, r.quantity, r.created_at,

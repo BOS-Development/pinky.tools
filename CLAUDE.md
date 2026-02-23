@@ -7,6 +7,7 @@
 5. **Create/update feature docs in `docs/features/`** for every new feature or significant change. Use `lowercase-kebab-case.md` naming (e.g., `sde-import.md`, `reactions-calculator.md`).
 6. **Go slices: initialize as `items := []*Type{}` NOT `var items []*Type`.** Prevents nil JSON marshaling (`null` instead of `[]`).
 7. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
+8. **Check feature docs first.** Before exploring code or planning a feature, read the relevant `docs/features/` doc (if one exists). Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
 
 ---
 
