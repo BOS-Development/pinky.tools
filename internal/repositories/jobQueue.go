@@ -96,7 +96,7 @@ func (r *JobQueue) GetByUser(ctx context.Context, userID int64) ([]*models.Indus
 		LEFT JOIN esi_industry_jobs j ON j.job_id = q.esi_job_id
 		LEFT JOIN characters installer ON installer.id = j.installer_id
 		WHERE q.user_id = $1
-		ORDER BY q.created_at DESC
+		ORDER BY q.created_at ASC
 	`
 
 	return r.queryEntries(ctx, query, userID)
