@@ -818,6 +818,8 @@ type IndustryJobQueueEntry struct {
 	EstimatedCost     *float64   `json:"estimatedCost"`
 	EstimatedDuration *int       `json:"estimatedDuration"`
 	Notes             *string    `json:"notes"`
+	PlanRunID         *int64     `json:"planRunId,omitempty"`
+	PlanStepID        *int64     `json:"planStepId,omitempty"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
 	// Enriched fields
@@ -855,4 +857,166 @@ type ManufacturingMaterial struct {
 	BatchQty int64   `json:"batchQty"`
 	Price    float64 `json:"price"`
 	Cost     float64 `json:"cost"`
+}
+
+// Production Plans
+
+type ProductionPlan struct {
+	ID            int64     `json:"id"`
+	UserID        int64     `json:"userId"`
+	ProductTypeID int64     `json:"productTypeId"`
+	Name          string    `json:"name"`
+	Notes                         *string   `json:"notes"`
+	DefaultManufacturingStationID *int64    `json:"defaultManufacturingStationId"`
+	DefaultReactionStationID      *int64    `json:"defaultReactionStationId"`
+	CreatedAt                     time.Time `json:"createdAt"`
+	UpdatedAt                     time.Time `json:"updatedAt"`
+	// Enriched
+	ProductName string                `json:"productName,omitempty"`
+	Steps       []*ProductionPlanStep `json:"steps,omitempty"`
+}
+
+type ProductionPlanStep struct {
+	ID                   int64    `json:"id"`
+	PlanID               int64    `json:"planId"`
+	ParentStepID         *int64   `json:"parentStepId"`
+	ProductTypeID        int64    `json:"productTypeId"`
+	BlueprintTypeID      int64    `json:"blueprintTypeId"`
+	Activity             string   `json:"activity"`
+	MELevel              int      `json:"meLevel"`
+	TELevel              int      `json:"teLevel"`
+	IndustrySkill        int      `json:"industrySkill"`
+	AdvIndustrySkill     int      `json:"advIndustrySkill"`
+	Structure            string   `json:"structure"`
+	Rig                  string   `json:"rig"`
+	Security             string   `json:"security"`
+	FacilityTax          float64  `json:"facilityTax"`
+	StationName          *string  `json:"stationName"`
+	SourceLocationID     *int64   `json:"sourceLocationId"`
+	SourceContainerID    *int64   `json:"sourceContainerId"`
+	SourceDivisionNumber *int     `json:"sourceDivisionNumber"`
+	SourceOwnerType      *string  `json:"sourceOwnerType"`
+	SourceOwnerID        *int64   `json:"sourceOwnerId"`
+	OutputOwnerType      *string  `json:"outputOwnerType"`
+	OutputOwnerID        *int64   `json:"outputOwnerId"`
+	OutputDivisionNumber *int     `json:"outputDivisionNumber"`
+	OutputContainerID    *int64   `json:"outputContainerId"`
+	UserStationID        *int64   `json:"userStationId"`
+	// Enriched
+	ProductName         string `json:"productName,omitempty"`
+	BlueprintName       string `json:"blueprintName,omitempty"`
+	RigCategory         string `json:"rigCategory,omitempty"`
+	SourceOwnerName     string `json:"sourceOwnerName,omitempty"`
+	SourceDivisionName  string `json:"sourceDivisionName,omitempty"`
+	SourceContainerName string `json:"sourceContainerName,omitempty"`
+	OutputOwnerName     string `json:"outputOwnerName,omitempty"`
+	OutputDivisionName  string `json:"outputDivisionName,omitempty"`
+	OutputContainerName string `json:"outputContainerName,omitempty"`
+}
+
+type StationContainer struct {
+	ID             int64  `json:"id"`
+	Name           string `json:"name"`
+	OwnerType      string `json:"ownerType"`
+	OwnerID        int64  `json:"ownerId"`
+	DivisionNumber *int   `json:"divisionNumber,omitempty"`
+}
+
+type PlanMaterial struct {
+	TypeID          int64   `json:"typeId"`
+	TypeName        string  `json:"typeName"`
+	Quantity        int     `json:"quantity"`
+	Volume          float64 `json:"volume"`
+	HasBlueprint    bool    `json:"hasBlueprint"`
+	BlueprintTypeID *int64  `json:"blueprintTypeId,omitempty"`
+	Activity        *string `json:"activity,omitempty"`
+	IsProduced      bool    `json:"isProduced"`
+}
+
+type GenerateJobsResult struct {
+	Run     *ProductionPlanRun       `json:"run"`
+	Created []*IndustryJobQueueEntry `json:"created"`
+	Skipped []*GenerateJobSkipped    `json:"skipped"`
+}
+
+type GenerateJobSkipped struct {
+	TypeID   int64  `json:"typeId"`
+	TypeName string `json:"typeName"`
+	Reason   string `json:"reason"`
+}
+
+// Production Plan Runs
+
+type ProductionPlanRun struct {
+	ID        int64     `json:"id"`
+	PlanID    int64     `json:"planId"`
+	UserID    int64     `json:"userId"`
+	Quantity  int       `json:"quantity"`
+	CreatedAt time.Time `json:"createdAt"`
+	// Enriched
+	PlanName    string                   `json:"planName,omitempty"`
+	ProductName string                   `json:"productName,omitempty"`
+	Status      string                   `json:"status"`
+	Jobs        []*IndustryJobQueueEntry `json:"jobs,omitempty"`
+	JobSummary  *PlanRunJobSummary       `json:"jobSummary,omitempty"`
+}
+
+type PlanRunJobSummary struct {
+	Total     int `json:"total"`
+	Planned   int `json:"planned"`
+	Active    int `json:"active"`
+	Completed int `json:"completed"`
+	Cancelled int `json:"cancelled"`
+}
+
+// User Stations
+
+type UserStation struct {
+	ID          int64   `json:"id"`
+	UserID      int64   `json:"userId"`
+	StationID   int64   `json:"stationId"`
+	Structure   string  `json:"structure"`
+	FacilityTax float64 `json:"facilityTax"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+	// Enriched
+	StationName     string               `json:"stationName,omitempty"`
+	SolarSystemName string               `json:"solarSystemName,omitempty"`
+	SecurityStatus  float64              `json:"securityStatus,omitempty"`
+	Security        string               `json:"security,omitempty"`
+	Rigs            []*UserStationRig     `json:"rigs"`
+	Services        []*UserStationService `json:"services"`
+	Activities      []string             `json:"activities"`
+}
+
+type UserStationRig struct {
+	ID            int64  `json:"id"`
+	UserStationID int64  `json:"userStationId"`
+	RigName       string `json:"rigName"`
+	Category      string `json:"category"`
+	Tier          string `json:"tier"`
+}
+
+type UserStationService struct {
+	ID            int64  `json:"id"`
+	UserStationID int64  `json:"userStationId"`
+	ServiceName   string `json:"serviceName"`
+	Activity      string `json:"activity"`
+}
+
+type ScanResult struct {
+	Structure string        `json:"structure"`
+	Rigs      []ScanRig     `json:"rigs"`
+	Services  []ScanService `json:"services"`
+}
+
+type ScanRig struct {
+	Name     string `json:"name"`
+	Category string `json:"category"`
+	Tier     string `json:"tier"`
+}
+
+type ScanService struct {
+	Name     string `json:"name"`
+	Activity string `json:"activity"`
 }

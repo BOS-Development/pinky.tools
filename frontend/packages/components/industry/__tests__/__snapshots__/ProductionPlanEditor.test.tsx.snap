@@ -1,0 +1,968 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ProductionPlanEditor Component should match snapshot while loading 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-8ptgxe"
+  >
+    <p
+      class="MuiTypography-root MuiTypography-body1 css-1p2qead-MuiTypography-root"
+    >
+      Loading plan...
+    </p>
+  </div>
+</div>
+`;
+
+exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-0"
+  >
+    <div
+      class="MuiBox-root css-1kw3y0a"
+    >
+      <div
+        class="MuiBox-root css-axw7ok"
+      >
+        <img
+          alt=""
+          height="40"
+          src="https://images.evetech.net/types/587/icon?size=64"
+          style="border-radius: 4px;"
+          width="40"
+        />
+        <div
+          class="MuiBox-root css-0"
+        >
+          <div
+            class="MuiBox-root css-171onha"
+          >
+            <h5
+              class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+            >
+              Rifter Production
+            </h5>
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-aqiitb-MuiButtonBase-root-MuiIconButton-root"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                data-testid="EditIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                />
+              </svg>
+            </button>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body1 css-su980v-MuiTypography-root"
+          >
+            1
+             production step(s)
+          </p>
+        </div>
+      </div>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-7mo8ij-MuiButtonBase-root-MuiButton-root"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="PlayArrowIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </span>
+        Generate Jobs
+      </button>
+    </div>
+    <div
+      class="MuiBox-root css-14ddptj"
+    >
+      <div
+        class="MuiTabs-root css-1mjdata-MuiTabs-root"
+      >
+        <div
+          class="MuiTabs-scroller MuiTabs-fixed css-s2t35c-MuiTabs-scroller"
+          style="overflow: hidden; margin-bottom: 0px;"
+        >
+          <div
+            class="MuiTabs-list MuiTabs-flexContainer css-hzcega-MuiTabs-list"
+            role="tablist"
+          >
+            <button
+              aria-selected="true"
+              class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary Mui-selected css-1usuzwp-MuiButtonBase-root-MuiTab-root"
+              role="tab"
+              tabindex="0"
+              type="button"
+            >
+              Step Tree
+            </button>
+            <button
+              aria-selected="false"
+              class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary css-1usuzwp-MuiButtonBase-root-MuiTab-root"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              Batch Configure
+            </button>
+          </div>
+          <span
+            class="MuiTabs-indicator css-1qltlow-MuiTabs-indicator"
+            style="left: 0px; width: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiTableContainer-root css-s09dh4-MuiPaper-root-MuiTableContainer-root"
+      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    >
+      <table
+        class="MuiTable-root css-1xwxv7r-MuiTable-root"
+      >
+        <thead
+          class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+        >
+          <tr
+            class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+          >
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              Item / Material
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              ME / TE
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              Structure / Rig / Sec
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              Station
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
+              scope="col"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+        >
+          <tr
+            class="MuiTableRow-root css-5e6sxz-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-s4z0eu"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-q4vm8z-MuiButtonBase-root-MuiIconButton-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                    data-testid="ExpandMoreIcon"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"
+                    />
+                  </svg>
+                </button>
+                <img
+                  alt=""
+                  height="20"
+                  src="https://images.evetech.net/types/587/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="20"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-zi49lp-MuiTypography-root"
+                >
+                  Rifter
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-rpub5i-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+                  >
+                    manufacturing
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              ME 
+              10
+               / TE 
+              20
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              raitaru
+               / 
+              t2
+               / 
+              high
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              —
+              <p
+                class="MuiTypography-root MuiTypography-body1 css-1fsnhek-MuiTypography-root"
+              >
+                Out: set at build time
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                  data-testid="EditIcon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root css-blpnon-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-en4xye"
+              >
+                <img
+                  alt=""
+                  height="18"
+                  src="https://images.evetech.net/types/11399/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="18"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-eyjz4m-MuiTypography-root"
+                >
+                  Morphite
+                </p>
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-112eisb-MuiTypography-root"
+                >
+                  x
+                  10
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-outlinedDefault css-1443fb0-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                  >
+                    Buy
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-9xp16b-MuiButtonBase-root-MuiIconButton-root"
+                tabindex="0"
+                title="Switch to Produce"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                  data-testid="BuildIcon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="m22.7 19-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root css-blpnon-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-en4xye"
+              >
+                <img
+                  alt=""
+                  height="18"
+                  src="https://images.evetech.net/types/34/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="18"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-eyjz4m-MuiTypography-root"
+                >
+                  Tritanium
+                </p>
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-112eisb-MuiTypography-root"
+                >
+                  x
+                  22222
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-outlinedDefault css-1443fb0-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                  >
+                    Buy
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            />
+          </tr>
+          <tr
+            class="MuiTableRow-root css-blpnon-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-en4xye"
+              >
+                <img
+                  alt=""
+                  height="18"
+                  src="https://images.evetech.net/types/35/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="18"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-eyjz4m-MuiTypography-root"
+                >
+                  Pyerite
+                </p>
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-112eisb-MuiTypography-root"
+                >
+                  x
+                  5555
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-outlinedDefault css-1443fb0-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                  >
+                    Buy
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            />
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ProductionPlanEditor Component should match snapshot with multi-step plan 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-0"
+  >
+    <div
+      class="MuiBox-root css-1kw3y0a"
+    >
+      <div
+        class="MuiBox-root css-axw7ok"
+      >
+        <img
+          alt=""
+          height="40"
+          src="https://images.evetech.net/types/587/icon?size=64"
+          style="border-radius: 4px;"
+          width="40"
+        />
+        <div
+          class="MuiBox-root css-0"
+        >
+          <div
+            class="MuiBox-root css-171onha"
+          >
+            <h5
+              class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+            >
+              Rifter Production
+            </h5>
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-aqiitb-MuiButtonBase-root-MuiIconButton-root"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                data-testid="EditIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                />
+              </svg>
+            </button>
+          </div>
+          <p
+            class="MuiTypography-root MuiTypography-body1 css-su980v-MuiTypography-root"
+          >
+            2
+             production step(s)
+          </p>
+        </div>
+      </div>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-7mo8ij-MuiButtonBase-root-MuiButton-root"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="PlayArrowIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M8 5v14l11-7z"
+            />
+          </svg>
+        </span>
+        Generate Jobs
+      </button>
+    </div>
+    <div
+      class="MuiBox-root css-14ddptj"
+    >
+      <div
+        class="MuiTabs-root css-1mjdata-MuiTabs-root"
+      >
+        <div
+          class="MuiTabs-scroller MuiTabs-fixed css-s2t35c-MuiTabs-scroller"
+          style="overflow: hidden; margin-bottom: 0px;"
+        >
+          <div
+            class="MuiTabs-list MuiTabs-flexContainer css-hzcega-MuiTabs-list"
+            role="tablist"
+          >
+            <button
+              aria-selected="true"
+              class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary Mui-selected css-1usuzwp-MuiButtonBase-root-MuiTab-root"
+              role="tab"
+              tabindex="0"
+              type="button"
+            >
+              Step Tree
+            </button>
+            <button
+              aria-selected="false"
+              class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary css-1usuzwp-MuiButtonBase-root-MuiTab-root"
+              role="tab"
+              tabindex="-1"
+              type="button"
+            >
+              Batch Configure
+            </button>
+          </div>
+          <span
+            class="MuiTabs-indicator css-1qltlow-MuiTabs-indicator"
+            style="left: 0px; width: 0px;"
+          />
+        </div>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiTableContainer-root css-s09dh4-MuiPaper-root-MuiTableContainer-root"
+      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    >
+      <table
+        class="MuiTable-root css-1xwxv7r-MuiTable-root"
+      >
+        <thead
+          class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+        >
+          <tr
+            class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+          >
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              Item / Material
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              ME / TE
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              Structure / Rig / Sec
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+              scope="col"
+            >
+              Station
+            </th>
+            <th
+              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
+              scope="col"
+            >
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+        >
+          <tr
+            class="MuiTableRow-root css-5e6sxz-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-s4z0eu"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-q4vm8z-MuiButtonBase-root-MuiIconButton-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                    data-testid="ExpandMoreIcon"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M16.59 8.59 12 13.17 7.41 8.59 6 10l6 6 6-6z"
+                    />
+                  </svg>
+                </button>
+                <img
+                  alt=""
+                  height="20"
+                  src="https://images.evetech.net/types/587/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="20"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-zi49lp-MuiTypography-root"
+                >
+                  Rifter
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-rpub5i-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+                  >
+                    manufacturing
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              ME 
+              10
+               / TE 
+              20
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              raitaru
+               / 
+              t2
+               / 
+              high
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              —
+              <p
+                class="MuiTypography-root MuiTypography-body1 css-1fsnhek-MuiTypography-root"
+              >
+                Out: set at build time
+              </p>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                  data-testid="EditIcon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root css-1xcq121-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-1yjp461"
+              />
+              <div
+                class="MuiBox-root css-en4xye"
+              >
+                <button
+                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-q4vm8z-MuiButtonBase-root-MuiIconButton-root"
+                  tabindex="0"
+                  type="button"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                    data-testid="ChevronRightIcon"
+                    focusable="false"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"
+                    />
+                  </svg>
+                </button>
+                <img
+                  alt=""
+                  height="20"
+                  src="https://images.evetech.net/types/11399/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="20"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-oo4rfn-MuiTypography-root"
+                >
+                  Morphite
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-16abibo-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+                  >
+                    reaction
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              ME 
+              0
+               / TE 
+              0
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              raitaru
+               / 
+              t2
+               / 
+              low
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
+            >
+              —
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            >
+              <button
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                  data-testid="EditIcon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                  />
+                </svg>
+              </button>
+              <button
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                  data-testid="DeleteIcon"
+                  focusable="false"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+                  />
+                </svg>
+              </button>
+            </td>
+          </tr>
+          <tr
+            class="MuiTableRow-root css-blpnon-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-en4xye"
+              >
+                <img
+                  alt=""
+                  height="18"
+                  src="https://images.evetech.net/types/34/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="18"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-eyjz4m-MuiTypography-root"
+                >
+                  Tritanium
+                </p>
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-112eisb-MuiTypography-root"
+                >
+                  x
+                  22222
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-outlinedDefault css-1443fb0-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                  >
+                    Buy
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            />
+          </tr>
+          <tr
+            class="MuiTableRow-root css-blpnon-MuiTableRow-root"
+          >
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
+            >
+              <div
+                class="MuiBox-root css-hhy3b5"
+              />
+              <div
+                class="MuiBox-root css-en4xye"
+              >
+                <img
+                  alt=""
+                  height="18"
+                  src="https://images.evetech.net/types/35/icon?size=32"
+                  style="border-radius: 2px;"
+                  width="18"
+                />
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-eyjz4m-MuiTypography-root"
+                >
+                  Pyerite
+                </p>
+                <p
+                  class="MuiTypography-root MuiTypography-body1 css-112eisb-MuiTypography-root"
+                >
+                  x
+                  5555
+                </p>
+                <div
+                  class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-outlinedDefault css-1443fb0-MuiChip-root"
+                >
+                  <span
+                    class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                  >
+                    Buy
+                  </span>
+                </div>
+              </div>
+            </td>
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            />
+            <td
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+            />
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;

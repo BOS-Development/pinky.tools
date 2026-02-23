@@ -6,8 +6,8 @@ Track and manage EVE Online industry jobs (manufacturing, reactions, invention) 
 
 ## Status
 
-- **Phase 1**: In progress
-- **Phase 2** (planned): Stockpile integration — mark markers as "production sourced", auto-generate queue entries from stockpile deficits
+- **Phase 1**: Complete — character skills syncing, ESI job tracking, manufacturing calculator, job queue with auto-matching
+- **Phase 2**: Complete — production plans with full production chain tree, step management, job generation
 - **Phase 3** (planned): Multi-alt parallel planning with skill-based character assignment
 - **Phase 4** (planned): Blueprint auto-detection via `GET /characters/{id}/blueprints/`
 
@@ -179,3 +179,142 @@ Job Cost  = EIV * (cost_index + SCC_surcharge_0.04 + facility_tax/100)
 | `20260222014855_create_character_skills.up.sql` | Create character_skills table |
 | `20260222014858_create_esi_industry_jobs.up.sql` | Create esi_industry_jobs table |
 | `20260222014858_create_industry_job_queue.up.sql` | Create industry_job_queue table |
+
+---
+
+# Phase 2: Production Plans
+
+## Overview
+
+Production plans define reusable, hierarchical production chains for items. Each plan has a tree of production steps — the root step produces the final product, and child steps produce materials that would otherwise need to be purchased. Plans are dynamic: run counts are calculated at generation time based on the quantity needed.
+
+## How It Works
+
+### Tree Structure
+
+```
+Production Plan: "Muninn Production"
+└── Muninn (manufacturing, ME10/TE20)
+    ├── Rupture (manufacturing, ME10/TE20) ← produced
+    │   ├── Tritanium ← buy
+    │   ├── Pyerite ← buy
+    │   └── ...
+    ├── Plasma Thruster (manufacturing) ← produced
+    │   └── ...
+    └── Morphite ← buy (no child step = purchased)
+```
+
+- **Root step** (`parent_step_id IS NULL`): the final product
+- **Child steps**: materials the user chose to produce rather than buy
+- Each material with a blueprint can be toggled between "buy" and "produce"
+- Toggling to "produce" creates a child step; toggling back deletes it (and cascading children)
+
+### Job Generation Algorithm
+
+Given a plan and a target quantity for the root product:
+
+1. Calculate root runs: `runs = ceil(quantity / product_quantity_per_run)`
+2. Get root materials with batch quantities (applying ME): `batch_qty = ComputeBatchQty(runs, base_qty, me_factor)`
+3. For each material that has a child step (is produced):
+   - `child_runs = ceil(batch_qty / child_product_quantity_per_run)`
+   - Recurse into child step
+4. Create queue entries bottom-up — deepest steps first, then parents
+5. Calculate cost for manufacturing steps using existing `CalculateManufacturingJob`
+6. Skip steps missing required data with reason
+
+## Database Schema
+
+### production_plans
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigserial | PK |
+| user_id | bigint | FK → users |
+| product_type_id | bigint | Final product type |
+| name | text | User-friendly name (defaults to product name) |
+| notes | text | Optional |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
+
+### production_plan_steps
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigserial | PK |
+| plan_id | bigint | FK → production_plans ON DELETE CASCADE |
+| parent_step_id | bigint | FK → self (NULL for root) |
+| product_type_id | bigint | What this step produces |
+| blueprint_type_id | bigint | Blueprint to use |
+| activity | text | manufacturing / reaction |
+| me_level | int | Blueprint ME (default 10) |
+| te_level | int | Blueprint TE (default 20) |
+| industry_skill | int | Industry skill level (default 5) |
+| adv_industry_skill | int | Adv. Industry skill (default 5) |
+| structure | text | Station type (default raitaru) |
+| rig | text | Rig type (default t2) |
+| security | text | Security status (default high) |
+| facility_tax | numeric(5,2) | Facility tax % (default 1.0) |
+| station_name | text | Station/structure name (nullable, free text) |
+| source_location_id | bigint | Station for inputs (nullable) |
+| source_container_id | bigint | Container/hangar (nullable) |
+| source_division_number | int | Corp division 1-7 (nullable) |
+| source_owner_type | text | character / corporation (nullable) |
+| source_owner_id | bigint | Owner ID (nullable) |
+
+## API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/v1/industry/plans` | User | List user's plans |
+| POST | `/v1/industry/plans` | User | Create plan (auto-creates root step) |
+| GET | `/v1/industry/plans/{id}` | User | Get plan with full step tree |
+| PUT | `/v1/industry/plans/{id}` | User | Update plan name/notes |
+| DELETE | `/v1/industry/plans/{id}` | User | Delete plan and all steps |
+| POST | `/v1/industry/plans/{id}/steps` | User | Add step (toggle material to "produce") |
+| PUT | `/v1/industry/plans/{id}/steps/{stepId}` | User | Update step params |
+| DELETE | `/v1/industry/plans/{id}/steps/{stepId}` | User | Remove step (toggle back to "buy") |
+| GET | `/v1/industry/plans/{id}/steps/{stepId}/materials` | User | Get materials with producibility info |
+| POST | `/v1/industry/plans/{id}/generate` | User | Generate queue entries from plan + quantity |
+
+## Key Decisions
+
+- **Auto root step**: Creating a plan automatically looks up the blueprint and creates the root step, reducing friction
+- **Blueprint lookup**: `GetBlueprintByProduct` prefers manufacturing over reaction via `ORDER BY CASE`
+- **ME/TE defaults**: Steps default to ME10/TE20 with max skills, matching common T2 production setups
+- **Cascade deletes**: Deleting a step cascades to all child steps; deleting a plan cascades to all steps
+- **Material producibility**: `GetStepMaterials` joins against `sde_blueprint_products` to check if each material can be produced, and against `production_plan_steps` to check if it already has a step
+
+## File Structure
+
+### Backend
+
+| File | Purpose |
+|------|---------|
+| `internal/repositories/productionPlans.go` | Plans + steps CRUD, GetStepMaterials |
+| `internal/repositories/productionPlans_test.go` | Integration tests |
+| `internal/repositories/sdeData.go` | GetBlueprintByProduct (addition) |
+| `internal/controllers/productionPlans.go` | HTTP handlers + job generation |
+| `internal/controllers/productionPlans_test.go` | Unit tests with mocks |
+
+### Frontend
+
+| File | Purpose |
+|------|---------|
+| `pages/production-plans.tsx` | Page router entry |
+| `packages/pages/production-plans.tsx` | Page wrapper |
+| `packages/components/industry/ProductionPlansList.tsx` | Plans list + create dialog |
+| `packages/components/industry/ProductionPlanEditor.tsx` | Tree editor + generate dialog |
+| `packages/components/industry/__tests__/ProductionPlansList.test.tsx` | List component tests |
+| `packages/components/industry/__tests__/ProductionPlanEditor.test.tsx` | Editor component tests |
+| `pages/api/industry/plans/index.ts` | Proxy GET/POST → plans |
+| `pages/api/industry/plans/[id].ts` | Proxy GET/PUT/DELETE → plan |
+| `pages/api/industry/plans/[id]/steps/index.ts` | Proxy POST → add step |
+| `pages/api/industry/plans/[id]/steps/[stepId].ts` | Proxy PUT/DELETE → step |
+| `pages/api/industry/plans/[id]/steps/[stepId]/materials.ts` | Proxy GET → materials |
+| `pages/api/industry/plans/[id]/generate.ts` | Proxy POST → generate jobs |
+
+### Migrations
+
+| File | Purpose |
+|------|---------|
+| `20260222151815_create_production_plans.up.sql` | Create production_plans + production_plan_steps tables |

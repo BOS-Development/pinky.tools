@@ -452,3 +452,145 @@ export type BlueprintSearchResult = {
   ProductName: string;
   Activity: string;
 };
+
+// Production Plans
+
+export type ProductionPlan = {
+  id: number;
+  userId: number;
+  productTypeId: number;
+  name: string;
+  notes?: string;
+  defaultManufacturingStationId?: number;
+  defaultReactionStationId?: number;
+  createdAt: string;
+  updatedAt: string;
+  productName?: string;
+  steps?: ProductionPlanStep[];
+};
+
+export type ProductionPlanStep = {
+  id: number;
+  planId: number;
+  parentStepId?: number;
+  productTypeId: number;
+  blueprintTypeId: number;
+  activity: string;
+  meLevel: number;
+  teLevel: number;
+  industrySkill: number;
+  advIndustrySkill: number;
+  structure: string;
+  rig: string;
+  security: string;
+  facilityTax: number;
+  stationName?: string;
+  sourceLocationId?: number;
+  sourceContainerId?: number;
+  sourceDivisionNumber?: number;
+  sourceOwnerType?: string;
+  sourceOwnerId?: number;
+  userStationId?: number;
+  productName?: string;
+  blueprintName?: string;
+  rigCategory?: string;
+  sourceOwnerName?: string;
+  sourceDivisionName?: string;
+  sourceContainerName?: string;
+  outputOwnerType?: string;
+  outputOwnerId?: number;
+  outputDivisionNumber?: number;
+  outputContainerId?: number;
+  outputOwnerName?: string;
+  outputDivisionName?: string;
+  outputContainerName?: string;
+};
+
+export type HangarsResponse = {
+  characters: { id: number; name: string }[];
+  corporations: {
+    id: number;
+    name: string;
+    divisions: Record<string, string>;
+  }[];
+  containers: {
+    id: number;
+    name: string;
+    ownerType: string;
+    ownerId: number;
+    divisionNumber?: number;
+  }[];
+};
+
+export type PlanMaterial = {
+  typeId: number;
+  typeName: string;
+  quantity: number;
+  volume: number;
+  hasBlueprint: boolean;
+  blueprintTypeId?: number;
+  activity?: string;
+  isProduced: boolean;
+};
+
+export type GenerateJobsResult = {
+  created: IndustryJobQueueEntry[];
+  skipped: GenerateJobSkipped[];
+};
+
+export type GenerateJobSkipped = {
+  typeId: number;
+  typeName: string;
+  reason: string;
+};
+
+// User Stations
+
+export type UserStation = {
+  id: number;
+  userId: number;
+  stationId: number;
+  structure: string;
+  facilityTax: number;
+  createdAt: string;
+  updatedAt: string;
+  stationName?: string;
+  solarSystemName?: string;
+  securityStatus?: number;
+  security?: string;
+  rigs: UserStationRig[];
+  services: UserStationService[];
+  activities: string[];
+};
+
+export type UserStationRig = {
+  id: number;
+  userStationId: number;
+  rigName: string;
+  category: string;
+  tier: string;
+};
+
+export type UserStationService = {
+  id: number;
+  userStationId: number;
+  serviceName: string;
+  activity: string;
+};
+
+export type ScanResult = {
+  structure: string;
+  rigs: ScanRig[];
+  services: ScanService[];
+};
+
+export type ScanRig = {
+  name: string;
+  category: string;
+  tier: string;
+};
+
+export type ScanService = {
+  name: string;
+  activity: string;
+};

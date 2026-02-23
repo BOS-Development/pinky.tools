@@ -99,6 +99,12 @@ export default function Navbar() {
           <Button color="inherit" href="/industry">
             Industry
           </Button>
+          <Button color="inherit" href="/production-plans">
+            Plans
+          </Button>
+          <Button color="inherit" href="/stations">
+            Stations
+          </Button>
           <Button color="inherit" href="/pi">
             Planets
           </Button>

@@ -80,6 +80,8 @@ var rootCmd = &cobra.Command{
 		characterSkillsRepository := repositories.NewCharacterSkills(db)
 		industryJobsRepository := repositories.NewIndustryJobs(db)
 		jobQueueRepository := repositories.NewJobQueue(db)
+		productionPlansRepository := repositories.NewProductionPlans(db)
+		planRunsRepository := repositories.NewPlanRuns(db)
 
 		var esiClient *client.EsiClient
 		if settings.EsiBaseURL != "" {
@@ -161,6 +163,9 @@ var rootCmd = &cobra.Command{
 		}
 		controllers.NewPi(router, piPlanetsRepository, piTaxConfigRepository, sdeDataRepository, charactersRepository, systemRepository, itemTypesRepository, marketPricesRepository, piLaunchpadLabelsRepository, stockpileMarkersRepository)
 		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
+		userStationsRepository := repositories.NewUserStations(db)
+		controllers.NewProductionPlans(router, productionPlansRepository, sdeDataRepository, jobQueueRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, playerCorporationRepostiory, userStationsRepository, planRunsRepository)
+		controllers.NewUserStations(router, userStationsRepository)
 
 		group.Go(router.Run(ctx))
 
