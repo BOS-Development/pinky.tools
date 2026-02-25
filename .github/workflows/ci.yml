@@ -43,6 +43,7 @@ jobs:
             - name: Upload backend coverage to Coveralls
               uses: coverallsapp/github-action@v2
               if: success()
+              continue-on-error: true
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   path-to-lcov: artifacts/coverage/backend/coverage.out
@@ -83,6 +84,7 @@ jobs:
             - name: Upload frontend coverage to Coveralls
               uses: coverallsapp/github-action@v2
               if: success()
+              continue-on-error: true
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   path-to-lcov: artifacts/coverage/frontend/lcov.info
@@ -188,6 +190,7 @@ jobs:
         steps:
             - name: Finalize Coveralls parallel build
               uses: coverallsapp/github-action@v2
+              continue-on-error: true
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   parallel-finished: true
