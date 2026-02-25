@@ -347,6 +347,96 @@ func Test_JobQueueShouldEnrichTransportFields(t *testing.T) {
 	_ = created
 }
 
+func Test_JobQueueGetSlotUsage(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 7090, Name: "Slot Usage User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	charID1 := int64(1001)
+	charID2 := int64(1002)
+
+	makeEntry := func(charID *int64, activity string) *models.IndustryJobQueueEntry {
+		return &models.IndustryJobQueueEntry{
+			UserID:          user.ID,
+			CharacterID:     charID,
+			BlueprintTypeID: 787,
+			Activity:        activity,
+			Runs:            1,
+			FacilityTax:     0,
+		}
+	}
+
+	// char1: 2 manufacturing (planned), 1 reaction (planned)
+	e1, err := queueRepo.Create(context.Background(), makeEntry(&charID1, "manufacturing"))
+	assert.NoError(t, err)
+	e2, err := queueRepo.Create(context.Background(), makeEntry(&charID1, "manufacturing"))
+	assert.NoError(t, err)
+	e3, err := queueRepo.Create(context.Background(), makeEntry(&charID1, "reaction"))
+	assert.NoError(t, err)
+
+	// char2: 1 manufacturing (planned), will be made active via LinkToEsiJob
+	e4, err := queueRepo.Create(context.Background(), makeEntry(&charID2, "manufacturing"))
+	assert.NoError(t, err)
+	err = queueRepo.LinkToEsiJob(context.Background(), e4.ID, 88881)
+	assert.NoError(t, err)
+
+	// char2: 1 reaction (planned) then cancelled — should be excluded
+	e5, err := queueRepo.Create(context.Background(), makeEntry(&charID2, "reaction"))
+	assert.NoError(t, err)
+	err = queueRepo.Cancel(context.Background(), e5.ID, user.ID)
+	assert.NoError(t, err)
+
+	// char2: 1 manufacturing (planned) then completed — should be excluded
+	e6, err := queueRepo.Create(context.Background(), makeEntry(&charID2, "manufacturing"))
+	assert.NoError(t, err)
+	err = queueRepo.LinkToEsiJob(context.Background(), e6.ID, 88882)
+	assert.NoError(t, err)
+	err = queueRepo.CompleteJob(context.Background(), e6.ID)
+	assert.NoError(t, err)
+
+	// entry with no character_id — should be excluded
+	_, err = queueRepo.Create(context.Background(), makeEntry(nil, "manufacturing"))
+	assert.NoError(t, err)
+
+	// References to suppress unused-variable warnings for e1–e3
+	_ = e1
+	_ = e2
+	_ = e3
+
+	usage, err := queueRepo.GetSlotUsage(context.Background(), user.ID)
+	assert.NoError(t, err)
+
+	// char1: 2 manufacturing + 1 reaction (all planned)
+	assert.Equal(t, 2, usage[charID1]["manufacturing"])
+	assert.Equal(t, 1, usage[charID1]["reaction"])
+
+	// char2: 1 manufacturing active; cancelled + completed excluded
+	assert.Equal(t, 1, usage[charID2]["manufacturing"])
+	assert.Equal(t, 0, usage[charID2]["reaction"])
+
+	// Inner maps must be initialized (not nil) for each character found
+	assert.NotNil(t, usage[charID1])
+	assert.NotNil(t, usage[charID2])
+}
+
+func Test_JobQueueGetSlotUsageReturnsEmptyMapForNoEntries(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	queueRepo := repositories.NewJobQueue(db)
+
+	usage, err := queueRepo.GetSlotUsage(context.Background(), 99998)
+	assert.NoError(t, err)
+	assert.NotNil(t, usage)
+	assert.Len(t, usage, 0)
+}
+
 func Test_JobQueueShouldReturnEmptyForNoEntries(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)
@@ -356,6 +446,83 @@ func Test_JobQueueShouldReturnEmptyForNoEntries(t *testing.T) {
 	entries, err := queueRepo.GetByUser(context.Background(), 99999)
 	assert.NoError(t, err)
 	assert.Len(t, entries, 0)
+}
+
+func Test_JobQueueReassignCharacter(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 7100, Name: "Reassign Char User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	entry := &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            5,
+		FacilityTax:     0,
+	}
+
+	created, err := queueRepo.Create(context.Background(), entry)
+	assert.NoError(t, err)
+	assert.Nil(t, created.CharacterID)
+
+	// Assign a character
+	charID := int64(2001001)
+	err = queueRepo.ReassignCharacter(context.Background(), created.ID, user.ID, &charID)
+	assert.NoError(t, err)
+
+	// Verify the update via GetByUser
+	entries, err := queueRepo.GetByUser(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Len(t, entries, 1)
+	assert.Equal(t, &charID, entries[0].CharacterID)
+
+	// Unassign (nil)
+	err = queueRepo.ReassignCharacter(context.Background(), created.ID, user.ID, nil)
+	assert.NoError(t, err)
+
+	entries, err = queueRepo.GetByUser(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Len(t, entries, 1)
+	assert.Nil(t, entries[0].CharacterID)
+}
+
+func Test_JobQueueReassignCharacterFailsForActiveEntry(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 7110, Name: "Reassign Active User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	entry := &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            5,
+		FacilityTax:     0,
+	}
+
+	created, err := queueRepo.Create(context.Background(), entry)
+	assert.NoError(t, err)
+
+	// Promote to active via LinkToEsiJob
+	err = queueRepo.LinkToEsiJob(context.Background(), created.ID, 77777)
+	assert.NoError(t, err)
+
+	// Attempt to reassign on an active entry — must fail
+	charID := int64(2001002)
+	err = queueRepo.ReassignCharacter(context.Background(), created.ID, user.ID, &charID)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "queue entry not found or not in planned status")
 }
 
 func Test_JobQueueShouldCreateWithPlanRunAndStep(t *testing.T) {

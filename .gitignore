@@ -62,6 +62,7 @@ e2e/node_modules/
 
 # Claude
 settings.local.json
+.claude/agent-memory/
 
 # go binaries in case they sneak in
 industry-tool

@@ -117,7 +117,7 @@ export default function Industry() {
           </Tabs>
         </Box>
         {tab === 0 && <ActiveJobs jobs={jobs} loading={jobsLoading} />}
-        {tab === 1 && <JobQueue entries={queue} loading={queueLoading} onCancel={handleCancelEntry} />}
+        {tab === 1 && <JobQueue entries={queue} loading={queueLoading} onCancel={handleCancelEntry} onRefresh={fetchQueue} />}
         {tab === 2 && <AddJob onJobAdded={handleJobAdded} />}
       </Container>
     </>

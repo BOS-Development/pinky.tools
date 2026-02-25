@@ -1,13 +1,45 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import JobQueue from '../JobQueue';
-import { IndustryJobQueueEntry } from '@industry-tool/client/data/models';
+import { CharacterSlotInfo, IndustryJobQueueEntry } from '@industry-tool/client/data/models';
+
+// Mock fetch for character-slots and character reassignment
+const mockFetch = jest.fn();
+global.fetch = mockFetch;
+
+const mockCharacterSlots: CharacterSlotInfo[] = [
+  {
+    characterId: 1001,
+    characterName: 'Alpha Pilot',
+    mfgSlotsMax: 5,
+    mfgSlotsUsed: 2,
+    reactSlotsMax: 5,
+    reactSlotsUsed: 1,
+    industrySkill: 5,
+    advIndustrySkill: 5,
+    reactionsSkill: 5,
+  },
+  {
+    characterId: 1002,
+    characterName: 'Beta Pilot',
+    mfgSlotsMax: 3,
+    mfgSlotsUsed: 0,
+    reactSlotsMax: 3,
+    reactSlotsUsed: 0,
+    industrySkill: 4,
+    advIndustrySkill: 3,
+    reactionsSkill: 4,
+  },
+];
 
 describe('JobQueue Component', () => {
   const mockOnCancel = jest.fn();
+  const mockOnRefresh = jest.fn();
 
   beforeEach(() => {
     mockOnCancel.mockClear();
+    mockOnRefresh.mockClear();
+    mockFetch.mockClear();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2026-02-22T12:00:00Z'));
   });
@@ -251,5 +283,265 @@ describe('JobQueue Component', () => {
 
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
     expect(screen.queryByTitle('Cancel job')).not.toBeInTheDocument();
+  });
+
+  // --- Character reassignment tests ---
+
+  it('should show Chip for planned entry character cell', () => {
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 30,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'planned',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+        characterName: 'Alpha Pilot',
+        characterId: 1001,
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
+    // The character name should appear as a Chip (clickable)
+    const chip = screen.getByText('Alpha Pilot');
+    expect(chip).toBeInTheDocument();
+    // The chip should be within a MUI chip element (has the chip role or class)
+    // We verify it's not a plain Typography by checking the Chip rendered correctly
+    expect(chip.closest('.MuiChip-root')).toBeInTheDocument();
+  });
+
+  it('should show Assign chip for planned entry with no character assigned', () => {
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 31,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'planned',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
+    const assignChip = screen.getByText('Assign');
+    expect(assignChip).toBeInTheDocument();
+    expect(assignChip.closest('.MuiChip-root')).toBeInTheDocument();
+  });
+
+  it('should show plain text for non-planned entry character cell', () => {
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 32,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'active',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+        characterName: 'Alpha Pilot',
+        characterId: 1001,
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
+    const charName = screen.getByText('Alpha Pilot');
+    expect(charName).toBeInTheDocument();
+    // Should NOT be in a Chip for active status
+    expect(charName.closest('.MuiChip-root')).not.toBeInTheDocument();
+  });
+
+  it('should fetch character slots and open menu when chip is clicked', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockCharacterSlots,
+    });
+
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 33,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'planned',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+        characterName: 'Alpha Pilot',
+        characterId: 1001,
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} onRefresh={mockOnRefresh} />);
+
+    const chip = screen.getByText('Alpha Pilot').closest('.MuiChip-root') as HTMLElement;
+    fireEvent.click(chip);
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/industry/character-slots');
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Beta Pilot')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/2\/5 mfg/)).toBeInTheDocument();
+  });
+
+  it('should call reassign API and onRefresh when a character is selected', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCharacterSlots,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 34,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'planned',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+        characterName: 'Alpha Pilot',
+        characterId: 1001,
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} onRefresh={mockOnRefresh} />);
+
+    const chip = screen.getByText('Alpha Pilot').closest('.MuiChip-root') as HTMLElement;
+    fireEvent.click(chip);
+
+    await waitFor(() => {
+      expect(screen.getByText('Beta Pilot')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Beta Pilot'));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/industry/queue/34/character', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterId: 1002 }),
+      });
+    });
+
+    await waitFor(() => {
+      expect(mockOnRefresh).toHaveBeenCalled();
+    });
+  });
+
+  it('should call reassign API with null when Unassign is selected', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockCharacterSlots,
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({}),
+      });
+
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 35,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'planned',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+        characterName: 'Alpha Pilot',
+        characterId: 1001,
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} onRefresh={mockOnRefresh} />);
+
+    const chip = screen.getByText('Alpha Pilot').closest('.MuiChip-root') as HTMLElement;
+    fireEvent.click(chip);
+
+    await waitFor(() => {
+      expect(screen.getByText('Unassign')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Unassign'));
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/industry/queue/35/character', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ characterId: null }),
+      });
+    });
+  });
+
+  it('should show No characters available when character-slots returns empty', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    const entries: IndustryJobQueueEntry[] = [
+      {
+        id: 36,
+        userId: 100,
+        blueprintTypeId: 787,
+        activity: 'manufacturing',
+        runs: 5,
+        meLevel: 10,
+        teLevel: 20,
+        facilityTax: 1.0,
+        status: 'planned',
+        sortOrder: 0,
+        createdAt: '2026-02-22T00:00:00Z',
+        updatedAt: '2026-02-22T00:00:00Z',
+      },
+    ];
+
+    render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
+
+    const chip = screen.getByText('Assign').closest('.MuiChip-root') as HTMLElement;
+    fireEvent.click(chip);
+
+    await waitFor(() => {
+      expect(screen.getByText('No characters available')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Unassign')).toBeInTheDocument();
   });
 });

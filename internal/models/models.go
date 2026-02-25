@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type EveAsset struct {
 	ItemID          int64  `json:"item_id"`
@@ -957,16 +960,55 @@ type PlanMaterial struct {
 }
 
 type GenerateJobsResult struct {
-	Run            *ProductionPlanRun       `json:"run"`
-	Created        []*IndustryJobQueueEntry `json:"created"`
-	Skipped        []*GenerateJobSkipped    `json:"skipped"`
-	TransportJobs  []*TransportJob          `json:"transportJobs"`
+	Run                  *ProductionPlanRun       `json:"run"`
+	Created              []*IndustryJobQueueEntry `json:"created"`
+	Skipped              []*GenerateJobSkipped    `json:"skipped"`
+	TransportJobs        []*TransportJob          `json:"transportJobs"`
+	CharacterAssignments map[int64]string         `json:"characterAssignments,omitempty"`
+	UnassignedCount      int                      `json:"unassignedCount"`
 }
 
 type GenerateJobSkipped struct {
 	TypeID   int64  `json:"typeId"`
 	TypeName string `json:"typeName"`
 	Reason   string `json:"reason"`
+}
+
+// Plan Preview
+
+type PlanPreviewResult struct {
+	Options            []*PlanPreviewOption `json:"options"`
+	EligibleCharacters int                  `json:"eligibleCharacters"`
+	TotalJobs          int                  `json:"totalJobs"`
+}
+
+type PlanPreviewOption struct {
+	Parallelism            int                     `json:"parallelism"`
+	EstimatedDurationSec   int                     `json:"estimatedDurationSec"`
+	EstimatedDurationLabel string                  `json:"estimatedDurationLabel"`
+	Characters             []*PreviewCharacterInfo `json:"characters"`
+}
+
+type PreviewCharacterInfo struct {
+	CharacterID    int64  `json:"characterId"`
+	Name           string `json:"name"`
+	JobCount       int    `json:"jobCount"`
+	DurationSec    int    `json:"durationSec"`
+	MfgSlotsUsed   int    `json:"mfgSlotsUsed"`
+	MfgSlotsMax    int    `json:"mfgSlotsMax"`
+	ReactSlotsUsed int    `json:"reactSlotsUsed"`
+	ReactSlotsMax  int    `json:"reactSlotsMax"`
+}
+
+// FormatDurationLabel converts a duration in seconds to a human-readable label.
+func FormatDurationLabel(totalSecs int) string {
+	days := totalSecs / 86400
+	hours := (totalSecs % 86400) / 3600
+	if days > 0 {
+		return fmt.Sprintf("%dd %dh", days, hours)
+	}
+	minutes := (totalSecs % 3600) / 60
+	return fmt.Sprintf("%dh %dm", hours, minutes)
 }
 
 // Production Plan Runs

@@ -354,11 +354,17 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
           >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            <div
+              class="MuiButtonBase-root MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-clickable MuiChip-clickableColorDefault MuiChip-outlinedDefault css-1y9ue0v-MuiButtonBase-root-MuiChip-root"
+              role="button"
+              tabindex="0"
             >
-              -
-            </p>
+              <span
+                class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+              >
+                Assign
+              </span>
+            </div>
           </td>
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"

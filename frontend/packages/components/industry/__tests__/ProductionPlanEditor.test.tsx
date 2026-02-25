@@ -1,7 +1,7 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import ProductionPlanEditor from '../ProductionPlanEditor';
-import { ProductionPlan, ProductionPlanStep, PlanMaterial } from '@industry-tool/client/data/models';
+import { ProductionPlan, ProductionPlanStep, PlanMaterial, PlanPreviewResult } from '@industry-tool/client/data/models';
 
 // Mock formatISK to avoid import issues
 jest.mock('@industry-tool/utils/formatting', () => ({
@@ -68,8 +68,59 @@ const mockMaterials: PlanMaterial[] = [
   },
 ];
 
+const mockPreviewResult: PlanPreviewResult = {
+  eligibleCharacters: 2,
+  totalJobs: 8,
+  options: [
+    {
+      parallelism: 1,
+      estimatedDurationSec: 172800,
+      estimatedDurationLabel: '2d 0h',
+      characters: [
+        {
+          characterId: 101,
+          name: 'Main',
+          jobCount: 8,
+          durationSec: 172800,
+          mfgSlotsUsed: 5,
+          mfgSlotsMax: 11,
+          reactSlotsUsed: 0,
+          reactSlotsMax: 0,
+        },
+      ],
+    },
+    {
+      parallelism: 2,
+      estimatedDurationSec: 93600,
+      estimatedDurationLabel: '1d 2h',
+      characters: [
+        {
+          characterId: 101,
+          name: 'Main',
+          jobCount: 4,
+          durationSec: 93600,
+          mfgSlotsUsed: 3,
+          mfgSlotsMax: 11,
+          reactSlotsUsed: 0,
+          reactSlotsMax: 0,
+        },
+        {
+          characterId: 102,
+          name: 'Alt 1',
+          jobCount: 4,
+          durationSec: 93600,
+          mfgSlotsUsed: 2,
+          mfgSlotsMax: 11,
+          reactSlotsUsed: 0,
+          reactSlotsMax: 0,
+        },
+      ],
+    },
+  ],
+};
+
 // URL-based fetch mock to handle concurrent requests from multiple useEffects
-function mockFetchForPlan(plan: ProductionPlan | null, materials?: PlanMaterial[]) {
+function mockFetchForPlan(plan: ProductionPlan | null, materials?: PlanMaterial[], preview?: PlanPreviewResult) {
   (global.fetch as jest.Mock).mockImplementation((url: string, opts?: any) => {
     if (url === `/api/industry/plans/${plan?.id ?? 1}`) {
       return Promise.resolve({ ok: true, json: async () => plan });
@@ -79,6 +130,9 @@ function mockFetchForPlan(plan: ProductionPlan | null, materials?: PlanMaterial[
     }
     if (url.includes('/materials') && materials) {
       return Promise.resolve({ ok: true, json: async () => materials });
+    }
+    if (url.includes('/preview') && preview) {
+      return Promise.resolve({ ok: true, json: async () => preview });
     }
     return Promise.resolve({ ok: true, json: async () => [] });
   });
@@ -309,5 +363,194 @@ describe('ProductionPlanEditor Component', () => {
     });
 
     expect(screen.getByText('Transport')).toBeInTheDocument();
+  });
+
+  it('should show Preview button in generate dialog', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials);
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    fireEvent.click(screen.getByText('Generate Jobs'));
+
+    expect(screen.getByText('Preview')).toBeInTheDocument();
+  });
+
+  it('should call preview API and show parallelism options', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials, mockPreviewResult);
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    fireEvent.click(screen.getByText('Generate Jobs'));
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Preview'));
+    });
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/api/industry/plans/1/preview',
+        expect.objectContaining({ method: 'POST' }),
+      );
+    });
+
+    expect(screen.getByText('No assignment')).toBeInTheDocument();
+    expect(screen.getByText('2d 0h')).toBeInTheDocument();
+    expect(screen.getByText('1d 2h')).toBeInTheDocument();
+  });
+
+  it('should show preview error if preview fails', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials);
+    (global.fetch as jest.Mock).mockImplementation((url: string, opts?: any) => {
+      if (url === `/api/industry/plans/1`) {
+        return Promise.resolve({ ok: true, json: async () => mockPlan });
+      }
+      if (url === '/api/transport/profiles') {
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }
+      if (url.includes('/materials')) {
+        return Promise.resolve({ ok: true, json: async () => mockMaterials });
+      }
+      if (url.includes('/preview')) {
+        return Promise.resolve({ ok: false, status: 400, json: async () => ({ error: 'No eligible characters' }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => [] });
+    });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    fireEvent.click(screen.getByText('Generate Jobs'));
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Preview'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/No eligible characters/)).toBeInTheDocument();
+    });
+  });
+
+  it('should include parallelism in generate request when option is selected', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials, mockPreviewResult);
+    // Also mock generate endpoint
+    (global.fetch as jest.Mock).mockImplementation((url: string, opts?: any) => {
+      if (url === `/api/industry/plans/1`) {
+        return Promise.resolve({ ok: true, json: async () => mockPlan });
+      }
+      if (url === '/api/transport/profiles') {
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }
+      if (url.includes('/materials')) {
+        return Promise.resolve({ ok: true, json: async () => mockMaterials });
+      }
+      if (url.includes('/preview')) {
+        return Promise.resolve({ ok: true, json: async () => mockPreviewResult });
+      }
+      if (url.includes('/generate')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            run: { id: 1, planId: 1, userId: 100, quantity: 1, createdAt: '', status: 'planned' },
+            created: [],
+            skipped: [],
+            transportJobs: [],
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => [] });
+    });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    // Open dialog via toolbar button
+    const generateButtons = screen.getAllByText('Generate Jobs');
+    fireEvent.click(generateButtons[0]);
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Preview'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('No assignment')).toBeInTheDocument();
+    });
+
+    // Select parallelism = 2
+    const radioButtons = screen.getAllByRole('radio');
+    await act(async () => {
+      // radioButtons[0] = no assignment (value=0), radioButtons[1] = parallelism 1, radioButtons[2] = parallelism 2
+      fireEvent.click(radioButtons[2]);
+    });
+
+    // Click dialog's Generate Jobs button (last one)
+    const generateJobsButtons = screen.getAllByText('Generate Jobs');
+    await act(async () => {
+      fireEvent.click(generateJobsButtons[generateJobsButtons.length - 1]);
+    });
+
+    await waitFor(() => {
+      const generateCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url.includes('/generate'),
+      );
+      expect(generateCall).toBeDefined();
+      const body = JSON.parse(generateCall[1].body);
+      expect(body.parallelism).toBe(2);
+    });
+  });
+
+  it('should show character assignments in result when present', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials);
+    (global.fetch as jest.Mock).mockImplementation((url: string, opts?: any) => {
+      if (url === `/api/industry/plans/1`) {
+        return Promise.resolve({ ok: true, json: async () => mockPlan });
+      }
+      if (url === '/api/transport/profiles') {
+        return Promise.resolve({ ok: true, json: async () => [] });
+      }
+      if (url.includes('/materials')) {
+        return Promise.resolve({ ok: true, json: async () => mockMaterials });
+      }
+      if (url.includes('/generate')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            run: { id: 1, planId: 1, userId: 100, quantity: 1, createdAt: '', status: 'planned' },
+            created: [
+              { id: 5, blueprintTypeId: 787, blueprintName: 'Rifter Blueprint', runs: 1, status: 'planned', activity: 'manufacturing', meLevel: 10, teLevel: 20, facilityTax: 1, sortOrder: 0, createdAt: '', updatedAt: '' },
+            ],
+            skipped: [],
+            transportJobs: [],
+            characterAssignments: { 5: 'Main' },
+            unassignedCount: 0,
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => [] });
+    });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    // Open dialog
+    const toolbarButton = screen.getAllByText('Generate Jobs')[0];
+    fireEvent.click(toolbarButton);
+
+    // Click dialog's Generate Jobs button
+    const dialogButton = screen.getAllByText('Generate Jobs');
+    await act(async () => {
+      fireEvent.click(dialogButton[dialogButton.length - 1]);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Created 1 job(s)')).toBeInTheDocument();
+      expect(screen.getByText('Main')).toBeInTheDocument();
+    });
   });
 });

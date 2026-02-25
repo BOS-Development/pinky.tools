@@ -227,6 +227,14 @@ func (m *MockProductionPlansJobQueueRepository) Create(ctx context.Context, entr
 	return args.Get(0).(*models.IndustryJobQueueEntry), args.Error(1)
 }
 
+func (m *MockProductionPlansJobQueueRepository) GetSlotUsage(ctx context.Context, userID int64) (map[int64]map[string]int, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[int64]map[string]int), args.Error(1)
+}
+
 type MockProductionPlanRunsRepository struct {
 	mock.Mock
 }
@@ -334,6 +342,20 @@ func (m *MockProductionPlansEsiClient) GetRoute(ctx context.Context, origin, des
 	return args.Get(0).([]int32), args.Error(1)
 }
 
+// --- Mock for character skills ---
+
+type MockProductionPlansCharacterSkillsRepository struct {
+	mock.Mock
+}
+
+func (m *MockProductionPlansCharacterSkillsRepository) GetSkillsForUser(ctx context.Context, userID int64) ([]*models.CharacterSkill, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.CharacterSkill), args.Error(1)
+}
+
 // --- Helper ---
 
 type productionPlanMocks struct {
@@ -350,6 +372,7 @@ type productionPlanMocks struct {
 	profilesRepo     *MockProductionPlansTransportProfilesRepository
 	jfRoutesRepo     *MockProductionPlansJFRoutesRepository
 	esiClient        *MockProductionPlansEsiClient
+	skillsRepo       *MockProductionPlansCharacterSkillsRepository
 }
 
 func setupProductionPlansController() (*controllers.ProductionPlans, *productionPlanMocks) {
@@ -367,6 +390,7 @@ func setupProductionPlansController() (*controllers.ProductionPlans, *production
 		profilesRepo:     new(MockProductionPlansTransportProfilesRepository),
 		jfRoutesRepo:     new(MockProductionPlansJFRoutesRepository),
 		esiClient:        new(MockProductionPlansEsiClient),
+		skillsRepo:       new(MockProductionPlansCharacterSkillsRepository),
 	}
 
 	controller := controllers.NewProductionPlans(
@@ -384,6 +408,7 @@ func setupProductionPlansController() (*controllers.ProductionPlans, *production
 		mocks.profilesRepo,
 		mocks.jfRoutesRepo,
 		mocks.esiClient,
+		mocks.skillsRepo,
 	)
 
 	return controller, mocks
@@ -886,6 +911,110 @@ func Test_ProductionPlans_GenerateJobs_WithChildStep(t *testing.T) {
 	// Child should be created first (bottom-up)
 	assert.Equal(t, int64(1234), genResult.Created[0].BlueprintTypeID)
 	assert.Equal(t, int64(787), genResult.Created[1].BlueprintTypeID)
+}
+
+// Test_ProductionPlans_GenerateJobs_ReactionUsesReactionTE verifies that reaction steps
+// use the reactions TE formula (Reactions skill only, no blueprint TE, no Adv Industry)
+// rather than the manufacturing TE formula when calculating estimated duration.
+//
+// The key distinction:
+//   - Reactions TE: (1 - skill*0.04) * structTE * rigTE  — no blueprint TE, no Adv Industry
+//   - Manufacturing TE: (1 - bpTE/100) * (1 - industry*0.04) * (1 - advIndustry*0.03) * structTE * rigTE
+//
+// step.IndustrySkill doubles as the Reactions skill level when activity == "reaction".
+func Test_ProductionPlans_GenerateJobs_ReactionUsesReactionTE(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	stepID := int64(10)
+
+	// IndustrySkill=3 means Reactions skill level 3 for reaction steps.
+	// AdvIndustrySkill=4 is set but must NOT be applied to the duration for reactions.
+	// BlueprintTE=10 is set but must NOT be applied either.
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 9000, Name: "Platinum Technite",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: stepID, PlanID: 1, ProductTypeID: 9000, BlueprintTypeID: 9001,
+				Activity:         "reaction",
+				MELevel:          0,
+				TELevel:          10, // must be ignored for reactions
+				IndustrySkill:    3,  // this is the Reactions skill
+				AdvIndustrySkill: 4,  // must be ignored for reactions
+				Structure:        "athanor",
+				Rig:              "none",
+				Security:         "low",
+				FacilityTax:      1.0,
+				ProductName:      "Platinum Technite",
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: 100, Quantity: 10,
+	}, nil)
+
+	// Blueprint produces 1 unit per run, baseTime=3600 (typical reaction time)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(9001), "reaction").Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 9001, ProductTypeID: 9000, ProductName: "Platinum Technite",
+		ProductQuantity: 1, Time: 3600,
+	}, nil)
+
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9001), "reaction").Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 9001, TypeID: 34, TypeName: "Platinum", Quantity: 100},
+	}, nil)
+
+	// Reactions TE formula for skill=3, athanor, no rig, low-sec:
+	//   teFactor = (1 - 3*0.04) * (1 - 0) * (1 - 0*1.0) = 0.88
+	//   secsPerRun = floor(3600 * 0.88) = 3168
+	//   totalDuration (10 runs) = 31680
+	expectedDuration := 31680
+
+	// Manufacturing formula would give different (lower) result:
+	//   mfgTE = (1-10/100)*(1-3*0.04)*(1-4*0.03)*(1-0)*(1-0*1.9) = 0.9*0.88*0.88 = 0.697536
+	//   secsPerRun = floor(3600 * 0.697536) = 2511
+	//   totalDuration (10 runs) = 25110
+	manufacturingFormulaDuration := 25110
+
+	// Capture the entry passed to Create so we can assert the duration on the actual input,
+	// not on the mock's return value (which would not have EstimatedDuration set).
+	var capturedEntry *models.IndustryJobQueueEntry
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		if e.BlueprintTypeID == 9001 && e.Activity == "reaction" {
+			capturedEntry = e
+			return true
+		}
+		return false
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, UserID: 100, BlueprintTypeID: 9001, Activity: "reaction", Runs: 10, Status: "planned",
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 10})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Len(t, genResult.Created, 1)
+
+	// Assert on the captured entry (what was passed to Create), not the mock return value
+	assert.NotNil(t, capturedEntry, "expected queueRepo.Create to be called with a reaction entry")
+	if capturedEntry != nil {
+		assert.NotNil(t, capturedEntry.EstimatedDuration,
+			"reaction step must produce a non-nil estimated duration")
+		if capturedEntry.EstimatedDuration != nil {
+			assert.Equal(t, expectedDuration, *capturedEntry.EstimatedDuration,
+				"reaction step must use reactions TE formula (Reactions skill only), not manufacturing TE formula")
+			assert.NotEqual(t, manufacturingFormulaDuration, *capturedEntry.EstimatedDuration,
+				"reaction step must not apply blueprint TE and AdvIndustrySkill like manufacturing does")
+		}
+	}
 }
 
 func Test_ProductionPlans_GenerateJobs_PlanNotFound(t *testing.T) {
@@ -2002,4 +2131,664 @@ func Test_ProductionPlans_GenerateJobs_SelfHaulGateTransport(t *testing.T) {
 	mocks.esiClient.AssertExpectations(t)
 	mocks.profilesRepo.AssertExpectations(t)
 	mocks.transportJobRepo.AssertExpectations(t)
+}
+
+// --- PreviewPlan Tests ---
+
+// skillVal is a convenience helper to build a CharacterSkill with ActiveLevel set.
+func skillVal(charID, skillID int64, level int) *models.CharacterSkill {
+	return &models.CharacterSkill{
+		CharacterID: charID,
+		SkillID:     skillID,
+		ActiveLevel: level,
+	}
+}
+
+func Test_ProductionPlans_PreviewPlan_Success(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	charA := int64(201)
+	charB := int64(202)
+	stepID := int64(10)
+	childStepID := int64(20)
+
+	// Plan with root step + one child step
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: userID, Name: "Test Plan",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID:               stepID,
+				PlanID:           1,
+				ProductTypeID:    587,
+				BlueprintTypeID:  787,
+				Activity:         "manufacturing",
+				MELevel:          10,
+				TELevel:          20,
+				IndustrySkill:    5,
+				AdvIndustrySkill: 5,
+				Structure:        "raitaru",
+				Rig:              "t2",
+				Security:         "high",
+				FacilityTax:      1.0,
+				ProductName:      "Rifter",
+			},
+			{
+				ID:               childStepID,
+				PlanID:           1,
+				ParentStepID:     &stepID,
+				ProductTypeID:    5678,
+				BlueprintTypeID:  1234,
+				Activity:         "manufacturing",
+				MELevel:          10,
+				TELevel:          20,
+				IndustrySkill:    5,
+				AdvIndustrySkill: 5,
+				Structure:        "raitaru",
+				Rig:              "t2",
+				Security:         "high",
+				FacilityTax:      1.0,
+				ProductName:      "Component",
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+
+	// Blueprint data for root step
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), "manufacturing").Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200, ProductVolume: 27500,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), "manufacturing").Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component", Quantity: 10},
+	}, nil)
+
+	// Blueprint data for child step
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), "manufacturing").Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component",
+		ProductQuantity: 5, Time: 3600, ProductVolume: 10,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), "manufacturing").Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Two eligible characters (both with Industry 5)
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{
+		charA: "Alpha",
+		charB: "Beta",
+	}, nil)
+
+	// SkillID 3380=Industry, 3388=AdvIndustry, 3387=MassProduction
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{
+		skillVal(charA, 3380, 5), // Industry 5
+		skillVal(charA, 3388, 5), // AdvIndustry 5
+		skillVal(charA, 3387, 5), // MassProduction 5
+		skillVal(charB, 3380, 4), // Industry 4
+		skillVal(charB, 3388, 3), // AdvIndustry 3
+		skillVal(charB, 3387, 3), // MassProduction 3
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 1})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/preview", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.PreviewPlan(args)
+
+	assert.Nil(t, httpErr)
+	preview := result.(*models.PlanPreviewResult)
+
+	// Two eligible characters → two options
+	assert.Equal(t, 2, preview.EligibleCharacters)
+	assert.Equal(t, 2, preview.TotalJobs)
+	assert.Len(t, preview.Options, 2)
+
+	// Parallelism 1 and 2 are present
+	assert.Equal(t, 1, preview.Options[0].Parallelism)
+	assert.Equal(t, 2, preview.Options[1].Parallelism)
+
+	// Parallelism 2 should not be slower than parallelism 1
+	assert.LessOrEqual(t, preview.Options[1].EstimatedDurationSec, preview.Options[0].EstimatedDurationSec)
+
+	// Character info is populated
+	assert.Len(t, preview.Options[0].Characters, 1)
+	assert.Len(t, preview.Options[1].Characters, 2)
+
+	// Duration label is non-empty
+	assert.NotEmpty(t, preview.Options[0].EstimatedDurationLabel)
+
+	mocks.plansRepo.AssertExpectations(t)
+	mocks.marketRepo.AssertExpectations(t)
+	mocks.sdeRepo.AssertExpectations(t)
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_PreviewPlan_NoCharacters(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	stepID := int64(10)
+
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: userID, Name: "Test Plan",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: stepID, PlanID: 1, ProductTypeID: 587,
+				BlueprintTypeID: 787, Activity: "manufacturing",
+				MELevel: 10, TELevel: 20, IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter",
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), "manufacturing").Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), "manufacturing").Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// No characters at all
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 1})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/preview", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.PreviewPlan(args)
+
+	assert.Nil(t, httpErr)
+	preview := result.(*models.PlanPreviewResult)
+	assert.Equal(t, 0, preview.EligibleCharacters)
+	assert.Len(t, preview.Options, 0)
+}
+
+func Test_ProductionPlans_PreviewPlan_InvalidQuantity(t *testing.T) {
+	controller, _ := setupProductionPlansController()
+
+	userID := int64(100)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 0})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/preview", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.PreviewPlan(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+// --- GenerateJobs Parallelism Tests ---
+
+// buildParallelismPlan builds a simple single-step manufacturing plan for parallelism tests.
+func buildParallelismPlan() *models.ProductionPlan {
+	return &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: 10, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter",
+			},
+		},
+	}
+}
+
+// setupParallelismMocks sets up the common SDE/market/runs mocks used by all parallelism tests.
+func setupParallelismMocks(mocks *productionPlanMocks, userID int64, quantity int) {
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(buildParallelismPlan(), nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: userID, Quantity: quantity,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(
+		&repositories.ManufacturingBlueprintRow{
+			BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+			ProductQuantity: 1, Time: 7200,
+		}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return(
+		[]*repositories.ManufacturingMaterialRow{
+			{BlueprintTypeID: 787, TypeID: 34, TypeName: "Tritanium", Quantity: 1000},
+		}, nil)
+}
+
+// Test_ProductionPlans_GenerateJobs_WithParallelism0_BackwardCompat verifies that
+// parallelism=0 (the default) preserves the original behaviour: no character
+// assignment, CharacterID nil on all entries, CharacterAssignments nil.
+func Test_ProductionPlans_GenerateJobs_WithParallelism0_BackwardCompat(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+	userID := int64(100)
+
+	setupParallelismMocks(mocks, userID, 5)
+
+	// parallelism=0 must NOT call character/skills/slotUsage repos
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.BlueprintTypeID == 787
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, UserID: userID, BlueprintTypeID: 787, Activity: "manufacturing", Runs: 5, Status: "planned",
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 5, "parallelism": 0})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Len(t, genResult.Created, 1)
+	assert.Nil(t, genResult.CharacterAssignments)
+	assert.Equal(t, 0, genResult.UnassignedCount)
+	// CharacterID must not be set (original behaviour)
+	assert.Nil(t, genResult.Created[0].CharacterID)
+
+	// character/skills repos must not have been called
+	mocks.characterRepo.AssertNotCalled(t, "GetNames", mock.Anything, mock.Anything)
+	mocks.skillsRepo.AssertNotCalled(t, "GetSkillsForUser", mock.Anything, mock.Anything)
+	mocks.queueRepo.AssertNotCalled(t, "GetSlotUsage", mock.Anything, mock.Anything)
+}
+
+// Test_ProductionPlans_GenerateJobs_WithParallelism1 verifies that parallelism=1
+// assigns all jobs to the best eligible character and populates CharacterAssignments.
+func Test_ProductionPlans_GenerateJobs_WithParallelism1(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+	userID := int64(100)
+	charA := int64(201)
+	charB := int64(202)
+
+	setupParallelismMocks(mocks, userID, 10)
+
+	characterNames := map[int64]string{charA: "Alpha", charB: "Beta"}
+	skills := []*models.CharacterSkill{
+		skillVal(charA, 3380, 5), // Industry 5
+		skillVal(charA, 3388, 5), // AdvIndustry 5
+		skillVal(charA, 3387, 5), // MassProduction 5
+		skillVal(charB, 3380, 3), // Industry 3
+		skillVal(charB, 3387, 2), // MassProduction 2
+	}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return(skills, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	// With parallelism=1 the best character gets all runs
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.BlueprintTypeID == 787 && e.Runs == 10
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, UserID: userID, BlueprintTypeID: 787, Activity: "manufacturing", Runs: 10, Status: "planned",
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 10, "parallelism": 1})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Len(t, genResult.Created, 1)
+	assert.Equal(t, 0, genResult.UnassignedCount)
+	assert.NotNil(t, genResult.CharacterAssignments)
+	// Exactly one character assigned (the best one: charA with highest skills)
+	assert.Len(t, genResult.CharacterAssignments, 1)
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+// Test_ProductionPlans_GenerateJobs_WithParallelism2_SplitsRuns verifies that
+// parallelism=2 with 2 eligible characters splits a 10-run job across both.
+func Test_ProductionPlans_GenerateJobs_WithParallelism2_SplitsRuns(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+	userID := int64(100)
+	charA := int64(201)
+	charB := int64(202)
+
+	setupParallelismMocks(mocks, userID, 10)
+
+	characterNames := map[int64]string{charA: "Alpha", charB: "Beta"}
+	skills := []*models.CharacterSkill{
+		skillVal(charA, 3380, 5), // Industry 5
+		skillVal(charA, 3388, 5), // AdvIndustry 5
+		skillVal(charA, 3387, 5), // MassProduction 5
+		skillVal(charB, 3380, 3), // Industry 3
+		skillVal(charB, 3387, 2), // MassProduction 2
+	}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return(skills, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	// With parallelism=2, simulateAssignment splits 10 runs: ceil(10/2)=5 for first, 5 for second
+	// So we expect two Create calls with runs 5 each (or 5+5)
+	totalRunsCreated := 0
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.BlueprintTypeID == 787 && e.Activity == "manufacturing"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, UserID: userID, BlueprintTypeID: 787, Activity: "manufacturing", Status: "planned",
+	}, nil).Run(func(args mock.Arguments) {
+		entry := args.Get(1).(*models.IndustryJobQueueEntry)
+		totalRunsCreated += entry.Runs
+	})
+
+	body, _ := json.Marshal(map[string]any{"quantity": 10, "parallelism": 2})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Equal(t, 0, genResult.UnassignedCount)
+	assert.NotNil(t, genResult.CharacterAssignments)
+	// Two characters should be assigned
+	assert.Len(t, genResult.CharacterAssignments, 2)
+	// Two queue entries (one per character fragment)
+	assert.Len(t, genResult.Created, 2)
+	// Runs must sum to 10
+	assert.Equal(t, 10, totalRunsCreated)
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+// Test_ProductionPlans_GenerateJobs_WithParallelism_NoEligibleCharacters verifies that
+// when parallelism >= 1 but no characters have industry skills, jobs are still created
+// in the queue with a nil CharacterID (unassigned) so they are not silently dropped.
+func Test_ProductionPlans_GenerateJobs_WithParallelism_NoEligibleCharacters(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+	userID := int64(100)
+	charA := int64(201)
+
+	setupParallelismMocks(mocks, userID, 5)
+
+	// Character exists but has no industry skills → BuildCharacterCapacities excludes them.
+	// simulateAssignment gets an empty pool (parallelism capped to 0) so all jobs are
+	// unassigned (characterID=0) but still appended to the assigned slice.
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{charA: "NoSkills"}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{}, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	// The job must still be created with CharacterID=nil.
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.BlueprintTypeID == 787 && e.CharacterID == nil
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, UserID: userID, BlueprintTypeID: 787, Activity: "manufacturing", Runs: 5, Status: "planned",
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 5, "parallelism": 2})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	// unassigned count reflects all runs are unassigned
+	assert.Greater(t, genResult.UnassignedCount, 0)
+	// One entry created with nil CharacterID (bug 1 fix: not silently dropped)
+	assert.Len(t, genResult.Created, 1)
+	assert.Nil(t, genResult.Created[0].CharacterID)
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+// Test_SimulateAssignment_UnassignedJobsStillCreated verifies that when a character
+// has fewer slots than there are jobs at the same depth, the overflow jobs are still
+// created as queue entries with nil CharacterID rather than being silently dropped.
+//
+// Scenario: 1 character with 1 mfg slot, plan with root + 2 child steps (both depth 1).
+// The first child consumes the only slot; the second child has no eligible character.
+// Both children must appear in Created: one with a CharacterID, one with nil.
+// The root step at depth 0 gets the recycled slot and must also appear in Created.
+func Test_SimulateAssignment_UnassignedJobsStillCreated(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+	userID := int64(100)
+	charA := int64(201)
+	rootStepID := int64(10)
+	childStep1ID := int64(20)
+	childStep2ID := int64(30)
+
+	// Plan: root step produces item 587 using materials 111 and 222.
+	// Child step 1 produces material 111; child step 2 produces material 222.
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: userID, Name: "Slot Overflow Plan",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 0, TELevel: 0,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "none", Security: "high", FacilityTax: 1.0,
+				ProductName: "Root Product",
+			},
+			{
+				ID: childStep1ID, PlanID: 1, ParentStepID: &rootStepID,
+				ProductTypeID: 111, BlueprintTypeID: 1001,
+				Activity: "manufacturing", MELevel: 0, TELevel: 0,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "none", Security: "high", FacilityTax: 1.0,
+				ProductName: "Child Product A",
+			},
+			{
+				ID: childStep2ID, PlanID: 1, ParentStepID: &rootStepID,
+				ProductTypeID: 222, BlueprintTypeID: 1002,
+				Activity: "manufacturing", MELevel: 0, TELevel: 0,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "none", Security: "high", FacilityTax: 1.0,
+				ProductName: "Child Product B",
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: userID, Quantity: 1,
+	}, nil)
+
+	// Root blueprint: produces 1 item 587, materials are 111 (qty 1) and 222 (qty 1)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), "manufacturing").Return(
+		&repositories.ManufacturingBlueprintRow{
+			BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Root Product",
+			ProductQuantity: 1, Time: 3600,
+		}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), "manufacturing").Return(
+		[]*repositories.ManufacturingMaterialRow{
+			{BlueprintTypeID: 787, TypeID: 111, TypeName: "Child Product A", Quantity: 1},
+			{BlueprintTypeID: 787, TypeID: 222, TypeName: "Child Product B", Quantity: 1},
+		}, nil)
+
+	// Child blueprint 1: produces 1 item 111
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1001), "manufacturing").Return(
+		&repositories.ManufacturingBlueprintRow{
+			BlueprintTypeID: 1001, ProductTypeID: 111, ProductName: "Child Product A",
+			ProductQuantity: 1, Time: 1800,
+		}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1001), "manufacturing").Return(
+		[]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Child blueprint 2: produces 1 item 222
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1002), "manufacturing").Return(
+		&repositories.ManufacturingBlueprintRow{
+			BlueprintTypeID: 1002, ProductTypeID: 222, ProductName: "Child Product B",
+			ProductQuantity: 1, Time: 1800,
+		}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1002), "manufacturing").Return(
+		[]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Character with Industry=5, no MassProduction → exactly 1 mfg slot (base slot only).
+	// This ensures the second child job at depth 1 has no eligible character.
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{charA: "Alpha"}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{
+		skillVal(charA, 3380, 5), // Industry 5
+		skillVal(charA, 3388, 5), // AdvIndustry 5
+		// No MassProduction → 1 slot total
+	}, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	// Track CharacterID values from Create calls to verify the mix of assigned/unassigned.
+	var capturedCharIDs []*int64
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.BlueprintTypeID == 787 || e.BlueprintTypeID == 1001 || e.BlueprintTypeID == 1002
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, UserID: userID, Activity: "manufacturing", Runs: 1, Status: "planned",
+	}, nil).Run(func(args mock.Arguments) {
+		entry := args.Get(1).(*models.IndustryJobQueueEntry)
+		capturedCharIDs = append(capturedCharIDs, entry.CharacterID)
+	}).Times(3)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 1, "parallelism": 1})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	handlerArgs := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(handlerArgs)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+
+	// All 3 steps must produce a queue entry (Bug 1: unassigned jobs must not be dropped)
+	assert.Len(t, genResult.Created, 3, "all 3 steps must appear in Created even when one is unassigned")
+
+	// Count assigned vs unassigned in the captured Create arguments
+	nilCount := 0
+	nonNilCount := 0
+	for _, charID := range capturedCharIDs {
+		if charID == nil {
+			nilCount++
+		} else {
+			nonNilCount++
+		}
+	}
+
+	// Exactly one child job is unassigned (nil CharacterID)
+	assert.Equal(t, 1, nilCount, "exactly one job should be unassigned (nil CharacterID)")
+	// Two jobs are assigned: the first child + the root (slot recycled from depth 1 to depth 0)
+	assert.Equal(t, 2, nonNilCount, "two jobs should be assigned (Bug 2 fix: slot recycled for root)")
+
+	// UnassignedCount reflects the one unassigned child
+	assert.Greater(t, genResult.UnassignedCount, 0)
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+// Test_SimulateAssignment_SlotRecyclingAcrossDepths verifies that slot availability is
+// reset when the depth level changes so a character's slots are reused across depth levels.
+//
+// Scenario: 1 character with 1 mfg slot, plan with root (depth 0) + 1 child (depth 1).
+// Without recycling: child consumes slot → parent has no slot → parent unassigned (1 Created).
+// With recycling: child consumes slot → depth changes → slot resets → parent gets slot (2 Created).
+func Test_SimulateAssignment_SlotRecyclingAcrossDepths(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+	userID := int64(100)
+	charA := int64(201)
+	rootStepID := int64(10)
+	childStepID := int64(20)
+
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: userID, Name: "Depth Recycle Plan",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 0, TELevel: 0,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "none", Security: "high", FacilityTax: 1.0,
+				ProductName: "Root Product",
+			},
+			{
+				ID: childStepID, PlanID: 1, ParentStepID: &rootStepID,
+				ProductTypeID: 111, BlueprintTypeID: 1001,
+				Activity: "manufacturing", MELevel: 0, TELevel: 0,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "none", Security: "high", FacilityTax: 1.0,
+				ProductName: "Child Product",
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: userID, Quantity: 1,
+	}, nil)
+
+	// Root blueprint: produces 1 item 587, material 111 (qty 1)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), "manufacturing").Return(
+		&repositories.ManufacturingBlueprintRow{
+			BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Root Product",
+			ProductQuantity: 1, Time: 3600,
+		}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), "manufacturing").Return(
+		[]*repositories.ManufacturingMaterialRow{
+			{BlueprintTypeID: 787, TypeID: 111, TypeName: "Child Product", Quantity: 1},
+		}, nil)
+
+	// Child blueprint: produces 1 item 111
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1001), "manufacturing").Return(
+		&repositories.ManufacturingBlueprintRow{
+			BlueprintTypeID: 1001, ProductTypeID: 111, ProductName: "Child Product",
+			ProductQuantity: 1, Time: 1800,
+		}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1001), "manufacturing").Return(
+		[]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Character with exactly 1 mfg slot (Industry >= 1, no MassProduction)
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{charA: "Alpha"}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{
+		skillVal(charA, 3380, 5), // Industry 5
+		skillVal(charA, 3388, 5), // AdvIndustry 5
+		// No MassProduction → 1 slot total
+	}, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	// Both the child (BP 1001) and the root (BP 787) must be created with a non-nil CharacterID.
+	for _, bpID := range []int64{787, 1001} {
+		bpIDCopy := bpID
+		mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+			return e.BlueprintTypeID == bpIDCopy
+		})).Return(&models.IndustryJobQueueEntry{
+			ID:          bpIDCopy,
+			UserID:      userID,
+			Activity:    "manufacturing",
+			Runs:        1,
+			Status:      "planned",
+			CharacterID: &charA,
+		}, nil)
+	}
+
+	body, _ := json.Marshal(map[string]any{"quantity": 1, "parallelism": 1})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	handlerArgs := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(handlerArgs)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+
+	// Both root and child must be created (Bug 2 fix: slot recycled across depth levels)
+	assert.Len(t, genResult.Created, 2, "both root and child steps must produce a queue entry with slot recycling")
+
+	// No unassigned jobs: the slot was recycled between depth levels
+	assert.Equal(t, 0, genResult.UnassignedCount, "no jobs should be unassigned when slots are recycled")
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
 }

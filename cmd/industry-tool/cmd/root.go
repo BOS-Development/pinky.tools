@@ -162,13 +162,13 @@ var rootCmd = &cobra.Command{
 			controllers.NewDiscordNotifications(router, discordNotificationsRepository, discordClient, notificationsUpdater)
 		}
 		controllers.NewPi(router, piPlanetsRepository, piTaxConfigRepository, sdeDataRepository, charactersRepository, systemRepository, itemTypesRepository, marketPricesRepository, piLaunchpadLabelsRepository, stockpileMarkersRepository)
-		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
+		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, characterSkillsRepository)
 		userStationsRepository := repositories.NewUserStations(db)
 		transportProfilesRepo := repositories.NewTransportProfiles(db)
 		jfRoutesRepo := repositories.NewJFRoutes(db)
 		transportJobsRepo := repositories.NewTransportJobs(db)
 		triggerConfigRepo := repositories.NewTransportTriggerConfig(db)
-		controllers.NewProductionPlans(router, productionPlansRepository, sdeDataRepository, jobQueueRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, playerCorporationRepostiory, userStationsRepository, planRunsRepository, transportJobsRepo, transportProfilesRepo, jfRoutesRepo, esiClient)
+		controllers.NewProductionPlans(router, productionPlansRepository, sdeDataRepository, jobQueueRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, playerCorporationRepostiory, userStationsRepository, planRunsRepository, transportJobsRepo, transportProfilesRepo, jfRoutesRepo, esiClient, characterSkillsRepository)
 		controllers.NewUserStations(router, userStationsRepository)
 
 		controllers.NewTransportation(router, transportProfilesRepo, jfRoutesRepo, transportJobsRepo, triggerConfigRepo, jobQueueRepository, marketPricesRepository, systemRepository, esiClient)

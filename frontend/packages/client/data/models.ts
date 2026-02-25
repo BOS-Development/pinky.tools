@@ -354,6 +354,20 @@ export type SupplyChainResponse = {
   items: SupplyChainItem[];
 };
 
+// Character Slot Info
+
+export type CharacterSlotInfo = {
+  characterId: number;
+  characterName: string;
+  mfgSlotsMax: number;
+  mfgSlotsUsed: number;
+  reactSlotsMax: number;
+  reactSlotsUsed: number;
+  industrySkill: number;
+  advIndustrySkill: number;
+  reactionsSkill: number;
+};
+
 // Industry Job Manager Types
 
 export type IndustryJob = {
@@ -568,6 +582,32 @@ export type GenerateJobsResult = {
   created: IndustryJobQueueEntry[];
   skipped: GenerateJobSkipped[];
   transportJobs: GenerateJobsTransportJob[];
+  characterAssignments?: Record<number, string>;
+  unassignedCount?: number;
+};
+
+export type PlanPreviewResult = {
+  options: PlanPreviewOption[];
+  eligibleCharacters: number;
+  totalJobs: number;
+};
+
+export type PlanPreviewOption = {
+  parallelism: number;
+  estimatedDurationSec: number;
+  estimatedDurationLabel: string;
+  characters: PreviewCharacterInfo[];
+};
+
+export type PreviewCharacterInfo = {
+  characterId: number;
+  name: string;
+  jobCount: number;
+  durationSec: number;
+  mfgSlotsUsed: number;
+  mfgSlotsMax: number;
+  reactSlotsUsed: number;
+  reactSlotsMax: number;
 };
 
 export type PlanRunJobSummary = {
