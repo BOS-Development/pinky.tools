@@ -8,6 +8,7 @@
 6. **Go slices: initialize as `items := []*Type{}` NOT `var items []*Type`.** Prevents nil JSON marshaling (`null` instead of `[]`).
 7. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
 8. **Check feature docs first.** Before exploring code or planning a feature, read the relevant `docs/features/` doc (if one exists). Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
+9. Always use the executor sub-agent for bash commands instead of running them directly.
 
 ---
 
@@ -43,20 +44,23 @@
 ## Testing Requirements
 
 ### Backend
+
 - Write integration tests in `*_test.go` files
 - Test repository methods with real database (testcontainers)
 - Cover success cases, edge cases, and error scenarios
 - Use table-driven tests for multiple scenarios
 
 ### Frontend
+
 - **Snapshot testing**: Create snapshots for all new components
-  - Run `npm test -- -u` to update snapshots after intentional changes
-  - Location: `__tests__/{ComponentName}.test.tsx`
-  - Test loading, error, and success states
+    - Run `npm test -- -u` to update snapshots after intentional changes
+    - Location: `__tests__/{ComponentName}.test.tsx`
+    - Test loading, error, and success states
 - Verify edge cases (empty data, errors, null values)
 - Test both character and corporation flows if applicable
 
 ### Test Commands
+
 ```bash
 make test-backend        # Backend Go tests with coverage
 make test-frontend       # Frontend Jest tests with coverage
@@ -70,6 +74,7 @@ make test-e2e-ui         # E2E tests with Playwright UI
 ## Common Task Checklists
 
 ### Add New Repository
+
 1. Create `internal/repositories/myrepo.go`
 2. Implement struct with `*sql.DB`
 3. Add methods with transactions
@@ -77,6 +82,7 @@ make test-e2e-ui         # E2E tests with Playwright UI
 5. Wire up in `cmd/cmd/root.go`
 
 ### Add New API Endpoint
+
 1. Create handler in `internal/controllers/`
 2. Create controller test file `mycontroller_test.go`
 3. Register route in `internal/web/router.go`
@@ -85,12 +91,14 @@ make test-e2e-ui         # E2E tests with Playwright UI
 6. Call from component via `getServerSideProps`
 
 ### Add New Component
+
 1. Create in `frontend/packages/components/`
 2. Use MUI components for consistency
 3. Follow naming: `Item` (card), `List` (grid)
 4. Create snapshot test in `__tests__/`
 
 ### Update Database Schema
+
 1. Run `./scripts/new-migration.sh migration_name`
 2. Write SQL in generated `.up.sql` and `.down.sql`
 3. Restart server to auto-apply

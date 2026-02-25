@@ -61,7 +61,7 @@ e2e/auth-state.json
 e2e/node_modules/
 
 # Claude
-.claude/
+settings.local.json
 
 # go binaries in case they sneak in
 industry-tool
