@@ -9,6 +9,7 @@
 7. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
 8. **Check feature docs first.** Before exploring code or planning a feature, read the relevant `docs/features/` doc (if one exists). Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
 9. Always use the executor sub-agent for bash commands instead of running them directly.
+10. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both agents.
 
 ---
 
@@ -21,45 +22,7 @@
 
 ---
 
-## Backend (Go) Rules
-
-- Use transactions with deferred `tx.Rollback()` for multi-statement operations
-- Wrap errors with `github.com/pkg/errors` for context
-- Follow `repository → controller → router` pattern
-- Use `./scripts/new-migration.sh <name>` for timestamped migration files (generates both `.up.sql` and `.down.sql`)
-- Migration format: `{YYYYMMDDHHMMSS}_{name}.up.sql` — lowercase SQL keywords, tab indentation
-
----
-
-## Frontend (React/Next.js) Rules
-
-- **MUI SSR**: ThemeRegistry must use Emotion cache (see `ThemeRegistry.tsx`)
-- **Formatting**: Use utilities from `packages/utils/formatting.ts` (`formatISK`, `formatNumber`, `formatCompact`)
-- **Authentication**: Check session status before rendering protected content
-- **API Routes**: Proxy to backend, don't implement business logic
-- Read existing components before creating similar ones
-
----
-
-## Testing Requirements
-
-### Backend
-
-- Write integration tests in `*_test.go` files
-- Test repository methods with real database (testcontainers)
-- Cover success cases, edge cases, and error scenarios
-- Use table-driven tests for multiple scenarios
-
-### Frontend
-
-- **Snapshot testing**: Create snapshots for all new components
-    - Run `npm test -- -u` to update snapshots after intentional changes
-    - Location: `__tests__/{ComponentName}.test.tsx`
-    - Test loading, error, and success states
-- Verify edge cases (empty data, errors, null values)
-- Test both character and corporation flows if applicable
-
-### Test Commands
+## Test Commands
 
 ```bash
 make test-backend        # Backend Go tests with coverage
@@ -73,14 +36,6 @@ make test-e2e-ui         # E2E tests with Playwright UI
 
 ## Common Task Checklists
 
-### Add New Repository
-
-1. Create `internal/repositories/myrepo.go`
-2. Implement struct with `*sql.DB`
-3. Add methods with transactions
-4. Create test file `myrepo_test.go`
-5. Wire up in `cmd/cmd/root.go`
-
 ### Add New API Endpoint
 
 1. Create handler in `internal/controllers/`
@@ -89,13 +44,6 @@ make test-e2e-ui         # E2E tests with Playwright UI
 4. Add client method in `frontend/packages/client/api.ts`
 5. Create frontend API route in `frontend/pages/api/`
 6. Call from component via `getServerSideProps`
-
-### Add New Component
-
-1. Create in `frontend/packages/components/`
-2. Use MUI components for consistency
-3. Follow naming: `Item` (card), `List` (grid)
-4. Create snapshot test in `__tests__/`
 
 ### Update Database Schema
 
@@ -106,43 +54,22 @@ make test-e2e-ui         # E2E tests with Playwright UI
 
 ---
 
-## UI/UX Standards
-
-- Dark theme: Background `#0a0e1a`, Cards `#12151f`, Primary `#3b82f6`
-- Color coding: Green `#10b981` for revenue/success, Red `#ef4444` for costs/errors
-- Icons: Use MUI icons from `@mui/icons-material`
-- Tables: Dark header (`#0f1219`), alternating row colors, right-align numbers
-- Loading states: Use `<Loading />` component, not custom spinners
-- Empty states: Centered message in table cell with `colSpan`
-
----
-
-## File Organization
-
-- Backend: `internal/repositories/` → `internal/controllers/` → `cmd/cmd/root.go`
-- Frontend components: `packages/components/{feature}/{ComponentName}.tsx`
-- API routes: `pages/api/{feature}/{action}.ts`
-- Types/interfaces: Define in component file or `internal/models/models.go`
-- Feature docs: `docs/features/`
-
----
-
-## Common Pitfalls
-
-1. **Go nil slices → JSON null**: Always initialize `items := []*Type{}`
-2. **MUI FOUC**: Ensure ThemeRegistry has Emotion cache setup
-3. **Missing auth headers**: Backend needs `BACKEND-KEY` and `USER-ID`
-4. **Incomplete transactions**: Always defer `tx.Rollback()` before operations
-5. **Hardcoded IDs**: Use session providerAccountId, not hardcoded values
-
----
-
 ## Planning Complex Features
 
 - For multi-file changes or architectural decisions, use plan mode first
 - Present options to the user when multiple approaches are valid
 - Break down large features into phases with clear verification steps
 - Always check for existing feature plans in `docs/features/` before starting work
+
+---
+
+## Agent Improvement
+
+After completing a task (all agents done, tests passing), review agent output for improvement opportunities:
+- If an agent was missing context, add it to `.claude/agents/{agent-name}.md`
+- If an agent used workarounds, add the correct pattern to its conventions
+- If a convention was unclear, make it more explicit with examples
+- If the agent discovered a new project pattern, document it in the agent instructions
 
 ---
 
