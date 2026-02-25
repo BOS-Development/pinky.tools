@@ -22,12 +22,15 @@ func (r *JobQueue) Create(ctx context.Context, entry *models.IndustryJobQueueEnt
 			(user_id, character_id, blueprint_type_id, activity, runs,
 			 me_level, te_level, system_id, facility_tax, status,
 			 product_type_id, estimated_cost, estimated_duration, notes,
-			 plan_run_id, plan_step_id, transport_job_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'planned', $10, $11, $12, $13, $14, $15, $16)
+			 plan_run_id, plan_step_id, transport_job_id,
+			 sort_order, station_name, input_location, output_location)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'planned', $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
 		RETURNING id, user_id, character_id, blueprint_type_id, activity, runs,
 		          me_level, te_level, system_id, facility_tax, status, esi_job_id,
 		          product_type_id, estimated_cost, estimated_duration, notes,
-		          plan_run_id, plan_step_id, transport_job_id, created_at, updated_at
+		          plan_run_id, plan_step_id, transport_job_id,
+		          sort_order, station_name, input_location, output_location,
+		          created_at, updated_at
 	`
 
 	var created models.IndustryJobQueueEntry
@@ -48,6 +51,10 @@ func (r *JobQueue) Create(ctx context.Context, entry *models.IndustryJobQueueEnt
 		entry.PlanRunID,
 		entry.PlanStepID,
 		entry.TransportJobID,
+		entry.SortOrder,
+		entry.StationName,
+		entry.InputLocation,
+		entry.OutputLocation,
 	).Scan(
 		&created.ID,
 		&created.UserID,
@@ -68,6 +75,10 @@ func (r *JobQueue) Create(ctx context.Context, entry *models.IndustryJobQueueEnt
 		&created.PlanRunID,
 		&created.PlanStepID,
 		&created.TransportJobID,
+		&created.SortOrder,
+		&created.StationName,
+		&created.InputLocation,
+		&created.OutputLocation,
 		&created.CreatedAt,
 		&created.UpdatedAt,
 	)
@@ -83,13 +94,27 @@ func (r *JobQueue) GetByUser(ctx context.Context, userID int64) ([]*models.Indus
 		SELECT q.id, q.user_id, q.character_id, q.blueprint_type_id, q.activity, q.runs,
 		       q.me_level, q.te_level, q.system_id, q.facility_tax, q.status, q.esi_job_id,
 		       q.product_type_id, q.estimated_cost, q.estimated_duration, q.notes,
-		       q.plan_run_id, q.plan_step_id, q.transport_job_id, q.created_at, q.updated_at,
+		       q.plan_run_id, q.plan_step_id, q.transport_job_id,
+		       q.sort_order, q.station_name, q.input_location, q.output_location,
+		       q.created_at, q.updated_at,
 		       COALESCE(bp.type_name, ''),
 		       COALESCE(prod.type_name, ''),
 		       COALESCE(c.name, installer.name, ''),
 		       COALESCE(ss.name, ''),
 		       j.end_date,
-		       COALESCE(j.source, '')
+		       COALESCE(j.source, ''),
+		       COALESCE(origin_st.name, ''),
+		       COALESCE(dest_st.name, ''),
+		       COALESCE(tj.transport_method, ''),
+		       COALESCE(tj.fulfillment_type, ''),
+		       COALESCE(tj.total_volume_m3, 0),
+		       COALESCE(tj.jumps, 0),
+		       COALESCE((
+		           SELECT string_agg(ait.type_name || ' x' || tji.quantity::text, ', ' ORDER BY ait.type_name)
+		           FROM transport_job_items tji
+		           JOIN asset_item_types ait ON ait.type_id = tji.type_id
+		           WHERE tji.transport_job_id = q.transport_job_id
+		       ), '')
 		FROM industry_job_queue q
 		LEFT JOIN asset_item_types bp ON bp.type_id = q.blueprint_type_id
 		LEFT JOIN asset_item_types prod ON prod.type_id = q.product_type_id
@@ -97,8 +122,12 @@ func (r *JobQueue) GetByUser(ctx context.Context, userID int64) ([]*models.Indus
 		LEFT JOIN solar_systems ss ON ss.solar_system_id = q.system_id
 		LEFT JOIN esi_industry_jobs j ON j.job_id = q.esi_job_id
 		LEFT JOIN characters installer ON installer.id = j.installer_id
+		LEFT JOIN transport_jobs tj ON tj.id = q.transport_job_id
+		LEFT JOIN stations origin_st ON origin_st.station_id = tj.origin_station_id
+		LEFT JOIN stations dest_st ON dest_st.station_id = tj.destination_station_id
 		WHERE q.user_id = $1
-		ORDER BY q.created_at ASC
+		  AND q.status NOT IN ('cancelled', 'completed')
+		ORDER BY q.sort_order DESC, q.created_at ASC
 	`
 
 	return r.queryEntries(ctx, query, userID)
@@ -110,14 +139,18 @@ func (r *JobQueue) GetPlannedJobs(ctx context.Context, userID int64) ([]*models.
 		SELECT q.id, q.user_id, q.character_id, q.blueprint_type_id, q.activity, q.runs,
 		       q.me_level, q.te_level, q.system_id, q.facility_tax, q.status, q.esi_job_id,
 		       q.product_type_id, q.estimated_cost, q.estimated_duration, q.notes,
-		       q.plan_run_id, q.plan_step_id, q.transport_job_id, q.created_at, q.updated_at,
+		       q.plan_run_id, q.plan_step_id, q.transport_job_id,
+		       q.sort_order, q.station_name, q.input_location, q.output_location,
+		       q.created_at, q.updated_at,
 		       '', '', '', '',
 		       CAST(NULL AS timestamptz),
+		       '',
+		       '', '', '', '', 0, 0,
 		       ''
 		FROM industry_job_queue q
 		WHERE q.user_id = $1
 		  AND q.status = 'planned'
-		ORDER BY q.created_at ASC
+		ORDER BY q.sort_order DESC, q.created_at ASC
 	`
 
 	return r.queryEntries(ctx, query, userID)
@@ -143,7 +176,9 @@ func (r *JobQueue) Update(ctx context.Context, id, userID int64, entry *models.I
 		RETURNING id, user_id, character_id, blueprint_type_id, activity, runs,
 		          me_level, te_level, system_id, facility_tax, status, esi_job_id,
 		          product_type_id, estimated_cost, estimated_duration, notes,
-		          plan_run_id, plan_step_id, transport_job_id, created_at, updated_at
+		          plan_run_id, plan_step_id, transport_job_id,
+		          sort_order, station_name, input_location, output_location,
+		          created_at, updated_at
 	`
 
 	var updated models.IndustryJobQueueEntry
@@ -182,6 +217,10 @@ func (r *JobQueue) Update(ctx context.Context, id, userID int64, entry *models.I
 		&updated.PlanRunID,
 		&updated.PlanStepID,
 		&updated.TransportJobID,
+		&updated.SortOrder,
+		&updated.StationName,
+		&updated.InputLocation,
+		&updated.OutputLocation,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 	)
@@ -248,15 +287,19 @@ func (r *JobQueue) GetLinkedActiveJobs(ctx context.Context, userID int64) ([]*mo
 		SELECT q.id, q.user_id, q.character_id, q.blueprint_type_id, q.activity, q.runs,
 		       q.me_level, q.te_level, q.system_id, q.facility_tax, q.status, q.esi_job_id,
 		       q.product_type_id, q.estimated_cost, q.estimated_duration, q.notes,
-		       q.plan_run_id, q.plan_step_id, q.transport_job_id, q.created_at, q.updated_at,
+		       q.plan_run_id, q.plan_step_id, q.transport_job_id,
+		       q.sort_order, q.station_name, q.input_location, q.output_location,
+		       q.created_at, q.updated_at,
 		       '', '', '', '',
 		       CAST(NULL AS timestamptz),
+		       '',
+		       '', '', '', '', 0, 0,
 		       ''
 		FROM industry_job_queue q
 		WHERE q.user_id = $1
 		  AND q.status = 'active'
 		  AND q.esi_job_id IS NOT NULL
-		ORDER BY q.created_at ASC
+		ORDER BY q.sort_order DESC, q.created_at ASC
 	`
 
 	return r.queryEntries(ctx, query, userID)
@@ -292,14 +335,26 @@ func (r *JobQueue) queryEntries(ctx context.Context, query string, args ...inter
 			&entry.PlanRunID,
 			&entry.PlanStepID,
 			&entry.TransportJobID,
+			&entry.SortOrder,
+			&entry.StationName,
+			&entry.InputLocation,
+			&entry.OutputLocation,
 			&entry.CreatedAt,
 			&entry.UpdatedAt,
+			// Enriched fields from JOINs
 			&entry.BlueprintName,
 			&entry.ProductName,
 			&entry.CharacterName,
 			&entry.SystemName,
 			&entry.EsiJobEndDate,
 			&entry.EsiJobSource,
+			&entry.TransportOriginName,
+			&entry.TransportDestName,
+			&entry.TransportMethod,
+			&entry.TransportFulfillment,
+			&entry.TransportVolumeM3,
+			&entry.TransportJumps,
+			&entry.TransportItemsSummary,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan job queue entry")

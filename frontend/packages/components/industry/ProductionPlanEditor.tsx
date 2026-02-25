@@ -45,8 +45,10 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import Tooltip from "@mui/material/Tooltip";
 import BatchConfigureTab from "./BatchConfigureTab";
+import { formatNumber, formatCompact } from "@industry-tool/utils/formatting";
 
 type Props = {
   planId: number;
@@ -78,6 +80,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
   const [tab, setTab] = useState(0);
+  const [transportProfiles, setTransportProfiles] = useState<{ id: number; name: string; transportMethod: string }[]>([]);
 
   const initialLoadRef = useRef(true);
 
@@ -112,6 +115,21 @@ export default function ProductionPlanEditor({ planId }: Props) {
   useEffect(() => {
     fetchPlan();
   }, [fetchPlan]);
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const res = await fetch("/api/transport/profiles");
+        if (res.ok) {
+          const data = await res.json();
+          setTransportProfiles(data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch transport profiles:", err);
+      }
+    };
+    fetchProfiles();
+  }, []);
 
   const fetchMaterials = async (stepId: number) => {
     setLoadingMaterials((prev) => new Set([...prev, stepId]));
@@ -274,6 +292,32 @@ export default function ProductionPlanEditor({ planId }: Props) {
       }
     } catch (err) {
       console.error("Failed to update plan name:", err);
+    }
+  };
+
+  const handleSaveTransportSettings = async (settings: {
+    transport_fulfillment?: string;
+    transport_method?: string;
+    transport_profile_id?: number;
+    courier_rate_per_m3: number;
+    courier_collateral_rate: number;
+  }) => {
+    try {
+      const res = await fetch(`/api/industry/plans/${planId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: plan?.name,
+          ...settings,
+        }),
+      });
+      if (res.ok) {
+        fetchPlan();
+        setSnackbar({ open: true, message: "Transport settings saved", severity: "success" });
+      }
+    } catch (err) {
+      console.error("Failed to save transport settings:", err);
+      setSnackbar({ open: true, message: "Failed to save transport settings", severity: "error" });
     }
   };
 
@@ -659,6 +703,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
         >
           <Tab label="Step Tree" />
           <Tab label="Batch Configure" />
+          <Tab label="Transport" icon={<LocalShippingIcon sx={{ fontSize: 16 }} />} iconPosition="start" />
         </Tabs>
       </Box>
 
@@ -708,6 +753,14 @@ export default function ProductionPlanEditor({ planId }: Props) {
         <BatchConfigureTab plan={plan} planId={planId} onUpdate={fetchPlan} />
       )}
 
+      {tab === 2 && (
+        <TransportSettingsTab
+          plan={plan}
+          profiles={transportProfiles}
+          onSave={handleSaveTransportSettings}
+        />
+      )}
+
       {/* Edit Step Dialog */}
       {editStepId && (
         <EditStepDialog
@@ -752,6 +805,24 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     : ""}
                 </Typography>
               ))}
+              {generateResult.transportJobs?.length > 0 && (
+                <>
+                  <Typography sx={{ color: "#3b82f6", mt: 2, mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <LocalShippingIcon fontSize="small" />
+                    Created {generateResult.transportJobs.length} transport job(s)
+                  </Typography>
+                  {generateResult.transportJobs.map((tj) => (
+                    <Typography
+                      key={tj.id}
+                      sx={{ color: "#cbd5e1", fontSize: 13, ml: 2 }}
+                    >
+                      {tj.originStationName} &rarr; {tj.destinationStationName}
+                      {" "}&mdash; {tj.items.length} item type(s), {formatNumber(tj.totalVolumeM3)} m&sup3;
+                      {tj.estimatedCost ? ` (${formatISK(tj.estimatedCost)})` : ""}
+                    </Typography>
+                  ))}
+                </>
+              )}
               {generateResult.skipped.length > 0 && (
                 <>
                   <Typography sx={{ color: "#f59e0b", mt: 2, mb: 1 }}>
@@ -1509,5 +1580,147 @@ function EditStepDialog({
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+function TransportSettingsTab({
+  plan,
+  profiles,
+  onSave,
+}: {
+  plan: ProductionPlan;
+  profiles: { id: number; name: string; transportMethod: string }[];
+  onSave: (settings: {
+    transport_fulfillment?: string;
+    transport_method?: string;
+    transport_profile_id?: number;
+    courier_rate_per_m3: number;
+    courier_collateral_rate: number;
+  }) => void;
+}) {
+  const [fulfillment, setFulfillment] = useState<string>(plan.transportFulfillment || "");
+  const [method, setMethod] = useState<string>(plan.transportMethod || "");
+  const [profileId, setProfileId] = useState<number | "">(plan.transportProfileId || "");
+  const [courierRate, setCourierRate] = useState(plan.courierRatePerM3 || 0);
+  const [collateralRate, setCollateralRate] = useState(plan.courierCollateralRate || 0);
+
+  const filteredProfiles = profiles.filter(
+    (p) => !method || p.transportMethod === method
+  );
+
+  const handleSave = () => {
+    onSave({
+      transport_fulfillment: fulfillment || undefined,
+      transport_method: fulfillment === "self_haul" ? method || undefined : undefined,
+      transport_profile_id: fulfillment === "self_haul" && profileId ? Number(profileId) : undefined,
+      courier_rate_per_m3: courierRate,
+      courier_collateral_rate: collateralRate,
+    });
+  };
+
+  return (
+    <Paper sx={{ backgroundColor: "#12151f", p: 3 }}>
+      <Typography variant="h6" sx={{ color: "#e2e8f0", mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
+        <LocalShippingIcon />
+        Transport Settings
+      </Typography>
+      <Typography sx={{ color: "#64748b", fontSize: 13, mb: 3 }}>
+        Configure how items should be transported between stations when generating jobs.
+        Leave fulfillment type as &ldquo;None&rdquo; to skip transport job generation.
+      </Typography>
+
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, maxWidth: 500 }}>
+        <FormControl fullWidth size="small">
+          <InputLabel sx={{ color: "#94a3b8" }}>Fulfillment Type</InputLabel>
+          <Select
+            value={fulfillment}
+            label="Fulfillment Type"
+            onChange={(e) => {
+              setFulfillment(e.target.value);
+              if (e.target.value !== "self_haul") {
+                setMethod("");
+                setProfileId("");
+              }
+            }}
+          >
+            <MenuItem value="">None</MenuItem>
+            <MenuItem value="self_haul">Self Haul</MenuItem>
+            <MenuItem value="courier_contract">Courier Contract</MenuItem>
+            <MenuItem value="contact_haul">Contact Haul</MenuItem>
+          </Select>
+        </FormControl>
+
+        {fulfillment === "self_haul" && (
+          <>
+            <FormControl fullWidth size="small">
+              <InputLabel sx={{ color: "#94a3b8" }}>Transport Method</InputLabel>
+              <Select
+                value={method}
+                label="Transport Method"
+                onChange={(e) => {
+                  setMethod(e.target.value);
+                  setProfileId("");
+                }}
+              >
+                <MenuItem value="">Select method...</MenuItem>
+                <MenuItem value="freighter">Freighter</MenuItem>
+                <MenuItem value="jump_freighter">Jump Freighter</MenuItem>
+                <MenuItem value="dst">DST</MenuItem>
+                <MenuItem value="blockade_runner">Blockade Runner</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl fullWidth size="small">
+              <InputLabel sx={{ color: "#94a3b8" }}>Transport Profile</InputLabel>
+              <Select
+                value={profileId}
+                label="Transport Profile"
+                onChange={(e) => setProfileId(e.target.value as number)}
+              >
+                <MenuItem value="">Select profile...</MenuItem>
+                {filteredProfiles.map((p) => (
+                  <MenuItem key={p.id} value={p.id}>
+                    {p.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </>
+        )}
+
+        {(fulfillment === "courier_contract" || fulfillment === "contact_haul") && (
+          <>
+            <TextField
+              label="Rate per m³ (ISK)"
+              type="number"
+              size="small"
+              value={courierRate}
+              onChange={(e) => setCourierRate(parseFloat(e.target.value) || 0)}
+              inputProps={{ min: 0, step: 0.01 }}
+            />
+            <TextField
+              label="Collateral Rate (%)"
+              type="number"
+              size="small"
+              value={collateralRate * 100}
+              onChange={(e) => setCollateralRate((parseFloat(e.target.value) || 0) / 100)}
+              inputProps={{ min: 0, step: 0.1 }}
+            />
+          </>
+        )}
+
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          sx={{
+            backgroundColor: "#3b82f6",
+            "&:hover": { backgroundColor: "#2563eb" },
+            alignSelf: "flex-start",
+          }}
+        >
+          Save Transport Settings
+        </Button>
+      </Box>
+    </Paper>
   );
 }

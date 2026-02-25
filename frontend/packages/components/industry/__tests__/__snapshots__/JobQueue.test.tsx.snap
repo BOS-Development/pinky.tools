@@ -76,6 +76,24 @@ exports[`JobQueue Component should match snapshot with empty queue 1`] = `
             class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
             scope="col"
           >
+            Station
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Input
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Output
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
             Character
           </th>
           <th
@@ -88,7 +106,7 @@ exports[`JobQueue Component should match snapshot with empty queue 1`] = `
             class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
             scope="col"
           >
-            Est. Duration
+            Duration
           </th>
           <th
             class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
@@ -130,7 +148,7 @@ exports[`JobQueue Component should match snapshot with empty queue 1`] = `
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1btjunt-MuiTableCell-root"
-            colspan="13"
+            colspan="16"
           >
             No jobs in queue
           </td>
@@ -189,6 +207,24 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
             scope="col"
           >
+            Station
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Input
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Output
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
             Character
           </th>
           <th
@@ -201,7 +237,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
             scope="col"
           >
-            Est. Duration
+            Duration
           </th>
           <th
             class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
@@ -286,6 +322,33 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               10
               /
               20
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              Jita IV - Moon 4 - Caldari Navy Assembly Plant
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              CharOwner &gt; Big Container
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              CorpOwner &gt; Hangar 1
             </p>
           </td>
           <td
@@ -438,6 +501,33 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             </p>
           </td>
           <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
           >
             <p
@@ -492,6 +582,294 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
                 class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
               >
                 active
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-1vbssuc-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          >
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
+              tabindex="0"
+              title="Cancel job"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                data-testid="CancelIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"
+                />
+              </svg>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`JobQueue Component should match snapshot with transport entry 1`] = `
+<div>
+  <div
+    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+  >
+    <table
+      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    >
+      <thead
+        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      >
+        <tr
+          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        >
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Blueprint
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Product
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Activity
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            Runs
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            ME/TE
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Station
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Input
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Output
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Character
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
+            scope="col"
+          >
+            Est. Cost
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Duration
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Finishes
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
+            scope="col"
+          >
+            Source
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
+            scope="col"
+          >
+            Notes
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
+            scope="col"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody
+        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+      >
+        <tr
+          class="MuiTableRow-root css-ky2cy3-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
+            >
+              Jita IV - Moon 4 - Caldari Navy Assembly Plant → Amarr VIII - Oris - Emperor Family Academy
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              aria-label="Hydrogen Fuel Block x500, Oxygen Fuel Block x300"
+              class="MuiTypography-root MuiTypography-body2 css-1se5ddy-MuiTypography-root"
+              data-mui-internal-clone-element="true"
+            >
+              Hydrogen Fuel Block x500, Oxygen Fuel Block x300
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              Jump Freighter
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              12 jumps
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              125,000 m³
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-595iqm-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-595iqm-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-595iqm-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            >
+              Self Haul
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+            >
+              12.50M ISK
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-595iqm-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-595iqm-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-595iqm-MuiTypography-root"
+            >
+              -
+            </p>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <div
+              class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorInfo MuiChip-outlinedInfo css-mr7bkj-MuiChip-root"
+            >
+              <span
+                class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+              >
+                planned
               </span>
             </div>
           </td>

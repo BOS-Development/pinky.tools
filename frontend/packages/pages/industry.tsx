@@ -97,7 +97,7 @@ export default function Industry() {
   return (
     <>
       <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+      <Container maxWidth={false} sx={{ mt: 2, mb: 4 }}>
         <Typography variant="h5" sx={{ color: "#e2e8f0", mb: 2, fontWeight: 600 }}>
           Industry Jobs
         </Typography>

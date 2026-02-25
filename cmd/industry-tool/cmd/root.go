@@ -164,13 +164,13 @@ var rootCmd = &cobra.Command{
 		controllers.NewPi(router, piPlanetsRepository, piTaxConfigRepository, sdeDataRepository, charactersRepository, systemRepository, itemTypesRepository, marketPricesRepository, piLaunchpadLabelsRepository, stockpileMarkersRepository)
 		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository)
 		userStationsRepository := repositories.NewUserStations(db)
-		controllers.NewProductionPlans(router, productionPlansRepository, sdeDataRepository, jobQueueRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, playerCorporationRepostiory, userStationsRepository, planRunsRepository)
-		controllers.NewUserStations(router, userStationsRepository)
-
 		transportProfilesRepo := repositories.NewTransportProfiles(db)
 		jfRoutesRepo := repositories.NewJFRoutes(db)
 		transportJobsRepo := repositories.NewTransportJobs(db)
 		triggerConfigRepo := repositories.NewTransportTriggerConfig(db)
+		controllers.NewProductionPlans(router, productionPlansRepository, sdeDataRepository, jobQueueRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, playerCorporationRepostiory, userStationsRepository, planRunsRepository, transportJobsRepo, transportProfilesRepo, jfRoutesRepo, esiClient)
+		controllers.NewUserStations(router, userStationsRepository)
+
 		controllers.NewTransportation(router, transportProfilesRepo, jfRoutesRepo, transportJobsRepo, triggerConfigRepo, jobQueueRepository, marketPricesRepository, systemRepository, esiClient)
 
 		group.Go(router.Run(ctx))

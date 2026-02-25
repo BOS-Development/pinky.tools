@@ -52,7 +52,7 @@ generate:
 	go generate ./internal/...
 
 # Test targets
-test-backend:
+test-backend: test-clean
 	@echo "Running backend tests with coverage..."
 	@mkdir -p artifacts/coverage/backend
 	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm backend-test \
@@ -66,7 +66,7 @@ test-backend-sde-integration:
 		sh -c "SDE_INTEGRATION_TEST=1 go test -v -run Test_SdeClient_Integration -timeout 300s ./internal/client/"
 	@echo "✓ SDE integration test passed"
 
-test-frontend:
+test-frontend: test-clean
 	@echo "Running frontend tests with coverage..."
 	@mkdir -p artifacts/coverage/frontend
 	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm frontend-test \

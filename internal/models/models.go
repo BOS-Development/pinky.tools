@@ -826,15 +826,27 @@ type IndustryJobQueueEntry struct {
 	PlanRunID         *int64     `json:"planRunId,omitempty"`
 	PlanStepID        *int64     `json:"planStepId,omitempty"`
 	TransportJobID    *int64     `json:"transportJobId,omitempty"`
+	SortOrder         int        `json:"sortOrder"`
+	StationName       string     `json:"stationName,omitempty"`
+	InputLocation     string     `json:"inputLocation,omitempty"`
+	OutputLocation    string     `json:"outputLocation,omitempty"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
-	// Enriched fields
-	BlueprintName string     `json:"blueprintName,omitempty"`
-	ProductName   string     `json:"productName,omitempty"`
-	CharacterName string     `json:"characterName,omitempty"`
-	SystemName    string     `json:"systemName,omitempty"`
-	EsiJobEndDate *time.Time `json:"esiJobEndDate,omitempty"`
-	EsiJobSource  string     `json:"esiJobSource,omitempty"`
+	// Enriched fields (joined from other tables)
+	BlueprintName        string     `json:"blueprintName,omitempty"`
+	ProductName          string     `json:"productName,omitempty"`
+	CharacterName        string     `json:"characterName,omitempty"`
+	SystemName           string     `json:"systemName,omitempty"`
+	EsiJobEndDate        *time.Time `json:"esiJobEndDate,omitempty"`
+	EsiJobSource         string     `json:"esiJobSource,omitempty"`
+	// Transport enriched fields
+	TransportOriginName   string  `json:"transportOriginName,omitempty"`
+	TransportDestName     string  `json:"transportDestName,omitempty"`
+	TransportMethod       string  `json:"transportMethod,omitempty"`
+	TransportFulfillment  string  `json:"transportFulfillment,omitempty"`
+	TransportVolumeM3     float64 `json:"transportVolumeM3,omitempty"`
+	TransportJumps        int     `json:"transportJumps,omitempty"`
+	TransportItemsSummary string  `json:"transportItemsSummary,omitempty"`
 }
 
 type ManufacturingCalcResult struct {
@@ -875,6 +887,11 @@ type ProductionPlan struct {
 	Notes                         *string   `json:"notes"`
 	DefaultManufacturingStationID *int64    `json:"defaultManufacturingStationId"`
 	DefaultReactionStationID      *int64    `json:"defaultReactionStationId"`
+	TransportFulfillment          *string   `json:"transportFulfillment"`
+	TransportMethod               *string   `json:"transportMethod"`
+	TransportProfileID            *int64    `json:"transportProfileId"`
+	CourierRatePerM3              float64   `json:"courierRatePerM3"`
+	CourierCollateralRate         float64   `json:"courierCollateralRate"`
 	CreatedAt                     time.Time `json:"createdAt"`
 	UpdatedAt                     time.Time `json:"updatedAt"`
 	// Enriched
@@ -940,9 +957,10 @@ type PlanMaterial struct {
 }
 
 type GenerateJobsResult struct {
-	Run     *ProductionPlanRun       `json:"run"`
-	Created []*IndustryJobQueueEntry `json:"created"`
-	Skipped []*GenerateJobSkipped    `json:"skipped"`
+	Run            *ProductionPlanRun       `json:"run"`
+	Created        []*IndustryJobQueueEntry `json:"created"`
+	Skipped        []*GenerateJobSkipped    `json:"skipped"`
+	TransportJobs  []*TransportJob          `json:"transportJobs"`
 }
 
 type GenerateJobSkipped struct {
@@ -987,6 +1005,7 @@ type UserStation struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 	// Enriched
 	StationName     string               `json:"stationName,omitempty"`
+	SolarSystemID   int64                `json:"solarSystemId,omitempty"`
 	SolarSystemName string               `json:"solarSystemName,omitempty"`
 	SecurityStatus  float64              `json:"securityStatus,omitempty"`
 	Security        string               `json:"security,omitempty"`

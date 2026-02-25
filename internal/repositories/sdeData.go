@@ -809,6 +809,89 @@ ORDER BY ait.type_name
 	return results, nil
 }
 
+// GetBlueprintForActivity returns blueprint info for a given activity (manufacturing or reaction)
+func (r *SdeDataRepository) GetBlueprintForActivity(ctx context.Context, blueprintTypeID int64, activity string) (*ManufacturingBlueprintRow, error) {
+	query := `
+SELECT
+	ba.blueprint_type_id,
+	bp.type_id AS product_type_id,
+	ait.type_name AS product_name,
+	g.name AS group_name,
+	bp.quantity AS product_quantity,
+	ba.time,
+	COALESCE(ait.packaged_volume, ait.volume, 0) AS product_volume,
+	COALESCE(sb.max_production_limit, 0)
+FROM sde_blueprint_activities ba
+JOIN sde_blueprint_products bp ON bp.blueprint_type_id = ba.blueprint_type_id AND bp.activity = ba.activity
+JOIN asset_item_types ait ON ait.type_id = bp.type_id
+JOIN sde_groups g ON g.group_id = ait.group_id
+LEFT JOIN sde_blueprints sb ON sb.blueprint_type_id = ba.blueprint_type_id
+WHERE ba.activity = $1
+  AND ba.blueprint_type_id = $2
+`
+
+	var row ManufacturingBlueprintRow
+	err := r.db.QueryRowContext(ctx, query, activity, blueprintTypeID).Scan(
+		&row.BlueprintTypeID,
+		&row.ProductTypeID,
+		&row.ProductName,
+		&row.GroupName,
+		&row.ProductQuantity,
+		&row.Time,
+		&row.ProductVolume,
+		&row.MaxProdLimit,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query blueprint for activity")
+	}
+
+	return &row, nil
+}
+
+// GetBlueprintMaterialsForActivity returns input materials for a blueprint by activity
+func (r *SdeDataRepository) GetBlueprintMaterialsForActivity(ctx context.Context, blueprintTypeID int64, activity string) ([]*ManufacturingMaterialRow, error) {
+	query := `
+SELECT
+	bm.blueprint_type_id,
+	bm.type_id,
+	ait.type_name,
+	bm.quantity,
+	COALESCE(ait.packaged_volume, ait.volume, 0) AS volume
+FROM sde_blueprint_materials bm
+JOIN asset_item_types ait ON ait.type_id = bm.type_id
+WHERE bm.activity = $1
+  AND bm.blueprint_type_id = $2
+ORDER BY ait.type_name
+`
+
+	rows, err := r.db.QueryContext(ctx, query, activity, blueprintTypeID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query blueprint materials for activity")
+	}
+	defer rows.Close()
+
+	results := []*ManufacturingMaterialRow{}
+	for rows.Next() {
+		var row ManufacturingMaterialRow
+		err := rows.Scan(
+			&row.BlueprintTypeID,
+			&row.TypeID,
+			&row.TypeName,
+			&row.Quantity,
+			&row.Volume,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan blueprint material row")
+		}
+		results = append(results, &row)
+	}
+
+	return results, nil
+}
+
 // SearchBlueprints searches blueprints by product name (ILIKE) for a given activity.
 // If activity is empty, searches across manufacturing and reaction activities.
 func (r *SdeDataRepository) SearchBlueprints(ctx context.Context, query string, activity string, limit int) ([]*BlueprintSearchRow, error) {

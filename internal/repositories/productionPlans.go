@@ -20,10 +20,14 @@ func NewProductionPlans(db *sql.DB) *ProductionPlans {
 func (r *ProductionPlans) Create(ctx context.Context, plan *models.ProductionPlan) (*models.ProductionPlan, error) {
 	query := `
 		INSERT INTO production_plans (user_id, product_type_id, name, notes,
-			default_manufacturing_station_id, default_reaction_station_id)
-		VALUES ($1, $2, $3, $4, $5, $6)
+			default_manufacturing_station_id, default_reaction_station_id,
+			transport_fulfillment, transport_method, transport_profile_id,
+			courier_rate_per_m3, courier_collateral_rate)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 		RETURNING id, user_id, product_type_id, name, notes,
 			default_manufacturing_station_id, default_reaction_station_id,
+			transport_fulfillment, transport_method, transport_profile_id,
+			courier_rate_per_m3, courier_collateral_rate,
 			created_at, updated_at
 	`
 
@@ -35,6 +39,11 @@ func (r *ProductionPlans) Create(ctx context.Context, plan *models.ProductionPla
 		plan.Notes,
 		plan.DefaultManufacturingStationID,
 		plan.DefaultReactionStationID,
+		plan.TransportFulfillment,
+		plan.TransportMethod,
+		plan.TransportProfileID,
+		plan.CourierRatePerM3,
+		plan.CourierCollateralRate,
 	).Scan(
 		&result.ID,
 		&result.UserID,
@@ -43,6 +52,11 @@ func (r *ProductionPlans) Create(ctx context.Context, plan *models.ProductionPla
 		&result.Notes,
 		&result.DefaultManufacturingStationID,
 		&result.DefaultReactionStationID,
+		&result.TransportFulfillment,
+		&result.TransportMethod,
+		&result.TransportProfileID,
+		&result.CourierRatePerM3,
+		&result.CourierCollateralRate,
 		&result.CreatedAt,
 		&result.UpdatedAt,
 	)
@@ -57,6 +71,8 @@ func (r *ProductionPlans) GetByUser(ctx context.Context, userID int64) ([]*model
 	query := `
 		SELECT p.id, p.user_id, p.product_type_id, p.name, p.notes,
 		       p.default_manufacturing_station_id, p.default_reaction_station_id,
+		       p.transport_fulfillment, p.transport_method, p.transport_profile_id,
+		       p.courier_rate_per_m3, p.courier_collateral_rate,
 		       p.created_at, p.updated_at,
 		       COALESCE(ait.type_name, '') as product_name,
 		       (SELECT COUNT(*) FROM production_plan_steps WHERE plan_id = p.id) as step_count
@@ -84,6 +100,11 @@ func (r *ProductionPlans) GetByUser(ctx context.Context, userID int64) ([]*model
 			&plan.Notes,
 			&plan.DefaultManufacturingStationID,
 			&plan.DefaultReactionStationID,
+			&plan.TransportFulfillment,
+			&plan.TransportMethod,
+			&plan.TransportProfileID,
+			&plan.CourierRatePerM3,
+			&plan.CourierCollateralRate,
 			&plan.CreatedAt,
 			&plan.UpdatedAt,
 			&plan.ProductName,
@@ -103,6 +124,8 @@ func (r *ProductionPlans) GetByID(ctx context.Context, id, userID int64) (*model
 	planQuery := `
 		SELECT p.id, p.user_id, p.product_type_id, p.name, p.notes,
 		       p.default_manufacturing_station_id, p.default_reaction_station_id,
+		       p.transport_fulfillment, p.transport_method, p.transport_profile_id,
+		       p.courier_rate_per_m3, p.courier_collateral_rate,
 		       p.created_at, p.updated_at,
 		       COALESCE(ait.type_name, '') as product_name
 		FROM production_plans p
@@ -119,6 +142,11 @@ func (r *ProductionPlans) GetByID(ctx context.Context, id, userID int64) (*model
 		&plan.Notes,
 		&plan.DefaultManufacturingStationID,
 		&plan.DefaultReactionStationID,
+		&plan.TransportFulfillment,
+		&plan.TransportMethod,
+		&plan.TransportProfileID,
+		&plan.CourierRatePerM3,
+		&plan.CourierCollateralRate,
 		&plan.CreatedAt,
 		&plan.UpdatedAt,
 		&plan.ProductName,
@@ -248,17 +276,22 @@ func (r *ProductionPlans) GetByID(ctx context.Context, id, userID int64) (*model
 	return &plan, nil
 }
 
-func (r *ProductionPlans) Update(ctx context.Context, id, userID int64, name string, notes *string, defaultManufacturingStationID *int64, defaultReactionStationID *int64) error {
+func (r *ProductionPlans) Update(ctx context.Context, id, userID int64, name string, notes *string, defaultManufacturingStationID *int64, defaultReactionStationID *int64, transportFulfillment *string, transportMethod *string, transportProfileID *int64, courierRatePerM3 float64, courierCollateralRate float64) error {
 	query := `
 		UPDATE production_plans
 		SET name = $3, notes = $4,
 		    default_manufacturing_station_id = $5,
 		    default_reaction_station_id = $6,
+		    transport_fulfillment = $7,
+		    transport_method = $8,
+		    transport_profile_id = $9,
+		    courier_rate_per_m3 = $10,
+		    courier_collateral_rate = $11,
 		    updated_at = NOW()
 		WHERE id = $1 AND user_id = $2
 	`
 
-	result, err := r.db.ExecContext(ctx, query, id, userID, name, notes, defaultManufacturingStationID, defaultReactionStationID)
+	result, err := r.db.ExecContext(ctx, query, id, userID, name, notes, defaultManufacturingStationID, defaultReactionStationID, transportFulfillment, transportMethod, transportProfileID, courierRatePerM3, courierCollateralRate)
 	if err != nil {
 		return errors.Wrap(err, "failed to update production plan")
 	}

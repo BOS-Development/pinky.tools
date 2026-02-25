@@ -22,6 +22,7 @@ func (r *UserStations) GetByUser(ctx context.Context, userID int64) ([]*models.U
 		SELECT us.id, us.user_id, us.station_id, us.structure, us.facility_tax,
 		       us.created_at, us.updated_at,
 		       COALESCE(st.name, '') as station_name,
+		       ss.solar_system_id,
 		       COALESCE(ss.name, '') as solar_system_name,
 		       COALESCE(ss.security, 0) as security_status,
 		       CASE
@@ -51,7 +52,7 @@ func (r *UserStations) GetByUser(ctx context.Context, userID int64) ([]*models.U
 		err := rows.Scan(
 			&s.ID, &s.UserID, &s.StationID, &s.Structure, &s.FacilityTax,
 			&s.CreatedAt, &s.UpdatedAt,
-			&s.StationName, &s.SolarSystemName, &s.SecurityStatus, &s.Security,
+			&s.StationName, &s.SolarSystemID, &s.SolarSystemName, &s.SecurityStatus, &s.Security,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan user station")
@@ -84,6 +85,7 @@ func (r *UserStations) GetByID(ctx context.Context, id, userID int64) (*models.U
 		SELECT us.id, us.user_id, us.station_id, us.structure, us.facility_tax,
 		       us.created_at, us.updated_at,
 		       COALESCE(st.name, '') as station_name,
+		       ss.solar_system_id,
 		       COALESCE(ss.name, '') as solar_system_name,
 		       COALESCE(ss.security, 0) as security_status,
 		       CASE
@@ -101,7 +103,7 @@ func (r *UserStations) GetByID(ctx context.Context, id, userID int64) (*models.U
 	err := r.db.QueryRowContext(ctx, stationQuery, id, userID).Scan(
 		&s.ID, &s.UserID, &s.StationID, &s.Structure, &s.FacilityTax,
 		&s.CreatedAt, &s.UpdatedAt,
-		&s.StationName, &s.SolarSystemName, &s.SecurityStatus, &s.Security,
+		&s.StationName, &s.SolarSystemID, &s.SolarSystemName, &s.SecurityStatus, &s.Security,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil

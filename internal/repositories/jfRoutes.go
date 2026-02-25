@@ -264,6 +264,43 @@ func (r *JFRoutes) Delete(ctx context.Context, id, userID int64) error {
 	return nil
 }
 
+func (r *JFRoutes) FindBySystemPair(ctx context.Context, userID, originSystemID, destSystemID int64) (*models.JFRoute, error) {
+	query := `
+		select r.id, r.user_id, r.name, r.origin_system_id, r.destination_system_id,
+		       r.total_distance_ly, r.created_at,
+		       COALESCE(os.name, ''), COALESCE(ds.name, '')
+		from jf_routes r
+		left join solar_systems os on os.solar_system_id = r.origin_system_id
+		left join solar_systems ds on ds.solar_system_id = r.destination_system_id
+		where r.user_id = $1
+		  and r.origin_system_id = $2
+		  and r.destination_system_id = $3
+		limit 1
+	`
+
+	var route models.JFRoute
+	err := r.db.QueryRowContext(ctx, query, userID, originSystemID, destSystemID).Scan(
+		&route.ID, &route.UserID, &route.Name,
+		&route.OriginSystemID, &route.DestinationSystemID,
+		&route.TotalDistanceLY, &route.CreatedAt,
+		&route.OriginSystemName, &route.DestinationSystemName,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find JF route by system pair")
+	}
+
+	waypoints, err := r.getWaypoints(ctx, route.ID)
+	if err != nil {
+		return nil, err
+	}
+	route.Waypoints = waypoints
+
+	return &route, nil
+}
+
 func (r *JFRoutes) getWaypoints(ctx context.Context, routeID int64) ([]*models.JFRouteWaypoint, error) {
 	query := `
 		select w.id, w.route_id, w.sequence, w.system_id, w.distance_ly,

@@ -407,6 +407,10 @@ export type IndustryJobQueueEntry = {
   estimatedCost?: number;
   estimatedDuration?: number;
   notes?: string;
+  sortOrder: number;
+  stationName?: string;
+  inputLocation?: string;
+  outputLocation?: string;
   createdAt: string;
   updatedAt: string;
   blueprintName?: string;
@@ -415,6 +419,14 @@ export type IndustryJobQueueEntry = {
   systemName?: string;
   esiJobEndDate?: string;
   esiJobSource?: string;
+  transportJobId?: number;
+  transportOriginName?: string;
+  transportDestName?: string;
+  transportMethod?: string;
+  transportFulfillment?: string;
+  transportVolumeM3?: number;
+  transportJumps?: number;
+  transportItemsSummary?: string;
 };
 
 export type ManufacturingCalcResult = {
@@ -463,6 +475,11 @@ export type ProductionPlan = {
   notes?: string;
   defaultManufacturingStationId?: number;
   defaultReactionStationId?: number;
+  transportFulfillment?: string;
+  transportMethod?: string;
+  transportProfileId?: number;
+  courierRatePerM3: number;
+  courierCollateralRate: number;
   createdAt: string;
   updatedAt: string;
   productName?: string;
@@ -533,10 +550,24 @@ export type PlanMaterial = {
   isProduced: boolean;
 };
 
+export type GenerateJobsTransportJob = {
+  id: number;
+  originStationName?: string;
+  destinationStationName?: string;
+  transportMethod: string;
+  fulfillmentType: string;
+  totalVolumeM3: number;
+  totalCollateral: number;
+  estimatedCost: number;
+  jumps: number;
+  items: { typeId: number; typeName?: string; quantity: number; volumeM3: number; estimatedValue: number }[];
+};
+
 export type GenerateJobsResult = {
   run: PlanRun;
   created: IndustryJobQueueEntry[];
   skipped: GenerateJobSkipped[];
+  transportJobs: GenerateJobsTransportJob[];
 };
 
 export type PlanRunJobSummary = {
