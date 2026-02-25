@@ -514,9 +514,9 @@ When the frontend needs ME/TE for a set of blueprint type IDs, it calls `POST /v
 - On plan load, fetches blueprint levels for all step blueprint types in one call
 - Step tree shows a three-state detection indicator for every step (parent and child):
   - **Green CheckCircleOutlineIcon** — blueprint detected and ME/TE matches current step values
-  - **Blue InfoIcon** — blueprint detected but ME/TE differs from step values; tooltip shows the detected values
+  - **Blue InfoIcon** — blueprint detected but ME/TE differs from step values; tooltip shows detected values (manufacturing only — reactions always show green since they have no ME/TE research)
   - **Amber WarningAmberIcon** — no blueprint detected for this type (manual ME/TE values)
-- Edit step dialog shows "Blueprint detected" chip with "Apply" button
+- Edit step dialog shows "Blueprint detected" chip with "Apply" button (manufacturing only; reactions show simplified chip without ME/TE or Apply)
 - New steps (material toggle to "produce") auto-fill with detected ME/TE
 
 **Material row detection (expanded step view):**

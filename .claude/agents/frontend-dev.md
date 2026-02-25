@@ -20,7 +20,7 @@ You are a frontend specialist for this EVE Online industry tool. The frontend is
 - Client: `frontend/packages/client/api.ts`
 - Styles: `frontend/packages/styles/`
 - Theme: `frontend/theme.ts`
-- Tests: `frontend/packages/components/__tests__/`
+- Tests: `frontend/packages/components/{feature}/__tests__/` (co-located with components)
 
 ## Conventions
 
@@ -69,7 +69,7 @@ You are a frontend specialist for this EVE Online industry tool. The frontend is
 
 Every new component must have a snapshot test:
 
-- Location: `frontend/packages/components/__tests__/{ComponentName}.test.tsx`
+- Location: `frontend/packages/components/{feature}/__tests__/{ComponentName}.test.tsx`
 - Test loading, error, and success states
 - Test edge cases: empty data, errors, null values
 
