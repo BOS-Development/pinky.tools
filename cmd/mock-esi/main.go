@@ -190,6 +190,37 @@ type industryJob struct {
 	EndDate             string  `json:"end_date"`
 }
 
+type blueprintEntry struct {
+	ItemID             int64  `json:"item_id"`
+	TypeID             int64  `json:"type_id"`
+	LocationID         int64  `json:"location_id"`
+	LocationFlag       string `json:"location_flag"`
+	Quantity           int    `json:"quantity"`
+	MaterialEfficiency int    `json:"material_efficiency"`
+	TimeEfficiency     int    `json:"time_efficiency"`
+	Runs               int    `json:"runs"`
+}
+
+// Character blueprints keyed by character ID
+var characterBlueprints = map[int64][]blueprintEntry{
+	// Alice Alpha — a BPO ME10 and a BPC ME8
+	2001001: {
+		{ItemID: 700001, TypeID: 787, LocationID: 60003760, LocationFlag: "Hangar", Quantity: -1, MaterialEfficiency: 10, TimeEfficiency: 20, Runs: -1},
+		{ItemID: 700002, TypeID: 46166, LocationID: 60003760, LocationFlag: "Hangar", Quantity: -2, MaterialEfficiency: 8, TimeEfficiency: 16, Runs: 50},
+	},
+	// Bob Bravo — a BPO ME8
+	2002001: {
+		{ItemID: 700003, TypeID: 787, LocationID: 60003760, LocationFlag: "Hangar", Quantity: -1, MaterialEfficiency: 8, TimeEfficiency: 16, Runs: -1},
+	},
+}
+
+// Corporation blueprints keyed by corp ID
+var corpBlueprints = map[int64][]blueprintEntry{
+	3001001: {
+		{ItemID: 710001, TypeID: 787, LocationID: 60003760, LocationFlag: "CorpSAG1", Quantity: -1, MaterialEfficiency: 9, TimeEfficiency: 18, Runs: -1},
+	},
+}
+
 var characterIndustryJobs = map[int64][]industryJob{
 	2001001: {
 		{
@@ -342,6 +373,22 @@ func main() {
 			return
 		}
 
+		// GET /characters/{id}/blueprints/
+		if strings.Contains(path, "/blueprints") && r.Method == "GET" {
+			charID, ok := extractID(path, "/characters/", "/blueprints")
+			if !ok {
+				http.Error(w, "invalid character id", 400)
+				return
+			}
+			bps, ok := characterBlueprints[charID]
+			if !ok {
+				bps = []blueprintEntry{}
+			}
+			w.Header().Set("X-Pages", "1")
+			writeJSON(w, bps)
+			return
+		}
+
 		http.Error(w, "not found", 404)
 	})
 
@@ -369,6 +416,22 @@ func main() {
 			}
 			w.Header().Set("X-Pages", "1")
 			writeJSON(w, assets)
+			return
+		}
+
+		// GET /corporations/{id}/blueprints/
+		if strings.Contains(path, "/blueprints") && r.Method == "GET" {
+			corpID, ok := extractID(path, "/corporations/", "/blueprints")
+			if !ok {
+				http.Error(w, "invalid corp id", 400)
+				return
+			}
+			bps, ok := corpBlueprints[corpID]
+			if !ok {
+				bps = []blueprintEntry{}
+			}
+			w.Header().Set("X-Pages", "1")
+			writeJSON(w, bps)
 			return
 		}
 

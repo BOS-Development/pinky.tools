@@ -119,14 +119,30 @@ const mockPreviewResult: PlanPreviewResult = {
   ],
 };
 
+const mockBlueprintLevel = {
+  materialEfficiency: 8,
+  timeEfficiency: 16,
+  isCopy: false,
+  ownerName: 'Test Character',
+  runs: -1,
+};
+
 // URL-based fetch mock to handle concurrent requests from multiple useEffects
-function mockFetchForPlan(plan: ProductionPlan | null, materials?: PlanMaterial[], preview?: PlanPreviewResult) {
+function mockFetchForPlan(
+  plan: ProductionPlan | null,
+  materials?: PlanMaterial[],
+  preview?: PlanPreviewResult,
+  blueprintLevels?: Record<string, typeof mockBlueprintLevel | null>,
+) {
   (global.fetch as jest.Mock).mockImplementation((url: string, opts?: any) => {
     if (url === `/api/industry/plans/${plan?.id ?? 1}`) {
       return Promise.resolve({ ok: true, json: async () => plan });
     }
     if (url === '/api/transport/profiles') {
       return Promise.resolve({ ok: true, json: async () => [] });
+    }
+    if (url === '/api/industry/blueprint-levels') {
+      return Promise.resolve({ ok: true, json: async () => blueprintLevels ?? {} });
     }
     if (url.includes('/materials') && materials) {
       return Promise.resolve({ ok: true, json: async () => materials });
@@ -501,6 +517,242 @@ describe('ProductionPlanEditor Component', () => {
       expect(generateCall).toBeDefined();
       const body = JSON.parse(generateCall[1].body);
       expect(body.parallelism).toBe(2);
+    });
+  });
+
+  it('should fetch blueprint levels on plan load', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+  });
+
+  it('should call blueprint-levels with all step blueprint type IDs', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+      const body = JSON.parse(blueprintLevelCall[1].body);
+      expect(body.type_ids).toContain(787);
+    });
+  });
+
+  it('should show info icon in step tree when detected ME/TE differs from step', async () => {
+    // Step has ME 10/TE 20, but detected level is ME 8/TE 16
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      // The info icon should be present since ME 8 != 10 or TE 16 != 20
+      const infoIcons = screen.queryAllByTestId('InfoIcon');
+      expect(infoIcons.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('should show green check icon and no info icon when detected ME/TE matches step values', async () => {
+    // Step has ME 10/TE 20, detected level also ME 10/TE 20 - values match
+    const matchingLevel = { materialEfficiency: 10, timeEfficiency: 20, isCopy: false, ownerName: 'Test', runs: -1 };
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': matchingLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // No info icon since values match
+    const infoIcons = screen.queryAllByTestId('InfoIcon');
+    expect(infoIcons.length).toBe(0);
+
+    // Green check icon should appear since blueprint was detected and ME/TE matches
+    await waitFor(() => {
+      const checkIcons = screen.queryAllByTestId('CheckCircleOutlineIcon');
+      expect(checkIcons.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('should show Detected chip in edit step dialog when blueprint level exists', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // Open edit dialog for the root step
+    const editButtons = screen.getAllByTestId('EditIcon');
+    await act(async () => {
+      fireEvent.click(editButtons[1].closest('button')!);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit Step: Rifter')).toBeInTheDocument();
+      expect(screen.getByText(/Blueprint detected:/)).toBeInTheDocument();
+      expect(screen.getByText(/ME 8 \/ TE 16/)).toBeInTheDocument();
+    });
+  });
+
+  it('should apply detected ME/TE values when Apply button clicked in edit dialog', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // Open edit dialog
+    const editButtons = screen.getAllByTestId('EditIcon');
+    await act(async () => {
+      fireEvent.click(editButtons[1].closest('button')!);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Apply')).toBeInTheDocument();
+    });
+
+    // The ME field should currently show 10 (step's value)
+    const meInput = screen.getByLabelText('ME Level') as HTMLInputElement;
+    expect(meInput.value).toBe('10');
+
+    // Click Apply
+    await act(async () => {
+      fireEvent.click(screen.getByText('Apply'));
+    });
+
+    // ME should now be 8 (detected value)
+    expect(meInput.value).toBe('8');
+  });
+
+  it('should show warning icon in step tree when blueprint-levels loaded but step blueprint not found', async () => {
+    // blueprint-levels returns a result for a different ID (fetch has completed, keys exist)
+    // but the step's blueprintTypeId (787) is not in the response — warning icon should show
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '99999': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // WarningAmberIcon should appear because detectedLevels has keys but 787 is not in it
+    await waitFor(() => {
+      const warningIcons = screen.queryAllByTestId('WarningAmberIcon');
+      expect(warningIcons.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('should show no-blueprint warning chip in EditStepDialog when no detected level', async () => {
+    // blueprint-levels returns empty — no blueprint found for step (ID 787)
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, {});
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // Open edit dialog for the root step
+    const editButtons = screen.getAllByTestId('EditIcon');
+    await act(async () => {
+      fireEvent.click(editButtons[1].closest('button')!);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit Step: Rifter')).toBeInTheDocument();
+      expect(screen.getByText('No blueprint detected — using manual values')).toBeInTheDocument();
+    });
+  });
+
+  it('should show warning icon on material row when blueprint not detected for that material', async () => {
+    // blueprint-levels returns the step blueprint (787) but NOT the material blueprint (99999)
+    // detectedLevels will have keys (787), so the "fetch completed" check passes
+    // Morphite has hasBlueprint=true, blueprintTypeId=99999 — not in detectedLevels → warning
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCalls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCalls.length).toBeGreaterThanOrEqual(1);
+    });
+
+    // WarningAmberIcon should appear on the material row for Morphite
+    await waitFor(() => {
+      const warningIcons = screen.queryAllByTestId('WarningAmberIcon');
+      // At minimum one warning icon (could be on step row too, but at least the material one)
+      expect(warningIcons.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('should show detected ME/TE chip on material row when blueprint is detected', async () => {
+    // blueprint-levels returns the material blueprint (99999)
+    // Morphite has hasBlueprint=true, blueprintTypeId=99999 → chip should show
+    mockFetchForPlan(mockPlan, mockMaterials, undefined, { '99999': mockBlueprintLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCalls = (global.fetch as jest.Mock).mock.calls.filter(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCalls.length).toBeGreaterThanOrEqual(1);
+    });
+
+    // ME/TE chip should appear on the Morphite material row
+    await waitFor(() => {
+      const meTeChips = screen.queryAllByText('ME 8 / TE 16');
+      expect(meTeChips.length).toBeGreaterThanOrEqual(1);
     });
   });
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import {
   BlueprintSearchResult,
+  BlueprintLevel,
   ManufacturingCalcResult,
   ReactionSystem,
 } from "@industry-tool/client/data/models";
@@ -23,6 +24,8 @@ import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import Paper from "@mui/material/Paper";
 import AddIcon from "@mui/icons-material/Add";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import Chip from "@mui/material/Chip";
 
 type Props = {
   onJobAdded: () => void;
@@ -46,6 +49,9 @@ export default function AddJob({ onJobAdded }: Props) {
   const [facilityTax, setFacilityTax] = useState(1.0);
   const [systemId, setSystemId] = useState<number>(0);
   const [notes, setNotes] = useState("");
+
+  const [detectedLevel, setDetectedLevel] = useState<BlueprintLevel | null>(null);
+  const [detectedForBlueprintId, setDetectedForBlueprintId] = useState<number | null>(null);
 
   const [systems, setSystems] = useState<ReactionSystem[]>([]);
   const [calcResult, setCalcResult] = useState<ManufacturingCalcResult | null>(null);
@@ -179,7 +185,36 @@ export default function AddJob({ onJobAdded }: Props) {
           options={blueprintOptions}
           getOptionLabel={(opt) => opt.ProductName || opt.BlueprintName}
           value={selectedBlueprint}
-          onChange={(_, value) => setSelectedBlueprint(value)}
+          onChange={(_, value) => {
+            setSelectedBlueprint(value);
+            if (value) {
+              // Fetch blueprint level for the selected blueprint
+              fetch("/api/industry/blueprint-levels", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ type_ids: [value.BlueprintTypeID] }),
+              })
+                .then((res) => res.json())
+                .then((data: Record<string, BlueprintLevel | null>) => {
+                  const level = data[String(value.BlueprintTypeID)] ?? null;
+                  setDetectedLevel(level);
+                  setDetectedForBlueprintId(value.BlueprintTypeID);
+                  if (level) {
+                    setMeLevel(level.materialEfficiency);
+                    setTeLevel(level.timeEfficiency);
+                  } else {
+                    setMeLevel(10);
+                    setTeLevel(20);
+                  }
+                })
+                .catch((err) => console.error("Failed to fetch blueprint levels:", err));
+            } else {
+              setDetectedLevel(null);
+              setDetectedForBlueprintId(null);
+              setMeLevel(10);
+              setTeLevel(20);
+            }
+          }}
           inputValue={blueprintQuery}
           onInputChange={(_, value) => setBlueprintQuery(value)}
           loading={searchLoading}
@@ -238,6 +273,37 @@ export default function AddJob({ onJobAdded }: Props) {
           sx={{ width: 90 }}
           inputProps={{ min: 0, max: 20 }}
         />
+        {selectedBlueprint && detectedForBlueprintId === selectedBlueprint.BlueprintTypeID ? (
+          detectedLevel ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+              <Chip
+                label={`Detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`}
+                size="small"
+                color="info"
+                variant="outlined"
+                sx={{ fontSize: 11 }}
+              />
+              {(meLevel !== detectedLevel.materialEfficiency || teLevel !== detectedLevel.timeEfficiency) && (
+                <Chip
+                  label="Overridden"
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  sx={{ fontSize: 11 }}
+                />
+              )}
+            </Box>
+          ) : (
+            <Chip
+              icon={<WarningAmberIcon />}
+              label="No blueprint detected — using manual values"
+              size="small"
+              color="warning"
+              variant="outlined"
+              sx={{ fontSize: 11 }}
+            />
+          )
+        ) : null}
         <TextField
           label="Industry Skill"
           type="number"
