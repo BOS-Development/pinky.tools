@@ -109,7 +109,7 @@ func Test_ProductionPlansShouldUpdate(t *testing.T) {
 	assert.NoError(t, err)
 
 	notes := "Some notes"
-	err = plansRepo.Update(context.Background(), plan.ID, user.ID, "New Name", &notes, nil, nil)
+	err = plansRepo.Update(context.Background(), plan.ID, user.ID, "New Name", &notes, nil, nil, nil, nil, nil, 0, 0)
 	assert.NoError(t, err)
 
 	fetched, err := plansRepo.GetByID(context.Background(), plan.ID, user.ID)
@@ -117,6 +117,83 @@ func Test_ProductionPlansShouldUpdate(t *testing.T) {
 	assert.Equal(t, "New Name", fetched.Name)
 	assert.NotNil(t, fetched.Notes)
 	assert.Equal(t, "Some notes", *fetched.Notes)
+	assert.Nil(t, fetched.TransportFulfillment)
+	assert.Nil(t, fetched.TransportMethod)
+	assert.Nil(t, fetched.TransportProfileID)
+	assert.Equal(t, float64(0), fetched.CourierRatePerM3)
+	assert.Equal(t, float64(0), fetched.CourierCollateralRate)
+}
+
+func Test_ProductionPlansShouldUpdateWithTransportSettings(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+
+	user := &repositories.User{ID: 8035, Name: "Transport Update User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Transport Plan",
+	})
+	assert.NoError(t, err)
+
+	fulfillment := "courier_contract"
+	err = plansRepo.Update(context.Background(), plan.ID, user.ID, "Transport Plan", nil, nil, nil,
+		&fulfillment, nil, nil, 800.0, 0.02)
+	assert.NoError(t, err)
+
+	fetched, err := plansRepo.GetByID(context.Background(), plan.ID, user.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, fetched.TransportFulfillment)
+	assert.Equal(t, "courier_contract", *fetched.TransportFulfillment)
+	assert.Nil(t, fetched.TransportMethod)
+	assert.Nil(t, fetched.TransportProfileID)
+	assert.Equal(t, 800.0, fetched.CourierRatePerM3)
+	assert.Equal(t, 0.02, fetched.CourierCollateralRate)
+}
+
+func Test_ProductionPlansShouldCreateWithTransportFields(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+
+	user := &repositories.User{ID: 8036, Name: "Transport Create User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	fulfillment := "self_haul"
+	method := "freighter"
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:               user.ID,
+		ProductTypeID:        587,
+		Name:                 "Transport Create Plan",
+		TransportFulfillment: &fulfillment,
+		TransportMethod:      &method,
+		CourierRatePerM3:     500,
+		CourierCollateralRate: 0.01,
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, plan)
+	assert.NotNil(t, plan.TransportFulfillment)
+	assert.Equal(t, "self_haul", *plan.TransportFulfillment)
+	assert.NotNil(t, plan.TransportMethod)
+	assert.Equal(t, "freighter", *plan.TransportMethod)
+	assert.Equal(t, 500.0, plan.CourierRatePerM3)
+	assert.Equal(t, 0.01, plan.CourierCollateralRate)
+
+	// Verify via GetByUser
+	plans, err := plansRepo.GetByUser(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Len(t, plans, 1)
+	assert.NotNil(t, plans[0].TransportFulfillment)
+	assert.Equal(t, "self_haul", *plans[0].TransportFulfillment)
 }
 
 func Test_ProductionPlansShouldDelete(t *testing.T) {

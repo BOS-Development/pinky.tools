@@ -46,8 +46,8 @@ func (m *MockProductionPlansRepository) GetByID(ctx context.Context, id, userID 
 	return args.Get(0).(*models.ProductionPlan), args.Error(1)
 }
 
-func (m *MockProductionPlansRepository) Update(ctx context.Context, id, userID int64, name string, notes *string, defaultManufacturingStationID *int64, defaultReactionStationID *int64) error {
-	args := m.Called(ctx, id, userID, name, notes, defaultManufacturingStationID, defaultReactionStationID)
+func (m *MockProductionPlansRepository) Update(ctx context.Context, id, userID int64, name string, notes *string, defaultManufacturingStationID *int64, defaultReactionStationID *int64, transportFulfillment *string, transportMethod *string, transportProfileID *int64, courierRatePerM3 float64, courierCollateralRate float64) error {
+	args := m.Called(ctx, id, userID, name, notes, defaultManufacturingStationID, defaultReactionStationID, transportFulfillment, transportMethod, transportProfileID, courierRatePerM3, courierCollateralRate)
 	return args.Error(0)
 }
 
@@ -167,6 +167,22 @@ func (m *MockProductionPlansSdeRepository) GetManufacturingMaterials(ctx context
 	return args.Get(0).([]*repositories.ManufacturingMaterialRow), args.Error(1)
 }
 
+func (m *MockProductionPlansSdeRepository) GetBlueprintForActivity(ctx context.Context, blueprintTypeID int64, activity string) (*repositories.ManufacturingBlueprintRow, error) {
+	args := m.Called(ctx, blueprintTypeID, activity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*repositories.ManufacturingBlueprintRow), args.Error(1)
+}
+
+func (m *MockProductionPlansSdeRepository) GetBlueprintMaterialsForActivity(ctx context.Context, blueprintTypeID int64, activity string) ([]*repositories.ManufacturingMaterialRow, error) {
+	args := m.Called(ctx, blueprintTypeID, activity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*repositories.ManufacturingMaterialRow), args.Error(1)
+}
+
 type MockProductionPlansMarketRepository struct {
 	mock.Mock
 }
@@ -257,31 +273,100 @@ func (m *MockProductionPlanRunsRepository) CancelPlannedJobs(ctx context.Context
 	return args.Get(0).(int64), args.Error(1)
 }
 
+type MockProductionPlansTransportJobsRepository struct {
+	mock.Mock
+}
+
+func (m *MockProductionPlansTransportJobsRepository) Create(ctx context.Context, job *models.TransportJob) (*models.TransportJob, error) {
+	args := m.Called(ctx, job)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TransportJob), args.Error(1)
+}
+
+func (m *MockProductionPlansTransportJobsRepository) SetQueueEntryID(ctx context.Context, id int64, queueEntryID int64) error {
+	args := m.Called(ctx, id, queueEntryID)
+	return args.Error(0)
+}
+
+type MockProductionPlansTransportProfilesRepository struct {
+	mock.Mock
+}
+
+func (m *MockProductionPlansTransportProfilesRepository) GetByID(ctx context.Context, id, userID int64) (*models.TransportProfile, error) {
+	args := m.Called(ctx, id, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TransportProfile), args.Error(1)
+}
+
+func (m *MockProductionPlansTransportProfilesRepository) GetDefaultByMethod(ctx context.Context, userID int64, method string) (*models.TransportProfile, error) {
+	args := m.Called(ctx, userID, method)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.TransportProfile), args.Error(1)
+}
+
+type MockProductionPlansJFRoutesRepository struct {
+	mock.Mock
+}
+
+func (m *MockProductionPlansJFRoutesRepository) FindBySystemPair(ctx context.Context, userID, originSystemID, destSystemID int64) (*models.JFRoute, error) {
+	args := m.Called(ctx, userID, originSystemID, destSystemID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.JFRoute), args.Error(1)
+}
+
+type MockProductionPlansEsiClient struct {
+	mock.Mock
+}
+
+func (m *MockProductionPlansEsiClient) GetRoute(ctx context.Context, origin, destination int64, flag string) ([]int32, error) {
+	args := m.Called(ctx, origin, destination, flag)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]int32), args.Error(1)
+}
+
 // --- Helper ---
 
 type productionPlanMocks struct {
-	plansRepo       *MockProductionPlansRepository
-	sdeRepo         *MockProductionPlansSdeRepository
-	queueRepo       *MockProductionPlansJobQueueRepository
-	marketRepo      *MockProductionPlansMarketRepository
-	costIndicesRepo *MockProductionPlansCostIndicesRepository
-	characterRepo   *MockProductionPlansCharacterRepository
-	corpRepo        *MockProductionPlansCorporationRepository
-	stationRepo     *MockProductionPlansUserStationRepository
-	runsRepo        *MockProductionPlanRunsRepository
+	plansRepo        *MockProductionPlansRepository
+	sdeRepo          *MockProductionPlansSdeRepository
+	queueRepo        *MockProductionPlansJobQueueRepository
+	marketRepo       *MockProductionPlansMarketRepository
+	costIndicesRepo  *MockProductionPlansCostIndicesRepository
+	characterRepo    *MockProductionPlansCharacterRepository
+	corpRepo         *MockProductionPlansCorporationRepository
+	stationRepo      *MockProductionPlansUserStationRepository
+	runsRepo         *MockProductionPlanRunsRepository
+	transportJobRepo *MockProductionPlansTransportJobsRepository
+	profilesRepo     *MockProductionPlansTransportProfilesRepository
+	jfRoutesRepo     *MockProductionPlansJFRoutesRepository
+	esiClient        *MockProductionPlansEsiClient
 }
 
 func setupProductionPlansController() (*controllers.ProductionPlans, *productionPlanMocks) {
 	mocks := &productionPlanMocks{
-		plansRepo:       new(MockProductionPlansRepository),
-		sdeRepo:         new(MockProductionPlansSdeRepository),
-		queueRepo:       new(MockProductionPlansJobQueueRepository),
-		marketRepo:      new(MockProductionPlansMarketRepository),
-		costIndicesRepo: new(MockProductionPlansCostIndicesRepository),
-		characterRepo:   new(MockProductionPlansCharacterRepository),
-		corpRepo:        new(MockProductionPlansCorporationRepository),
-		stationRepo:     new(MockProductionPlansUserStationRepository),
-		runsRepo:        new(MockProductionPlanRunsRepository),
+		plansRepo:        new(MockProductionPlansRepository),
+		sdeRepo:          new(MockProductionPlansSdeRepository),
+		queueRepo:        new(MockProductionPlansJobQueueRepository),
+		marketRepo:       new(MockProductionPlansMarketRepository),
+		costIndicesRepo:  new(MockProductionPlansCostIndicesRepository),
+		characterRepo:    new(MockProductionPlansCharacterRepository),
+		corpRepo:         new(MockProductionPlansCorporationRepository),
+		stationRepo:      new(MockProductionPlansUserStationRepository),
+		runsRepo:         new(MockProductionPlanRunsRepository),
+		transportJobRepo: new(MockProductionPlansTransportJobsRepository),
+		profilesRepo:     new(MockProductionPlansTransportProfilesRepository),
+		jfRoutesRepo:     new(MockProductionPlansJFRoutesRepository),
+		esiClient:        new(MockProductionPlansEsiClient),
 	}
 
 	controller := controllers.NewProductionPlans(
@@ -295,6 +380,10 @@ func setupProductionPlansController() (*controllers.ProductionPlans, *production
 		mocks.corpRepo,
 		mocks.stationRepo,
 		mocks.runsRepo,
+		mocks.transportJobRepo,
+		mocks.profilesRepo,
+		mocks.jfRoutesRepo,
+		mocks.esiClient,
 	)
 
 	return controller, mocks
@@ -354,7 +443,7 @@ func Test_ProductionPlans_CreatePlan_Success(t *testing.T) {
 		ProductQuantity: 1,
 	}, nil)
 
-	mocks.sdeRepo.On("GetManufacturingBlueprint", mock.Anything, int64(787)).Return(&repositories.ManufacturingBlueprintRow{
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
 		BlueprintTypeID: 787,
 		ProductTypeID:   587,
 		ProductName:     "Rifter",
@@ -683,12 +772,12 @@ func Test_ProductionPlans_GenerateJobs_Success(t *testing.T) {
 		ID: 50, PlanID: 1, UserID: 100, Quantity: 40,
 	}, nil)
 
-	mocks.sdeRepo.On("GetManufacturingBlueprint", mock.Anything, int64(787)).Return(&repositories.ManufacturingBlueprintRow{
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
 		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
 		ProductQuantity: 1, Time: 7200,
 	}, nil)
 
-	mocks.sdeRepo.On("GetManufacturingMaterials", mock.Anything, int64(787)).Return([]*repositories.ManufacturingMaterialRow{
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
 		{BlueprintTypeID: 787, TypeID: 34, TypeName: "Tritanium", Quantity: 1000},
 	}, nil)
 
@@ -752,21 +841,21 @@ func Test_ProductionPlans_GenerateJobs_WithChildStep(t *testing.T) {
 	}, nil)
 
 	// Root blueprint: produces 1 Rifter per run, needs 10 Components
-	mocks.sdeRepo.On("GetManufacturingBlueprint", mock.Anything, int64(787)).Return(&repositories.ManufacturingBlueprintRow{
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
 		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
 		ProductQuantity: 1, Time: 7200,
 	}, nil)
-	mocks.sdeRepo.On("GetManufacturingMaterials", mock.Anything, int64(787)).Return([]*repositories.ManufacturingMaterialRow{
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
 		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component", Quantity: 10},
 		{BlueprintTypeID: 787, TypeID: 34, TypeName: "Tritanium", Quantity: 1000},
 	}, nil)
 
 	// Child blueprint: produces 5 Components per run
-	mocks.sdeRepo.On("GetManufacturingBlueprint", mock.Anything, int64(1234)).Return(&repositories.ManufacturingBlueprintRow{
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
 		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component",
 		ProductQuantity: 5, Time: 3600,
 	}, nil)
-	mocks.sdeRepo.On("GetManufacturingMaterials", mock.Anything, int64(1234)).Return([]*repositories.ManufacturingMaterialRow{
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
 		{BlueprintTypeID: 1234, TypeID: 34, TypeName: "Tritanium", Quantity: 100},
 	}, nil)
 
@@ -858,7 +947,7 @@ func Test_ProductionPlans_GenerateJobs_BlueprintDataMissing(t *testing.T) {
 	}, nil)
 
 	// Blueprint data not found
-	mocks.sdeRepo.On("GetManufacturingBlueprint", mock.Anything, int64(787)).Return(nil, nil)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(nil, nil)
 
 	body, _ := json.Marshal(map[string]any{"quantity": 10})
 	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
@@ -887,7 +976,7 @@ func Test_ProductionPlans_CreatePlan_WithDefaultStations(t *testing.T) {
 		ProductQuantity: 1,
 	}, nil)
 
-	mocks.sdeRepo.On("GetManufacturingBlueprint", mock.Anything, int64(787)).Return(&repositories.ManufacturingBlueprintRow{
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
 		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
 		ProductQuantity: 1, Time: 7200,
 	}, nil)
@@ -1353,4 +1442,564 @@ func Test_ProductionPlans_CancelPlanRun_Error(t *testing.T) {
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 500, httpErr.StatusCode)
 	mocks.runsRepo.AssertExpectations(t)
+}
+
+// --- UpdatePlan Tests ---
+
+func Test_ProductionPlans_UpdatePlan_Success(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	fulfillment := "self_haul"
+	method := "freighter"
+
+	mocks.plansRepo.On("Update", mock.Anything, int64(1), userID, "Updated Name", (*string)(nil), (*int64)(nil), (*int64)(nil), &fulfillment, &method, (*int64)(nil), float64(0), float64(0)).Return(nil)
+
+	body, _ := json.Marshal(map[string]any{
+		"name":                  "Updated Name",
+		"transport_fulfillment": "self_haul",
+		"transport_method":      "freighter",
+	})
+	req := httptest.NewRequest("PUT", "/v1/industry/plans/1", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.UpdatePlan(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	mocks.plansRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_UpdatePlan_WithCourierSettings(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	fulfillment := "courier_contract"
+
+	mocks.plansRepo.On("Update", mock.Anything, int64(1), userID, "Courier Plan", (*string)(nil), (*int64)(nil), (*int64)(nil), &fulfillment, (*string)(nil), (*int64)(nil), float64(800), float64(0.02)).Return(nil)
+
+	body, _ := json.Marshal(map[string]any{
+		"name":                    "Courier Plan",
+		"transport_fulfillment":   "courier_contract",
+		"courier_rate_per_m3":     800,
+		"courier_collateral_rate": 0.02,
+	})
+	req := httptest.NewRequest("PUT", "/v1/industry/plans/1", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.UpdatePlan(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	mocks.plansRepo.AssertExpectations(t)
+}
+
+// --- Transport Generation Tests ---
+
+func Test_ProductionPlans_GenerateJobs_NoTransportWhenFulfillmentNil(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	rootStepID := int64(10)
+	childStepID := int64(20)
+	parentRef := rootStepID
+	stationA := int64(5)
+	stationB := int64(6)
+
+	// Plan WITHOUT transport settings
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter",
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter", UserStationID: &stationA,
+			},
+			{
+				ID: childStepID, PlanID: 1, ParentStepID: &parentRef,
+				ProductTypeID: 5678, BlueprintTypeID: 1234,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Component", UserStationID: &stationB,
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: 100, Quantity: 2,
+	}, nil)
+
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200, ProductVolume: 27500,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component", Quantity: 10},
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component",
+		ProductQuantity: 5, Time: 3600, ProductVolume: 10,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "manufacturing"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, Activity: "manufacturing", Status: "planned",
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 2})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	// Should have manufacturing jobs only, no transport
+	assert.Len(t, genResult.TransportJobs, 0)
+	// Transport repo should NOT have been called
+	mocks.transportJobRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+}
+
+func Test_ProductionPlans_GenerateJobs_NoTransportWhenSameStation(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	rootStepID := int64(10)
+	childStepID := int64(20)
+	parentRef := rootStepID
+	stationA := int64(5) // both steps at same user station
+	fulfillment := "self_haul"
+	method := "freighter"
+
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter",
+		TransportFulfillment: &fulfillment,
+		TransportMethod:      &method,
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter", UserStationID: &stationA,
+			},
+			{
+				ID: childStepID, PlanID: 1, ParentStepID: &parentRef,
+				ProductTypeID: 5678, BlueprintTypeID: 1234,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Component", UserStationID: &stationA,
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: 100, Quantity: 2,
+	}, nil)
+
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200, ProductVolume: 27500,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component", Quantity: 10},
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component",
+		ProductQuantity: 5, Time: 3600, ProductVolume: 10,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "manufacturing"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, Activity: "manufacturing", Status: "planned",
+	}, nil)
+
+	// Both steps resolve to same station_id=60003760
+	mocks.stationRepo.On("GetByID", mock.Anything, stationA, userID).Return(&models.UserStation{
+		ID: stationA, StationID: 60003760, SolarSystemID: 30000142,
+	}, nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 2})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Len(t, genResult.TransportJobs, 0)
+	mocks.transportJobRepo.AssertNotCalled(t, "Create", mock.Anything, mock.Anything)
+}
+
+func Test_ProductionPlans_GenerateJobs_TransportCreatedDifferentStations(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	rootStepID := int64(10)
+	childStepID := int64(20)
+	parentRef := rootStepID
+	stationA := int64(5)
+	stationB := int64(6)
+	fulfillment := "courier_contract"
+
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter",
+		TransportFulfillment: &fulfillment,
+		CourierRatePerM3:     800,
+		CourierCollateralRate: 0.02,
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter", UserStationID: &stationA,
+			},
+			{
+				ID: childStepID, PlanID: 1, ParentStepID: &parentRef,
+				ProductTypeID: 5678, BlueprintTypeID: 1234,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Component", UserStationID: &stationB,
+			},
+		},
+	}
+
+	sellPrice := 100.0
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{
+		5678: {TypeID: 5678, SellPrice: &sellPrice},
+	}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: 100, Quantity: 2,
+	}, nil)
+
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200, ProductVolume: 27500,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component", Quantity: 10},
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component",
+		ProductQuantity: 5, Time: 3600, ProductVolume: 10,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Manufacturing queue entries
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "manufacturing"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, Activity: "manufacturing", Status: "planned",
+	}, nil)
+
+	// Station A (parent) and Station B (child) resolve to different station IDs
+	mocks.stationRepo.On("GetByID", mock.Anything, stationA, userID).Return(&models.UserStation{
+		ID: stationA, StationID: 60003760, SolarSystemID: 30000142,
+		StationName: "Jita Station",
+	}, nil)
+	mocks.stationRepo.On("GetByID", mock.Anything, stationB, userID).Return(&models.UserStation{
+		ID: stationB, StationID: 60004588, SolarSystemID: 30002187,
+		StationName: "Amarr Station",
+	}, nil)
+
+	// Transport job creation
+	transportJobID := int64(500)
+	mocks.transportJobRepo.On("Create", mock.Anything, mock.MatchedBy(func(j *models.TransportJob) bool {
+		return j.OriginStationID == 60004588 && j.DestinationStationID == 60003760 &&
+			j.FulfillmentType == "courier_contract" &&
+			len(j.Items) == 1 && j.Items[0].TypeID == 5678
+	})).Return(&models.TransportJob{
+		ID:                   transportJobID,
+		OriginStationID:      60004588,
+		DestinationStationID: 60003760,
+		FulfillmentType:      "courier_contract",
+		EstimatedCost:        5000,
+	}, nil)
+
+	// Transport queue entry creation
+	queueEntryID := int64(101)
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "transport" && e.TransportJobID != nil && *e.TransportJobID == transportJobID
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: queueEntryID, Activity: "transport", Status: "planned",
+	}, nil)
+
+	// Link queue entry back
+	mocks.transportJobRepo.On("SetQueueEntryID", mock.Anything, transportJobID, queueEntryID).Return(nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 2})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Len(t, genResult.TransportJobs, 1)
+	assert.Equal(t, int64(60004588), genResult.TransportJobs[0].OriginStationID)
+	assert.Equal(t, int64(60003760), genResult.TransportJobs[0].DestinationStationID)
+	// Transport queue entry should be in Created
+	assert.True(t, len(genResult.Created) >= 3) // 2 manufacturing + 1 transport
+	mocks.transportJobRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_GenerateJobs_TransportBatchedSameRoute(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	rootStepID := int64(10)
+	childStepID1 := int64(20)
+	childStepID2 := int64(30)
+	parentRef := rootStepID
+	stationA := int64(5) // parent station
+	stationB := int64(6) // both children at this station
+	fulfillment := "courier_contract"
+
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter",
+		TransportFulfillment:  &fulfillment,
+		CourierRatePerM3:      500,
+		CourierCollateralRate:  0.01,
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter", UserStationID: &stationA,
+			},
+			{
+				ID: childStepID1, PlanID: 1, ParentStepID: &parentRef,
+				ProductTypeID: 5678, BlueprintTypeID: 1234,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Component A", UserStationID: &stationB,
+			},
+			{
+				ID: childStepID2, PlanID: 1, ParentStepID: &parentRef,
+				ProductTypeID: 9876, BlueprintTypeID: 4321,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Component B", UserStationID: &stationB,
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: 100, Quantity: 1,
+	}, nil)
+
+	// Root blueprint
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200, ProductVolume: 27500,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component A", Quantity: 10},
+		{BlueprintTypeID: 787, TypeID: 9876, TypeName: "Component B", Quantity: 5},
+	}, nil)
+
+	// Child A blueprint
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component A",
+		ProductQuantity: 5, Time: 3600, ProductVolume: 10,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Child B blueprint
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(4321), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 4321, ProductTypeID: 9876, ProductName: "Component B",
+		ProductQuantity: 1, Time: 1800, ProductVolume: 20,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(4321), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	// Manufacturing queue entries
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "manufacturing"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, Activity: "manufacturing", Status: "planned",
+	}, nil)
+
+	// Stations
+	mocks.stationRepo.On("GetByID", mock.Anything, stationA, userID).Return(&models.UserStation{
+		ID: stationA, StationID: 60003760, SolarSystemID: 30000142,
+		StationName: "Jita Station",
+	}, nil)
+	mocks.stationRepo.On("GetByID", mock.Anything, stationB, userID).Return(&models.UserStation{
+		ID: stationB, StationID: 60004588, SolarSystemID: 30002187,
+		StationName: "Amarr Station",
+	}, nil)
+
+	// Should create ONE transport job with 2 items (batched)
+	transportJobID := int64(500)
+	mocks.transportJobRepo.On("Create", mock.Anything, mock.MatchedBy(func(j *models.TransportJob) bool {
+		return len(j.Items) == 2 && j.FulfillmentType == "courier_contract"
+	})).Return(&models.TransportJob{
+		ID: transportJobID, EstimatedCost: 3000,
+	}, nil)
+
+	queueEntryID := int64(101)
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "transport"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: queueEntryID, Activity: "transport", Status: "planned",
+	}, nil)
+
+	mocks.transportJobRepo.On("SetQueueEntryID", mock.Anything, transportJobID, queueEntryID).Return(nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 1})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	// Only 1 transport job (batched), not 2
+	assert.Len(t, genResult.TransportJobs, 1)
+	// Transport job repo should have been called exactly once
+	mocks.transportJobRepo.AssertNumberOfCalls(t, "Create", 1)
+}
+
+func Test_ProductionPlans_GenerateJobs_SelfHaulGateTransport(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	rootStepID := int64(10)
+	childStepID := int64(20)
+	parentRef := rootStepID
+	stationA := int64(5)
+	stationB := int64(6)
+	fulfillment := "self_haul"
+	method := "freighter"
+	profileID := int64(42)
+
+	plan := &models.ProductionPlan{
+		ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter",
+		TransportFulfillment: &fulfillment,
+		TransportMethod:      &method,
+		TransportProfileID:   &profileID,
+		Steps: []*models.ProductionPlanStep{
+			{
+				ID: rootStepID, PlanID: 1, ProductTypeID: 587, BlueprintTypeID: 787,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Rifter", UserStationID: &stationA,
+			},
+			{
+				ID: childStepID, PlanID: 1, ParentStepID: &parentRef,
+				ProductTypeID: 5678, BlueprintTypeID: 1234,
+				Activity: "manufacturing", MELevel: 10, TELevel: 20,
+				IndustrySkill: 5, AdvIndustrySkill: 5,
+				Structure: "raitaru", Rig: "t2", Security: "high", FacilityTax: 1.0,
+				ProductName: "Component", UserStationID: &stationB,
+			},
+		},
+	}
+
+	mocks.plansRepo.On("GetByID", mock.Anything, int64(1), userID).Return(plan, nil)
+	mocks.marketRepo.On("GetAllJitaPrices", mock.Anything).Return(map[int64]*models.MarketPrice{}, nil)
+	mocks.marketRepo.On("GetAllAdjustedPrices", mock.Anything).Return(map[int64]float64{}, nil)
+	mocks.runsRepo.On("Create", mock.Anything, mock.Anything).Return(&models.ProductionPlanRun{
+		ID: 50, PlanID: 1, UserID: 100, Quantity: 2,
+	}, nil)
+
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(787), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 787, ProductTypeID: 587, ProductName: "Rifter",
+		ProductQuantity: 1, Time: 7200, ProductVolume: 27500,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(787), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{
+		{BlueprintTypeID: 787, TypeID: 5678, TypeName: "Component", Quantity: 10},
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintForActivity", mock.Anything, int64(1234), mock.Anything).Return(&repositories.ManufacturingBlueprintRow{
+		BlueprintTypeID: 1234, ProductTypeID: 5678, ProductName: "Component",
+		ProductQuantity: 5, Time: 3600, ProductVolume: 10,
+	}, nil)
+	mocks.sdeRepo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(1234), mock.Anything).Return([]*repositories.ManufacturingMaterialRow{}, nil)
+
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "manufacturing"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: 99, Activity: "manufacturing", Status: "planned",
+	}, nil)
+
+	mocks.stationRepo.On("GetByID", mock.Anything, stationA, userID).Return(&models.UserStation{
+		ID: stationA, StationID: 60003760, SolarSystemID: 30000142,
+		StationName: "Jita Station",
+	}, nil)
+	mocks.stationRepo.On("GetByID", mock.Anything, stationB, userID).Return(&models.UserStation{
+		ID: stationB, StationID: 60004588, SolarSystemID: 30002187,
+		StationName: "Amarr Station",
+	}, nil)
+
+	// Profile lookup
+	mocks.profilesRepo.On("GetByID", mock.Anything, profileID, userID).Return(&models.TransportProfile{
+		ID:               profileID,
+		TransportMethod:  "freighter",
+		CargoM3:          60000,
+		RatePerM3PerJump: 10,
+		CollateralRate:   0.01,
+		RoutePreference:  "shortest",
+	}, nil)
+
+	// ESI route call
+	mocks.esiClient.On("GetRoute", mock.Anything, int64(30002187), int64(30000142), "shortest").Return(
+		[]int32{30002187, 30002188, 30000142}, nil,
+	)
+
+	// Transport job creation
+	transportJobID := int64(500)
+	mocks.transportJobRepo.On("Create", mock.Anything, mock.MatchedBy(func(j *models.TransportJob) bool {
+		return j.TransportMethod == "freighter" && j.FulfillmentType == "self_haul" &&
+			j.Jumps == 2 && j.TransportProfileID != nil && *j.TransportProfileID == profileID
+	})).Return(&models.TransportJob{
+		ID: transportJobID, EstimatedCost: 1000, Jumps: 2,
+	}, nil)
+
+	queueEntryID := int64(101)
+	mocks.queueRepo.On("Create", mock.Anything, mock.MatchedBy(func(e *models.IndustryJobQueueEntry) bool {
+		return e.Activity == "transport"
+	})).Return(&models.IndustryJobQueueEntry{
+		ID: queueEntryID, Activity: "transport", Status: "planned",
+	}, nil)
+
+	mocks.transportJobRepo.On("SetQueueEntryID", mock.Anything, transportJobID, queueEntryID).Return(nil)
+
+	body, _ := json.Marshal(map[string]any{"quantity": 2})
+	req := httptest.NewRequest("POST", "/v1/industry/plans/1/generate", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "1"}}
+
+	result, httpErr := controller.GenerateJobs(args)
+
+	assert.Nil(t, httpErr)
+	genResult := result.(*models.GenerateJobsResult)
+	assert.Len(t, genResult.TransportJobs, 1)
+	assert.Equal(t, 2, genResult.TransportJobs[0].Jumps)
+	mocks.esiClient.AssertExpectations(t)
+	mocks.profilesRepo.AssertExpectations(t)
+	mocks.transportJobRepo.AssertExpectations(t)
 }

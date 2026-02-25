@@ -22,6 +22,8 @@ type Props = {
   onCancel: (id: number) => void;
 };
 
+const headerStyle = { color: "#94a3b8", fontWeight: 600 };
+
 function getStatusColor(status: string): "success" | "warning" | "info" | "error" | "default" {
   switch (status) {
     case "planned": return "info";
@@ -29,6 +31,25 @@ function getStatusColor(status: string): "success" | "warning" | "info" | "error
     case "completed": return "default";
     case "cancelled": return "error";
     default: return "default";
+  }
+}
+
+function formatTransportMethod(method: string): string {
+  switch (method) {
+    case "freighter": return "Freighter";
+    case "jump_freighter": return "Jump Freighter";
+    case "dst": return "DST";
+    case "blockade_runner": return "Blockade Runner";
+    default: return method;
+  }
+}
+
+function formatFulfillment(type: string): string {
+  switch (type) {
+    case "self_haul": return "Self Haul";
+    case "courier_contract": return "Courier Contract";
+    case "contact_haul": return "Contact Haul";
+    default: return type;
   }
 }
 
@@ -90,25 +111,28 @@ export default function JobQueue({ entries, loading, onCancel }: Props) {
       <Table size="small">
         <TableHead>
           <TableRow sx={{ backgroundColor: "#0f1219" }}>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Blueprint</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Product</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Activity</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Runs</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">ME/TE</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Character</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Est. Cost</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Est. Duration</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Finishes</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="center">Source</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Notes</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="center">Actions</TableCell>
+            <TableCell sx={headerStyle}>Blueprint</TableCell>
+            <TableCell sx={headerStyle}>Product</TableCell>
+            <TableCell sx={headerStyle}>Activity</TableCell>
+            <TableCell sx={headerStyle} align="right">Runs</TableCell>
+            <TableCell sx={headerStyle} align="right">ME/TE</TableCell>
+            <TableCell sx={headerStyle}>Station</TableCell>
+            <TableCell sx={headerStyle}>Input</TableCell>
+            <TableCell sx={headerStyle}>Output</TableCell>
+            <TableCell sx={headerStyle}>Character</TableCell>
+            <TableCell sx={headerStyle} align="right">Est. Cost</TableCell>
+            <TableCell sx={headerStyle}>Duration</TableCell>
+            <TableCell sx={headerStyle}>Finishes</TableCell>
+            <TableCell sx={headerStyle} align="center">Source</TableCell>
+            <TableCell sx={headerStyle}>Status</TableCell>
+            <TableCell sx={headerStyle}>Notes</TableCell>
+            <TableCell sx={headerStyle} align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {entries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={13} align="center" sx={{ py: 4, color: "#64748b" }}>
+              <TableCell colSpan={16} align="center" sx={{ py: 4, color: "#64748b" }}>
                 No jobs in queue
               </TableCell>
             </TableRow>
@@ -121,73 +145,152 @@ export default function JobQueue({ entries, loading, onCancel }: Props) {
                   "&:nth-of-type(even)": { backgroundColor: "#12151f" },
                 }}
               >
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
-                    {entry.blueprintName || `Type ${entry.blueprintTypeId}`}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
-                    {entry.productName || "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#cbd5e1", textTransform: "capitalize" }}>
-                    {entry.activity}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
-                    {formatNumber(entry.runs)}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                    {entry.meLevel}/{entry.teLevel}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                    {entry.characterName || "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
-                    {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                    {entry.estimatedDuration ? formatDuration(entry.estimatedDuration) : "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {entry.esiJobEndDate ? (
-                    <Box>
-                      <Typography variant="body2" sx={{ color: "#3b82f6", fontFamily: "monospace", fontWeight: 600 }}>
-                        {formatTimeRemaining(entry.esiJobEndDate)}
+                {entry.activity === "transport" ? (
+                  <>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+                        {entry.transportOriginName && entry.transportDestName
+                          ? `${entry.transportOriginName} → ${entry.transportDestName}`
+                          : "-"}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: "#64748b" }}>
-                        {formatEndDate(entry.esiJobEndDate)}
+                    </TableCell>
+                    <TableCell>
+                      <Tooltip title={entry.transportItemsSummary || ""} placement="top">
+                        <Typography variant="body2" sx={{ color: "#cbd5e1", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {entry.transportItemsSummary || "-"}
+                        </Typography>
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                        {entry.transportMethod ? formatTransportMethod(entry.transportMethod) : "Transport"}
                       </Typography>
-                    </Box>
-                  ) : (
-                    <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                  )}
-                </TableCell>
-                <TableCell align="center">
-                  {entry.esiJobSource ? (
-                    <Tooltip title={entry.esiJobSource === "corporation" ? "Corporation Job" : "Character Job"}>
-                      {entry.esiJobSource === "corporation" ? (
-                        <CorporateFareIcon sx={{ color: "#f59e0b", fontSize: 18 }} />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.transportJumps ? `${formatNumber(entry.transportJumps)} jumps` : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.transportVolumeM3 ? `${formatNumber(entry.transportVolumeM3)} m³` : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.transportFulfillment ? formatFulfillment(entry.transportFulfillment) : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                        {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                    </TableCell>
+                  </>
+                ) : (
+                  <>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+                        {entry.blueprintName || `Type ${entry.blueprintTypeId}`}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                        {entry.productName || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#cbd5e1", textTransform: "capitalize" }}>
+                        {entry.activity}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+                        {formatNumber(entry.runs)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.meLevel}/{entry.teLevel}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.stationName || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.inputLocation || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.outputLocation || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.characterName || "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                        {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        {entry.estimatedDuration ? formatDuration(entry.estimatedDuration) : "-"}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      {entry.esiJobEndDate ? (
+                        <Box>
+                          <Typography variant="body2" sx={{ color: "#3b82f6", fontFamily: "monospace", fontWeight: 600 }}>
+                            {formatTimeRemaining(entry.esiJobEndDate)}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: "#64748b" }}>
+                            {formatEndDate(entry.esiJobEndDate)}
+                          </Typography>
+                        </Box>
                       ) : (
-                        <PersonIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
+                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
                       )}
-                    </Tooltip>
-                  ) : (
-                    <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                  )}
-                </TableCell>
+                    </TableCell>
+                    <TableCell align="center">
+                      {entry.esiJobSource ? (
+                        <Tooltip title={entry.esiJobSource === "corporation" ? "Corporation Job" : "Character Job"}>
+                          {entry.esiJobSource === "corporation" ? (
+                            <CorporateFareIcon sx={{ color: "#f59e0b", fontSize: 18 }} />
+                          ) : (
+                            <PersonIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
+                          )}
+                        </Tooltip>
+                      ) : (
+                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                      )}
+                    </TableCell>
+                  </>
+                )}
                 <TableCell>
                   <Chip
                     label={entry.status}

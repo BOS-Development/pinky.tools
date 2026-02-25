@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"sort"
+	"strings"
 
 	"github.com/annymsMthd/industry-tool/internal/calculator"
 	"github.com/annymsMthd/industry-tool/internal/models"
@@ -17,7 +19,7 @@ type ProductionPlansRepository interface {
 	Create(ctx context.Context, plan *models.ProductionPlan) (*models.ProductionPlan, error)
 	GetByUser(ctx context.Context, userID int64) ([]*models.ProductionPlan, error)
 	GetByID(ctx context.Context, id, userID int64) (*models.ProductionPlan, error)
-	Update(ctx context.Context, id, userID int64, name string, notes *string, defaultManufacturingStationID *int64, defaultReactionStationID *int64) error
+	Update(ctx context.Context, id, userID int64, name string, notes *string, defaultManufacturingStationID *int64, defaultReactionStationID *int64, transportFulfillment *string, transportMethod *string, transportProfileID *int64, courierRatePerM3 float64, courierCollateralRate float64) error
 	Delete(ctx context.Context, id, userID int64) error
 	CreateStep(ctx context.Context, step *models.ProductionPlanStep) (*models.ProductionPlanStep, error)
 	UpdateStep(ctx context.Context, stepID, planID, userID int64, step *models.ProductionPlanStep) error
@@ -44,6 +46,8 @@ type ProductionPlansSdeRepository interface {
 	GetBlueprintByProduct(ctx context.Context, productTypeID int64) (*repositories.BlueprintProductRow, error)
 	GetManufacturingBlueprint(ctx context.Context, blueprintTypeID int64) (*repositories.ManufacturingBlueprintRow, error)
 	GetManufacturingMaterials(ctx context.Context, blueprintTypeID int64) ([]*repositories.ManufacturingMaterialRow, error)
+	GetBlueprintForActivity(ctx context.Context, blueprintTypeID int64, activity string) (*repositories.ManufacturingBlueprintRow, error)
+	GetBlueprintMaterialsForActivity(ctx context.Context, blueprintTypeID int64, activity string) ([]*repositories.ManufacturingMaterialRow, error)
 }
 
 type ProductionPlansMarketRepository interface {
@@ -68,16 +72,38 @@ type ProductionPlanRunsRepository interface {
 	CancelPlannedJobs(ctx context.Context, runID, userID int64) (int64, error)
 }
 
+type ProductionPlansTransportJobsRepository interface {
+	Create(ctx context.Context, job *models.TransportJob) (*models.TransportJob, error)
+	SetQueueEntryID(ctx context.Context, id int64, queueEntryID int64) error
+}
+
+type ProductionPlansTransportProfilesRepository interface {
+	GetByID(ctx context.Context, id, userID int64) (*models.TransportProfile, error)
+	GetDefaultByMethod(ctx context.Context, userID int64, method string) (*models.TransportProfile, error)
+}
+
+type ProductionPlansJFRoutesRepository interface {
+	FindBySystemPair(ctx context.Context, userID, originSystemID, destSystemID int64) (*models.JFRoute, error)
+}
+
+type ProductionPlansEsiClient interface {
+	GetRoute(ctx context.Context, origin, destination int64, flag string) ([]int32, error)
+}
+
 type ProductionPlans struct {
-	plansRepo       ProductionPlansRepository
-	sdeRepo         ProductionPlansSdeRepository
-	queueRepo       ProductionPlansJobQueueRepository
-	marketRepo      ProductionPlansMarketRepository
-	costIndicesRepo ProductionPlansCostIndicesRepository
-	characterRepo   ProductionPlansCharacterRepository
-	corpRepo        ProductionPlansCorporationRepository
-	stationRepo     ProductionPlansUserStationRepository
-	runsRepo        ProductionPlanRunsRepository
+	plansRepo        ProductionPlansRepository
+	sdeRepo          ProductionPlansSdeRepository
+	queueRepo        ProductionPlansJobQueueRepository
+	marketRepo       ProductionPlansMarketRepository
+	costIndicesRepo  ProductionPlansCostIndicesRepository
+	characterRepo    ProductionPlansCharacterRepository
+	corpRepo         ProductionPlansCorporationRepository
+	stationRepo      ProductionPlansUserStationRepository
+	runsRepo         ProductionPlanRunsRepository
+	transportJobRepo ProductionPlansTransportJobsRepository
+	profilesRepo     ProductionPlansTransportProfilesRepository
+	jfRoutesRepo     ProductionPlansJFRoutesRepository
+	esiClient        ProductionPlansEsiClient
 }
 
 func NewProductionPlans(
@@ -91,17 +117,25 @@ func NewProductionPlans(
 	corpRepo ProductionPlansCorporationRepository,
 	stationRepo ProductionPlansUserStationRepository,
 	runsRepo ProductionPlanRunsRepository,
+	transportJobRepo ProductionPlansTransportJobsRepository,
+	profilesRepo ProductionPlansTransportProfilesRepository,
+	jfRoutesRepo ProductionPlansJFRoutesRepository,
+	esiClient ProductionPlansEsiClient,
 ) *ProductionPlans {
 	c := &ProductionPlans{
-		plansRepo:       plansRepo,
-		sdeRepo:         sdeRepo,
-		queueRepo:       queueRepo,
-		marketRepo:      marketRepo,
-		costIndicesRepo: costIndicesRepo,
-		characterRepo:   characterRepo,
-		corpRepo:        corpRepo,
-		stationRepo:     stationRepo,
-		runsRepo:        runsRepo,
+		plansRepo:        plansRepo,
+		sdeRepo:          sdeRepo,
+		queueRepo:        queueRepo,
+		marketRepo:       marketRepo,
+		costIndicesRepo:  costIndicesRepo,
+		characterRepo:    characterRepo,
+		corpRepo:         corpRepo,
+		stationRepo:      stationRepo,
+		runsRepo:         runsRepo,
+		transportJobRepo: transportJobRepo,
+		profilesRepo:     profilesRepo,
+		jfRoutesRepo:     jfRoutesRepo,
+		esiClient:        esiClient,
 	}
 
 	router.RegisterRestAPIRoute("/v1/industry/plans", web.AuthAccessUser, c.GetPlans, "GET")
@@ -135,11 +169,16 @@ func (c *ProductionPlans) GetPlans(args *web.HandlerArgs) (any, *web.HttpError) 
 }
 
 type createPlanRequest struct {
-	ProductTypeID                 int64   `json:"product_type_id"`
-	Name                          string  `json:"name"`
-	Notes                         *string `json:"notes"`
-	DefaultManufacturingStationID *int64  `json:"default_manufacturing_station_id"`
-	DefaultReactionStationID      *int64  `json:"default_reaction_station_id"`
+	ProductTypeID                 int64    `json:"product_type_id"`
+	Name                          string   `json:"name"`
+	Notes                         *string  `json:"notes"`
+	DefaultManufacturingStationID *int64   `json:"default_manufacturing_station_id"`
+	DefaultReactionStationID      *int64   `json:"default_reaction_station_id"`
+	TransportFulfillment          *string  `json:"transport_fulfillment"`
+	TransportMethod               *string  `json:"transport_method"`
+	TransportProfileID            *int64   `json:"transport_profile_id"`
+	CourierRatePerM3              float64  `json:"courier_rate_per_m3"`
+	CourierCollateralRate         float64  `json:"courier_collateral_rate"`
 }
 
 // CreatePlan creates a new production plan and auto-creates the root step.
@@ -167,7 +206,7 @@ func (c *ProductionPlans) CreatePlan(args *web.HandlerArgs) (any, *web.HttpError
 	// Get product name for default plan name
 	planName := req.Name
 	if planName == "" {
-		bpInfo, err := c.sdeRepo.GetManufacturingBlueprint(ctx, bp.BlueprintTypeID)
+		bpInfo, err := c.sdeRepo.GetBlueprintForActivity(ctx, bp.BlueprintTypeID, bp.Activity)
 		if err == nil && bpInfo != nil {
 			planName = bpInfo.ProductName
 		}
@@ -181,6 +220,11 @@ func (c *ProductionPlans) CreatePlan(args *web.HandlerArgs) (any, *web.HttpError
 		Notes:                         req.Notes,
 		DefaultManufacturingStationID: req.DefaultManufacturingStationID,
 		DefaultReactionStationID:      req.DefaultReactionStationID,
+		TransportFulfillment:          req.TransportFulfillment,
+		TransportMethod:               req.TransportMethod,
+		TransportProfileID:            req.TransportProfileID,
+		CourierRatePerM3:              req.CourierRatePerM3,
+		CourierCollateralRate:         req.CourierCollateralRate,
 	})
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to create production plan")}
@@ -244,13 +288,18 @@ func (c *ProductionPlans) GetPlan(args *web.HandlerArgs) (any, *web.HttpError) {
 }
 
 type updatePlanRequest struct {
-	Name                          string  `json:"name"`
-	Notes                         *string `json:"notes"`
-	DefaultManufacturingStationID *int64  `json:"default_manufacturing_station_id"`
-	DefaultReactionStationID      *int64  `json:"default_reaction_station_id"`
+	Name                          string   `json:"name"`
+	Notes                         *string  `json:"notes"`
+	DefaultManufacturingStationID *int64   `json:"default_manufacturing_station_id"`
+	DefaultReactionStationID      *int64   `json:"default_reaction_station_id"`
+	TransportFulfillment          *string  `json:"transport_fulfillment"`
+	TransportMethod               *string  `json:"transport_method"`
+	TransportProfileID            *int64   `json:"transport_profile_id"`
+	CourierRatePerM3              float64  `json:"courier_rate_per_m3"`
+	CourierCollateralRate         float64  `json:"courier_collateral_rate"`
 }
 
-// UpdatePlan updates plan metadata (name, notes).
+// UpdatePlan updates plan metadata (name, notes, transport settings).
 func (c *ProductionPlans) UpdatePlan(args *web.HandlerArgs) (any, *web.HttpError) {
 	id, err := parseID(args.Params["id"])
 	if err != nil {
@@ -262,7 +311,7 @@ func (c *ProductionPlans) UpdatePlan(args *web.HandlerArgs) (any, *web.HttpError
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
 	}
 
-	if err := c.plansRepo.Update(args.Request.Context(), id, *args.User, req.Name, req.Notes, req.DefaultManufacturingStationID, req.DefaultReactionStationID); err != nil {
+	if err := c.plansRepo.Update(args.Request.Context(), id, *args.User, req.Name, req.Notes, req.DefaultManufacturingStationID, req.DefaultReactionStationID, req.TransportFulfillment, req.TransportMethod, req.TransportProfileID, req.CourierRatePerM3, req.CourierCollateralRate); err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update production plan")}
 	}
 
@@ -648,6 +697,31 @@ type generateJobsRequest struct {
 	Quantity int `json:"quantity"`
 }
 
+type stepProductionData struct {
+	productTypeID int64
+	productName   string
+	totalQuantity int
+	productVolume float64
+}
+
+// formatLocation builds a human-readable location string from owner/division/container names.
+func formatLocation(ownerName, divisionName, containerName string) string {
+	parts := []string{}
+	if ownerName != "" {
+		parts = append(parts, ownerName)
+	}
+	if divisionName != "" {
+		parts = append(parts, divisionName)
+	}
+	if containerName != "" {
+		parts = append(parts, containerName)
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return strings.Join(parts, " > ")
+}
+
 // GenerateJobs creates job queue entries from a production plan for a given quantity.
 func (c *ProductionPlans) GenerateJobs(args *web.HandlerArgs) (any, *web.HttpError) {
 	ctx := args.Request.Context()
@@ -716,16 +790,34 @@ func (c *ProductionPlans) GenerateJobs(args *web.HandlerArgs) (any, *web.HttpErr
 	}
 
 	result := &models.GenerateJobsResult{
-		Run:     run,
-		Created: []*models.IndustryJobQueueEntry{},
-		Skipped: []*models.GenerateJobSkipped{},
+		Run:           run,
+		Created:       []*models.IndustryJobQueueEntry{},
+		Skipped:       []*models.GenerateJobSkipped{},
+		TransportJobs: []*models.TransportJob{},
 	}
 
-	// Walk the tree depth-first, collect jobs bottom-up
-	var walkStep func(step *models.ProductionPlanStep, quantity int)
-	walkStep = func(step *models.ProductionPlanStep, quantity int) {
-		// Look up blueprint to get product quantity per run
-		bp, err := c.sdeRepo.GetManufacturingBlueprint(ctx, step.BlueprintTypeID)
+	// Track production data per step for transport generation
+	stepProduction := make(map[int64]*stepProductionData)
+	// Track depth per step for transport ordering
+	stepDepths := make(map[int64]int)
+
+	// Pending job to be created after the walk, with depth for ordering
+	type pendingJob struct {
+		entry         *models.IndustryJobQueueEntry
+		blueprintName string
+		productName   string
+		depth         int
+	}
+	pendingJobs := []*pendingJob{}
+
+	// Walk the tree depth-first, collect jobs by depth level
+	var walkStep func(step *models.ProductionPlanStep, quantity int, depth int)
+	walkStep = func(step *models.ProductionPlanStep, quantity int, depth int) {
+		// Record depth for this step (used by transport ordering)
+		stepDepths[step.ID] = depth
+
+		// Look up blueprint to get product quantity per run (activity-aware)
+		bp, err := c.sdeRepo.GetBlueprintForActivity(ctx, step.BlueprintTypeID, step.Activity)
 		if err != nil || bp == nil {
 			result.Skipped = append(result.Skipped, &models.GenerateJobSkipped{
 				TypeID:   step.ProductTypeID,
@@ -741,8 +833,17 @@ func (c *ProductionPlans) GenerateJobs(args *web.HandlerArgs) (any, *web.HttpErr
 			runs = 1
 		}
 
+		// Record production data for transport generation
+		totalProduced := runs * bp.ProductQuantity
+		stepProduction[step.ID] = &stepProductionData{
+			productTypeID:  step.ProductTypeID,
+			productName:    bp.ProductName,
+			totalQuantity:  totalProduced,
+			productVolume:  bp.ProductVolume,
+		}
+
 		// Get materials for this step to calculate child needs
-		materials, err := c.sdeRepo.GetManufacturingMaterials(ctx, step.BlueprintTypeID)
+		materials, err := c.sdeRepo.GetBlueprintMaterialsForActivity(ctx, step.BlueprintTypeID, step.Activity)
 		if err != nil {
 			result.Skipped = append(result.Skipped, &models.GenerateJobSkipped{
 				TypeID:   step.ProductTypeID,
@@ -766,15 +867,15 @@ func (c *ProductionPlans) GenerateJobs(args *web.HandlerArgs) (any, *web.HttpErr
 			if childStep, ok := childProductTypeIDs[mat.TypeID]; ok {
 				// This material is produced — calculate needed quantity
 				batchQty := calculator.ComputeBatchQty(runs, mat.Quantity, meFactor)
-				walkStep(childStep, int(batchQty))
+				walkStep(childStep, int(batchQty), depth+1)
 			}
 		}
 
-		// Calculate cost for this step (manufacturing only)
+		// Calculate cost and duration for manufacturing and reaction steps
 		var estimatedCost *float64
 		var estimatedDuration *int
 
-		if step.Activity == "manufacturing" {
+		if step.Activity == "manufacturing" || step.Activity == "reaction" {
 			params := &calculator.ManufacturingParams{
 				BlueprintME:      step.MELevel,
 				BlueprintTE:      step.TELevel,
@@ -800,42 +901,418 @@ func (c *ProductionPlans) GenerateJobs(args *web.HandlerArgs) (any, *web.HttpErr
 			estimatedDuration = &calcResult.TotalDuration
 		}
 
-		// Create queue entry
+		// Collect pending job entry (created later in depth order)
 		productTypeID := step.ProductTypeID
 		stepID := step.ID
 		note := "Generated from plan: " + plan.Name
-		entry := &models.IndustryJobQueueEntry{
-			UserID:            *args.User,
-			BlueprintTypeID:   step.BlueprintTypeID,
-			Activity:          step.Activity,
-			Runs:              runs,
-			MELevel:           step.MELevel,
-			TELevel:           step.TELevel,
-			FacilityTax:       step.FacilityTax,
-			ProductTypeID:     &productTypeID,
-			EstimatedCost:     estimatedCost,
-			EstimatedDuration: estimatedDuration,
-			Notes:             &note,
-			PlanRunID:         &run.ID,
-			PlanStepID:        &stepID,
-		}
 
-		created, err := c.queueRepo.Create(ctx, entry)
+		// Build location context from plan step
+		stationName := ""
+		if step.StationName != nil {
+			stationName = *step.StationName
+		}
+		inputLoc := formatLocation(step.SourceOwnerName, step.SourceDivisionName, step.SourceContainerName)
+		outputLoc := formatLocation(step.OutputOwnerName, step.OutputDivisionName, step.OutputContainerName)
+
+		pendingJobs = append(pendingJobs, &pendingJob{
+			entry: &models.IndustryJobQueueEntry{
+				UserID:            *args.User,
+				BlueprintTypeID:   step.BlueprintTypeID,
+				Activity:          step.Activity,
+				Runs:              runs,
+				MELevel:           step.MELevel,
+				TELevel:           step.TELevel,
+				FacilityTax:       step.FacilityTax,
+				ProductTypeID:     &productTypeID,
+				EstimatedCost:     estimatedCost,
+				EstimatedDuration: estimatedDuration,
+				Notes:             &note,
+				PlanRunID:         &run.ID,
+				PlanStepID:        &stepID,
+				SortOrder:         depth * 2,
+				StationName:       stationName,
+				InputLocation:     inputLoc,
+				OutputLocation:    outputLoc,
+			},
+			blueprintName: step.BlueprintName,
+			productName:   bp.ProductName,
+			depth:         depth,
+		})
+	}
+
+	walkStep(rootStep, req.Quantity, 0)
+
+	// Merge pending jobs with identical blueprint + settings into combined entries
+	type mergeKey struct {
+		BlueprintTypeID int64
+		Activity        string
+		MELevel         int
+		TELevel         int
+		FacilityTax     float64
+	}
+	merged := make(map[mergeKey]*pendingJob)
+	mergeOrder := []mergeKey{}
+	for _, pj := range pendingJobs {
+		key := mergeKey{
+			BlueprintTypeID: pj.entry.BlueprintTypeID,
+			Activity:        pj.entry.Activity,
+			MELevel:         pj.entry.MELevel,
+			TELevel:         pj.entry.TELevel,
+			FacilityTax:     pj.entry.FacilityTax,
+		}
+		if existing, ok := merged[key]; ok {
+			existing.entry.Runs += pj.entry.Runs
+			if pj.entry.EstimatedCost != nil {
+				if existing.entry.EstimatedCost == nil {
+					cost := *pj.entry.EstimatedCost
+					existing.entry.EstimatedCost = &cost
+				} else {
+					*existing.entry.EstimatedCost += *pj.entry.EstimatedCost
+				}
+			}
+			if pj.entry.EstimatedDuration != nil {
+				if existing.entry.EstimatedDuration == nil {
+					dur := *pj.entry.EstimatedDuration
+					existing.entry.EstimatedDuration = &dur
+				} else {
+					*existing.entry.EstimatedDuration += *pj.entry.EstimatedDuration
+				}
+			}
+			// Keep the deeper depth for ordering
+			if pj.depth > existing.depth {
+				existing.depth = pj.depth
+				existing.entry.SortOrder = pj.entry.SortOrder
+			}
+		} else {
+			merged[key] = pj
+			mergeOrder = append(mergeOrder, key)
+		}
+	}
+
+	// Collect merged jobs preserving insertion order
+	mergedJobs := make([]*pendingJob, 0, len(mergeOrder))
+	for _, key := range mergeOrder {
+		mergedJobs = append(mergedJobs, merged[key])
+	}
+
+	// Sort merged jobs by depth descending (deepest first = leaves before parents)
+	sort.Slice(mergedJobs, func(i, j int) bool {
+		return mergedJobs[i].depth > mergedJobs[j].depth
+	})
+
+	// Create queue entries in depth order
+	for _, pj := range mergedJobs {
+		created, err := c.queueRepo.Create(ctx, pj.entry)
 		if err != nil {
 			result.Skipped = append(result.Skipped, &models.GenerateJobSkipped{
-				TypeID:   step.ProductTypeID,
-				TypeName: step.ProductName,
+				TypeID:   *pj.entry.ProductTypeID,
+				TypeName: pj.productName,
 				Reason:   "failed to create queue entry: " + err.Error(),
 			})
-			return
+			continue
 		}
+
+		// Enrich with names for the result dialog
+		created.BlueprintName = pj.blueprintName
+		created.ProductName = pj.productName
 
 		result.Created = append(result.Created, created)
 	}
 
-	walkStep(rootStep, req.Quantity)
+	// Phase 2: Generate transport jobs if plan has transport settings
+	if plan.TransportFulfillment != nil {
+		c.generateTransportJobs(ctx, plan, stepsByID, childStepsByParent, stepProduction, stepDepths, jitaPrices, run, *args.User, result)
+	}
 
 	return result, nil
+}
+
+// generateTransportJobs detects cross-station dependencies and creates transport jobs.
+func (c *ProductionPlans) generateTransportJobs(
+	ctx context.Context,
+	plan *models.ProductionPlan,
+	stepsByID map[int64]*models.ProductionPlanStep,
+	childStepsByParent map[int64][]*models.ProductionPlanStep,
+	stepProduction map[int64]*stepProductionData,
+	stepDepths map[int64]int,
+	jitaPrices map[int64]*models.MarketPrice,
+	run *models.ProductionPlanRun,
+	userID int64,
+	result *models.GenerateJobsResult,
+) {
+	// Resolve user stations for each step (cached)
+	stationCache := make(map[int64]*models.UserStation)
+	for _, step := range stepsByID {
+		if step.UserStationID == nil {
+			continue
+		}
+		if _, ok := stationCache[*step.UserStationID]; !ok {
+			station, err := c.stationRepo.GetByID(ctx, *step.UserStationID, userID)
+			if err == nil && station != nil {
+				stationCache[*step.UserStationID] = station
+			}
+		}
+	}
+
+	// Collect transport needs grouped by origin→destination route
+	type transportNeed struct {
+		originStation *models.UserStation
+		destStation   *models.UserStation
+		items         []*models.TransportJobItem
+		maxChildDepth int
+	}
+	needsByRoute := make(map[string]*transportNeed)
+
+	for parentID, children := range childStepsByParent {
+		parent := stepsByID[parentID]
+		if parent == nil || parent.UserStationID == nil {
+			continue
+		}
+		parentStation := stationCache[*parent.UserStationID]
+		if parentStation == nil {
+			continue
+		}
+
+		for _, child := range children {
+			if child.UserStationID == nil {
+				continue
+			}
+			childStation := stationCache[*child.UserStationID]
+			if childStation == nil {
+				continue
+			}
+			if childStation.StationID == parentStation.StationID {
+				continue // same station, no transport needed
+			}
+
+			prod := stepProduction[child.ID]
+			if prod == nil {
+				continue
+			}
+
+			// Calculate item value from Jita prices
+			estimatedValue := 0.0
+			if p, ok := jitaPrices[prod.productTypeID]; ok && p.SellPrice != nil {
+				estimatedValue = *p.SellPrice * float64(prod.totalQuantity)
+			}
+
+			key := fmt.Sprintf("%d-%d", childStation.StationID, parentStation.StationID)
+			if needsByRoute[key] == nil {
+				needsByRoute[key] = &transportNeed{
+					originStation: childStation,
+					destStation:   parentStation,
+					items:         []*models.TransportJobItem{},
+				}
+			}
+			// Track the max child depth for sort ordering
+			if d, ok := stepDepths[child.ID]; ok && d > needsByRoute[key].maxChildDepth {
+				needsByRoute[key].maxChildDepth = d
+			}
+			needsByRoute[key].items = append(needsByRoute[key].items, &models.TransportJobItem{
+				TypeID:         prod.productTypeID,
+				Quantity:       prod.totalQuantity,
+				VolumeM3:       prod.productVolume * float64(prod.totalQuantity),
+				EstimatedValue: estimatedValue,
+			})
+		}
+	}
+
+	if len(needsByRoute) == 0 {
+		return
+	}
+
+	// Resolve transport profile
+	var profile *models.TransportProfile
+	if plan.TransportProfileID != nil {
+		p, err := c.profilesRepo.GetByID(ctx, *plan.TransportProfileID, userID)
+		if err == nil && p != nil {
+			profile = p
+		}
+	}
+	if profile == nil && plan.TransportMethod != nil {
+		p, err := c.profilesRepo.GetDefaultByMethod(ctx, userID, *plan.TransportMethod)
+		if err == nil && p != nil {
+			profile = p
+		}
+	}
+
+	fulfillment := *plan.TransportFulfillment
+	method := ""
+	if plan.TransportMethod != nil {
+		method = *plan.TransportMethod
+	} else if profile != nil {
+		method = profile.TransportMethod
+	}
+
+	routePreference := "shortest"
+	if profile != nil && profile.RoutePreference != "" {
+		routePreference = profile.RoutePreference
+	}
+
+	// Create a transport job for each route
+	for _, need := range needsByRoute {
+		totalVolume := 0.0
+		totalCollateral := 0.0
+		for _, item := range need.items {
+			totalVolume += item.VolumeM3
+			totalCollateral += item.EstimatedValue
+		}
+
+		var estimatedCost float64
+		var jumps int
+		var distanceLY *float64
+		var jfRouteID *int64
+
+		if fulfillment == "self_haul" && profile != nil {
+			switch method {
+			case "freighter", "dst", "blockade_runner":
+				route, err := c.esiClient.GetRoute(ctx, need.originStation.SolarSystemID, need.destStation.SolarSystemID, routePreference)
+				if err == nil && len(route) > 1 {
+					jumps = len(route) - 1
+					costResult := calculator.CalculateGateTransportCost(&calculator.GateTransportCostParams{
+						TotalVolumeM3:    totalVolume,
+						TotalCollateral:  totalCollateral,
+						Jumps:            jumps,
+						CargoM3:          profile.CargoM3,
+						RatePerM3PerJump: profile.RatePerM3PerJump,
+						CollateralRate:   profile.CollateralRate,
+					})
+					estimatedCost = costResult.Cost
+				}
+
+			case "jump_freighter":
+				jfRoute, err := c.jfRoutesRepo.FindBySystemPair(ctx, userID, need.originStation.SolarSystemID, need.destStation.SolarSystemID)
+				if err == nil && jfRoute != nil {
+					d := jfRoute.TotalDistanceLY
+					distanceLY = &d
+					jumps = len(jfRoute.Waypoints) - 1
+					if jumps < 0 {
+						jumps = 0
+					}
+					jfRouteID = &jfRoute.ID
+
+					// Get isotope price
+					isotopePrice := 0.0
+					if profile.FuelTypeID != nil {
+						if p, ok := jitaPrices[*profile.FuelTypeID]; ok {
+							switch profile.CollateralPriceBasis {
+							case "buy":
+								if p.BuyPrice != nil {
+									isotopePrice = *p.BuyPrice
+								}
+							case "split":
+								buy, sell := 0.0, 0.0
+								if p.BuyPrice != nil {
+									buy = *p.BuyPrice
+								}
+								if p.SellPrice != nil {
+									sell = *p.SellPrice
+								}
+								isotopePrice = (buy + sell) / 2
+							default:
+								if p.SellPrice != nil {
+									isotopePrice = *p.SellPrice
+								}
+							}
+						}
+					}
+
+					fuelPerLY := 0.0
+					if profile.FuelPerLY != nil {
+						fuelPerLY = *profile.FuelPerLY
+					}
+
+					costResult := calculator.CalculateJFTransportCost(&calculator.JFTransportCostParams{
+						TotalVolumeM3:         totalVolume,
+						TotalCollateral:       totalCollateral,
+						CargoM3:               profile.CargoM3,
+						CollateralRate:        profile.CollateralRate,
+						FuelPerLY:             fuelPerLY,
+						FuelConservationLevel: profile.FuelConservationLevel,
+						IsotopePrice:          isotopePrice,
+						Waypoints:             jfRoute.Waypoints,
+					})
+					estimatedCost = costResult.Cost
+				}
+			}
+		} else if fulfillment == "courier_contract" || fulfillment == "contact_haul" {
+			estimatedCost = calculator.CalculateCourierCost(&calculator.CourierCostParams{
+				TotalVolumeM3:        totalVolume,
+				TotalCollateral:      totalCollateral,
+				CourierRatePerM3:     plan.CourierRatePerM3,
+				CourierCollateralRate: plan.CourierCollateralRate,
+			})
+		}
+
+		var profileID *int64
+		if profile != nil {
+			profileID = &profile.ID
+		}
+
+		note := fmt.Sprintf("Auto-generated from plan: %s", plan.Name)
+		job := &models.TransportJob{
+			UserID:               userID,
+			OriginStationID:      need.originStation.StationID,
+			DestinationStationID: need.destStation.StationID,
+			OriginSystemID:       need.originStation.SolarSystemID,
+			DestinationSystemID:  need.destStation.SolarSystemID,
+			TransportMethod:      method,
+			RoutePreference:      routePreference,
+			TotalVolumeM3:        totalVolume,
+			TotalCollateral:      totalCollateral,
+			EstimatedCost:        estimatedCost,
+			Jumps:                jumps,
+			DistanceLY:           distanceLY,
+			JFRouteID:            jfRouteID,
+			FulfillmentType:      fulfillment,
+			TransportProfileID:   profileID,
+			PlanRunID:            &run.ID,
+			Notes:                &note,
+			Items:                need.items,
+		}
+
+		created, err := c.transportJobRepo.Create(ctx, job)
+		if err != nil {
+			result.Skipped = append(result.Skipped, &models.GenerateJobSkipped{
+				Reason: fmt.Sprintf("failed to create transport job (%s → %s): %s", need.originStation.StationName, need.destStation.StationName, err.Error()),
+			})
+			continue
+		}
+
+		// Create corresponding queue entry
+		// Sort order: child depth * 2 - 1 places transport between child build and parent build
+		transportSortOrder := need.maxChildDepth*2 - 1
+		if transportSortOrder < 0 {
+			transportSortOrder = 0
+		}
+		queueEntry, err := c.queueRepo.Create(ctx, &models.IndustryJobQueueEntry{
+			UserID:         userID,
+			Activity:       "transport",
+			EstimatedCost:  &created.EstimatedCost,
+			TransportJobID: &created.ID,
+			PlanRunID:      &run.ID,
+			SortOrder:      transportSortOrder,
+			StationName:    need.originStation.StationName + " → " + need.destStation.StationName,
+		})
+		if err != nil {
+			result.Skipped = append(result.Skipped, &models.GenerateJobSkipped{
+				Reason: "failed to create transport queue entry: " + err.Error(),
+			})
+			continue
+		}
+
+		// Link queue entry back to transport job
+		if err := c.transportJobRepo.SetQueueEntryID(ctx, created.ID, queueEntry.ID); err != nil {
+			result.Skipped = append(result.Skipped, &models.GenerateJobSkipped{
+				Reason: "failed to link transport queue entry: " + err.Error(),
+			})
+			continue
+		}
+		created.QueueEntryID = &queueEntry.ID
+
+		result.TransportJobs = append(result.TransportJobs, created)
+		result.Created = append(result.Created, queueEntry)
+	}
 }
 
 // GetAllRuns lists all runs across all plans for the user.

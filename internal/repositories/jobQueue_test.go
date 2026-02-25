@@ -160,10 +160,10 @@ func Test_JobQueueShouldCancelEntry(t *testing.T) {
 	err = queueRepo.Cancel(context.Background(), created.ID, user.ID)
 	assert.NoError(t, err)
 
+	// Cancelled entries should not appear in GetByUser
 	entries, err := queueRepo.GetByUser(context.Background(), user.ID)
 	assert.NoError(t, err)
-	assert.Len(t, entries, 1)
-	assert.Equal(t, "cancelled", entries[0].Status)
+	assert.Len(t, entries, 0)
 }
 
 func Test_JobQueueShouldNotCancelOtherUsersEntry(t *testing.T) {
@@ -283,6 +283,68 @@ func Test_JobQueueShouldGetPlannedJobs(t *testing.T) {
 	assert.Len(t, planned, 1)
 	assert.Equal(t, created2.ID, planned[0].ID)
 	assert.Equal(t, "reaction", planned[0].Activity)
+}
+
+func Test_JobQueueShouldEnrichTransportFields(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	queueRepo := repositories.NewJobQueue(db)
+	transportJobsRepo := repositories.NewTransportJobs(db)
+
+	user := &repositories.User{ID: 7080, Name: "Transport Enrich User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	// Create a transport job
+	tj, err := transportJobsRepo.Create(context.Background(), &models.TransportJob{
+		UserID:               user.ID,
+		OriginStationID:      60003760,
+		DestinationStationID: 60008494,
+		OriginSystemID:       30000142,
+		DestinationSystemID:  30002187,
+		TransportMethod:      "freighter",
+		RoutePreference:      "shortest",
+		Status:               "planned",
+		TotalVolumeM3:        50000,
+		TotalCollateral:      1000000000,
+		EstimatedCost:        25000000,
+		Jumps:                15,
+		FulfillmentType:      "self_haul",
+	})
+	assert.NoError(t, err)
+
+	// Create a queue entry linked to the transport job
+	entry := &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 0,
+		Activity:        "transport",
+		Runs:            0,
+		FacilityTax:     0,
+		TransportJobID:  &tj.ID,
+	}
+
+	created, err := queueRepo.Create(context.Background(), entry)
+	assert.NoError(t, err)
+	assert.NotNil(t, created)
+
+	// Fetch via GetByUser and verify enriched transport fields
+	entries, err := queueRepo.GetByUser(context.Background(), user.ID)
+	assert.NoError(t, err)
+	assert.Len(t, entries, 1)
+	assert.Equal(t, "transport", entries[0].Activity)
+	assert.Equal(t, &tj.ID, entries[0].TransportJobID)
+	assert.Equal(t, "freighter", entries[0].TransportMethod)
+	assert.Equal(t, "self_haul", entries[0].TransportFulfillment)
+	assert.Equal(t, 50000.0, entries[0].TransportVolumeM3)
+	assert.Equal(t, 15, entries[0].TransportJumps)
+	// Station names come from stations table — if seeded, they'd be non-empty
+	// but in test DB they may be empty if no station seed data exists.
+	// Just verify the query runs without errors.
+	_ = entries[0].TransportOriginName
+	_ = entries[0].TransportDestName
+	_ = created
 }
 
 func Test_JobQueueShouldReturnEmptyForNoEntries(t *testing.T) {

@@ -68,6 +68,22 @@ const mockMaterials: PlanMaterial[] = [
   },
 ];
 
+// URL-based fetch mock to handle concurrent requests from multiple useEffects
+function mockFetchForPlan(plan: ProductionPlan | null, materials?: PlanMaterial[]) {
+  (global.fetch as jest.Mock).mockImplementation((url: string, opts?: any) => {
+    if (url === `/api/industry/plans/${plan?.id ?? 1}`) {
+      return Promise.resolve({ ok: true, json: async () => plan });
+    }
+    if (url === '/api/transport/profiles') {
+      return Promise.resolve({ ok: true, json: async () => [] });
+    }
+    if (url.includes('/materials') && materials) {
+      return Promise.resolve({ ok: true, json: async () => materials });
+    }
+    return Promise.resolve({ ok: true, json: async () => [] });
+  });
+}
+
 describe('ProductionPlanEditor Component', () => {
   beforeEach(() => {
     (global.fetch as jest.Mock).mockClear();
@@ -92,15 +108,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should match snapshot with loaded plan', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     let container: HTMLElement;
     await act(async () => {
@@ -112,15 +120,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should display plan name and product info', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -131,15 +131,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should display root step with details', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -152,15 +144,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should display materials when root step is auto-expanded', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -172,15 +156,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should show produce toggle for materials with blueprints', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -191,15 +167,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should show Buy chip for non-produced materials', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -210,15 +178,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should have Generate Jobs button', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -228,15 +188,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should open generate dialog when Generate Jobs is clicked', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -248,15 +200,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should open edit dialog when edit button is clicked', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -275,10 +219,7 @@ describe('ProductionPlanEditor Component', () => {
       steps: [],
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => emptyPlan,
-    });
+    mockFetchForPlan(emptyPlan);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -317,26 +258,7 @@ describe('ProductionPlanEditor Component', () => {
       { ...mockMaterials[2], isProduced: true },
     ];
 
-    const childMaterials: PlanMaterial[] = [
-      {
-        typeId: 16634,
-        typeName: 'Chromium',
-        quantity: 100,
-        volume: 0.16,
-        hasBlueprint: false,
-        isProduced: false,
-      },
-    ];
-
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => multiStepPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => materialsWithProduced,
-      });
+    mockFetchForPlan(multiStepPlan, materialsWithProduced);
 
     let container: HTMLElement;
     await act(async () => {
@@ -348,15 +270,7 @@ describe('ProductionPlanEditor Component', () => {
   });
 
   it('should fetch plan on mount', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -365,16 +279,18 @@ describe('ProductionPlanEditor Component', () => {
     expect(global.fetch).toHaveBeenCalledWith('/api/industry/plans/1');
   });
 
+  it('should fetch transport profiles on mount', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials);
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/transport/profiles');
+  });
+
   it('should fetch materials for root step on load', async () => {
-    (global.fetch as jest.Mock)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockPlan,
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockMaterials,
-      });
+    mockFetchForPlan(mockPlan, mockMaterials);
 
     await act(async () => {
       render(<ProductionPlanEditor planId={1} />);
@@ -383,5 +299,15 @@ describe('ProductionPlanEditor Component', () => {
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/industry/plans/1/steps/10/materials',
     );
+  });
+
+  it('should show Transport tab', async () => {
+    mockFetchForPlan(mockPlan, mockMaterials);
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    expect(screen.getByText('Transport')).toBeInTheDocument();
   });
 });
