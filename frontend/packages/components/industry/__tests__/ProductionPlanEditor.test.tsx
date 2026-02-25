@@ -594,6 +594,129 @@ describe('ProductionPlanEditor Component', () => {
     });
   });
 
+  it('should show green check icon for reaction step even when detected ME/TE differs from step values', async () => {
+    // Reaction step has ME 0/TE 0 (always fixed), but detected level has ME 5/TE 10
+    // For reactions, mismatch should be ignored — green check should show, no info icon
+    const reactionStep: ProductionPlanStep = {
+      id: 20,
+      planId: 1,
+      productTypeId: 16671,
+      blueprintTypeId: 46166,
+      activity: 'reaction',
+      meLevel: 0,
+      teLevel: 0,
+      industrySkill: 5,
+      advIndustrySkill: 5,
+      structure: 'tatara',
+      rig: 't1',
+      security: 'low',
+      facilityTax: 0.25,
+      productName: 'Fullerite-C32',
+      blueprintName: 'Fullerite-C32 Reaction Formula',
+    };
+
+    const reactionPlan: ProductionPlan = {
+      ...mockPlan,
+      steps: [reactionStep],
+    };
+
+    const detectedReactionLevel = {
+      materialEfficiency: 5,
+      timeEfficiency: 10,
+      isCopy: false,
+      ownerName: 'Reaction Character',
+      runs: -1,
+    };
+
+    mockFetchForPlan(reactionPlan, [], undefined, { '46166': detectedReactionLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // Info icon should NOT appear for reaction steps (even though ME/TE differs)
+    const infoIcons = screen.queryAllByTestId('InfoIcon');
+    expect(infoIcons.length).toBe(0);
+
+    // Green check icon should appear since blueprint was detected (reaction always shows green)
+    await waitFor(() => {
+      const checkIcons = screen.queryAllByTestId('CheckCircleOutlineIcon');
+      expect(checkIcons.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('should show no Apply button in edit dialog for reaction steps when blueprint detected', async () => {
+    // Reaction steps don't have ME/TE research, so Apply button should not appear
+    const reactionStep: ProductionPlanStep = {
+      id: 20,
+      planId: 1,
+      productTypeId: 16671,
+      blueprintTypeId: 46166,
+      activity: 'reaction',
+      meLevel: 0,
+      teLevel: 0,
+      industrySkill: 5,
+      advIndustrySkill: 5,
+      structure: 'tatara',
+      rig: 't1',
+      security: 'low',
+      facilityTax: 0.25,
+      productName: 'Fullerite-C32',
+      blueprintName: 'Fullerite-C32 Reaction Formula',
+    };
+
+    const reactionPlan: ProductionPlan = {
+      ...mockPlan,
+      steps: [reactionStep],
+    };
+
+    const detectedReactionLevel = {
+      materialEfficiency: 0,
+      timeEfficiency: 0,
+      isCopy: false,
+      ownerName: 'Reaction Character',
+      runs: -1,
+    };
+
+    mockFetchForPlan(reactionPlan, [], undefined, { '46166': detectedReactionLevel });
+
+    await act(async () => {
+      render(<ProductionPlanEditor planId={1} />);
+    });
+
+    await waitFor(() => {
+      const blueprintLevelCall = (global.fetch as jest.Mock).mock.calls.find(
+        ([url]: [string]) => url === '/api/industry/blueprint-levels',
+      );
+      expect(blueprintLevelCall).toBeDefined();
+    });
+
+    // Open edit dialog for the reaction step
+    const editButtons = screen.getAllByTestId('EditIcon');
+    await act(async () => {
+      fireEvent.click(editButtons[1].closest('button')!);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit Step: Fullerite-C32')).toBeInTheDocument();
+    });
+
+    // Should show "Blueprint detected from ..." without ME/TE values
+    await waitFor(() => {
+      expect(screen.getByText(/Blueprint detected from Reaction Character/)).toBeInTheDocument();
+    });
+
+    // Apply button should NOT be present for reactions
+    expect(screen.queryByText('Apply')).not.toBeInTheDocument();
+  });
+
   it('should show Detected chip in edit step dialog when blueprint level exists', async () => {
     mockFetchForPlan(mockPlan, mockMaterials, undefined, { '787': mockBlueprintLevel });
 

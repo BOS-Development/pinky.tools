@@ -516,8 +516,9 @@ export default function ProductionPlanEditor({ planId }: Props) {
           <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
             ME {step.meLevel} / TE {step.teLevel}
             {detectedLevels[step.blueprintTypeId] ? (
-              (detectedLevels[step.blueprintTypeId].materialEfficiency !== step.meLevel ||
-                detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel) ? (
+              (step.activity !== "reaction" &&
+               (detectedLevels[step.blueprintTypeId].materialEfficiency !== step.meLevel ||
+                detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
                 <Tooltip title={`Detected: ME ${detectedLevels[step.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[step.blueprintTypeId].timeEfficiency} from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
                   <InfoIcon sx={{ fontSize: 14, color: "#3b82f6" }} />
                 </Tooltip>
@@ -1657,23 +1658,29 @@ function EditStepDialog({
           {detectedLevel ? (
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
               <Chip
-                label={`Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`}
+                label={
+                  step?.activity === "reaction"
+                    ? `Blueprint detected from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`
+                    : `Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`
+                }
                 size="small"
                 color="info"
                 variant="outlined"
                 sx={{ fontSize: 11 }}
               />
-              <Button
-                size="small"
-                variant="outlined"
-                sx={{ fontSize: 11, py: 0.25, px: 1, color: "#3b82f6", borderColor: "#3b82f6", minWidth: 0 }}
-                onClick={() => {
-                  setMeLevel(detectedLevel.materialEfficiency);
-                  setTeLevel(detectedLevel.timeEfficiency);
-                }}
-              >
-                Apply
-              </Button>
+              {step?.activity !== "reaction" && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: 11, py: 0.25, px: 1, color: "#3b82f6", borderColor: "#3b82f6", minWidth: 0 }}
+                  onClick={() => {
+                    setMeLevel(detectedLevel.materialEfficiency);
+                    setTeLevel(detectedLevel.timeEfficiency);
+                  }}
+                >
+                  Apply
+                </Button>
+              )}
             </Box>
           ) : (
             <Chip
