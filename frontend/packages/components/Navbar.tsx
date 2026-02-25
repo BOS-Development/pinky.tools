@@ -105,6 +105,9 @@ export default function Navbar() {
           <Button color="inherit" href="/plan-runs">
             Runs
           </Button>
+          <Button color="inherit" href="/transport">
+            Transport
+          </Button>
           <Button color="inherit" href="/stations">
             Stations
           </Button>

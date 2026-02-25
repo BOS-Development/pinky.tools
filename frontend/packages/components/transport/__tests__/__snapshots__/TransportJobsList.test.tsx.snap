@@ -1,0 +1,504 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`TransportJobsList should match snapshot while loading 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-zzzt33"
+  >
+    <span
+      class="MuiCircularProgress-root MuiCircularProgress-indeterminate MuiCircularProgress-colorPrimary css-1wxecgq-MuiCircularProgress-root"
+      role="progressbar"
+      style="width: 32px; height: 32px;"
+    >
+      <svg
+        class="MuiCircularProgress-svg css-54pwck-MuiCircularProgress-svg"
+        viewBox="22 22 44 44"
+      >
+        <circle
+          class="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate css-19t5dcl-MuiCircularProgress-circle"
+          cx="44"
+          cy="44"
+          fill="none"
+          r="20.2"
+          stroke-width="3.6"
+        />
+      </svg>
+    </span>
+  </div>
+</div>
+`;
+
+exports[`TransportJobsList should match snapshot with empty jobs 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-irrfx6"
+  >
+    <button
+      class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary css-tw6tsg-MuiButtonBase-root-MuiButton-root"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+          data-testid="AddIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+          />
+        </svg>
+      </span>
+      Create Transport Job
+    </button>
+  </div>
+  <div
+    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+  >
+    <table
+      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    >
+      <thead
+        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      >
+        <tr
+          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        >
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-29ut7y-MuiTableCell-root"
+            scope="col"
+          />
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Route
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Method
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Fulfillment
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Volume (m3)
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Collateral
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Est. Cost
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Jumps
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Profile
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-m4o53m-MuiTableCell-root"
+            scope="col"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody
+        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+      >
+        <tr
+          class="MuiTableRow-root css-1xtozoh-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-djbnpt-MuiTableCell-root"
+            colspan="11"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-7ctihp-MuiTypography-root"
+            >
+              No transport jobs
+            </p>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`TransportJobsList should match snapshot with jobs 1`] = `
+<div>
+  <div
+    class="MuiBox-root css-irrfx6"
+  >
+    <button
+      class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary css-tw6tsg-MuiButtonBase-root-MuiButton-root"
+      tabindex="0"
+      type="button"
+    >
+      <span
+        class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+          data-testid="AddIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+          />
+        </svg>
+      </span>
+      Create Transport Job
+    </button>
+  </div>
+  <div
+    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+  >
+    <table
+      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    >
+      <thead
+        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      >
+        <tr
+          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        >
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-29ut7y-MuiTableCell-root"
+            scope="col"
+          />
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Status
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Route
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Method
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Fulfillment
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Volume (m3)
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Collateral
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Est. Cost
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1ais0ar-MuiTableCell-root"
+            scope="col"
+          >
+            Jumps
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-g6bqb5-MuiTableCell-root"
+            scope="col"
+          >
+            Profile
+          </th>
+          <th
+            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-m4o53m-MuiTableCell-root"
+            scope="col"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody
+        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+      >
+        <tr
+          class="MuiTableRow-root css-175jl6h-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1yi0x1c-MuiTableCell-root"
+          >
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-q4vm8z-MuiButtonBase-root-MuiIconButton-root"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                data-testid="KeyboardArrowDownIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"
+                />
+              </svg>
+            </button>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <div
+              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-101f3cx-MuiChip-root"
+            >
+              <span
+                class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+              >
+                Planned
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-1n8v0zg-MuiTypography-root"
+            >
+              Jita
+               → 
+              Amarr
+            </p>
+            <span
+              class="MuiTypography-root MuiTypography-caption css-3dkp8d-MuiTypography-root"
+            >
+              Jita IV - Moon 4 - Caldari Navy
+               → 
+              Amarr VIII
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            Freighter
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            Self Haul
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            50,000
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            1.00B ISK
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-fjh633-MuiTableCell-root"
+          >
+            5.00M ISK
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            9
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            Charon
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          >
+            <div
+              class="MuiBox-root css-s3pf5w"
+            >
+              <button
+                class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorPrimary MuiButton-root MuiButton-outlined MuiButton-outlinedPrimary MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorPrimary css-12v4vkc-MuiButtonBase-root-MuiButton-root"
+                tabindex="0"
+                type="button"
+              >
+                Start
+              </button>
+              <button
+                class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-e73btw-MuiButtonBase-root-MuiButton-root"
+                tabindex="0"
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root css-1xtozoh-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-ac9o0y-MuiTableCell-root"
+            colspan="11"
+          />
+        </tr>
+        <tr
+          class="MuiTableRow-root css-175jl6h-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1yi0x1c-MuiTableCell-root"
+          >
+            <button
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-q4vm8z-MuiButtonBase-root-MuiIconButton-root"
+              tabindex="0"
+              type="button"
+            >
+              <svg
+                aria-hidden="true"
+                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
+                data-testid="KeyboardArrowDownIcon"
+                focusable="false"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"
+                />
+              </svg>
+            </button>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <div
+              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-fmkum1-MuiChip-root"
+            >
+              <span
+                class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+              >
+                In Transit
+              </span>
+            </div>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            <p
+              class="MuiTypography-root MuiTypography-body2 css-1n8v0zg-MuiTypography-root"
+            >
+              Jita
+               → 
+              Amarr
+            </p>
+            <span
+              class="MuiTypography-root MuiTypography-caption css-3dkp8d-MuiTypography-root"
+            >
+              Jita IV - Moon 4 - Caldari Navy
+               → 
+              Amarr VIII
+            </span>
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            Jump Freighter
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            Self Haul
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            30,000
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            500.00M ISK
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-fjh633-MuiTableCell-root"
+          >
+            25.00M ISK
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+          >
+            2
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+          >
+            —
+          </td>
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          >
+            <button
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedSuccess MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorSuccess MuiButton-root MuiButton-outlined MuiButton-outlinedSuccess MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorSuccess css-juow4x-MuiButtonBase-root-MuiButton-root"
+              tabindex="0"
+              type="button"
+            >
+              Delivered
+            </button>
+          </td>
+        </tr>
+        <tr
+          class="MuiTableRow-root css-1xtozoh-MuiTableRow-root"
+        >
+          <td
+            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-ac9o0y-MuiTableCell-root"
+            colspan="11"
+          />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;

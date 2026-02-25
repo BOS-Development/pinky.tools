@@ -167,6 +167,12 @@ var rootCmd = &cobra.Command{
 		controllers.NewProductionPlans(router, productionPlansRepository, sdeDataRepository, jobQueueRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, playerCorporationRepostiory, userStationsRepository, planRunsRepository)
 		controllers.NewUserStations(router, userStationsRepository)
 
+		transportProfilesRepo := repositories.NewTransportProfiles(db)
+		jfRoutesRepo := repositories.NewJFRoutes(db)
+		transportJobsRepo := repositories.NewTransportJobs(db)
+		triggerConfigRepo := repositories.NewTransportTriggerConfig(db)
+		controllers.NewTransportation(router, transportProfilesRepo, jfRoutesRepo, transportJobsRepo, triggerConfigRepo, jobQueueRepository, marketPricesRepository, systemRepository, esiClient)
+
 		group.Go(router.Run(ctx))
 
 		// Start SDE update scheduler (24h)
