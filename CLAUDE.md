@@ -33,6 +33,16 @@ make test-e2e            # E2E tests headless (Playwright)
 make test-e2e-ui         # E2E tests with Playwright UI
 ```
 
+## Pre-PR Verification
+
+Before pushing and creating a PR, run the production builds to catch strict TypeScript and compilation errors that tests alone may miss:
+
+```bash
+make build-production    # Builds both backend and frontend Docker images
+```
+
+This catches issues like untyped arrays (`const x = []` → `never[]`) that pass Jest but fail under Next.js strict TypeScript checking.
+
 ---
 
 ## Common Task Checklists

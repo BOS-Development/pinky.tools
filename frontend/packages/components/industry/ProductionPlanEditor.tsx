@@ -995,7 +995,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                             const isSelected = selectedParallelism === option.parallelism;
                             const detailsText = option.characters
                               .map((c) => {
-                                const slots = [];
+                                const slots: string[] = [];
                                 if (c.mfgSlotsMax > 0) slots.push(`${c.mfgSlotsUsed}/${c.mfgSlotsMax} mfg`);
                                 if (c.reactSlotsMax > 0) slots.push(`${c.reactSlotsUsed}/${c.reactSlotsMax} react`);
                                 return `${c.name} (${c.jobCount} job${c.jobCount !== 1 ? "s" : ""}${slots.length ? ", " + slots.join(", ") : ""})`;

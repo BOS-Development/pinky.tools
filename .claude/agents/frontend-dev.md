@@ -98,6 +98,21 @@ expect(container).toMatchSnapshot();
 - Not using fake timers → timestamps/durations differ between runs
 - Adding a new prop to a component but not updating existing test renders → TypeScript error
 
+### TypeScript strict mode — CRITICAL
+
+The production build (`make build-production-frontend`) runs Next.js with strict TypeScript checking that is **stricter than Jest**. Code that passes Jest tests can still fail the production build.
+
+**Always type empty arrays explicitly:**
+```tsx
+// BAD — infers never[], fails strict TS in production build
+const items = [];
+items.push("hello");
+
+// GOOD
+const items: string[] = [];
+items.push("hello");
+```
+
 ### Running tests
 
 - **Full suite**: `make test-frontend` (runs all Jest tests in Docker)
