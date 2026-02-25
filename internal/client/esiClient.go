@@ -714,6 +714,41 @@ func (c *EsiClient) GetIndustryCostIndices(ctx context.Context) ([]*IndustryCost
 	return systems, nil
 }
 
+// GetRoute fetches a gate route between two solar systems from ESI (public, no auth required).
+// Flag can be "shortest", "secure", or "insecure".
+// Returns an array of solar system IDs representing the route.
+func (c *EsiClient) GetRoute(ctx context.Context, origin, destination int64, flag string) ([]int32, error) {
+	reqURL := fmt.Sprintf("%s/latest/route/%d/%d/?flag=%s", c.baseURL, origin, destination, flag)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create route request")
+	}
+	req.Header = c.getCommonHeaders()
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch route")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code fetching route: %d", res.StatusCode)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read route response body")
+	}
+
+	var route []int32
+	if err := json.Unmarshal(body, &route); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal route response")
+	}
+
+	return route, nil
+}
+
 // universeNameEntry represents a single entry from the ESI /universe/names/ response
 type universeNameEntry struct {
 	ID       int64  `json:"id"`

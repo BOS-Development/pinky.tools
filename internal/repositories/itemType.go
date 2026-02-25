@@ -200,7 +200,7 @@ func (r *ItemTypeRepository) SearchStations(ctx context.Context, query string, l
 	}
 
 	searchQuery := `
-		SELECT s.station_id, s.name, ss.name AS solar_system_name
+		SELECT s.station_id, s.name, s.solar_system_id, ss.name AS solar_system_name, COALESCE(ss.security, 0) AS security
 		FROM stations s
 		LEFT JOIN solar_systems ss ON s.solar_system_id = ss.solar_system_id
 		WHERE LOWER(s.name) LIKE LOWER($1)
@@ -223,7 +223,7 @@ func (r *ItemTypeRepository) SearchStations(ctx context.Context, query string, l
 	results := []models.StationSearchResult{}
 	for rows.Next() {
 		var result models.StationSearchResult
-		err := rows.Scan(&result.StationID, &result.Name, &result.SolarSystemName)
+		err := rows.Scan(&result.StationID, &result.Name, &result.SolarSystemID, &result.SolarSystemName, &result.Security)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan station")
 		}

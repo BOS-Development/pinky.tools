@@ -42,10 +42,13 @@ type Constellation struct {
 }
 
 type SolarSystem struct {
-	ID              int64
-	Name            string
-	ConstellationID int64
-	Security        float64
+	ID              int64    `json:"id"`
+	Name            string   `json:"name"`
+	ConstellationID int64    `json:"constellationId"`
+	Security        float64  `json:"security"`
+	X               *float64 `json:"x,omitempty"`
+	Y               *float64 `json:"y,omitempty"`
+	Z               *float64 `json:"z,omitempty"`
 }
 
 type Station struct {
@@ -231,9 +234,11 @@ type StockpileDeficitItem struct {
 }
 
 type StationSearchResult struct {
-	StationID       int64  `json:"stationId"`
-	Name            string `json:"name"`
-	SolarSystemName string `json:"solarSystemName"`
+	StationID       int64   `json:"stationId"`
+	Name            string  `json:"name"`
+	SolarSystemID   int64   `json:"solarSystemId"`
+	SolarSystemName string  `json:"solarSystemName"`
+	Security        float64 `json:"security"`
 }
 
 // Discord Notification Models
@@ -820,6 +825,7 @@ type IndustryJobQueueEntry struct {
 	Notes             *string    `json:"notes"`
 	PlanRunID         *int64     `json:"planRunId,omitempty"`
 	PlanStepID        *int64     `json:"planStepId,omitempty"`
+	TransportJobID    *int64     `json:"transportJobId,omitempty"`
 	CreatedAt         time.Time  `json:"createdAt"`
 	UpdatedAt         time.Time  `json:"updatedAt"`
 	// Enriched fields
@@ -1002,6 +1008,109 @@ type UserStationService struct {
 	UserStationID int64  `json:"userStationId"`
 	ServiceName   string `json:"serviceName"`
 	Activity      string `json:"activity"`
+}
+
+// Transportation Models
+
+type TransportProfile struct {
+	ID                    int64     `json:"id"`
+	UserID                int64     `json:"userId"`
+	Name                  string    `json:"name"`
+	TransportMethod       string    `json:"transportMethod"`
+	CharacterID           *int64    `json:"characterId"`
+	CargoM3               float64   `json:"cargoM3"`
+	RatePerM3PerJump      float64   `json:"ratePerM3PerJump"`
+	CollateralRate        float64   `json:"collateralRate"`
+	CollateralPriceBasis  string    `json:"collateralPriceBasis"`
+	FuelTypeID            *int64    `json:"fuelTypeId"`
+	FuelPerLY             *float64  `json:"fuelPerLy"`
+	FuelConservationLevel int       `json:"fuelConservationLevel"`
+	RoutePreference       string    `json:"routePreference"`
+	IsDefault             bool      `json:"isDefault"`
+	CreatedAt             time.Time `json:"createdAt"`
+	// Enriched
+	CharacterName string `json:"characterName,omitempty"`
+	FuelTypeName  string `json:"fuelTypeName,omitempty"`
+}
+
+type JFRoute struct {
+	ID                  int64              `json:"id"`
+	UserID              int64              `json:"userId"`
+	Name                string             `json:"name"`
+	OriginSystemID      int64              `json:"originSystemId"`
+	DestinationSystemID int64              `json:"destinationSystemId"`
+	TotalDistanceLY     float64            `json:"totalDistanceLy"`
+	CreatedAt           time.Time          `json:"createdAt"`
+	Waypoints           []*JFRouteWaypoint `json:"waypoints"`
+	// Enriched
+	OriginSystemName      string `json:"originSystemName,omitempty"`
+	DestinationSystemName string `json:"destinationSystemName,omitempty"`
+}
+
+type JFRouteWaypoint struct {
+	ID         int64   `json:"id"`
+	RouteID    int64   `json:"routeId"`
+	Sequence   int     `json:"sequence"`
+	SystemID   int64   `json:"systemId"`
+	DistanceLY float64 `json:"distanceLy"`
+	// Enriched
+	SystemName string `json:"systemName,omitempty"`
+}
+
+type TransportJob struct {
+	ID                   int64               `json:"id"`
+	UserID               int64               `json:"userId"`
+	OriginStationID      int64               `json:"originStationId"`
+	DestinationStationID int64               `json:"destinationStationId"`
+	OriginSystemID       int64               `json:"originSystemId"`
+	DestinationSystemID  int64               `json:"destinationSystemId"`
+	TransportMethod      string              `json:"transportMethod"`
+	RoutePreference      string              `json:"routePreference"`
+	Status               string              `json:"status"`
+	TotalVolumeM3        float64             `json:"totalVolumeM3"`
+	TotalCollateral      float64             `json:"totalCollateral"`
+	EstimatedCost        float64             `json:"estimatedCost"`
+	Jumps                int                 `json:"jumps"`
+	DistanceLY           *float64            `json:"distanceLy"`
+	JFRouteID            *int64              `json:"jfRouteId"`
+	FulfillmentType      string              `json:"fulfillmentType"`
+	TransportProfileID   *int64              `json:"transportProfileId"`
+	PlanRunID            *int64              `json:"planRunId"`
+	PlanStepID           *int64              `json:"planStepId"`
+	QueueEntryID         *int64              `json:"queueEntryId"`
+	Notes                *string             `json:"notes"`
+	CreatedAt            time.Time           `json:"createdAt"`
+	UpdatedAt            time.Time           `json:"updatedAt"`
+	Items                []*TransportJobItem `json:"items"`
+	// Enriched
+	OriginStationName      string `json:"originStationName,omitempty"`
+	DestinationStationName string `json:"destinationStationName,omitempty"`
+	OriginSystemName       string `json:"originSystemName,omitempty"`
+	DestinationSystemName  string `json:"destinationSystemName,omitempty"`
+	ProfileName            string `json:"profileName,omitempty"`
+	JFRouteName            string `json:"jfRouteName,omitempty"`
+}
+
+type TransportJobItem struct {
+	ID             int64   `json:"id"`
+	TransportJobID int64   `json:"transportJobId"`
+	TypeID         int64   `json:"typeId"`
+	Quantity       int     `json:"quantity"`
+	VolumeM3       float64 `json:"volumeM3"`
+	EstimatedValue float64 `json:"estimatedValue"`
+	// Enriched
+	TypeName string `json:"typeName,omitempty"`
+}
+
+type TransportTriggerConfig struct {
+	UserID                int64    `json:"userId"`
+	TriggerType           string   `json:"triggerType"`
+	DefaultFulfillment    string   `json:"defaultFulfillment"`
+	AllowedFulfillments   []string `json:"allowedFulfillments"`
+	DefaultProfileID      *int64   `json:"defaultProfileId"`
+	DefaultMethod         *string  `json:"defaultMethod"`
+	CourierRatePerM3      float64  `json:"courierRatePerM3"`
+	CourierCollateralRate float64  `json:"courierCollateralRate"`
 }
 
 type ScanResult struct {

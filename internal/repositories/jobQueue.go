@@ -22,12 +22,12 @@ func (r *JobQueue) Create(ctx context.Context, entry *models.IndustryJobQueueEnt
 			(user_id, character_id, blueprint_type_id, activity, runs,
 			 me_level, te_level, system_id, facility_tax, status,
 			 product_type_id, estimated_cost, estimated_duration, notes,
-			 plan_run_id, plan_step_id)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'planned', $10, $11, $12, $13, $14, $15)
+			 plan_run_id, plan_step_id, transport_job_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'planned', $10, $11, $12, $13, $14, $15, $16)
 		RETURNING id, user_id, character_id, blueprint_type_id, activity, runs,
 		          me_level, te_level, system_id, facility_tax, status, esi_job_id,
 		          product_type_id, estimated_cost, estimated_duration, notes,
-		          plan_run_id, plan_step_id, created_at, updated_at
+		          plan_run_id, plan_step_id, transport_job_id, created_at, updated_at
 	`
 
 	var created models.IndustryJobQueueEntry
@@ -47,6 +47,7 @@ func (r *JobQueue) Create(ctx context.Context, entry *models.IndustryJobQueueEnt
 		entry.Notes,
 		entry.PlanRunID,
 		entry.PlanStepID,
+		entry.TransportJobID,
 	).Scan(
 		&created.ID,
 		&created.UserID,
@@ -66,6 +67,7 @@ func (r *JobQueue) Create(ctx context.Context, entry *models.IndustryJobQueueEnt
 		&created.Notes,
 		&created.PlanRunID,
 		&created.PlanStepID,
+		&created.TransportJobID,
 		&created.CreatedAt,
 		&created.UpdatedAt,
 	)
@@ -81,7 +83,7 @@ func (r *JobQueue) GetByUser(ctx context.Context, userID int64) ([]*models.Indus
 		SELECT q.id, q.user_id, q.character_id, q.blueprint_type_id, q.activity, q.runs,
 		       q.me_level, q.te_level, q.system_id, q.facility_tax, q.status, q.esi_job_id,
 		       q.product_type_id, q.estimated_cost, q.estimated_duration, q.notes,
-		       q.plan_run_id, q.plan_step_id, q.created_at, q.updated_at,
+		       q.plan_run_id, q.plan_step_id, q.transport_job_id, q.created_at, q.updated_at,
 		       COALESCE(bp.type_name, ''),
 		       COALESCE(prod.type_name, ''),
 		       COALESCE(c.name, installer.name, ''),
@@ -108,7 +110,7 @@ func (r *JobQueue) GetPlannedJobs(ctx context.Context, userID int64) ([]*models.
 		SELECT q.id, q.user_id, q.character_id, q.blueprint_type_id, q.activity, q.runs,
 		       q.me_level, q.te_level, q.system_id, q.facility_tax, q.status, q.esi_job_id,
 		       q.product_type_id, q.estimated_cost, q.estimated_duration, q.notes,
-		       q.plan_run_id, q.plan_step_id, q.created_at, q.updated_at,
+		       q.plan_run_id, q.plan_step_id, q.transport_job_id, q.created_at, q.updated_at,
 		       '', '', '', '',
 		       CAST(NULL AS timestamptz),
 		       ''
@@ -141,7 +143,7 @@ func (r *JobQueue) Update(ctx context.Context, id, userID int64, entry *models.I
 		RETURNING id, user_id, character_id, blueprint_type_id, activity, runs,
 		          me_level, te_level, system_id, facility_tax, status, esi_job_id,
 		          product_type_id, estimated_cost, estimated_duration, notes,
-		          plan_run_id, plan_step_id, created_at, updated_at
+		          plan_run_id, plan_step_id, transport_job_id, created_at, updated_at
 	`
 
 	var updated models.IndustryJobQueueEntry
@@ -179,6 +181,7 @@ func (r *JobQueue) Update(ctx context.Context, id, userID int64, entry *models.I
 		&updated.Notes,
 		&updated.PlanRunID,
 		&updated.PlanStepID,
+		&updated.TransportJobID,
 		&updated.CreatedAt,
 		&updated.UpdatedAt,
 	)
@@ -245,7 +248,7 @@ func (r *JobQueue) GetLinkedActiveJobs(ctx context.Context, userID int64) ([]*mo
 		SELECT q.id, q.user_id, q.character_id, q.blueprint_type_id, q.activity, q.runs,
 		       q.me_level, q.te_level, q.system_id, q.facility_tax, q.status, q.esi_job_id,
 		       q.product_type_id, q.estimated_cost, q.estimated_duration, q.notes,
-		       q.plan_run_id, q.plan_step_id, q.created_at, q.updated_at,
+		       q.plan_run_id, q.plan_step_id, q.transport_job_id, q.created_at, q.updated_at,
 		       '', '', '', '',
 		       CAST(NULL AS timestamptz),
 		       ''
@@ -288,6 +291,7 @@ func (r *JobQueue) queryEntries(ctx context.Context, query string, args ...inter
 			&entry.Notes,
 			&entry.PlanRunID,
 			&entry.PlanStepID,
+			&entry.TransportJobID,
 			&entry.CreatedAt,
 			&entry.UpdatedAt,
 			&entry.BlueprintName,

@@ -1338,10 +1338,17 @@ func parseConstellations(f *zip.File, data *SdeData) error {
 	return nil
 }
 
+type sdeSolarSystemPosition struct {
+	X float64 `yaml:"x"`
+	Y float64 `yaml:"y"`
+	Z float64 `yaml:"z"`
+}
+
 type sdeSolarSystemYAML struct {
-	Name            map[string]string `yaml:"name"`
-	ConstellationID int64             `yaml:"constellationID"`
-	Security        float64           `yaml:"securityStatus"`
+	Name            map[string]string      `yaml:"name"`
+	ConstellationID int64                  `yaml:"constellationID"`
+	Security        float64                `yaml:"securityStatus"`
+	Position        sdeSolarSystemPosition `yaml:"position"`
 }
 
 func parseSolarSystems(f *zip.File, data *SdeData) error {
@@ -1352,11 +1359,17 @@ func parseSolarSystems(f *zip.File, data *SdeData) error {
 
 	systems := make([]models.SolarSystem, 0, len(raw))
 	for id, s := range raw {
+		x := s.Position.X
+		y := s.Position.Y
+		z := s.Position.Z
 		systems = append(systems, models.SolarSystem{
 			ID:              id,
 			Name:            s.Name["en"],
 			ConstellationID: s.ConstellationID,
 			Security:        s.Security,
+			X:               &x,
+			Y:               &y,
+			Z:               &z,
 		})
 	}
 	data.SolarSystems = systems
