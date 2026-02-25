@@ -4,6 +4,7 @@ import {
   ProductionPlanStep,
   PlanMaterial,
   GenerateJobsResult,
+  PlanPreviewResult,
   UserStation,
   HangarsResponse,
 } from "@industry-tool/client/data/models";
@@ -47,6 +48,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import Tooltip from "@mui/material/Tooltip";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import CircularProgress from "@mui/material/CircularProgress";
 import BatchConfigureTab from "./BatchConfigureTab";
 import { formatNumber, formatCompact } from "@industry-tool/utils/formatting";
 
@@ -72,6 +77,10 @@ export default function ProductionPlanEditor({ planId }: Props) {
   const [generating, setGenerating] = useState(false);
   const [generateResult, setGenerateResult] =
     useState<GenerateJobsResult | null>(null);
+  const [previewResult, setPreviewResult] = useState<PlanPreviewResult | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [selectedParallelism, setSelectedParallelism] = useState<number>(0);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -245,13 +254,43 @@ export default function ProductionPlanEditor({ planId }: Props) {
     }
   };
 
+  const handlePreview = async (quantity: number) => {
+    setPreviewLoading(true);
+    setPreviewError(null);
+    setPreviewResult(null);
+    try {
+      const res = await fetch(`/api/industry/plans/${planId}/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ quantity }),
+      });
+      if (res.ok) {
+        const result: PlanPreviewResult = await res.json();
+        setPreviewResult(result);
+        setSelectedParallelism(0);
+      } else {
+        const err = await res.json();
+        setPreviewError(err.error || "Preview failed");
+      }
+    } catch (err) {
+      console.error("Failed to preview jobs:", err);
+      setPreviewError("Failed to load preview");
+    } finally {
+      setPreviewLoading(false);
+    }
+  };
+
   const handleGenerate = async () => {
     setGenerating(true);
     try {
+      const body: { quantity: number; parallelism?: number } = { quantity: generateQuantity };
+      if (selectedParallelism > 0) {
+        body.parallelism = selectedParallelism;
+      }
       const res = await fetch(`/api/industry/plans/${planId}/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: generateQuantity }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
         const result: GenerateJobsResult = await res.json();
@@ -779,8 +818,11 @@ export default function ProductionPlanEditor({ planId }: Props) {
         onClose={() => {
           setGenerateDialogOpen(false);
           setGenerateResult(null);
+          setPreviewResult(null);
+          setPreviewError(null);
+          setSelectedParallelism(0);
         }}
-        maxWidth="sm"
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: { backgroundColor: "#12151f", color: "#e2e8f0" },
@@ -803,8 +845,23 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   {job.estimatedCost
                     ? ` (${formatISK(job.estimatedCost)})`
                     : ""}
+                  {generateResult.characterAssignments?.[job.id] && (
+                    <Chip
+                      label={generateResult.characterAssignments[job.id]}
+                      size="small"
+                      sx={{ ml: 1, height: 18, fontSize: 11, backgroundColor: "#1e3a5f", color: "#93c5fd" }}
+                    />
+                  )}
                 </Typography>
               ))}
+              {generateResult.unassignedCount != null && generateResult.unassignedCount > 0 && (
+                <Alert
+                  severity="warning"
+                  sx={{ mt: 2, backgroundColor: "#2d2000", color: "#fbbf24", "& .MuiAlert-icon": { color: "#fbbf24" } }}
+                >
+                  {generateResult.unassignedCount} job(s) could not be assigned to a character
+                </Alert>
+              )}
               {generateResult.transportJobs?.length > 0 && (
                 <>
                   <Typography sx={{ color: "#3b82f6", mt: 2, mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -846,16 +903,137 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 Job queue entries will be created for each step in the
                 production chain.
               </Typography>
-              <TextField
-                type="number"
-                label="Quantity"
-                value={generateQuantity}
-                onChange={(e) =>
-                  setGenerateQuantity(Math.max(1, parseInt(e.target.value) || 1))
-                }
-                fullWidth
-                inputProps={{ min: 1 }}
-              />
+              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
+                <TextField
+                  type="number"
+                  label="Quantity"
+                  value={generateQuantity}
+                  onChange={(e) =>
+                    setGenerateQuantity(Math.max(1, parseInt(e.target.value) || 1))
+                  }
+                  inputProps={{ min: 1 }}
+                  sx={{ width: 160 }}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => handlePreview(generateQuantity)}
+                  disabled={previewLoading}
+                  sx={{
+                    color: "#3b82f6",
+                    borderColor: "#3b82f6",
+                    mt: 0.5,
+                    "&:hover": { borderColor: "#2563eb", color: "#2563eb" },
+                  }}
+                >
+                  {previewLoading ? (
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <CircularProgress size={16} sx={{ color: "#3b82f6" }} />
+                      Previewing...
+                    </Box>
+                  ) : (
+                    "Preview"
+                  )}
+                </Button>
+              </Box>
+
+              {previewError && (
+                <Alert
+                  severity="warning"
+                  sx={{ mt: 2, backgroundColor: "#2d2000", color: "#fbbf24", "& .MuiAlert-icon": { color: "#fbbf24" } }}
+                >
+                  {previewError} — you can still generate without parallelism.
+                </Alert>
+              )}
+
+              {previewResult && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography sx={{ color: "#94a3b8", fontSize: 13, mb: 1 }}>
+                    Select how many characters to spread jobs across ({previewResult.eligibleCharacters} eligible character{previewResult.eligibleCharacters !== 1 ? "s" : ""}, {previewResult.totalJobs} total job{previewResult.totalJobs !== 1 ? "s" : ""})
+                  </Typography>
+                  <RadioGroup
+                    value={String(selectedParallelism)}
+                    onChange={(e) => setSelectedParallelism(Number(e.target.value))}
+                  >
+                    <TableContainer component={Paper} sx={{ backgroundColor: "#0f1219" }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell sx={{ color: "#64748b", width: 40, borderColor: "#1e293b" }} />
+                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Characters</TableCell>
+                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Est. Time</TableCell>
+                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Jobs</TableCell>
+                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Details</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {/* No-assignment row */}
+                          <TableRow
+                            hover
+                            onClick={() => setSelectedParallelism(0)}
+                            selected={selectedParallelism === 0}
+                            sx={{
+                              cursor: "pointer",
+                              "&.Mui-selected": { backgroundColor: "#1e293b" },
+                              "&.Mui-selected:hover": { backgroundColor: "#263548" },
+                              "&:hover": { backgroundColor: "#161c2c" },
+                            }}
+                          >
+                            <TableCell sx={{ borderColor: "#1e293b" }}>
+                              <Radio
+                                value="0"
+                                size="small"
+                                sx={{ color: "#475569", "&.Mui-checked": { color: "#3b82f6" }, p: 0 }}
+                              />
+                            </TableCell>
+                            <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b" }}>No assignment</TableCell>
+                            <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b" }}>—</TableCell>
+                            <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b", textAlign: "right" }}>{previewResult.totalJobs}</TableCell>
+                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b", fontSize: 12 }}>Jobs created without character assignment</TableCell>
+                          </TableRow>
+                          {/* Parallelism options */}
+                          {previewResult.options.map((option) => {
+                            const isSelected = selectedParallelism === option.parallelism;
+                            const detailsText = option.characters
+                              .map((c) => {
+                                const slots = [];
+                                if (c.mfgSlotsMax > 0) slots.push(`${c.mfgSlotsUsed}/${c.mfgSlotsMax} mfg`);
+                                if (c.reactSlotsMax > 0) slots.push(`${c.reactSlotsUsed}/${c.reactSlotsMax} react`);
+                                return `${c.name} (${c.jobCount} job${c.jobCount !== 1 ? "s" : ""}${slots.length ? ", " + slots.join(", ") : ""})`;
+                              })
+                              .join("; ");
+                            return (
+                              <TableRow
+                                key={option.parallelism}
+                                hover
+                                onClick={() => setSelectedParallelism(option.parallelism)}
+                                selected={isSelected}
+                                sx={{
+                                  cursor: "pointer",
+                                  "&.Mui-selected": { backgroundColor: "#1e293b" },
+                                  "&.Mui-selected:hover": { backgroundColor: "#263548" },
+                                  "&:hover": { backgroundColor: "#161c2c" },
+                                }}
+                              >
+                                <TableCell sx={{ borderColor: "#1e293b" }}>
+                                  <Radio
+                                    value={String(option.parallelism)}
+                                    size="small"
+                                    sx={{ color: "#475569", "&.Mui-checked": { color: "#3b82f6" }, p: 0 }}
+                                  />
+                                </TableCell>
+                                <TableCell sx={{ color: "#e2e8f0", borderColor: "#1e293b" }}>{option.parallelism}</TableCell>
+                                <TableCell sx={{ color: "#10b981", borderColor: "#1e293b" }}>{option.estimatedDurationLabel}</TableCell>
+                                <TableCell sx={{ color: "#e2e8f0", borderColor: "#1e293b", textAlign: "right" }}>{previewResult.totalJobs}</TableCell>
+                                <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b", fontSize: 12 }}>{detailsText}</TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </RadioGroup>
+                </Box>
+              )}
             </Box>
           )}
         </DialogContent>
@@ -865,6 +1043,9 @@ export default function ProductionPlanEditor({ planId }: Props) {
               onClick={() => {
                 setGenerateDialogOpen(false);
                 setGenerateResult(null);
+                setPreviewResult(null);
+                setPreviewError(null);
+                setSelectedParallelism(0);
               }}
               variant="contained"
               sx={{
@@ -877,7 +1058,12 @@ export default function ProductionPlanEditor({ planId }: Props) {
           ) : (
             <>
               <Button
-                onClick={() => setGenerateDialogOpen(false)}
+                onClick={() => {
+                  setGenerateDialogOpen(false);
+                  setPreviewResult(null);
+                  setPreviewError(null);
+                  setSelectedParallelism(0);
+                }}
                 sx={{ color: "#94a3b8" }}
               >
                 Cancel
@@ -891,7 +1077,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   "&:hover": { backgroundColor: "#059669" },
                 }}
               >
-                {generating ? "Generating..." : "Generate"}
+                {generating ? "Generating..." : "Generate Jobs"}
               </Button>
             </>
           )}

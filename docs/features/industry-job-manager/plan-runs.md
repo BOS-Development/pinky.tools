@@ -15,9 +15,11 @@ Plan runs track each execution of a production plan. When a user generates jobs 
 
 1. User calls `POST /v1/industry/plans/{id}/generate` with `{ "quantity": N }`
 2. A `production_plan_run` is created with the plan ID, user ID, and requested quantity
-3. The plan step tree is walked depth-first (same algorithm as before)
-4. Each `industry_job_queue` entry is created with `plan_run_id` and `plan_step_id` set
-5. The response includes the run object alongside the created jobs
+3. The plan step tree is walked depth-first, tracking dependency depth
+4. Identical jobs are merged (same blueprint, activity, ME, TE, tax) with runs/costs summed
+5. Each `industry_job_queue` entry is created with `plan_run_id`, `plan_step_id`, `sort_order`, station/location context
+6. If the plan has transport settings and steps span multiple stations, transport jobs are auto-generated and linked via `transport_job_id`
+7. The response includes the run object, created jobs, skipped items, and any transport jobs
 
 ### Run Status Derivation
 
@@ -119,15 +121,18 @@ Cancels all `planned` jobs in a run. Active and completed jobs are not affected.
 
 ### `POST /v1/industry/plans/{id}/generate` (modified)
 
-Now returns a `run` object in the response alongside `created` and `skipped`:
+Now returns a `run` object in the response alongside `created`, `skipped`, and `transportJobs`:
 
 ```json
 {
   "run": { "id": 1, "planId": 5, "userId": 100, "quantity": 10, ... },
   "created": [...],
-  "skipped": [...]
+  "skipped": [...],
+  "transportJobs": [...]
 }
 ```
+
+`transportJobs` is populated when the plan has `transport_fulfillment` set and steps span multiple stations. Each transport job includes items, route info, and cost estimates. See [transportation.md](../transportation.md) for the full transport job schema.
 
 ## File Structure
 

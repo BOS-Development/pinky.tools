@@ -19,6 +19,7 @@
 - Before starting work: `git checkout main && git pull origin main && git checkout -b feature/your-feature-name`
 - Commit frequently with clear messages
 - Push branch and create PR when ready for review
+- **Only the main planner thread manages branches.** Sub-agents (backend-dev, frontend-dev, executor, etc.) must NEVER create, switch, or manage git branches. They write code on whatever branch is already checked out.
 
 ---
 
@@ -70,6 +71,9 @@ After completing a task (all agents done, tests passing), review agent output fo
 - If an agent used workarounds, add the correct pattern to its conventions
 - If a convention was unclear, make it more explicit with examples
 - If the agent discovered a new project pattern, document it in the agent instructions
+- **Review agent memory files** (`.claude/agent-memory/{agent}/MEMORY.md`): Agents accumulate session-specific learnings here. Agent memory files are gitignored and ephemeral — promote anything worth keeping:
+  - Reusable patterns and conventions → `.claude/agents/{agent-name}.md`
+  - Domain knowledge, algorithms, bug fixes, key decisions → `docs/features/` feature docs
 
 ---
 

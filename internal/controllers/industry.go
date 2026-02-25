@@ -21,6 +21,16 @@ type IndustryJobQueueRepository interface {
 	GetByUser(ctx context.Context, userID int64) ([]*models.IndustryJobQueueEntry, error)
 	Update(ctx context.Context, id, userID int64, entry *models.IndustryJobQueueEntry) (*models.IndustryJobQueueEntry, error)
 	Cancel(ctx context.Context, id, userID int64) error
+	GetSlotUsage(ctx context.Context, userID int64) (map[int64]map[string]int, error)
+	ReassignCharacter(ctx context.Context, id, userID int64, characterID *int64) error
+}
+
+type IndustryCharacterRepository interface {
+	GetNames(ctx context.Context, userID int64) (map[int64]string, error)
+}
+
+type IndustryCharacterSkillsRepository interface {
+	GetSkillsForUser(ctx context.Context, userID int64) ([]*models.CharacterSkill, error)
 }
 
 type IndustrySDERepository interface {
@@ -45,6 +55,8 @@ type Industry struct {
 	sdeRepo         IndustrySDERepository
 	marketRepo      IndustryMarketRepository
 	costIndicesRepo IndustryCostIndicesRepository
+	characterRepo   IndustryCharacterRepository
+	skillsRepo      IndustryCharacterSkillsRepository
 }
 
 func NewIndustry(
@@ -54,6 +66,8 @@ func NewIndustry(
 	sdeRepo IndustrySDERepository,
 	marketRepo IndustryMarketRepository,
 	costIndicesRepo IndustryCostIndicesRepository,
+	characterRepo IndustryCharacterRepository,
+	skillsRepo IndustryCharacterSkillsRepository,
 ) *Industry {
 	c := &Industry{
 		jobsRepo:        jobsRepo,
@@ -61,6 +75,8 @@ func NewIndustry(
 		sdeRepo:         sdeRepo,
 		marketRepo:      marketRepo,
 		costIndicesRepo: costIndicesRepo,
+		characterRepo:   characterRepo,
+		skillsRepo:      skillsRepo,
 	}
 
 	// User-scoped endpoints
@@ -70,6 +86,8 @@ func NewIndustry(
 	router.RegisterRestAPIRoute("/v1/industry/queue", web.AuthAccessUser, c.CreateQueueEntry, "POST")
 	router.RegisterRestAPIRoute("/v1/industry/queue/{id}", web.AuthAccessUser, c.UpdateQueueEntry, "PUT")
 	router.RegisterRestAPIRoute("/v1/industry/queue/{id}", web.AuthAccessUser, c.CancelQueueEntry, "DELETE")
+	router.RegisterRestAPIRoute("/v1/industry/queue/{id}/character", web.AuthAccessUser, c.ReassignQueueCharacter, "PUT")
+	router.RegisterRestAPIRoute("/v1/industry/character-slots", web.AuthAccessUser, c.GetCharacterSlots, "GET")
 
 	// Backend-scoped endpoints (no user required)
 	router.RegisterRestAPIRoute("/v1/industry/calculate", web.AuthAccessBackend, c.Calculate, "POST")
@@ -247,6 +265,47 @@ func (c *Industry) UpdateQueueEntry(args *web.HandlerArgs) (any, *web.HttpError)
 	return updated, nil
 }
 
+type reassignCharacterRequest struct {
+	CharacterID *int64 `json:"characterId"`
+}
+
+func (c *Industry) ReassignQueueCharacter(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+
+	id, err := parseID(args.Params["id"])
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid queue entry ID")}
+	}
+
+	var req reassignCharacterRequest
+	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
+	}
+
+	// If a character is being assigned, verify it belongs to the authenticated user.
+	if req.CharacterID != nil && *req.CharacterID != 0 {
+		names, err := c.characterRepo.GetNames(ctx, *args.User)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get character names")}
+		}
+		if _, ok := names[*req.CharacterID]; !ok {
+			return nil, &web.HttpError{StatusCode: 403, Error: errors.New("character does not belong to this user")}
+		}
+	}
+
+	// Normalise: treat an explicit zero as an unassign request.
+	characterID := req.CharacterID
+	if characterID != nil && *characterID == 0 {
+		characterID = nil
+	}
+
+	if err := c.queueRepo.ReassignCharacter(ctx, id, *args.User, characterID); err != nil {
+		return nil, &web.HttpError{StatusCode: 404, Error: errors.Wrap(err, "failed to reassign character")}
+	}
+
+	return map[string]string{"status": "updated"}, nil
+}
+
 func (c *Industry) CancelQueueEntry(args *web.HandlerArgs) (any, *web.HttpError) {
 	id, err := parseID(args.Params["id"])
 	if err != nil {
@@ -406,4 +465,77 @@ func (c *Industry) calculateForBlueprint(
 
 	result := calculator.CalculateManufacturingJob(params, data)
 	return result, nil
+}
+
+// characterSlotsResponse is the JSON response shape for GetCharacterSlots.
+type characterSlotsResponse struct {
+	CharacterID      int64  `json:"characterId"`
+	CharacterName    string `json:"characterName"`
+	MfgSlotsMax      int    `json:"mfgSlotsMax"`
+	MfgSlotsUsed     int    `json:"mfgSlotsUsed"`
+	ReactSlotsMax    int    `json:"reactSlotsMax"`
+	ReactSlotsUsed   int    `json:"reactSlotsUsed"`
+	IndustrySkill    int    `json:"industrySkill"`
+	AdvIndustrySkill int    `json:"advIndustrySkill"`
+	ReactionsSkill   int    `json:"reactionsSkill"`
+}
+
+// GetCharacterSlots returns slot information for all eligible characters belonging
+// to the authenticated user. A character is eligible if they have at least one
+// industry or reactions skill trained (Industry >= 1 OR Reactions >= 1).
+func (c *Industry) GetCharacterSlots(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+	userID := *args.User
+
+	characterNames, err := c.characterRepo.GetNames(ctx, userID)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get character names")}
+	}
+
+	allSkills, err := c.skillsRepo.GetSkillsForUser(ctx, userID)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get character skills")}
+	}
+
+	// Build skillsByCharacter: characterID -> skillID -> level (active_level).
+	// Only retain the 7 industry skill IDs to keep the map small.
+	industrySkillSet := make(map[int64]bool, len(calculator.IndustrySkillIDs))
+	for _, id := range calculator.IndustrySkillIDs {
+		industrySkillSet[id] = true
+	}
+
+	skillsByCharacter := map[int64]map[int64]int{}
+	for _, skill := range allSkills {
+		if !industrySkillSet[skill.SkillID] {
+			continue
+		}
+		if _, ok := skillsByCharacter[skill.CharacterID]; !ok {
+			skillsByCharacter[skill.CharacterID] = map[int64]int{}
+		}
+		skillsByCharacter[skill.CharacterID][skill.SkillID] = skill.ActiveLevel
+	}
+
+	slotUsage, err := c.queueRepo.GetSlotUsage(ctx, userID)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get slot usage")}
+	}
+
+	capacities := calculator.BuildCharacterCapacities(characterNames, skillsByCharacter, slotUsage)
+
+	response := []*characterSlotsResponse{}
+	for _, cap := range capacities {
+		response = append(response, &characterSlotsResponse{
+			CharacterID:      cap.CharacterID,
+			CharacterName:    cap.CharacterName,
+			MfgSlotsMax:      cap.MfgSlotsMax,
+			MfgSlotsUsed:     cap.MfgSlotsUsed,
+			ReactSlotsMax:    cap.ReactSlotsMax,
+			ReactSlotsUsed:   cap.ReactSlotsUsed,
+			IndustrySkill:    cap.IndustrySkill,
+			AdvIndustrySkill: cap.AdvIndustrySkill,
+			ReactionsSkill:   cap.ReactionsSkill,
+		})
+	}
+
+	return response, nil
 }

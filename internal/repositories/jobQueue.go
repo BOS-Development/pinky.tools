@@ -305,6 +305,76 @@ func (r *JobQueue) GetLinkedActiveJobs(ctx context.Context, userID int64) ([]*mo
 	return r.queryEntries(ctx, query, userID)
 }
 
+// GetSlotUsage returns a nested map of characterID -> activity -> count for
+// all planned and active queue entries that have a character assigned.
+func (r *JobQueue) GetSlotUsage(ctx context.Context, userID int64) (map[int64]map[string]int, error) {
+	query := `
+		select character_id, activity, count(*) as slot_count
+		from industry_job_queue
+		where user_id = $1
+		  and character_id is not null
+		  and status in ('planned', 'active')
+		group by character_id, activity
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query slot usage")
+	}
+	defer rows.Close()
+
+	result := map[int64]map[string]int{}
+	for rows.Next() {
+		var characterID int64
+		var activity string
+		var count int
+		if err := rows.Scan(&characterID, &activity, &count); err != nil {
+			return nil, errors.Wrap(err, "failed to scan slot usage row")
+		}
+		if _, ok := result[characterID]; !ok {
+			result[characterID] = map[string]int{}
+		}
+		result[characterID][activity] = count
+	}
+
+	return result, nil
+}
+
+// ReassignCharacter updates the character_id on a planned queue entry.
+// Pass nil for characterID to unassign. Returns an error if the entry is not
+// found, belongs to a different user, or is not in 'planned' status.
+func (r *JobQueue) ReassignCharacter(ctx context.Context, id, userID int64, characterID *int64) error {
+	var result sql.Result
+	var err error
+
+	if characterID != nil {
+		result, err = r.db.ExecContext(ctx, `
+			UPDATE industry_job_queue
+			SET character_id = $3, updated_at = now()
+			WHERE id = $1 AND user_id = $2 AND status = 'planned'
+		`, id, userID, *characterID)
+	} else {
+		result, err = r.db.ExecContext(ctx, `
+			UPDATE industry_job_queue
+			SET character_id = NULL, updated_at = now()
+			WHERE id = $1 AND user_id = $2 AND status = 'planned'
+		`, id, userID)
+	}
+	if err != nil {
+		return errors.Wrap(err, "reassigning character")
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "checking rows affected")
+	}
+	if rows == 0 {
+		return errors.New("queue entry not found or not in planned status")
+	}
+
+	return nil
+}
+
 func (r *JobQueue) queryEntries(ctx context.Context, query string, args ...interface{}) ([]*models.IndustryJobQueueEntry, error) {
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {

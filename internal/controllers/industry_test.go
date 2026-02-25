@@ -71,6 +71,43 @@ func (m *MockIndustryJobQueueRepository) Cancel(ctx context.Context, id, userID 
 	return args.Error(0)
 }
 
+func (m *MockIndustryJobQueueRepository) GetSlotUsage(ctx context.Context, userID int64) (map[int64]map[string]int, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[int64]map[string]int), args.Error(1)
+}
+
+func (m *MockIndustryJobQueueRepository) ReassignCharacter(ctx context.Context, id, userID int64, characterID *int64) error {
+	args := m.Called(ctx, id, userID, characterID)
+	return args.Error(0)
+}
+
+type MockIndustryCharacterRepository struct {
+	mock.Mock
+}
+
+func (m *MockIndustryCharacterRepository) GetNames(ctx context.Context, userID int64) (map[int64]string, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[int64]string), args.Error(1)
+}
+
+type MockIndustryCharacterSkillsRepository struct {
+	mock.Mock
+}
+
+func (m *MockIndustryCharacterSkillsRepository) GetSkillsForUser(ctx context.Context, userID int64) ([]*models.CharacterSkill, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.CharacterSkill), args.Error(1)
+}
+
 type MockIndustrySDERepository struct {
 	mock.Mock
 }
@@ -142,11 +179,13 @@ func (m *MockIndustryCostIndicesRepository) GetCostIndex(ctx context.Context, sy
 // --- Helper to create controller with mocks ---
 
 type industryMocks struct {
-	jobsRepo        *MockIndustryJobsRepository
-	queueRepo       *MockIndustryJobQueueRepository
-	sdeRepo         *MockIndustrySDERepository
-	marketRepo      *MockIndustryMarketRepository
+	jobsRepo      *MockIndustryJobsRepository
+	queueRepo     *MockIndustryJobQueueRepository
+	sdeRepo       *MockIndustrySDERepository
+	marketRepo    *MockIndustryMarketRepository
 	costIndicesRepo *MockIndustryCostIndicesRepository
+	characterRepo   *MockIndustryCharacterRepository
+	skillsRepo      *MockIndustryCharacterSkillsRepository
 }
 
 func setupIndustryController() (*controllers.Industry, *industryMocks) {
@@ -156,6 +195,8 @@ func setupIndustryController() (*controllers.Industry, *industryMocks) {
 		sdeRepo:         new(MockIndustrySDERepository),
 		marketRepo:      new(MockIndustryMarketRepository),
 		costIndicesRepo: new(MockIndustryCostIndicesRepository),
+		characterRepo:   new(MockIndustryCharacterRepository),
+		skillsRepo:      new(MockIndustryCharacterSkillsRepository),
 	}
 
 	controller := controllers.NewIndustry(
@@ -165,6 +206,8 @@ func setupIndustryController() (*controllers.Industry, *industryMocks) {
 		mocks.sdeRepo,
 		mocks.marketRepo,
 		mocks.costIndicesRepo,
+		mocks.characterRepo,
+		mocks.skillsRepo,
 	)
 
 	return controller, mocks
@@ -850,4 +893,339 @@ func Test_IndustryController_GetSystems_Error(t *testing.T) {
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 500, httpErr.StatusCode)
 	mocks.sdeRepo.AssertExpectations(t)
+}
+
+// --- GetCharacterSlots Tests ---
+
+// skill IDs (must match calculator constants)
+const (
+	testSkillIndustry          = int64(3380)
+	testSkillAdvIndustry       = int64(3388)
+	testSkillMassProduction    = int64(3387)
+	testSkillAdvMassProduction = int64(24625)
+	testSkillReactions         = int64(45746)
+	testSkillMassReactions     = int64(45748)
+	testSkillAdvMassReactions  = int64(45749)
+)
+
+func makeSkill(characterID, userID, skillID int64, level int) *models.CharacterSkill {
+	return &models.CharacterSkill{
+		CharacterID:  characterID,
+		UserID:       userID,
+		SkillID:      skillID,
+		TrainedLevel: level,
+		ActiveLevel:  level,
+	}
+}
+
+func Test_IndustryController_GetCharacterSlots_Success(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	// Two characters: one mfg-capable, one reactions-only
+	characterNames := map[int64]string{
+		2001001: "Main Pilot",
+		2001002: "Reaction Alt",
+	}
+	skills := []*models.CharacterSkill{
+		// Main Pilot: Industry 5, AdvIndustry 5, MassProduction 5, AdvMassProduction 4
+		makeSkill(2001001, userID, testSkillIndustry, 5),
+		makeSkill(2001001, userID, testSkillAdvIndustry, 5),
+		makeSkill(2001001, userID, testSkillMassProduction, 5),
+		makeSkill(2001001, userID, testSkillAdvMassProduction, 4),
+		// Reaction Alt: Reactions 4, MassReactions 3
+		makeSkill(2001002, userID, testSkillReactions, 4),
+		makeSkill(2001002, userID, testSkillMassReactions, 3),
+	}
+	slotUsage := map[int64]map[string]int{
+		2001001: {"manufacturing": 3},
+	}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return(skills, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(slotUsage, nil)
+
+	req := httptest.NewRequest("GET", "/v1/industry/character-slots", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetCharacterSlots(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	// Marshal and unmarshal to verify JSON shape
+	bytes, err := json.Marshal(result)
+	assert.NoError(t, err)
+
+	var decoded []map[string]any
+	assert.NoError(t, json.Unmarshal(bytes, &decoded))
+	assert.Len(t, decoded, 2)
+
+	// First entry should be Main Pilot (highest mfg skill)
+	main := decoded[0]
+	assert.Equal(t, float64(2001001), main["characterId"])
+	assert.Equal(t, "Main Pilot", main["characterName"])
+	// 1 base + 5 MassProduction + 4 AdvMassProduction = 10
+	assert.Equal(t, float64(10), main["mfgSlotsMax"])
+	assert.Equal(t, float64(3), main["mfgSlotsUsed"])
+	assert.Equal(t, float64(5), main["industrySkill"])
+	assert.Equal(t, float64(5), main["advIndustrySkill"])
+
+	// Second entry should be Reaction Alt
+	react := decoded[1]
+	assert.Equal(t, float64(2001002), react["characterId"])
+	assert.Equal(t, "Reaction Alt", react["characterName"])
+	// 1 base + 3 MassReactions = 4
+	assert.Equal(t, float64(4), react["reactSlotsMax"])
+	assert.Equal(t, float64(0), react["reactSlotsUsed"])
+	assert.Equal(t, float64(4), react["reactionsSkill"])
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetCharacterSlots_NoCharacters(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{}, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	req := httptest.NewRequest("GET", "/v1/industry/character-slots", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetCharacterSlots(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	bytes, err := json.Marshal(result)
+	assert.NoError(t, err)
+
+	var decoded []map[string]any
+	assert.NoError(t, json.Unmarshal(bytes, &decoded))
+	assert.Len(t, decoded, 0)
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetCharacterSlots_IneligibleCharacterExcluded(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	// Three characters: one eligible mfg, one eligible react, one with no industry skills
+	characterNames := map[int64]string{
+		2001001: "Industry Toon",
+		2001002: "Hauler Alt",    // no industry skills at all
+		2001003: "Reactions Alt",
+	}
+	skills := []*models.CharacterSkill{
+		makeSkill(2001001, userID, testSkillIndustry, 3),
+		makeSkill(2001003, userID, testSkillReactions, 2),
+		// 2001002 has only non-industry skills — they won't appear in the filtered map
+	}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return(skills, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(map[int64]map[string]int{}, nil)
+
+	req := httptest.NewRequest("GET", "/v1/industry/character-slots", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetCharacterSlots(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	bytes, err := json.Marshal(result)
+	assert.NoError(t, err)
+
+	var decoded []map[string]any
+	assert.NoError(t, json.Unmarshal(bytes, &decoded))
+	// Only two characters should appear — Hauler Alt is excluded
+	assert.Len(t, decoded, 2)
+
+	names := []string{decoded[0]["characterName"].(string), decoded[1]["characterName"].(string)}
+	assert.Contains(t, names, "Industry Toon")
+	assert.Contains(t, names, "Reactions Alt")
+	assert.NotContains(t, names, "Hauler Alt")
+
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetCharacterSlots_CharacterNamesError(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(nil, errors.New("database error"))
+
+	req := httptest.NewRequest("GET", "/v1/industry/character-slots", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetCharacterSlots(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+	mocks.characterRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetCharacterSlots_SkillsError(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{2001001: "Main"}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return(nil, errors.New("skills fetch failed"))
+
+	req := httptest.NewRequest("GET", "/v1/industry/character-slots", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetCharacterSlots(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetCharacterSlots_SlotUsageError(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(map[int64]string{2001001: "Main"}, nil)
+	mocks.skillsRepo.On("GetSkillsForUser", mock.Anything, userID).Return([]*models.CharacterSkill{}, nil)
+	mocks.queueRepo.On("GetSlotUsage", mock.Anything, userID).Return(nil, errors.New("slot usage fetch failed"))
+
+	req := httptest.NewRequest("GET", "/v1/industry/character-slots", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetCharacterSlots(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.skillsRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+// --- ReassignQueueCharacter Tests ---
+
+func Test_IndustryController_ReassignCharacter_Success(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	charID := int64(2001001)
+	characterNames := map[int64]string{charID: "Main Pilot"}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+	mocks.queueRepo.On("ReassignCharacter", mock.Anything, int64(7), userID, &charID).Return(nil)
+
+	body := map[string]any{"characterId": charID}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("PUT", "/v1/industry/queue/7/character", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "7"},
+	}
+
+	result, httpErr := controller.ReassignQueueCharacter(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]string)
+	assert.Equal(t, "updated", resp["status"])
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_ReassignCharacter_Unassign(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+
+	// characterId is explicitly null — no character ownership check required
+	mocks.queueRepo.On("ReassignCharacter", mock.Anything, int64(7), userID, (*int64)(nil)).Return(nil)
+
+	body := map[string]any{"characterId": nil}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("PUT", "/v1/industry/queue/7/character", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "7"},
+	}
+
+	result, httpErr := controller.ReassignQueueCharacter(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]string)
+	assert.Equal(t, "updated", resp["status"])
+	mocks.queueRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_ReassignCharacter_NotOwnedCharacter(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	foreignCharID := int64(9999999)
+	// User only owns character 2001001, not 9999999
+	characterNames := map[int64]string{int64(2001001): "Main Pilot"}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+
+	body := map[string]any{"characterId": foreignCharID}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("PUT", "/v1/industry/queue/7/character", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "7"},
+	}
+
+	result, httpErr := controller.ReassignQueueCharacter(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 403, httpErr.StatusCode)
+	mocks.characterRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_ReassignCharacter_EntryNotFound(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	charID := int64(2001001)
+	characterNames := map[int64]string{charID: "Main Pilot"}
+
+	mocks.characterRepo.On("GetNames", mock.Anything, userID).Return(characterNames, nil)
+	mocks.queueRepo.On("ReassignCharacter", mock.Anything, int64(999), userID, &charID).
+		Return(errors.New("queue entry not found or not in planned status"))
+
+	body := map[string]any{"characterId": charID}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("PUT", "/v1/industry/queue/999/character", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "999"},
+	}
+
+	result, httpErr := controller.ReassignQueueCharacter(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 404, httpErr.StatusCode)
+	mocks.characterRepo.AssertExpectations(t)
+	mocks.queueRepo.AssertExpectations(t)
 }
