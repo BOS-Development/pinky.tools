@@ -61,15 +61,7 @@ func (r *PlanRuns) GetByPlan(ctx context.Context, planID, userID int64) ([]*mode
 		FROM production_plan_runs r
 		JOIN production_plans p ON p.id = r.plan_id
 		LEFT JOIN asset_item_types t ON t.type_id = p.product_type_id
-		LEFT JOIN LATERAL (
-		  SELECT count(*) AS total,
-		         count(*) FILTER (WHERE q.status = 'planned') AS planned,
-		         count(*) FILTER (WHERE q.status = 'active') AS active,
-		         count(*) FILTER (WHERE q.status = 'completed') AS completed,
-		         count(*) FILTER (WHERE q.status = 'cancelled') AS cancelled
-		  FROM industry_job_queue q
-		  WHERE q.plan_run_id = r.id
-		) counts ON true
+		LEFT JOIN plan_run_job_counts counts ON counts.plan_run_id = r.id
 		WHERE r.plan_id = $1 AND r.user_id = $2
 		ORDER BY r.created_at DESC
 	`
@@ -128,15 +120,7 @@ func (r *PlanRuns) GetByUser(ctx context.Context, userID int64) ([]*models.Produ
 		FROM production_plan_runs r
 		JOIN production_plans p ON p.id = r.plan_id
 		LEFT JOIN asset_item_types t ON t.type_id = p.product_type_id
-		LEFT JOIN LATERAL (
-		  SELECT count(*) AS total,
-		         count(*) FILTER (WHERE q.status = 'planned') AS planned,
-		         count(*) FILTER (WHERE q.status = 'active') AS active,
-		         count(*) FILTER (WHERE q.status = 'completed') AS completed,
-		         count(*) FILTER (WHERE q.status = 'cancelled') AS cancelled
-		  FROM industry_job_queue q
-		  WHERE q.plan_run_id = r.id
-		) counts ON true
+		LEFT JOIN plan_run_job_counts counts ON counts.plan_run_id = r.id
 		WHERE r.user_id = $1
 		ORDER BY r.created_at DESC
 	`
@@ -213,15 +197,7 @@ func (r *PlanRuns) GetByID(ctx context.Context, runID, userID int64) (*models.Pr
 		FROM production_plan_runs r
 		JOIN production_plans p ON p.id = r.plan_id
 		LEFT JOIN asset_item_types t ON t.type_id = p.product_type_id
-		LEFT JOIN LATERAL (
-		  SELECT count(*) AS total,
-		         count(*) FILTER (WHERE q.status = 'planned') AS planned,
-		         count(*) FILTER (WHERE q.status = 'active') AS active,
-		         count(*) FILTER (WHERE q.status = 'completed') AS completed,
-		         count(*) FILTER (WHERE q.status = 'cancelled') AS cancelled
-		  FROM industry_job_queue q
-		  WHERE q.plan_run_id = r.id
-		) counts ON true
+		LEFT JOIN plan_run_job_counts counts ON counts.plan_run_id = r.id
 		WHERE r.id = $1 AND r.user_id = $2
 	`
 

@@ -89,10 +89,8 @@ func (r *CharacterBlueprints) GetBlueprintLevels(ctx context.Context, userID int
 			cb.time_efficiency,
 			cb.quantity,
 			cb.runs,
-			COALESCE(c.name, pc.name, '') AS owner_name
+			resolve_owner_name(cb.owner_type, cb.owner_id) AS owner_name
 		FROM character_blueprints cb
-		LEFT JOIN characters c ON cb.owner_type = 'character' AND c.id = cb.owner_id
-		LEFT JOIN player_corporations pc ON cb.owner_type = 'corporation' AND pc.id = cb.owner_id
 		WHERE cb.user_id = $1 AND cb.type_id = ANY($2)
 		ORDER BY cb.type_id,
 		         CASE WHEN cb.quantity = -2 THEN 0 ELSE 1 END,

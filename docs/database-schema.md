@@ -1,7 +1,7 @@
 # Database Schema Reference
 
-**Last updated:** 2026-02-25
-**Tables:** 68 | **Views:** 1 | **Migrations:** 87 (43 up/down pairs + 1 schema-only migration)
+**Last updated:** 2026-02-26
+**Tables:** 68 | **Views:** 1 | **Functions:** 2 | **Migrations:** 91 (45 up/down pairs + 1 schema-only migration)
 
 ---
 
@@ -19,10 +19,11 @@
 10. [Transportation](#10-transportation)
 11. [Notifications](#11-notifications)
 12. [Views](#12-views)
-13. [Relationship Map](#13-relationship-map)
-14. [Index Reference](#14-index-reference)
-15. [Schema Conventions](#15-schema-conventions)
-16. [Migration History](#16-migration-history)
+13. [SQL Functions](#13-sql-functions)
+14. [Relationship Map](#14-relationship-map)
+15. [Index Reference](#15-index-reference)
+16. [Schema Conventions](#16-schema-conventions)
+17. [Migration History](#17-migration-history)
 
 ---
 
@@ -1068,7 +1069,38 @@ Resolves corporation asset locations to their station, division, and geographic 
 
 ---
 
-## 13. Relationship Map
+## 13. SQL Functions
+
+### `resolve_owner_name(owner_type VARCHAR, owner_id BIGINT) → VARCHAR`
+
+**Properties:** `STABLE`, `RETURNS NULL ON NULL INPUT`
+
+Resolves owner names from `(owner_type, owner_id)` by joining against characters or corporations. Returns `'Unknown Owner'` if the owner is not found.
+
+**Usage in:**
+- `forSaleItems.GetByUser()` — listing owner names
+- `characterBlueprints.GetByCharacter()` — blueprint owner names
+- `productionPlans.GetByUser()` — plan item owner names
+
+**Definition:** Migration `20260226012205_add_resolve_owner_name_function.up.sql`
+
+### `resolve_location_name(location_id BIGINT) → VARCHAR`
+
+**Properties:** `STABLE`, `RETURNS NULL ON NULL INPUT`
+
+Resolves location names from `location_id` by checking stations first, then solar_systems, with `'Unknown Location'` fallback.
+
+**Usage in:**
+- `forSaleItems.GetByUser()` — location of listed item
+- `buyOrders.GetByUser()` — location of buy order
+- `purchaseTransactions.GetBySeller()` and `.GetByBuyer()` — transaction locations
+- Plus 5+ other data retrieval methods
+
+**Definition:** Migration `20260226012204_add_resolve_location_name_function.up.sql`
+
+---
+
+## 14. Relationship Map
 
 ```
 users
@@ -1134,7 +1166,7 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 
 ---
 
-## 14. Index Reference
+## 15. Index Reference
 
 ### Custom Unique Indexes
 
@@ -1207,7 +1239,7 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 
 ---
 
-## 15. Schema Conventions
+## 16. Schema Conventions
 
 ### Data Types
 
@@ -1250,7 +1282,7 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 
 ---
 
-## 16. Migration History
+## 17. Migration History
 
 | Migration | Timestamp | Description |
 |-----------|-----------|-------------|

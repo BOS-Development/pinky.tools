@@ -59,6 +59,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 |---------|-----|---------|
 | E2E Testing | [e2e-testing.md](infrastructure/e2e-testing.md) | Mock ESI, Playwright, test users |
 | Railway Deployment | [railway-deployment.md](infrastructure/railway-deployment.md) | PostgreSQL, backend, frontend deployment |
+| DB Performance Optimizations | [db-performance-optimizations.md](infrastructure/db-performance-optimizations.md) | Strategic indexing, SQL functions, N+1 elimination |
 
 ## Agent Documentation
 

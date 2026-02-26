@@ -133,7 +133,7 @@ func (r *BuyOrders) GetAllActiveBuyOrders(ctx context.Context) ([]*models.BuyOrd
 			bo.type_id,
 			COALESCE(it.type_name, '') AS type_name,
 			bo.location_id,
-			COALESCE(st.name, ss.name, '') AS location_name,
+			resolve_location_name(bo.location_id) AS location_name,
 			bo.quantity_desired,
 			bo.min_price_per_unit,
 			bo.max_price_per_unit,
@@ -144,8 +144,6 @@ func (r *BuyOrders) GetAllActiveBuyOrders(ctx context.Context) ([]*models.BuyOrd
 			bo.updated_at
 		FROM buy_orders bo
 		LEFT JOIN asset_item_types it ON bo.type_id = it.type_id
-		LEFT JOIN stations st ON bo.location_id = st.station_id
-		LEFT JOIN solar_systems ss ON bo.location_id = ss.solar_system_id
 		WHERE bo.is_active = true
 	`
 
@@ -258,7 +256,7 @@ func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, er
 			bo.type_id,
 			it.type_name,
 			bo.location_id,
-			COALESCE(st.name, ss.name, '') AS location_name,
+			resolve_location_name(bo.location_id) AS location_name,
 			bo.quantity_desired,
 			bo.min_price_per_unit,
 			bo.max_price_per_unit,
@@ -269,8 +267,6 @@ func (r *BuyOrders) GetByID(ctx context.Context, id int64) (*models.BuyOrder, er
 			bo.updated_at
 		FROM buy_orders bo
 		LEFT JOIN asset_item_types it ON bo.type_id = it.type_id
-		LEFT JOIN stations st ON bo.location_id = st.station_id
-		LEFT JOIN solar_systems ss ON bo.location_id = ss.solar_system_id
 		WHERE bo.id = $1
 	`
 
@@ -311,7 +307,7 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 			bo.type_id,
 			it.type_name,
 			bo.location_id,
-			COALESCE(st.name, ss.name, '') AS location_name,
+			resolve_location_name(bo.location_id) AS location_name,
 			bo.quantity_desired,
 			bo.min_price_per_unit,
 			bo.max_price_per_unit,
@@ -322,8 +318,6 @@ func (r *BuyOrders) GetByUser(ctx context.Context, userID int64) ([]*models.BuyO
 			bo.updated_at
 		FROM buy_orders bo
 		LEFT JOIN asset_item_types it ON bo.type_id = it.type_id
-		LEFT JOIN stations st ON bo.location_id = st.station_id
-		LEFT JOIN solar_systems ss ON bo.location_id = ss.solar_system_id
 		WHERE bo.buyer_user_id = $1
 		ORDER BY bo.created_at DESC
 	`
@@ -372,7 +366,7 @@ func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) 
 			bo.type_id,
 			it.type_name,
 			bo.location_id,
-			COALESCE(st.name, ss.name, '') AS location_name,
+			resolve_location_name(bo.location_id) AS location_name,
 			bo.quantity_desired,
 			bo.min_price_per_unit,
 			bo.notes,
@@ -382,8 +376,6 @@ func (r *BuyOrders) GetDemandForSeller(ctx context.Context, sellerUserID int64) 
 			bo.updated_at
 		FROM buy_orders bo
 		LEFT JOIN asset_item_types it ON bo.type_id = it.type_id
-		LEFT JOIN stations st ON bo.location_id = st.station_id
-		LEFT JOIN solar_systems ss ON bo.location_id = ss.solar_system_id
 		INNER JOIN contact_permissions cp ON cp.granting_user_id = bo.buyer_user_id
 			AND cp.receiving_user_id = $1
 			AND cp.service_type = 'for_sale_browse'
