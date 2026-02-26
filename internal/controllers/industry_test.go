@@ -176,16 +176,29 @@ func (m *MockIndustryCostIndicesRepository) GetCostIndex(ctx context.Context, sy
 	return args.Get(0).(*models.IndustryCostIndex), args.Error(1)
 }
 
+type MockIndustryBlueprintsRepository struct {
+	mock.Mock
+}
+
+func (m *MockIndustryBlueprintsRepository) GetBlueprintLevels(ctx context.Context, userID int64, typeIDs []int64) (map[int64]*models.BlueprintLevel, error) {
+	args := m.Called(ctx, userID, typeIDs)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(map[int64]*models.BlueprintLevel), args.Error(1)
+}
+
 // --- Helper to create controller with mocks ---
 
 type industryMocks struct {
-	jobsRepo      *MockIndustryJobsRepository
-	queueRepo     *MockIndustryJobQueueRepository
-	sdeRepo       *MockIndustrySDERepository
-	marketRepo    *MockIndustryMarketRepository
+	jobsRepo        *MockIndustryJobsRepository
+	queueRepo       *MockIndustryJobQueueRepository
+	sdeRepo         *MockIndustrySDERepository
+	marketRepo      *MockIndustryMarketRepository
 	costIndicesRepo *MockIndustryCostIndicesRepository
 	characterRepo   *MockIndustryCharacterRepository
 	skillsRepo      *MockIndustryCharacterSkillsRepository
+	blueprintsRepo  *MockIndustryBlueprintsRepository
 }
 
 func setupIndustryController() (*controllers.Industry, *industryMocks) {
@@ -197,6 +210,7 @@ func setupIndustryController() (*controllers.Industry, *industryMocks) {
 		costIndicesRepo: new(MockIndustryCostIndicesRepository),
 		characterRepo:   new(MockIndustryCharacterRepository),
 		skillsRepo:      new(MockIndustryCharacterSkillsRepository),
+		blueprintsRepo:  new(MockIndustryBlueprintsRepository),
 	}
 
 	controller := controllers.NewIndustry(
@@ -208,6 +222,7 @@ func setupIndustryController() (*controllers.Industry, *industryMocks) {
 		mocks.costIndicesRepo,
 		mocks.characterRepo,
 		mocks.skillsRepo,
+		mocks.blueprintsRepo,
 	)
 
 	return controller, mocks
@@ -1228,4 +1243,94 @@ func Test_IndustryController_ReassignCharacter_EntryNotFound(t *testing.T) {
 	assert.Equal(t, 404, httpErr.StatusCode)
 	mocks.characterRepo.AssertExpectations(t)
 	mocks.queueRepo.AssertExpectations(t)
+}
+
+// --- GetBlueprintLevels Tests ---
+
+func Test_IndustryController_GetBlueprintLevels_Success(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	typeIDs := []int64{787, 46166}
+
+	expectedLevels := map[int64]*models.BlueprintLevel{
+		787: {MaterialEfficiency: 10, TimeEfficiency: 20, IsCopy: false, OwnerName: "Main Pilot", Runs: -1},
+		46166: {MaterialEfficiency: 8, TimeEfficiency: 16, IsCopy: true, OwnerName: "Reaction Alt", Runs: 50},
+	}
+
+	mocks.blueprintsRepo.On("GetBlueprintLevels", mock.Anything, userID, typeIDs).Return(expectedLevels, nil)
+
+	body := map[string]any{"type_ids": typeIDs}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("POST", "/v1/industry/blueprint-levels", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetBlueprintLevels(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	levels := result.(map[int64]*models.BlueprintLevel)
+	assert.Len(t, levels, 2)
+	assert.Equal(t, 10, levels[787].MaterialEfficiency)
+	assert.False(t, levels[787].IsCopy)
+	assert.Equal(t, 8, levels[46166].MaterialEfficiency)
+	assert.True(t, levels[46166].IsCopy)
+	mocks.blueprintsRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetBlueprintLevels_EmptyTypeIDs(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	typeIDs := []int64{}
+
+	mocks.blueprintsRepo.On("GetBlueprintLevels", mock.Anything, userID, typeIDs).Return(map[int64]*models.BlueprintLevel{}, nil)
+
+	body := map[string]any{"type_ids": typeIDs}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("POST", "/v1/industry/blueprint-levels", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetBlueprintLevels(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	levels := result.(map[int64]*models.BlueprintLevel)
+	assert.Len(t, levels, 0)
+	mocks.blueprintsRepo.AssertExpectations(t)
+}
+
+func Test_IndustryController_GetBlueprintLevels_InvalidBody(t *testing.T) {
+	controller, _ := setupIndustryController()
+
+	userID := int64(100)
+	req := httptest.NewRequest("POST", "/v1/industry/blueprint-levels", bytes.NewReader([]byte("invalid json")))
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetBlueprintLevels(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_IndustryController_GetBlueprintLevels_RepoError(t *testing.T) {
+	controller, mocks := setupIndustryController()
+
+	userID := int64(100)
+	typeIDs := []int64{787}
+
+	mocks.blueprintsRepo.On("GetBlueprintLevels", mock.Anything, userID, typeIDs).Return(nil, errors.New("database error"))
+
+	body := map[string]any{"type_ids": typeIDs}
+	bodyBytes, _ := json.Marshal(body)
+	req := httptest.NewRequest("POST", "/v1/industry/blueprint-levels", bytes.NewReader(bodyBytes))
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := controller.GetBlueprintLevels(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+	mocks.blueprintsRepo.AssertExpectations(t)
 }

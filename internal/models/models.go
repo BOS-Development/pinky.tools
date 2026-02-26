@@ -1190,3 +1190,26 @@ type ScanService struct {
 	Name     string `json:"name"`
 	Activity string `json:"activity"`
 }
+
+type CharacterBlueprint struct {
+	ItemID             int64     `json:"itemId"`
+	OwnerID            int64     `json:"ownerId"`
+	OwnerType          string    `json:"ownerType"`
+	UserID             int64     `json:"userId"`
+	TypeID             int64     `json:"typeId"`
+	LocationID         int64     `json:"locationId"`
+	LocationFlag       string    `json:"locationFlag"`
+	Quantity           int       `json:"quantity"`
+	MaterialEfficiency int       `json:"materialEfficiency"`
+	TimeEfficiency     int       `json:"timeEfficiency"`
+	Runs               int       `json:"runs"`
+	UpdatedAt          time.Time `json:"updatedAt"`
+}
+
+type BlueprintLevel struct {
+	MaterialEfficiency int    `json:"materialEfficiency"`
+	TimeEfficiency     int    `json:"timeEfficiency"`
+	IsCopy             bool   `json:"isCopy"`
+	OwnerName          string `json:"ownerName"`
+	Runs               int    `json:"runs"`
+}

@@ -9,7 +9,7 @@ Track and manage EVE Online industry jobs (manufacturing, reactions, invention) 
 - **Phase 1**: Complete — character skills syncing, ESI job tracking, manufacturing calculator, job queue with auto-matching
 - **Phase 2**: Complete — production plans with full production chain tree, step management, job generation
 - **Phase 3**: Complete — multi-alt parallel planning with skill-based character assignment, preview endpoint, manual reassignment
-- **Phase 4** (planned): Blueprint auto-detection via `GET /characters/{id}/blueprints/`
+- **Phase 4**: Complete — blueprint auto-detection syncing character + corporation blueprints from ESI, auto-populating ME/TE levels
 
 ---
 
@@ -466,3 +466,143 @@ After generation, users can reassign any `planned` queue entry to a different ch
 | `pages/api/industry/plans/[id]/preview.ts` | POST proxy → preview |
 | `pages/api/industry/character-slots.ts` | GET proxy → character slots |
 | `pages/api/industry/queue/[id]/character.ts` | PUT proxy → reassign character |
+
+---
+
+# Phase 4: Blueprint Auto-Detection
+
+## Overview
+
+Blueprint auto-detection syncs character and corporation blueprints from ESI and auto-populates ME/TE levels in production plan steps and job queue entries. Instead of manually entering ME 10 / TE 20 for every step, the system detects actual blueprint ME/TE values from the user's inventory and auto-fills them.
+
+## How It Works
+
+### Data Flow
+
+```
+ESI API                         Background Runner (1h)           Database
+────────                        ─────────────────────           ────────
+/characters/{id}/blueprints/ →  CharacterBlueprintsRunner  →   character_blueprints
+/corporations/{id}/blueprints/
+                                                                    ↓
+Frontend                        Backend Controller              character_blueprints
+────────                        ──────────────────              ────────────────────
+Edit step / Add job          →  POST /v1/industry/             → SELECT best ME/TE
+                                     blueprint-levels              per type_id
+```
+
+### Background Sync
+
+| Runner | Interval | Default | Env Var | Description |
+|--------|----------|---------|---------|-------------|
+| Character Blueprints | 1h | 3600s | `BLUEPRINTS_UPDATE_INTERVAL_SEC` | Sync blueprints from ESI (character + corporation) |
+
+The updater loops through all users → all characters (checking `esi-characters.read_blueprints.v1` scope) → all corporations (checking `esi-corporations.read_blueprints.v1` scope). For each owner, it performs a full replace (DELETE + INSERT) to handle consumed BPCs correctly.
+
+### Blueprint Level Lookup
+
+When the frontend needs ME/TE for a set of blueprint type IDs, it calls `POST /v1/industry/blueprint-levels` with `{ "type_ids": [123, 456] }`. The backend returns the "best" blueprint per type using this priority:
+1. **BPCs first** (quantity = -2) — these are what you actually produce with
+2. **BPOs last** (quantity = -1) — these are typically kept for copying
+3. Within each category: highest `material_efficiency`, then highest `time_efficiency`
+
+### Frontend Integration
+
+**AddJob form:** On blueprint selection, auto-fills ME/TE fields with detected values. Shows a "Detected: ME X / TE Y from OwnerName" chip. If user overrides, shows an "Overridden" indicator.
+
+**Production Plan Editor:**
+- On plan load, fetches blueprint levels for all step blueprint types in one call
+- Step tree shows a three-state detection indicator for every step (parent and child):
+  - **Green CheckCircleOutlineIcon** — blueprint detected and ME/TE matches current step values
+  - **Blue InfoIcon** — blueprint detected but ME/TE differs from step values; tooltip shows detected values (manufacturing only — reactions always show green since they have no ME/TE research)
+  - **Amber WarningAmberIcon** — no blueprint detected for this type (manual ME/TE values)
+- Edit step dialog shows "Blueprint detected" chip with "Apply" button (manufacturing only; reactions show simplified chip without ME/TE or Apply)
+- New steps (material toggle to "produce") auto-fill with detected ME/TE
+
+**Material row detection (expanded step view):**
+- When a step is expanded to show its materials, materials that have a `blueprintTypeId` (i.e. they are producible) also display a detection indicator:
+  - **Green chip "ME X / TE Y"** — blueprint detected for that material's blueprint type
+  - **Amber WarningAmberIcon** — no blueprint detected for that material's blueprint type
+- This works for both top-level (parent) step materials and nested (child) step materials
+
+**Batch Configure:**
+- "Apply Blueprint ME/TE" button per group applies detected values via batch update
+- Shows snackbar confirmation on success
+
+## Key Decisions
+
+- **Full replace per owner** — DELETE + INSERT in transaction instead of upsert; correctly handles consumed BPCs and blueprint transfers
+- **BPC > BPO preference** — BPCs are preferred since they represent what you'll actually use for production; BPOs are typically kept for copying
+- **Characters + Corporations** — both scopes already existed in OAuth config; corp hangars often hold researched BPOs
+- **Single batch lookup endpoint** — `POST /v1/industry/blueprint-levels` accepts multiple type_ids to minimize round-trips
+- **Frontend-driven auto-fill** — backend provides lookup; frontend decides when to apply (on step create, on edit, on batch apply)
+
+## Database Schema
+
+### character_blueprints
+
+| Column | Type | Description |
+|--------|------|-------------|
+| item_id | BIGINT PK | ESI item ID (globally unique) |
+| user_id | BIGINT NOT NULL | Owning user |
+| owner_id | BIGINT NOT NULL | Character or corporation ID |
+| owner_type | TEXT NOT NULL | `'character'` or `'corporation'` |
+| type_id | BIGINT NOT NULL | Blueprint type ID |
+| location_id | BIGINT NOT NULL | Where blueprint is stored |
+| location_flag | TEXT NOT NULL DEFAULT '' | Asset location flag |
+| quantity | INT NOT NULL DEFAULT 0 | -1=BPO, -2=BPC |
+| material_efficiency | INT NOT NULL DEFAULT 0 | 0-10 |
+| time_efficiency | INT NOT NULL DEFAULT 0 | 0-20 |
+| runs | INT NOT NULL DEFAULT -1 | -1=unlimited (BPO), positive=remaining |
+| updated_at | TIMESTAMPTZ NOT NULL DEFAULT now() | |
+
+Indexes: `(user_id, type_id)`, `(owner_id, owner_type)`
+
+## API Endpoints
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/v1/industry/blueprint-levels` | User | Batch lookup best ME/TE per blueprint type ID |
+
+### Request
+```json
+{ "type_ids": [11568, 11569] }
+```
+
+### Response
+```json
+{
+  "11568": { "materialEfficiency": 10, "timeEfficiency": 20, "isCopy": true, "ownerName": "Alt Character", "runs": 50 },
+  "11569": null
+}
+```
+
+## File Structure
+
+### Backend
+
+| File | Purpose |
+|------|---------|
+| `internal/repositories/characterBlueprints.go` | Blueprint CRUD + level lookup |
+| `internal/repositories/characterBlueprints_test.go` | Repository tests |
+| `internal/updaters/characterBlueprints.go` | ESI sync (character + corporation) |
+| `internal/updaters/characterBlueprints_test.go` | Updater tests |
+| `internal/runners/characterBlueprints.go` | Background runner (1h) |
+| `internal/controllers/industry.go` | `GetBlueprintLevels` handler (addition) |
+| `internal/client/esiClient.go` | `GetCharacterBlueprints`, `GetCorporationBlueprints` (additions) |
+| `internal/models/models.go` | `CharacterBlueprint`, `BlueprintLevel` (additions) |
+
+### Frontend
+
+| File | Purpose |
+|------|---------|
+| `packages/components/industry/AddJob.tsx` | Auto-detect ME/TE on blueprint selection |
+| `packages/components/industry/ProductionPlanEditor.tsx` | Detected chip, auto-fill on step create |
+| `packages/components/industry/BatchConfigureTab.tsx` | "Apply Blueprint ME/TE" button |
+| `pages/api/industry/blueprint-levels.ts` | POST proxy → blueprint-levels |
+
+### Migrations
+
+| File | Purpose |
+|------|---------|
+| `20260225111931_create_character_blueprints.up.sql` | Create character_blueprints table |

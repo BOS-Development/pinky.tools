@@ -1281,6 +1281,132 @@ func (c *EsiClient) GetCorporationIndustryJobs(ctx context.Context, corporationI
 	}
 }
 
+// EsiBlueprint represents a blueprint from the ESI blueprints endpoints.
+type EsiBlueprint struct {
+	ItemID             int64  `json:"item_id"`
+	TypeID             int64  `json:"type_id"`
+	LocationID         int64  `json:"location_id"`
+	LocationFlag       string `json:"location_flag"`
+	Quantity           int    `json:"quantity"`
+	MaterialEfficiency int    `json:"material_efficiency"`
+	TimeEfficiency     int    `json:"time_efficiency"`
+	Runs               int    `json:"runs"`
+}
+
+// GetCharacterBlueprints fetches all blueprints for a character from ESI.
+func (c *EsiClient) GetCharacterBlueprints(ctx context.Context, characterID int64, token string) ([]*EsiBlueprint, error) {
+	blueprints := []*EsiBlueprint{}
+
+	page := 1
+	for {
+		parsedURL, err := url.Parse(fmt.Sprintf("%s/v3/characters/%d/blueprints/?page=%d", c.baseURL, characterID, page))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    parsedURL,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get character blueprints")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, fmt.Errorf("failed to get character blueprints, expected 200 got %d, %s", res.StatusCode, errText)
+		}
+
+		totalPagesStr := res.Header.Get("X-PAGES")
+		totalPages := 1
+		if totalPagesStr != "" {
+			totalPages, err = strconv.Atoi(totalPagesStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse x-pages")
+			}
+		}
+
+		respBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageBlueprints := []*EsiBlueprint{}
+		if err := json.Unmarshal(respBody, &pageBlueprints); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal character blueprints")
+		}
+
+		blueprints = append(blueprints, pageBlueprints...)
+
+		if totalPages == page {
+			return blueprints, nil
+		}
+
+		page++
+	}
+}
+
+// GetCorporationBlueprints fetches all blueprints for a corporation from ESI.
+func (c *EsiClient) GetCorporationBlueprints(ctx context.Context, corporationID int64, token string) ([]*EsiBlueprint, error) {
+	blueprints := []*EsiBlueprint{}
+
+	page := 1
+	for {
+		parsedURL, err := url.Parse(fmt.Sprintf("%s/v1/corporations/%d/blueprints/?page=%d", c.baseURL, corporationID, page))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    parsedURL,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get corporation blueprints")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, fmt.Errorf("failed to get corporation blueprints, expected 200 got %d, %s", res.StatusCode, errText)
+		}
+
+		totalPagesStr := res.Header.Get("X-PAGES")
+		totalPages := 1
+		if totalPagesStr != "" {
+			totalPages, err = strconv.Atoi(totalPagesStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse x-pages")
+			}
+		}
+
+		respBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageBlueprints := []*EsiBlueprint{}
+		if err := json.Unmarshal(respBody, &pageBlueprints); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal corporation blueprints")
+		}
+
+		blueprints = append(blueprints, pageBlueprints...)
+
+		if totalPages == page {
+			return blueprints, nil
+		}
+
+		page++
+	}
+}
+
 // RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
 // Returns the new access token, refresh token, and expiry. The caller is responsible
 // for persisting these back to the database.

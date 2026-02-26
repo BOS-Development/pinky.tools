@@ -24,6 +24,7 @@ type Settings struct {
 	PiUpdateIntervalSec              int
 	SkillsUpdateIntervalSec          int
 	IndustryJobsUpdateIntervalSec    int
+	BlueprintsUpdateIntervalSec      int
 }
 
 func GetSettings() (*Settings, error) {
@@ -100,6 +101,15 @@ func GetSettings() (*Settings, error) {
 		}
 	} else {
 		settings.IndustryJobsUpdateIntervalSec = 600 // 10 minutes
+	}
+
+	if s := os.Getenv("BLUEPRINTS_UPDATE_INTERVAL_SEC"); s != "" {
+		settings.BlueprintsUpdateIntervalSec, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "BLUEPRINTS_UPDATE_INTERVAL_SEC '%s' is not a number", s)
+		}
+	} else {
+		settings.BlueprintsUpdateIntervalSec = 3600 // 1 hour
 	}
 
 	return settings, nil

@@ -49,6 +49,10 @@ type IndustryCostIndicesRepository interface {
 	GetCostIndex(ctx context.Context, systemID int64, activity string) (*models.IndustryCostIndex, error)
 }
 
+type IndustryBlueprintsRepository interface {
+	GetBlueprintLevels(ctx context.Context, userID int64, typeIDs []int64) (map[int64]*models.BlueprintLevel, error)
+}
+
 type Industry struct {
 	jobsRepo        IndustryJobsRepository
 	queueRepo       IndustryJobQueueRepository
@@ -57,6 +61,7 @@ type Industry struct {
 	costIndicesRepo IndustryCostIndicesRepository
 	characterRepo   IndustryCharacterRepository
 	skillsRepo      IndustryCharacterSkillsRepository
+	blueprintsRepo  IndustryBlueprintsRepository
 }
 
 func NewIndustry(
@@ -68,6 +73,7 @@ func NewIndustry(
 	costIndicesRepo IndustryCostIndicesRepository,
 	characterRepo IndustryCharacterRepository,
 	skillsRepo IndustryCharacterSkillsRepository,
+	blueprintsRepo IndustryBlueprintsRepository,
 ) *Industry {
 	c := &Industry{
 		jobsRepo:        jobsRepo,
@@ -77,6 +83,7 @@ func NewIndustry(
 		costIndicesRepo: costIndicesRepo,
 		characterRepo:   characterRepo,
 		skillsRepo:      skillsRepo,
+		blueprintsRepo:  blueprintsRepo,
 	}
 
 	// User-scoped endpoints
@@ -88,6 +95,7 @@ func NewIndustry(
 	router.RegisterRestAPIRoute("/v1/industry/queue/{id}", web.AuthAccessUser, c.CancelQueueEntry, "DELETE")
 	router.RegisterRestAPIRoute("/v1/industry/queue/{id}/character", web.AuthAccessUser, c.ReassignQueueCharacter, "PUT")
 	router.RegisterRestAPIRoute("/v1/industry/character-slots", web.AuthAccessUser, c.GetCharacterSlots, "GET")
+	router.RegisterRestAPIRoute("/v1/industry/blueprint-levels", web.AuthAccessUser, c.GetBlueprintLevels, "POST")
 
 	// Backend-scoped endpoints (no user required)
 	router.RegisterRestAPIRoute("/v1/industry/calculate", web.AuthAccessBackend, c.Calculate, "POST")
@@ -465,6 +473,22 @@ func (c *Industry) calculateForBlueprint(
 
 	result := calculator.CalculateManufacturingJob(params, data)
 	return result, nil
+}
+
+func (c *Industry) GetBlueprintLevels(args *web.HandlerArgs) (any, *web.HttpError) {
+	var req struct {
+		TypeIDs []int64 `json:"type_ids"`
+	}
+	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
+	}
+
+	levels, err := c.blueprintsRepo.GetBlueprintLevels(args.Request.Context(), *args.User, req.TypeIDs)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get blueprint levels")}
+	}
+
+	return levels, nil
 }
 
 // characterSlotsResponse is the JSON response shape for GetCharacterSlots.

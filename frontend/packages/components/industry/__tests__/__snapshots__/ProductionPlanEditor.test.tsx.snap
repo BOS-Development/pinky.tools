@@ -255,10 +255,14 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
             >
-              ME 
-              10
-               / TE 
-              20
+              <div
+                class="MuiBox-root css-171onha"
+              >
+                ME 
+                10
+                 / TE 
+                20
+              </div>
             </td>
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
@@ -343,7 +347,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               </div>
             </td>
             <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-folp9t-MuiTableCell-root"
             />
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
@@ -416,7 +420,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               </div>
             </td>
             <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-folp9t-MuiTableCell-root"
             />
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
@@ -470,7 +474,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               </div>
             </td>
             <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-folp9t-MuiTableCell-root"
             />
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
@@ -730,10 +734,14 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
             >
-              ME 
-              10
-               / TE 
-              20
+              <div
+                class="MuiBox-root css-171onha"
+              >
+                ME 
+                10
+                 / TE 
+                20
+              </div>
             </td>
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
@@ -834,10 +842,14 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
             >
-              ME 
-              0
-               / TE 
-              0
+              <div
+                class="MuiBox-root css-171onha"
+              >
+                ME 
+                0
+                 / TE 
+                0
+              </div>
             </td>
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
@@ -934,7 +946,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               </div>
             </td>
             <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-folp9t-MuiTableCell-root"
             />
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
@@ -988,7 +1000,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               </div>
             </td>
             <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-folp9t-MuiTableCell-root"
             />
             <td
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"

@@ -78,6 +78,7 @@ var rootCmd = &cobra.Command{
 		piTaxConfigRepository := repositories.NewPiTaxConfig(db)
 		piLaunchpadLabelsRepository := repositories.NewPiLaunchpadLabels(db)
 		characterSkillsRepository := repositories.NewCharacterSkills(db)
+		characterBlueprintsRepository := repositories.NewCharacterBlueprints(db)
 		industryJobsRepository := repositories.NewIndustryJobs(db)
 		jobQueueRepository := repositories.NewJobQueue(db)
 		productionPlansRepository := repositories.NewProductionPlans(db)
@@ -124,6 +125,7 @@ var rootCmd = &cobra.Command{
 		autoFulfillUpdater := updaters.NewAutoFulfill(db, buyOrdersRepository, forSaleItemsRepository, purchaseTransactionsRepository, contactPermissionsRepository, usersRepository, purchaseNotifier)
 
 		characterSkillsUpdater := updaters.NewCharacterSkillsUpdater(usersRepository, charactersRepository, characterSkillsRepository, esiClient)
+		characterBlueprintsUpdater := updaters.NewCharacterBlueprintsUpdater(usersRepository, charactersRepository, playerCorporationRepostiory, characterBlueprintsRepository, esiClient)
 		industryJobsUpdater := updaters.NewIndustryJobsUpdater(usersRepository, charactersRepository, playerCorporationRepostiory, industryJobsRepository, jobQueueRepository, esiClient)
 
 		piUpdater := updaters.NewPiUpdater(usersRepository, charactersRepository, piPlanetsRepository, esiClient, systemRepository, sdeDataRepository)
@@ -162,7 +164,7 @@ var rootCmd = &cobra.Command{
 			controllers.NewDiscordNotifications(router, discordNotificationsRepository, discordClient, notificationsUpdater)
 		}
 		controllers.NewPi(router, piPlanetsRepository, piTaxConfigRepository, sdeDataRepository, charactersRepository, systemRepository, itemTypesRepository, marketPricesRepository, piLaunchpadLabelsRepository, stockpileMarkersRepository)
-		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, characterSkillsRepository)
+		controllers.NewIndustry(router, industryJobsRepository, jobQueueRepository, sdeDataRepository, marketPricesRepository, industryCostIndicesRepository, charactersRepository, characterSkillsRepository, characterBlueprintsRepository)
 		userStationsRepository := repositories.NewUserStations(db)
 		transportProfilesRepo := repositories.NewTransportProfiles(db)
 		jfRoutesRepo := repositories.NewJFRoutes(db)
@@ -228,6 +230,12 @@ var rootCmd = &cobra.Command{
 		industryJobsRunner := runners.NewIndustryJobsRunner(industryJobsUpdater, time.Duration(settings.IndustryJobsUpdateIntervalSec)*time.Second)
 		group.Go(func() error {
 			return industryJobsRunner.Run(ctx)
+		})
+
+		// Start character blueprints update scheduler (configurable, default 1h)
+		blueprintsRunner := runners.NewCharacterBlueprintsRunner(characterBlueprintsUpdater, time.Duration(settings.BlueprintsUpdateIntervalSec)*time.Second)
+		group.Go(func() error {
+			return blueprintsRunner.Run(ctx)
 		})
 
 		log.Info("services started")

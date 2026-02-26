@@ -583,4 +583,251 @@ describe('BatchConfigureTab Component', () => {
       screen.getByText(/Expand a group to toggle materials between buy and produce/),
     ).toBeInTheDocument();
   });
+
+  describe('Blueprint auto-detection', () => {
+    const mockDetectedLevels = {
+      787: {
+        materialEfficiency: 8,
+        timeEfficiency: 16,
+        isCopy: false,
+        ownerName: 'Test Character',
+        runs: -1,
+      },
+    };
+
+    it('should show Apply Blueprint ME/TE button for each group row', () => {
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      // AutoFixHighIcon should be present in the actions column for groups
+      const autoFixIcons = screen.getAllByTestId('AutoFixHighIcon');
+      expect(autoFixIcons.length).toBe(3); // 3 groups
+    });
+
+    it('should enable Apply button for group with detected levels', () => {
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      // The Rifter group has blueprint 787 with a detected level
+      // The button for that group should be enabled (not disabled)
+      const autoFixButtons = screen.getAllByTestId('AutoFixHighIcon')
+        .map((icon) => icon.closest('button')!);
+
+      // Groups are sorted alphabetically: Chromium (bp 16635), Nitrogen Fuel Block (bp 4248), Rifter (bp 787)
+      // Only Rifter (index 2) has a detected level
+      expect(autoFixButtons[2]).not.toBeDisabled();
+    });
+
+    it('should disable Apply button for group with no detected levels', () => {
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      const autoFixButtons = screen.getAllByTestId('AutoFixHighIcon')
+        .map((icon) => icon.closest('button')!);
+
+      // Chromium (index 0) has blueprint 16635 - no detected level
+      expect(autoFixButtons[0]).toBeDisabled();
+    });
+
+    it('should call batch update API when Apply Blueprint ME/TE is clicked', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      // Click Apply for Rifter group (index 2, blueprint 787 has detected level)
+      const autoFixButtons = screen.getAllByTestId('AutoFixHighIcon')
+        .map((icon) => icon.closest('button')!);
+
+      await act(async () => {
+        fireEvent.click(autoFixButtons[2]);
+      });
+
+      await waitFor(() => {
+        const batchCall = (global.fetch as jest.Mock).mock.calls.find(
+          ([url]: [string]) => url === '/api/industry/plans/1/steps/batch',
+        );
+        expect(batchCall).toBeDefined();
+        const body = JSON.parse(batchCall[1].body);
+        expect(body.me_level).toBe(8);
+        expect(body.te_level).toBe(16);
+      });
+    });
+
+    it('should show success snackbar after applying detected ME/TE', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      const autoFixButtons = screen.getAllByTestId('AutoFixHighIcon')
+        .map((icon) => icon.closest('button')!);
+
+      await act(async () => {
+        fireEvent.click(autoFixButtons[2]);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Applied detected ME\/TE to/)).toBeInTheDocument();
+      });
+    });
+
+    it('should call onUpdate after successfully applying detected ME/TE', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({}),
+      });
+
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      const autoFixButtons = screen.getAllByTestId('AutoFixHighIcon')
+        .map((icon) => icon.closest('button')!);
+
+      await act(async () => {
+        fireEvent.click(autoFixButtons[2]);
+      });
+
+      await waitFor(() => {
+        expect(mockOnUpdate).toHaveBeenCalled();
+      });
+    });
+
+    it('should show Detected chip in batch edit dialog when detectedLevel is provided', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      // Open edit dialog for Rifter group (index 2, has detected level for bp 787)
+      const editButtons = screen.getAllByTestId('EditIcon');
+      // Groups alphabetically: Chromium, Nitrogen Fuel Block, Rifter — editButtons index 2 = Rifter
+      await act(async () => {
+        fireEvent.click(editButtons[2].closest('button')!);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Blueprint detected:/)).toBeInTheDocument();
+        expect(screen.getByText(/ME 8 \/ TE 16/)).toBeInTheDocument();
+      });
+    });
+
+    it('should apply detected values when Apply clicked in batch edit dialog', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      // Open edit for Rifter group (blueprint 787, detected ME 8/TE 16)
+      const editButtons = screen.getAllByTestId('EditIcon');
+      await act(async () => {
+        fireEvent.click(editButtons[2].closest('button')!);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Apply')).toBeInTheDocument();
+      });
+
+      // ME field should be 10 (group default)
+      const meInput = screen.getByLabelText('ME Level') as HTMLInputElement;
+      expect(meInput.value).toBe('10');
+
+      // Click Apply
+      await act(async () => {
+        fireEvent.click(screen.getByText('Apply'));
+      });
+
+      // ME should be updated to detected value 8
+      expect(meInput.value).toBe('8');
+    });
+
+    it('should not show Apply button in batch edit dialog when no detected level', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => [],
+      });
+
+      render(
+        <BatchConfigureTab
+          plan={mockPlan}
+          planId={1}
+          onUpdate={mockOnUpdate}
+          detectedLevels={mockDetectedLevels}
+        />,
+      );
+
+      // Open edit for Chromium (index 0, no detected level for bp 16635)
+      const editButtons = screen.getAllByTestId('EditIcon');
+      await act(async () => {
+        fireEvent.click(editButtons[0].closest('button')!);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/Batch Edit:/)).toBeInTheDocument();
+      });
+
+      // No detected chip for Chromium
+      expect(screen.queryByText(/Blueprint detected:/)).not.toBeInTheDocument();
+    });
+  });
 });

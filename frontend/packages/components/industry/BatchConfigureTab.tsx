@@ -5,6 +5,7 @@ import {
   PlanMaterial,
   UserStation,
   HangarsResponse,
+  BlueprintLevel,
 } from "@industry-tool/client/data/models";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -38,11 +39,13 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import BuildIcon from "@mui/icons-material/Build";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
 
 type Props = {
   plan: ProductionPlan;
   planId: number;
   onUpdate: () => void;
+  detectedLevels?: Record<number, BlueprintLevel>;
 };
 
 type StepGroup = {
@@ -121,7 +124,7 @@ type GroupMaterial = PlanMaterial & {
   produceStatus: MaterialStatus;
 };
 
-export default function BatchConfigureTab({ plan, planId, onUpdate }: Props) {
+export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLevels = {} }: Props) {
   const [editGroup, setEditGroup] = useState<StepGroup | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [groupMaterials, setGroupMaterials] = useState<Record<string, GroupMaterial[]>>({});
@@ -133,6 +136,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate }: Props) {
     message: string;
     severity: "success" | "error";
   }>({ open: false, message: "", severity: "success" });
+  const [applyingBlueprintGroup, setApplyingBlueprintGroup] = useState<string | null>(null);
 
   const steps = plan.steps || [];
   const groups = groupSteps(steps);
@@ -355,6 +359,66 @@ export default function BatchConfigureTab({ plan, planId, onUpdate }: Props) {
       setSnackbar({ open: true, message: "Failed to set all to buy", severity: "error" });
     } finally {
       setTogglingAllGroup(null);
+    }
+  };
+
+  const handleApplyBlueprintLevels = async (group: StepGroup) => {
+    const key = groupKey(group);
+    setApplyingBlueprintGroup(key);
+    try {
+      // Collect unique blueprint type IDs for this group's steps
+      const blueprintTypeIds = [...new Set(group.steps.map((s) => s.blueprintTypeId))];
+
+      // Find which ones have detected levels
+      let updatedCount = 0;
+      for (const blueprintTypeId of blueprintTypeIds) {
+        const detected = detectedLevels[blueprintTypeId];
+        if (!detected) continue;
+
+        // Find steps with this blueprint type id
+        const matchingStepIds = group.steps
+          .filter((s) => s.blueprintTypeId === blueprintTypeId)
+          .map((s) => s.id);
+
+        if (matchingStepIds.length === 0) continue;
+
+        const res = await fetch(`/api/industry/plans/${planId}/steps/batch`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            step_ids: matchingStepIds,
+            me_level: detected.materialEfficiency,
+            te_level: detected.timeEfficiency,
+          }),
+        });
+        if (res.ok) {
+          updatedCount += matchingStepIds.length;
+        }
+      }
+
+      if (updatedCount > 0) {
+        onUpdate();
+        setSnackbar({
+          open: true,
+          message: `Applied detected ME/TE to ${updatedCount} step(s)`,
+          severity: "success",
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: "No detected blueprint levels found for this group",
+          severity: "error",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to apply blueprint levels:", err);
+      setSnackbar({
+        open: true,
+        message: "Failed to apply blueprint levels",
+        severity: "error",
+      });
+    } finally {
+      setApplyingBlueprintGroup(null);
     }
   };
 
@@ -634,13 +698,32 @@ export default function BatchConfigureTab({ plan, planId, onUpdate }: Props) {
                     ) : null}
                   </TableCell>
                   <TableCell align="center">
-                    <IconButton
-                      size="small"
-                      onClick={() => setEditGroup(group)}
-                      sx={{ color: "#3b82f6" }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
+                    <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
+                      {(() => {
+                        const hasDetected = group.steps.some((s) => !!detectedLevels[s.blueprintTypeId]);
+                        return (
+                          <Tooltip title="Apply detected ME/TE from blueprints">
+                            <span>
+                              <IconButton
+                                size="small"
+                                onClick={() => handleApplyBlueprintLevels(group)}
+                                disabled={!hasDetected || applyingBlueprintGroup === groupKey(group)}
+                                sx={{ color: hasDetected ? "#10b981" : "#334155" }}
+                              >
+                                <AutoFixHighIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                        );
+                      })()}
+                      <IconButton
+                        size="small"
+                        onClick={() => setEditGroup(group)}
+                        sx={{ color: "#3b82f6" }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
                   </TableCell>
                 </TableRow>,
                 // Material rows when expanded
@@ -779,6 +862,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate }: Props) {
           open={!!editGroup}
           onClose={() => setEditGroup(null)}
           onSave={(updates) => handleSave(editGroup, updates)}
+          detectedLevel={detectedLevels[editGroup.steps[0]?.blueprintTypeId] ?? null}
         />
       )}
 
@@ -818,11 +902,13 @@ function BatchEditStepDialog({
   open,
   onClose,
   onSave,
+  detectedLevel,
 }: {
   group: StepGroup;
   open: boolean;
   onClose: () => void;
   onSave: (updates: Record<string, unknown>) => void;
+  detectedLevel?: BlueprintLevel | null;
 }) {
   const firstStep = group.steps[0];
 
@@ -1195,6 +1281,30 @@ function BatchEditStepDialog({
               disabled={hasStation}
             />
           </Box>
+
+          {/* Detected Blueprint Info */}
+          {detectedLevel && (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+              <Chip
+                label={`Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`}
+                size="small"
+                color="info"
+                variant="outlined"
+                sx={{ fontSize: 11 }}
+              />
+              <Button
+                size="small"
+                variant="outlined"
+                sx={{ fontSize: 11, py: 0.25, px: 1, color: "#3b82f6", borderColor: "#3b82f6", minWidth: 0 }}
+                onClick={() => {
+                  setMeLevel(detectedLevel.materialEfficiency);
+                  setTeLevel(detectedLevel.timeEfficiency);
+                }}
+              >
+                Apply
+              </Button>
+            </Box>
+          )}
 
           {/* Input Location Section */}
           {hasStation && (

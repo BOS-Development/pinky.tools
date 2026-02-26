@@ -479,6 +479,14 @@ export type BlueprintSearchResult = {
   Activity: string;
 };
 
+export type BlueprintLevel = {
+  materialEfficiency: number;
+  timeEfficiency: number;
+  isCopy: boolean;
+  ownerName: string;
+  runs: number;
+};
+
 // Production Plans
 
 export type ProductionPlan = {

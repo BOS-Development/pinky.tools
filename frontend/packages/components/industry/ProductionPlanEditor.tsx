@@ -7,6 +7,7 @@ import {
   PlanPreviewResult,
   UserStation,
   HangarsResponse,
+  BlueprintLevel,
 } from "@industry-tool/client/data/models";
 import { formatISK } from "@industry-tool/utils/formatting";
 import Box from "@mui/material/Box";
@@ -46,6 +47,9 @@ import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import CheckIcon from "@mui/icons-material/Check";
 import CloseIcon from "@mui/icons-material/Close";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import InfoIcon from "@mui/icons-material/Info";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
 import Tooltip from "@mui/material/Tooltip";
 import Radio from "@mui/material/Radio";
@@ -90,8 +94,33 @@ export default function ProductionPlanEditor({ planId }: Props) {
   const [nameValue, setNameValue] = useState("");
   const [tab, setTab] = useState(0);
   const [transportProfiles, setTransportProfiles] = useState<{ id: number; name: string; transportMethod: string }[]>([]);
+  const [detectedLevels, setDetectedLevels] = useState<Record<number, BlueprintLevel>>({});
 
   const initialLoadRef = useRef(true);
+
+  const fetchBlueprintLevels = useCallback(async (steps: ProductionPlanStep[]) => {
+    const typeIds = [...new Set(steps.map((s) => s.blueprintTypeId))];
+    if (typeIds.length === 0) return;
+    try {
+      const res = await fetch("/api/industry/blueprint-levels", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type_ids: typeIds }),
+      });
+      if (res.ok) {
+        const data: Record<string, BlueprintLevel | null> = await res.json();
+        const levels: Record<number, BlueprintLevel> = {};
+        for (const [key, val] of Object.entries(data)) {
+          if (val !== null) {
+            levels[parseInt(key)] = val;
+          }
+        }
+        setDetectedLevels((prev) => ({ ...prev, ...levels }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch blueprint levels:", err);
+    }
+  }, []);
 
   const fetchPlan = useCallback(async () => {
     if (initialLoadRef.current) {
@@ -102,6 +131,10 @@ export default function ProductionPlanEditor({ planId }: Props) {
       if (res.ok) {
         const data = await res.json();
         setPlan(data);
+        // Fetch blueprint levels for all steps
+        if (data.steps?.length > 0) {
+          fetchBlueprintLevels(data.steps);
+        }
         // Only auto-expand root step on initial load
         if (initialLoadRef.current && data.steps?.length > 0) {
           initialLoadRef.current = false;
@@ -119,7 +152,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [planId]);
+  }, [planId, fetchBlueprintLevels]);
 
   useEffect(() => {
     fetchPlan();
@@ -147,8 +180,17 @@ export default function ProductionPlanEditor({ planId }: Props) {
         `/api/industry/plans/${planId}/steps/${stepId}/materials`,
       );
       if (res.ok) {
-        const data = await res.json();
-        setStepMaterials((prev) => ({ ...prev, [stepId]: data || [] }));
+        const data: PlanMaterial[] = await res.json() || [];
+        setStepMaterials((prev) => ({ ...prev, [stepId]: data }));
+        // Fetch blueprint levels for materials that have a blueprint
+        const materialBlueprintTypeIds = data
+          .filter((m) => m.hasBlueprint && m.blueprintTypeId != null)
+          .map((m) => m.blueprintTypeId as number);
+        if (materialBlueprintTypeIds.length > 0) {
+          fetchBlueprintLevels(
+            materialBlueprintTypeIds.map((id) => ({ blueprintTypeId: id } as ProductionPlanStep)),
+          );
+        }
       }
     } catch (err) {
       console.error("Failed to fetch materials:", err);
@@ -203,13 +245,22 @@ export default function ProductionPlanEditor({ planId }: Props) {
     } else {
       // Create a new step for this material
       try {
+        const body: Record<string, unknown> = {
+          parent_step_id: parentStepId,
+          product_type_id: material.typeId,
+        };
+        // If blueprint has a detected level, pass it to the create step request
+        if (material.blueprintTypeId) {
+          const detected = detectedLevels[material.blueprintTypeId];
+          if (detected) {
+            body.me_level = detected.materialEfficiency;
+            body.te_level = detected.timeEfficiency;
+          }
+        }
         const res = await fetch(`/api/industry/plans/${planId}/steps`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            parent_step_id: parentStepId,
-            product_type_id: material.typeId,
-          }),
+          body: JSON.stringify(body),
         });
         if (res.ok) {
           const newStep = await res.json();
@@ -219,6 +270,10 @@ export default function ProductionPlanEditor({ planId }: Props) {
           if (newStep?.id) {
             setExpandedSteps((prev) => new Set([...prev, newStep.id]));
             fetchMaterials(newStep.id);
+            // Fetch blueprint levels for the new step if not already detected
+            if (material.blueprintTypeId && !detectedLevels[material.blueprintTypeId]) {
+              fetchBlueprintLevels([{ blueprintTypeId: material.blueprintTypeId } as ProductionPlanStep]);
+            }
           }
         }
       } catch (err) {
@@ -458,7 +513,26 @@ export default function ProductionPlanEditor({ planId }: Props) {
           </Box>
         </TableCell>
         <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
-          ME {step.meLevel} / TE {step.teLevel}
+          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            ME {step.meLevel} / TE {step.teLevel}
+            {detectedLevels[step.blueprintTypeId] ? (
+              (step.activity !== "reaction" &&
+               (detectedLevels[step.blueprintTypeId].materialEfficiency !== step.meLevel ||
+                detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
+                <Tooltip title={`Detected: ME ${detectedLevels[step.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[step.blueprintTypeId].timeEfficiency} from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
+                  <InfoIcon sx={{ fontSize: 14, color: "#3b82f6" }} />
+                </Tooltip>
+              ) : (
+                <Tooltip title={`Blueprint detected from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
+                  <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#10b981" }} />
+                </Tooltip>
+              )
+            ) : Object.keys(detectedLevels).length > 0 && (
+              <Tooltip title="No blueprint detected — ME/TE values are manual">
+                <WarningAmberIcon sx={{ fontSize: 14, color: "#f59e0b" }} />
+              </Tooltip>
+            )}
+          </Box>
         </TableCell>
         <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
           {step.structure} / {step.rig} / {step.security}
@@ -618,7 +692,23 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     )}
                   </Box>
                 </TableCell>
-                <TableCell />
+                <TableCell sx={{ color: "#64748b", fontSize: 12 }}>
+                  {mat.hasBlueprint && mat.blueprintTypeId && (
+                    detectedLevels[mat.blueprintTypeId] ? (
+                      <Tooltip title={`Blueprint detected: ME ${detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[mat.blueprintTypeId].timeEfficiency} from ${detectedLevels[mat.blueprintTypeId].ownerName}`}>
+                        <Chip
+                          label={`ME ${detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[mat.blueprintTypeId].timeEfficiency}`}
+                          size="small"
+                          sx={{ height: 18, fontSize: 10, backgroundColor: "#1a3a2a", color: "#10b981" }}
+                        />
+                      </Tooltip>
+                    ) : Object.keys(detectedLevels).length > 0 ? (
+                      <Tooltip title="No blueprint detected">
+                        <WarningAmberIcon sx={{ fontSize: 14, color: "#f59e0b" }} />
+                      </Tooltip>
+                    ) : null
+                  )}
+                </TableCell>
                 <TableCell />
                 <TableCell />
                 <TableCell align="center">
@@ -789,7 +879,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
       )}
 
       {tab === 1 && (
-        <BatchConfigureTab plan={plan} planId={planId} onUpdate={fetchPlan} />
+        <BatchConfigureTab plan={plan} planId={planId} onUpdate={fetchPlan} detectedLevels={detectedLevels} />
       )}
 
       {tab === 2 && (
@@ -809,6 +899,12 @@ export default function ProductionPlanEditor({ planId }: Props) {
           open={!!editStepId}
           onClose={() => setEditStepId(null)}
           onSave={(updates) => handleUpdateStep(editStepId, updates)}
+          detectedLevel={
+            (() => {
+              const s = plan.steps?.find((st) => st.id === editStepId);
+              return s ? (detectedLevels[s.blueprintTypeId] ?? null) : null;
+            })()
+          }
         />
       )}
 
@@ -1120,11 +1216,13 @@ function EditStepDialog({
   open,
   onClose,
   onSave,
+  detectedLevel,
 }: {
   step: ProductionPlanStep | null;
   open: boolean;
   onClose: () => void;
   onSave: (updates: Partial<ProductionPlanStep>) => void;
+  detectedLevel?: BlueprintLevel | null;
 }) {
   const [meLevel, setMeLevel] = useState(step?.meLevel || 10);
   const [teLevel, setTeLevel] = useState(step?.teLevel || 20);
@@ -1555,6 +1653,45 @@ function EditStepDialog({
               disabled={hasStation}
             />
           </Box>
+
+          {/* Detected Blueprint Info */}
+          {detectedLevel ? (
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+              <Chip
+                label={
+                  step?.activity === "reaction"
+                    ? `Blueprint detected from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`
+                    : `Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`
+                }
+                size="small"
+                color="info"
+                variant="outlined"
+                sx={{ fontSize: 11 }}
+              />
+              {step?.activity !== "reaction" && (
+                <Button
+                  size="small"
+                  variant="outlined"
+                  sx={{ fontSize: 11, py: 0.25, px: 1, color: "#3b82f6", borderColor: "#3b82f6", minWidth: 0 }}
+                  onClick={() => {
+                    setMeLevel(detectedLevel.materialEfficiency);
+                    setTeLevel(detectedLevel.timeEfficiency);
+                  }}
+                >
+                  Apply
+                </Button>
+              )}
+            </Box>
+          ) : (
+            <Chip
+              icon={<WarningAmberIcon />}
+              label="No blueprint detected — using manual values"
+              size="small"
+              color="warning"
+              variant="outlined"
+              sx={{ fontSize: 11 }}
+            />
+          )}
 
           {/* Input Location Section */}
           {hasStation && (
