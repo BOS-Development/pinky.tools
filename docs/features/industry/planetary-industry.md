@@ -40,9 +40,12 @@ Unified dashboard for managing multi-character PI chains in EVE Online. Tracks p
 
 ### Phase 4 — Discord Stall Alerts
 - [x] `pi_stall` notification event type
-- [x] `NotifyPiStall` in notifications updater with Discord embed (red alert, character/planet/issue fields)
-- [x] Stall detection in PI updater with state transition tracking (`last_stall_notified_at` dedup)
+- [x] `NotifyPiStall` in notifications updater with Discord embed (red alert, character/planet/issue fields, clickable PI link)
+- [x] Input depletion projection in PI updater (sum stock, sum consumption, calculate depletion_time)
+- [x] Extractor expiry detection (timestamp-based)
+- [x] Stall state tracking with transition-based alerts (`last_stall_notified_at` dedup)
 - [x] `pi_stall` added to Discord settings frontend EVENT_TYPES
+- [x] Environment variable `FRONTEND_URL` for clickable embed links
 
 ### Phase 5 — Supply Chain Analysis
 - [x] Cross-character input/output aggregation (extractor outputs, factory inputs/outputs)
@@ -60,7 +63,8 @@ Unified dashboard for managing multi-character PI chains in EVE Online. Tracks p
 3. **Pin category stored at write time** — Classified during ESI fetch, avoids SDE join on every read
 4. **Scope check per character** — Skip PI fetch for characters without `esi-planets.manage_planets.v1` in `esi_scopes`
 5. **Global + per-planet tax** — Two-level hierarchy matching real POCO variation
-6. **Stall dedup via `last_stall_notified_at`** — Only alert on state transition (running → stalled), not repeatedly
+6. **Input depletion projection over stall detection** — ESI data only updates when player views the colony, making factory idle checks unreliable. Instead, we project when inputs will run out by summing stock across storage/launchpad and consumption across factories. Alert when `now >= earliest_depletion_time` across all consumed input types.
+7. **Stall dedup via `last_stall_notified_at`** — Only alert on state transition (running → stalled), not repeatedly
 
 ---
 
@@ -181,20 +185,29 @@ Computed at read time in the controller (not stored):
 | Condition | Logic | Status |
 |-----------|-------|--------|
 | Extractor expired | `expiry_time < now()` | `"expired"` |
-| Factory idle | `last_cycle_start + (cycle_time × 2) < now()` | `"stalled"` |
+| Factory input depleted | Projected depletion time reached (see Discord Stall Alerts below) | `"stalled"` |
 | Data stale | `planet.last_update` older than 48 hours | `"stale_data"` |
 
 Planet-level status is the worst of its pin statuses.
 
 ### Discord Stall Alerts (Phase 4)
 
-After each PI data refresh, the updater runs stall detection using the same logic as the controller. Notifications are deduped using `pi_planets.last_stall_notified_at`:
+After each PI data refresh, the updater detects two types of production stalls:
 
-- **Running → Stalled**: Send `pi_stall` Discord notification, set `last_stall_notified_at = now()`
-- **Stalled → Stalled**: No notification (already notified)
-- **Stalled → Running**: Clear `last_stall_notified_at` (ready for future alerts)
+**Extractor Expiry** (timestamp-based, always accurate):
+- Extractors past their `expiry_time` are reported as expired
+- Send immediately, no dedup needed (expiry is permanent)
 
-The Discord embed includes character name, planet type, solar system, and a summary of stalled pins (e.g., "2 extractors expired, 1 factory stalled").
+**Factory Input Depletion** (projection-based, immune to data staleness):
+1. Sum stock per input type across all storage/launchpad pin contents on the planet
+2. Sum consumption per hour per input type across all factories (from `sde_planet_schematics`)
+3. Calculate `depletion_time = planet.last_update + (stock / consumption_per_hour)` for each input type
+4. Alert when `now >= earliest_depletion_time` across all consumed input types
+5. Dedup using `pi_planets.last_stall_notified_at` — only alert on state transition (running → stalled), not repeatedly
+
+The Discord embed includes:
+- Character name, planet type, solar system, and a clickable link to the PI page (via `FRONTEND_URL`)
+- Issue summary: "Inputs depleted since [timestamp] ([type])" or "Extractors expired: [types]"
 
 ---
 
@@ -274,9 +287,9 @@ Each row expands to show which planets produce and consume the item, with charac
 | `internal/repositories/piPlanets.go` | CRUD for pi_planets, pi_pins, pi_pin_contents, pi_routes |
 | `internal/repositories/piTaxConfig.go` | CRUD for pi_tax_config |
 | `internal/repositories/piLaunchpadLabels.go` | CRUD for pi_launchpad_labels |
-| `internal/updaters/pi.go` | Fetch ESI data, classify pins, upsert, stall detection + notification |
+| `internal/updaters/pi.go` | Fetch ESI data, classify pins, upsert, input depletion projection + notification |
 | `internal/runners/pi.go` | Dedicated background runner |
-| `internal/controllers/pi.go` | HTTP handlers with stall detection + production rates + profit + launchpad detail |
+| `internal/controllers/pi.go` | HTTP handlers with extractor expiry + depletion detection + production rates + profit + launchpad detail |
 
 ### Frontend
 
@@ -304,10 +317,10 @@ Each row expands to show which planets produce and consume the item, with charac
 | `internal/repositories/character.go` | GetNames method |
 | `internal/repositories/solarSystems.go` | GetNames method |
 | `internal/repositories/sdeData.go` | GetAllSchematics, GetAllSchematicTypes |
-| `cmd/industry-tool/cmd/root.go` | Wire PI components (updater, runner, controller, stall notifier) |
+| `cmd/industry-tool/cmd/root.go` | Wire PI components (updater, runner, controller, depletion notifier) |
 | `cmd/industry-tool/cmd/settings.go` | PiUpdateIntervalSec setting |
 | `internal/repositories/marketPrices.go` | GetAllJitaPrices (used by profit endpoint) |
-| `internal/updaters/notifications.go` | `PiStallNotifier` interface, `NotifyPiStall`, `buildPiStallEmbed` |
+| `internal/updaters/notifications.go` | `PiStallNotifier` interface, `NotifyPiStall(ctx, planets, frontendURL)`, `buildPiStallEmbed` |
 | `frontend/packages/components/settings/DiscordSettings.tsx` | Added `pi_stall` event type |
 
 ---
@@ -317,3 +330,4 @@ Each row expands to show which planets produce and consume the item, with charac
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PI_UPDATE_INTERVAL_SEC` | `3600` | How often to refresh PI data from ESI |
+| `FRONTEND_URL` | *(empty)* | Frontend base URL for clickable Discord embed links (e.g., `https://app.example.com/`). When empty, embed title is not clickable. |

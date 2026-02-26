@@ -18,6 +18,7 @@ type PiPlanetsRepository interface {
 	UpsertColony(ctx context.Context, characterID, planetID int64, pins []*models.PiPin, contents []*models.PiPinContent, routes []*models.PiRoute) error
 	GetPlanetsForUser(ctx context.Context, userID int64) ([]*models.PiPlanet, error)
 	GetPinsForPlanets(ctx context.Context, userID int64) ([]*models.PiPin, error)
+	GetPinContentsForUser(ctx context.Context, userID int64) ([]*models.PiPinContent, error)
 	UpdateStallNotifiedAt(ctx context.Context, characterID, planetID int64, notifiedAt *time.Time) error
 }
 
@@ -42,6 +43,11 @@ type PiSolarSystemRepository interface {
 
 type PiSchematicRepository interface {
 	GetAllSchematics(ctx context.Context) ([]*models.SdePlanetSchematic, error)
+	GetAllSchematicTypes(ctx context.Context) ([]*models.SdePlanetSchematicType, error)
+}
+
+type PiItemTypeRepository interface {
+	GetNames(ctx context.Context, ids []int64) (map[int64]string, error)
 }
 
 type PiUpdater struct {
@@ -51,6 +57,7 @@ type PiUpdater struct {
 	esiClient     PiEsiClient
 	systemRepo    PiSolarSystemRepository
 	schematicRepo PiSchematicRepository
+	itemTypeRepo  PiItemTypeRepository
 	notifier      PiStallNotifier
 }
 
@@ -61,6 +68,7 @@ func NewPiUpdater(
 	esiClient PiEsiClient,
 	systemRepo PiSolarSystemRepository,
 	schematicRepo PiSchematicRepository,
+	itemTypeRepo PiItemTypeRepository,
 ) *PiUpdater {
 	return &PiUpdater{
 		userRepo:      userRepo,
@@ -69,6 +77,7 @@ func NewPiUpdater(
 		esiClient:     esiClient,
 		systemRepo:    systemRepo,
 		schematicRepo: schematicRepo,
+		itemTypeRepo:  itemTypeRepo,
 	}
 }
 
@@ -312,14 +321,12 @@ func convertColonyRoutes(characterID, planetID int64, colony *client.EsiPiColony
 	return routes
 }
 
-// Stall detection thresholds (same as controller)
-const (
-	piStaleDataThreshold  = 48 * time.Hour
-	piFactoryIdleMultiple = 2
-)
-
 // checkStalls detects newly stalled planets and sends notifications.
 // Only notifies on state transitions (running → stalled), not repeatedly.
+// Stall detection uses two signals:
+//  1. Extractor expiry: pin.ExpiryTime is in the past.
+//  2. Factory input depletion: projected from pin contents + schematic consumption rates
+//     relative to planet.LastUpdate (when ESI data was captured).
 func (u *PiUpdater) checkStalls(ctx context.Context, userID int64, charNames map[int64]string) {
 	planets, err := u.piRepo.GetPlanetsForUser(ctx, userID)
 	if err != nil {
@@ -337,14 +344,33 @@ func (u *PiUpdater) checkStalls(ctx context.Context, userID int64, charNames map
 		return
 	}
 
+	pinContents, err := u.piRepo.GetPinContentsForUser(ctx, userID)
+	if err != nil {
+		log.Error("failed to get pin contents for stall check", "userID", userID, "error", err)
+		return
+	}
+
 	schematics, err := u.schematicRepo.GetAllSchematics(ctx)
 	if err != nil {
 		log.Error("failed to get schematics for stall check", "userID", userID, "error", err)
 		return
 	}
-	schematicMap := map[int]*models.SdePlanetSchematic{}
+	schematicMap := map[int64]*models.SdePlanetSchematic{}
 	for _, s := range schematics {
-		schematicMap[int(s.SchematicID)] = s
+		schematicMap[s.SchematicID] = s
+	}
+
+	schematicTypes, err := u.schematicRepo.GetAllSchematicTypes(ctx)
+	if err != nil {
+		log.Error("failed to get schematic types for stall check", "userID", userID, "error", err)
+		return
+	}
+	// Map schematicID → input types
+	schematicInputs := map[int64][]*models.SdePlanetSchematicType{}
+	for _, st := range schematicTypes {
+		if st.IsInput {
+			schematicInputs[st.SchematicID] = append(schematicInputs[st.SchematicID], st)
+		}
 	}
 
 	// Group pins by planet
@@ -356,6 +382,17 @@ func (u *PiUpdater) checkStalls(ctx context.Context, userID int64, charNames map
 	for _, pin := range pins {
 		k := planetKey{pin.CharacterID, pin.PlanetID}
 		pinsByPlanet[k] = append(pinsByPlanet[k], pin)
+	}
+
+	// Accumulate pin contents (launchpad/storage stock) per planet per type
+	// contentsByPlanet[planetKey][typeID] = total amount
+	contentsByPlanet := map[planetKey]map[int64]int64{}
+	for _, content := range pinContents {
+		k := planetKey{content.CharacterID, content.PlanetID}
+		if contentsByPlanet[k] == nil {
+			contentsByPlanet[k] = map[int64]int64{}
+		}
+		contentsByPlanet[k][content.TypeID] += content.Amount
 	}
 
 	// Collect solar system IDs for name resolution
@@ -382,46 +419,76 @@ func (u *PiUpdater) checkStalls(ctx context.Context, userID int64, charNames map
 	for _, planet := range planets {
 		k := planetKey{planet.CharacterID, planet.PlanetID}
 		planetPins := pinsByPlanet[k]
+		planetStock := contentsByPlanet[k] // may be nil — treated as zero stock
 
+		// 1. Extractor expiry check
 		stalledPins := []PiStalledPin{}
-
 		for _, pin := range planetPins {
-			switch pin.PinCategory {
-			case "extractor":
+			if pin.PinCategory == "extractor" {
 				if pin.ExpiryTime != nil && pin.ExpiryTime.Before(now) {
 					stalledPins = append(stalledPins, PiStalledPin{
 						PinCategory: "extractor",
 						Reason:      "expired",
 					})
 				}
-			case "factory":
-				if pin.SchematicID != nil && pin.LastCycleStart != nil {
-					schematic := schematicMap[*pin.SchematicID]
-					if schematic != nil && schematic.CycleTime > 0 {
-						expectedNext := pin.LastCycleStart.Add(time.Duration(schematic.CycleTime*piFactoryIdleMultiple) * time.Second)
-						if now.After(expectedNext) {
-							stalledPins = append(stalledPins, PiStalledPin{
-								PinCategory: "factory",
-								Reason:      "stalled",
-							})
-						}
-					}
-				}
 			}
 		}
 
-		isStalled := len(stalledPins) > 0
+		// 2. Factory input depletion check
+		// Sum consumption rate (units/hour) per input type across all factories on this planet.
+		consumptionPerHour := map[int64]float64{}
+		for _, pin := range planetPins {
+			if pin.PinCategory != "factory" || pin.SchematicID == nil {
+				continue
+			}
+			schematic := schematicMap[int64(*pin.SchematicID)]
+			if schematic == nil || schematic.CycleTime <= 0 {
+				continue
+			}
+			inputs := schematicInputs[int64(*pin.SchematicID)]
+			for _, input := range inputs {
+				rate := float64(input.Quantity) * (3600.0 / float64(schematic.CycleTime))
+				consumptionPerHour[input.TypeID] += rate
+			}
+		}
+
+		var earliestDepletionTime *time.Time
+		var earliestDepletedTypeID int64
+
+		for typeID, rate := range consumptionPerHour {
+			if rate <= 0 {
+				continue
+			}
+			stock := float64(planetStock[typeID])
+			depletionHours := stock / rate
+			depletionTime := planet.LastUpdate.Add(time.Duration(depletionHours * float64(time.Hour)))
+			if earliestDepletionTime == nil || depletionTime.Before(*earliestDepletionTime) {
+				t := depletionTime
+				earliestDepletionTime = &t
+				earliestDepletedTypeID = typeID
+			}
+		}
+
+		factoriesDepleted := earliestDepletionTime != nil && now.After(*earliestDepletionTime)
+
+		hasIssues := len(stalledPins) > 0 || factoriesDepleted
 		wasNotified := planet.LastStallNotifiedAt != nil
 
-		if isStalled && !wasNotified {
-			newAlerts = append(newAlerts, &PiStallAlert{
+		if hasIssues && !wasNotified {
+			alert := &PiStallAlert{
 				CharacterName:   charNames[planet.CharacterID],
 				PlanetType:      planet.PlanetType,
 				SolarSystemName: systemNames[planet.SolarSystemID],
 				StalledPins:     stalledPins,
-			})
+			}
+			if factoriesDepleted {
+				alert.DepletionTime = earliestDepletionTime
+				// Resolve type name — collected after all planets are processed below
+				alert.DepletedInputName = u.resolveTypeName(ctx, earliestDepletedTypeID)
+			}
+			newAlerts = append(newAlerts, alert)
 			newlyStalled = append(newlyStalled, stalledPlanet{planet.CharacterID, planet.PlanetID})
-		} else if !isStalled && wasNotified {
+		} else if !hasIssues && wasNotified {
 			// Planet recovered — clear the notification timestamp
 			if err := u.piRepo.UpdateStallNotifiedAt(ctx, planet.CharacterID, planet.PlanetID, nil); err != nil {
 				log.Error("failed to clear stall notified timestamp", "characterID", planet.CharacterID, "planetID", planet.PlanetID, "error", err)
@@ -440,4 +507,17 @@ func (u *PiUpdater) checkStalls(ctx context.Context, userID int64, charNames map
 			}
 		}
 	}
+}
+
+// resolveTypeName looks up an item type name by ID. Returns empty string on error.
+func (u *PiUpdater) resolveTypeName(ctx context.Context, typeID int64) string {
+	if u.itemTypeRepo == nil || typeID == 0 {
+		return ""
+	}
+	names, err := u.itemTypeRepo.GetNames(ctx, []int64{typeID})
+	if err != nil {
+		log.Error("failed to resolve type name for PI depletion alert", "typeID", typeID, "error", err)
+		return ""
+	}
+	return names[typeID]
 }

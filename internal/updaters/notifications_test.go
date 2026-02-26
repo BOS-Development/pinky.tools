@@ -77,7 +77,7 @@ func Test_NotifyPurchase_SendsDM(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	channelID := "dm-target"
 	purchase := &models.PurchaseTransaction{
@@ -124,7 +124,7 @@ func Test_NotifyPurchase_SendsChannelMessage(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	channelID := "channel-456"
 	purchase := &models.PurchaseTransaction{
@@ -163,7 +163,7 @@ func Test_NotifyPurchase_NoTargets(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	purchase := &models.PurchaseTransaction{
 		SellerUserID: 200,
@@ -184,7 +184,7 @@ func Test_NotifyPurchase_RepoError(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	purchase := &models.PurchaseTransaction{
 		SellerUserID: 200,
@@ -203,7 +203,7 @@ func Test_NotifyPurchase_SendError(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	channelID := "channel-456"
 	purchase := &models.PurchaseTransaction{
@@ -235,7 +235,7 @@ func Test_SendTestNotification_DM(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	target := &models.DiscordNotificationTarget{
 		ID:         1,
@@ -258,7 +258,7 @@ func Test_SendTestNotification_Channel(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	channelID := "channel-789"
 	target := &models.DiscordNotificationTarget{
@@ -283,7 +283,7 @@ func Test_SendTestNotification_ChannelWithoutID(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	target := &models.DiscordNotificationTarget{
 		ID:         2,
@@ -305,7 +305,7 @@ func Test_NotifyContractCreated_SendsDM(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	contractKey := "PT-42"
 	purchase := &models.PurchaseTransaction{
@@ -353,7 +353,7 @@ func Test_NotifyContractCreated_NoTargets(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	purchase := &models.PurchaseTransaction{
 		BuyerUserID: 100,
@@ -373,7 +373,7 @@ func Test_NotifyContractCreated_SendError(t *testing.T) {
 	mockRepo := new(MockNotificationsDiscordRepo)
 	mockClient := new(MockDiscordClient)
 
-	notifier := updaters.NewNotifications(mockRepo, mockClient)
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
 
 	channelID := "channel-456"
 	contractKey := "PT-99"
@@ -401,4 +401,87 @@ func Test_NotifyContractCreated_SendError(t *testing.T) {
 
 	mockRepo.AssertExpectations(t)
 	mockClient.AssertExpectations(t)
+}
+
+func Test_NotifyPiStalls_WithDepletionAndURL(t *testing.T) {
+	mockRepo := new(MockNotificationsDiscordRepo)
+	mockClient := new(MockDiscordClient)
+
+	frontendURL := "https://example.com/"
+	notifier := updaters.NewNotifications(mockRepo, mockClient, frontendURL)
+
+	channelID := "pi-channel-123"
+	depletionTime := time.Date(2026, 2, 25, 3, 0, 0, 0, time.UTC)
+	alerts := []*updaters.PiStallAlert{
+		{
+			CharacterName:     "TestChar",
+			PlanetType:        "barren",
+			SolarSystemName:   "Jita",
+			StalledPins:       []updaters.PiStalledPin{{PinCategory: "extractor", Reason: "expired"}},
+			DepletionTime:     &depletionTime,
+			DepletedInputName: "Water",
+		},
+	}
+
+	targets := []*models.DiscordNotificationTarget{
+		{ID: 1, UserID: 42, TargetType: "channel", ChannelID: &channelID, IsActive: true},
+	}
+
+	var capturedEmbed *client.DiscordEmbed
+	mockRepo.On("GetActiveTargetsForEvent", mock.Anything, int64(42), "pi_stall").Return(targets, nil)
+	mockClient.On("SendChannelMessage", mock.Anything, "pi-channel-123", mock.AnythingOfType("*client.DiscordEmbed")).
+		Run(func(args mock.Arguments) {
+			capturedEmbed = args.Get(2).(*client.DiscordEmbed)
+		}).
+		Return(nil)
+
+	notifier.NotifyPiStalls(context.Background(), 42, alerts)
+
+	mockRepo.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+
+	assert.NotNil(t, capturedEmbed)
+	assert.Equal(t, "PI Stall Detected", capturedEmbed.Title)
+	assert.Equal(t, "https://example.com/pi", capturedEmbed.URL)
+	assert.Len(t, capturedEmbed.Fields, 1)
+	assert.Contains(t, capturedEmbed.Fields[0].Value, "1 extractor expired")
+	assert.Contains(t, capturedEmbed.Fields[0].Value, "Inputs depleted since")
+	assert.Contains(t, capturedEmbed.Fields[0].Value, "Water")
+}
+
+func Test_NotifyPiStalls_NoURL_WhenFrontendURLEmpty(t *testing.T) {
+	mockRepo := new(MockNotificationsDiscordRepo)
+	mockClient := new(MockDiscordClient)
+
+	notifier := updaters.NewNotifications(mockRepo, mockClient, "")
+
+	channelID := "pi-channel-456"
+	alerts := []*updaters.PiStallAlert{
+		{
+			CharacterName:   "TestChar",
+			PlanetType:      "barren",
+			SolarSystemName: "Amarr",
+			StalledPins:     []updaters.PiStalledPin{{PinCategory: "extractor", Reason: "expired"}},
+		},
+	}
+
+	targets := []*models.DiscordNotificationTarget{
+		{ID: 2, UserID: 99, TargetType: "channel", ChannelID: &channelID, IsActive: true},
+	}
+
+	var capturedEmbed *client.DiscordEmbed
+	mockRepo.On("GetActiveTargetsForEvent", mock.Anything, int64(99), "pi_stall").Return(targets, nil)
+	mockClient.On("SendChannelMessage", mock.Anything, "pi-channel-456", mock.AnythingOfType("*client.DiscordEmbed")).
+		Run(func(args mock.Arguments) {
+			capturedEmbed = args.Get(2).(*client.DiscordEmbed)
+		}).
+		Return(nil)
+
+	notifier.NotifyPiStalls(context.Background(), 99, alerts)
+
+	mockRepo.AssertExpectations(t)
+	mockClient.AssertExpectations(t)
+
+	assert.NotNil(t, capturedEmbed)
+	assert.Equal(t, "", capturedEmbed.URL)
 }

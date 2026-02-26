@@ -30,10 +30,12 @@ type PiStallNotifier interface {
 
 // PiStallAlert contains information about a single stalled planet
 type PiStallAlert struct {
-	CharacterName   string
-	PlanetType      string
-	SolarSystemName string
-	StalledPins     []PiStalledPin
+	CharacterName    string
+	PlanetType       string
+	SolarSystemName  string
+	StalledPins      []PiStalledPin
+	DepletionTime    *time.Time // when earliest input runs out (nil = extractor-only alert)
+	DepletedInputName string    // name of the input that runs out first
 }
 
 // PiStalledPin describes a single stalled pin
@@ -50,15 +52,18 @@ type NotificationsDiscordRepo interface {
 type NotificationsUpdater struct {
 	repo          NotificationsDiscordRepo
 	discordClient client.DiscordClientInterface
+	frontendURL   string
 }
 
 func NewNotifications(
 	repo NotificationsDiscordRepo,
 	discordClient client.DiscordClientInterface,
+	frontendURL string,
 ) *NotificationsUpdater {
 	return &NotificationsUpdater{
 		repo:          repo,
 		discordClient: discordClient,
+		frontendURL:   frontendURL,
 	}
 }
 
@@ -184,7 +189,7 @@ func (u *NotificationsUpdater) NotifyPiStalls(ctx context.Context, userID int64,
 		return
 	}
 
-	embed := buildPiStallEmbed(alerts)
+	embed := buildPiStallEmbed(alerts, u.frontendURL)
 
 	for _, target := range targets {
 		var sendErr error
@@ -213,7 +218,7 @@ func (u *NotificationsUpdater) NotifyPiStalls(ctx context.Context, userID int64,
 	}
 }
 
-func buildPiStallEmbed(alerts []*PiStallAlert) *client.DiscordEmbed {
+func buildPiStallEmbed(alerts []*PiStallAlert, frontendURL string) *client.DiscordEmbed {
 	description := fmt.Sprintf("**%d** planet(s) need attention", len(alerts))
 	if len(alerts) == 1 {
 		description = fmt.Sprintf("**%s**'s colony needs attention", alerts[0].CharacterName)
@@ -222,13 +227,9 @@ func buildPiStallEmbed(alerts []*PiStallAlert) *client.DiscordEmbed {
 	fields := []client.DiscordEmbedField{}
 	for _, alert := range alerts {
 		extractorCount := 0
-		factoryCount := 0
 		for _, pin := range alert.StalledPins {
-			switch pin.PinCategory {
-			case "extractor":
+			if pin.PinCategory == "extractor" {
 				extractorCount++
-			case "factory":
-				factoryCount++
 			}
 		}
 
@@ -240,12 +241,13 @@ func buildPiStallEmbed(alerts []*PiStallAlert) *client.DiscordEmbed {
 				parts = append(parts, fmt.Sprintf("%d extractors expired", extractorCount))
 			}
 		}
-		if factoryCount > 0 {
-			if factoryCount == 1 {
-				parts = append(parts, "1 factory stalled")
-			} else {
-				parts = append(parts, fmt.Sprintf("%d factories stalled", factoryCount))
+		if alert.DepletionTime != nil {
+			depletedSince := alert.DepletionTime.UTC().Format("Jan 2 15:04 UTC")
+			depletionDesc := fmt.Sprintf("Inputs depleted since %s", depletedSince)
+			if alert.DepletedInputName != "" {
+				depletionDesc = fmt.Sprintf("Inputs depleted since %s (%s)", depletedSince, alert.DepletedInputName)
 			}
+			parts = append(parts, depletionDesc)
 		}
 
 		name := fmt.Sprintf("%s — %s (%s)", alert.CharacterName, alert.SolarSystemName, alert.PlanetType)
@@ -256,9 +258,15 @@ func buildPiStallEmbed(alerts []*PiStallAlert) *client.DiscordEmbed {
 		})
 	}
 
+	embedURL := ""
+	if frontendURL != "" {
+		embedURL = frontendURL + "pi"
+	}
+
 	return &client.DiscordEmbed{
 		Title:       "PI Stall Detected",
 		Description: description,
+		URL:         embedURL,
 		Color:       0xef4444, // Red for alert
 		Fields:      fields,
 		Footer: &client.DiscordEmbedFooter{
