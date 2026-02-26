@@ -189,3 +189,4 @@ See `docs/features/INDEX.md` for the full quick-reference index.
 |-------|-----|---------|
 | DBA | `docs/agents/dba-agent.md` | Schema research, migration review, query optimization |
 | Docs | `docs/agents/docs-agent.md` | Documentation maintenance, index updates, organization |
+| SDET | `docs/agents/sdet-agent.md` | E2E test creation, mock ESI updates, Playwright maintenance |
