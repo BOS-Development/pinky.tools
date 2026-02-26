@@ -170,19 +170,22 @@ repo := repositories.NewMyRepo(db)
 
 ### Running tests
 
-- **Full suite**: `make test-backend` (tears down, starts fresh DB, runs everything)
+Tests use **gotestsum** (`pkgname` format) for clean output — shows package-level pass/fail and only prints verbose output for failures. Read the summary at the end rather than scanning the full log.
+
+- **Full suite**: `make test-backend` (tears down, starts fresh DB, runs everything with gotestsum)
 - **Targeted** (faster — prefer when you changed 1-2 packages):
   ```bash
   # Ensure DB is running
   docker-compose -f docker-compose.test.yaml up -d database
   # Run specific package(s)
   docker-compose -f docker-compose.test.yaml run --rm backend-test \
-    go test -v -p 1 ./internal/controllers/
+    gotestsum --format pkgname -- -p 1 ./internal/controllers/
   # Run by test name pattern
   docker-compose -f docker-compose.test.yaml run --rm backend-test \
-    go test -v -p 1 -run "Test_ProductionPlans" ./internal/controllers/
+    gotestsum --format pkgname -- -p 1 -run "Test_ProductionPlans" ./internal/controllers/
   ```
 - Use targeted tests during development; use full `make test-backend` for final verification
+- When a test fails, gotestsum prints the full failure output — read the FAIL lines at the bottom first
 
 ## Key Relationships
 

@@ -139,15 +139,15 @@ SELECT
 	characterAssets.location_flag,
     assetTypes.type_id,
     assetTypes.type_name,
-    characterAssets.quantity,
-    assetTypes.volume * characterAssets.quantity as "volume",
+    SUM(characterAssets.quantity) as quantity,
+    SUM(assetTypes.volume * characterAssets.quantity) as "volume",
     stockpile.desired_quantity,
-    (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+    (SUM(characterAssets.quantity) - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
     market.sell_price as unit_price,
-    (characterAssets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+    (SUM(characterAssets.quantity) * COALESCE(market.sell_price, 0)) as total_value,
     CASE
-        WHEN (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
-        THEN ABS(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+        WHEN (SUM(characterAssets.quantity) - COALESCE(stockpile.desired_quantity, 0)) < 0
+        THEN ABS(SUM(characterAssets.quantity) - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
         ELSE 0
     END as deficit_value
 FROM
@@ -191,7 +191,17 @@ WHERE
         location_type='station'
         OR (location_flag='Hangar' and location_type='item')
         OR (location_flag='Deliveries' and location_type='item')
-    );`
+    )
+GROUP BY
+    characterAssets.character_id,
+    characters.name,
+    characterAssets.location_id,
+    characterAssets.location_flag,
+    assetTypes.type_id,
+    assetTypes.type_name,
+    stockpile.desired_quantity,
+    market.sell_price,
+    market.buy_price;`
 
 	items, err := r.db.QueryContext(ctx, hangaredItemsQuery, user)
 	if err != nil {
@@ -292,16 +302,16 @@ SELECT
 	characters.name,
     assetTypes.type_id,
     assetTypes.type_name,
-    characterAssets.quantity,
-    assetTypes.volume * characterAssets.quantity as "volume",
+    SUM(characterAssets.quantity) as quantity,
+    SUM(assetTypes.volume * characterAssets.quantity) as "volume",
     characterAssets.location_id,
     stockpile.desired_quantity,
-    (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+    (SUM(characterAssets.quantity) - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
     market.sell_price as unit_price,
-    (characterAssets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+    (SUM(characterAssets.quantity) * COALESCE(market.sell_price, 0)) as total_value,
     CASE
-        WHEN (characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
-        THEN ABS(characterAssets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+        WHEN (SUM(characterAssets.quantity) - COALESCE(stockpile.desired_quantity, 0)) < 0
+        THEN ABS(SUM(characterAssets.quantity) - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
         ELSE 0
     END as deficit_value
 FROM
@@ -336,8 +346,17 @@ WHERE
     characterAssets.user_id=$1
     AND characterAssets.location_type='item'
     AND NOT (characterAssets.is_singleton=true AND assetTypes.type_name like '%Container')
+GROUP BY
+    characterAssets.character_id,
+    characters.name,
+    assetTypes.type_id,
+    assetTypes.type_name,
+    characterAssets.location_id,
+    stockpile.desired_quantity,
+    market.sell_price,
+    market.buy_price
 ORDER BY
-    characterAssets.item_id;`
+    assetTypes.type_name;`
 
 	itemsInContainers, err := r.db.QueryContext(ctx, itemsInContainersQuery, user)
 	if err != nil {
@@ -519,15 +538,15 @@ SELECT
 	SUBSTRING(corporation_assets.location_flag, 8, 1)::int as "division_number",
 	assetTypes.type_id,
 	assetTypes.type_name,
-	corporation_assets.quantity,
-	assetTypes.volume * corporation_assets.quantity as "volume",
+	SUM(corporation_assets.quantity) as quantity,
+	SUM(assetTypes.volume * corporation_assets.quantity) as "volume",
 	stockpile.desired_quantity,
-	(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+	(SUM(corporation_assets.quantity) - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
 	market.sell_price as unit_price,
-	(corporation_assets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+	(SUM(corporation_assets.quantity) * COALESCE(market.sell_price, 0)) as total_value,
 	CASE
-		WHEN (corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
-		THEN ABS(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+		WHEN (SUM(corporation_assets.quantity) - COALESCE(stockpile.desired_quantity, 0)) < 0
+		THEN ABS(SUM(corporation_assets.quantity) - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
 		ELSE 0
 	END as deficit_value
 FROM
@@ -565,7 +584,17 @@ WHERE
 	corporation_assets.user_id=$1
 	AND NOT (corporation_assets.is_singleton=true AND assetTypes.type_name like '%Container')
 	AND corporation_assets.location_type='item'
-	AND corporation_assets.location_flag like 'CorpSAG%';`
+	AND corporation_assets.location_flag like 'CorpSAG%'
+GROUP BY
+	corporation_assets.corporation_id,
+	player_corporations.name,
+	office.location_id,
+	SUBSTRING(corporation_assets.location_flag, 8, 1)::int,
+	assetTypes.type_id,
+	assetTypes.type_name,
+	stockpile.desired_quantity,
+	market.sell_price,
+	market.buy_price;`
 
 	corpHangaredItems, err := r.db.QueryContext(ctx, corpHangaredItemsQuery, user)
 	if err != nil {
@@ -723,16 +752,16 @@ SELECT
 	player_corporations.name,
 	assetTypes.type_id,
 	assetTypes.type_name,
-	corporation_assets.quantity,
-	assetTypes.volume * corporation_assets.quantity as "volume",
+	SUM(corporation_assets.quantity) as quantity,
+	SUM(assetTypes.volume * corporation_assets.quantity) as "volume",
 	corporation_assets.location_id,
 	stockpile.desired_quantity,
-	(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
+	(SUM(corporation_assets.quantity) - COALESCE(stockpile.desired_quantity, 0)) as stockpile_delta,
 	market.sell_price as unit_price,
-	(corporation_assets.quantity * COALESCE(market.sell_price, 0)) as total_value,
+	(SUM(corporation_assets.quantity) * COALESCE(market.sell_price, 0)) as total_value,
 	CASE
-		WHEN (corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) < 0
-		THEN ABS(corporation_assets.quantity - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
+		WHEN (SUM(corporation_assets.quantity) - COALESCE(stockpile.desired_quantity, 0)) < 0
+		THEN ABS(SUM(corporation_assets.quantity) - COALESCE(stockpile.desired_quantity, 0)) * COALESCE(market.buy_price, 0)
 		ELSE 0
 	END as deficit_value
 FROM
@@ -768,8 +797,17 @@ WHERE
 	corporation_assets.user_id=$1
 	AND corporation_assets.location_type='item'
 	AND NOT (corporation_assets.is_singleton=true AND assetTypes.type_name like '%Container')
+GROUP BY
+	corporation_assets.corporation_id,
+	player_corporations.name,
+	assetTypes.type_id,
+	assetTypes.type_name,
+	corporation_assets.location_id,
+	stockpile.desired_quantity,
+	market.sell_price,
+	market.buy_price
 ORDER BY
-	corporation_assets.item_id;`
+	assetTypes.type_name;`
 
 	corpItemsInContainers, err := r.db.QueryContext(ctx, corpItemsInContainersQuery, user)
 	if err != nil {
