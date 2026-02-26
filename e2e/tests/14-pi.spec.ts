@@ -161,8 +161,9 @@ test.describe('Planetary Industry', () => {
     await expect(page.getByText('Jita')).toBeVisible({ timeout: 15000 });
 
     // StatChip labels appear in the overview stats bar.
-    // 'Planets' also appears as a navbar link, so use .last() to target the stats chip
-    // which is rendered after the navbar in DOM order.
+    // 'Planets' also appears as a menu item inside the Industry dropdown in the navbar,
+    // but the dropdown is closed so its items are not rendered in the DOM.
+    // Use .last() as a defensive measure in case multiple matches appear.
     await expect(page.getByText('Planets').last()).toBeVisible({ timeout: 5000 });
     // 'Extractors' appears in both the StatChip (stats bar) and in each planet card
     // that has extractors (as a section heading). Use .first() to target either.

@@ -10,7 +10,8 @@
 8. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
 9. **Check feature docs first.** Before exploring code or planning a feature, check `docs/features/INDEX.md` to find the relevant doc. Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
 10. Always use the executor sub-agent for bash commands instead of running them directly.
-11. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. Never write Playwright tests, mock ESI code, or E2E seed data directly — use the `sdet` agent. **For database schema design, migration review, or query optimization, spawn the `dba` agent first** — it provides schema context, migration drafts, and optimization recommendations before backend-dev implements. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both backend and frontend agents.
+11. **Run agent improvement after every task.** After all agents finish and tests pass, review agent output, check `.claude/agent-memory/{agent}/MEMORY.md` files, and update `.claude/agents/*.md` with new conventions or anti-patterns. This is not optional — it's part of completing the task. See the "Agent Improvement" section below.
+12. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. Never write Playwright tests, mock ESI code, or E2E seed data directly — use the `sdet` agent. **For database schema design, migration review, or query optimization, spawn the `dba` agent first** — it provides schema context, migration drafts, and optimization recommendations before backend-dev implements. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both backend and frontend agents.
 
 ---
 
@@ -85,9 +86,9 @@ This catches issues like untyped arrays (`const x = []` → `never[]`) that pass
 
 ---
 
-## Agent Improvement
+## Agent Improvement (Mandatory)
 
-After completing a task (all agents done, tests passing), review agent output for improvement opportunities:
+After completing a task (all agents done, tests passing), **always** run agent improvement before considering the task complete:
 - If an agent was missing context, add it to `.claude/agents/{agent-name}.md`
 - If an agent used workarounds, add the correct pattern to its conventions
 - If a convention was unclear, make it more explicit with examples

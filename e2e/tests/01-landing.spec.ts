@@ -19,8 +19,10 @@ test.describe('Landing Page', () => {
   test('shows navigation buttons for authenticated user', async ({ page }) => {
     await page.goto('/');
 
-    // Characters link exists in both navbar and landing page; use .first()
-    await expect(page.getByRole('link', { name: 'Characters' }).first()).toBeVisible();
+    // The landing page hero section has CTA buttons (Characters, View Assets, Manage Stockpiles).
+    // "Characters" is no longer a top-level navbar link (it's inside the Account dropdown),
+    // so there is exactly one visible "Characters" link on the page — the hero CTA button.
+    await expect(page.getByRole('link', { name: 'Characters' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'View Assets' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Manage Stockpiles' })).toBeVisible();
   });
@@ -28,7 +30,9 @@ test.describe('Landing Page', () => {
   test('characters link navigates to characters page', async ({ page }) => {
     await page.goto('/');
 
-    await page.getByRole('link', { name: 'Characters' }).first().click();
+    // The "Characters" CTA button in the hero section links to /characters.
+    // It is the only visible "Characters" link on the page (navbar uses dropdowns now).
+    await page.getByRole('link', { name: 'Characters' }).click();
     await page.waitForURL('**/characters');
     await expect(page).toHaveURL(/\/characters/);
   });

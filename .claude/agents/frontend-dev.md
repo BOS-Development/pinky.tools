@@ -107,6 +107,8 @@ expect(container).toMatchSnapshot();
 - Not using fake timers → timestamps/durations differ between runs
 - Adding a new prop to a component but not updating existing test renders → TypeScript error
 
+**NEVER add workaround DOM elements to keep old tests passing.** If a component restructure breaks existing tests (e.g., links moved into dropdowns that tests query with `getByRole('link')`), update the tests to match the new structure — do NOT add hidden/clipped elements to satisfy old queries. When told "do not modify tests", flag the incompatibility rather than adding workaround markup.
+
 ### TypeScript strict mode — CRITICAL
 
 The production build (`make build-production-frontend`) runs Next.js with strict TypeScript checking that is **stricter than Jest**. Code that passes Jest tests can still fail the production build.
