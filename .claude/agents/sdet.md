@@ -23,6 +23,8 @@ e2e/
   seed.sql                  # Bootstrap SQL: regions, stations, item types, users
   fixtures/
     auth.ts                 # Multi-user auth fixtures (alicePage, bobPage, charliePage, dianaPage)
+  helpers/
+    mock-esi.ts             # Admin API helpers (resetMockESI, setCharacterAssets, etc.)
   tests/
     01-landing.spec.ts      # Auth + landing page
     02-characters.spec.ts   # Character creation + display
@@ -33,6 +35,13 @@ e2e/
     07-contacts.spec.ts     # Contact requests + acceptance
     08-marketplace.spec.ts  # Listings, purchases, buy orders
     09-auto-sell.spec.ts    # Auto-sell container lifecycle
+    10-industry.spec.ts     # Industry job manager + skill sync
+    11-stations.spec.ts     # Station name resolution
+    12-production-plans.spec.ts # Auto-production planning
+    13-reactions.spec.ts    # Moon reactions calculator
+    14-pi.spec.ts           # Planetary industry data + stall detection
+    15-transport.spec.ts    # Transportation routes + JF cost calc
+    16-settings.spec.ts     # User preferences + character settings
 
 cmd/mock-esi/
   main.go                   # Mock ESI HTTP server (canned responses)
@@ -223,6 +232,66 @@ When the feature you're testing requires ESI data not yet mocked:
 3. Add canned response data as a package-level var
 4. The mock server is rebuilt automatically on `make test-e2e`
 
+## Dynamic Mock ESI (Admin API)
+
+The mock ESI server has an admin API (`/_admin/`) for dynamically controlling responses at runtime. Use this when tests need specific ESI data scenarios.
+
+### Helper Module
+
+Import helpers from `e2e/helpers/mock-esi.ts`:
+
+```typescript
+import { resetMockESI, setCharacterAssets, setCharacterIndustryJobs } from '../helpers/mock-esi';
+```
+
+### Usage Pattern
+
+```typescript
+test.describe('Feature requiring specific ESI data', () => {
+  test.afterAll(async () => {
+    // ALWAYS reset after modifying mock ESI state
+    await resetMockESI();
+  });
+
+  test('scenario with custom data', async ({ page }) => {
+    // Set up specific mock data
+    await setCharacterIndustryJobs(2001001, [
+      {
+        job_id: 999001, installer_id: 2001001, activity_id: 1,
+        blueprint_type_id: 787, runs: 5, status: 'active',
+        // ... other required fields
+      },
+    ]);
+
+    // Trigger the app to fetch from mock ESI (navigate + wait for runner)
+    await page.goto('/industry');
+    await expect(async () => {
+      await page.reload();
+      await expect(page.getByText('Rifter', { exact: true })).toBeVisible({ timeout: 3000 });
+    }).toPass({ timeout: 35000 });
+  });
+});
+```
+
+### Available Helpers
+
+| Function | Admin Endpoint | Purpose |
+|----------|---------------|---------|
+| `resetMockESI()` | POST `/_admin/reset` | Reset all data to defaults |
+| `setCharacterAssets(charID, assets)` | PUT `/_admin/character-assets/{id}` | Replace character assets |
+| `setCharacterSkills(charID, skills)` | PUT `/_admin/character-skills/{id}` | Replace character skills |
+| `setCharacterIndustryJobs(charID, jobs)` | PUT `/_admin/character-industry-jobs/{id}` | Replace industry jobs |
+| `setCharacterBlueprints(charID, bps)` | PUT `/_admin/character-blueprints/{id}` | Replace blueprints |
+| `setCorpAssets(corpID, assets)` | PUT `/_admin/corp-assets/{id}` | Replace corp assets |
+| `setMarketOrders(orders)` | PUT `/_admin/market-orders` | Replace all market orders |
+| `setCharacterPlanets(charID, planets)` | PUT `/_admin/character-planets/{id}` | Set PI planets |
+| `setPlanetDetails(charID, planetID, colony)` | PUT `/_admin/planet-details/{charID}/{planetID}` | Set planet colony |
+
+### Rules
+- **Always reset in afterAll**: Any test that modifies mock ESI state MUST call `resetMockESI()` in `afterAll`
+- **Prefer admin API over new canned data**: If only one test needs specific data, use the admin API rather than adding permanent canned data
+- **Add canned data when widely needed**: If multiple test files need the same data, add it as default canned data in `cmd/mock-esi/main.go`
+
 ## Seed Data
 
 `e2e/seed.sql` contains bootstrap data that can't be created through the app:
@@ -278,6 +347,29 @@ make test-e2e-clean
 3. Add handler with `mux.HandleFunc` pattern
 4. Set appropriate headers (`X-Pages`, `Content-Type`)
 5. Test that the backend can call the mock endpoint via `make test-e2e-debug`
+
+## E2E Coverage Tracking
+
+| Page | Route | Test File | Status |
+|------|-------|-----------|--------|
+| Landing | `/` | 01-landing.spec.ts | ✅ |
+| Characters | `/characters` | 02-characters.spec.ts | ✅ |
+| Corporations | `/corporations` | 03-corporations.spec.ts | ✅ |
+| Inventory | `/inventory` | 04-assets.spec.ts | ✅ |
+| Navigation | all | 05-navigation.spec.ts | ✅ |
+| Stockpiles | `/stockpiles` | 06-stockpiles.spec.ts | ✅ |
+| Contacts | `/contacts` | 07-contacts.spec.ts | ✅ |
+| Marketplace | `/marketplace` | 08-marketplace.spec.ts | ✅ |
+| Auto-Sell | `/inventory` | 09-auto-sell.spec.ts | ✅ |
+| Industry | `/industry` | 10-industry.spec.ts | ✅ |
+| Stations | `/stations` | 11-stations.spec.ts | ✅ |
+| Production Plans | `/production-plans` | 12-production-plans.spec.ts | ✅ |
+| Reactions | `/reactions` | 13-reactions.spec.ts | ✅ |
+| PI | `/pi` | 14-pi.spec.ts | ✅ |
+| Transport | `/transport` | 15-transport.spec.ts | ✅ |
+| Settings | `/settings` | 16-settings.spec.ts | ✅ |
+
+When adding a new page, create a corresponding E2E test file. Minimum coverage: page loads, primary happy path, empty state.
 
 ## Output
 
