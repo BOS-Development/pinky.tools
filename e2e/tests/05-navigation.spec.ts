@@ -1,17 +1,37 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Navigation', () => {
-  test('navbar displays all navigation links', async ({ page }) => {
+  test('navbar displays all dropdown triggers and Settings link', async ({ page }) => {
     await page.goto('/');
 
     const navbar = page.locator('header');
     await expect(navbar.getByText('EVE Industry Tool')).toBeVisible();
-    await expect(navbar.getByRole('link', { name: 'Characters' })).toBeVisible();
-    await expect(navbar.getByRole('link', { name: 'Corporations' })).toBeVisible();
-    await expect(navbar.getByRole('link', { name: 'Inventory' })).toBeVisible();
-    await expect(navbar.getByRole('link', { name: 'Stockpiles' })).toBeVisible();
-    await expect(navbar.getByRole('link', { name: /Contacts/ })).toBeVisible();
-    await expect(navbar.getByRole('link', { name: 'Marketplace' })).toBeVisible();
+
+    // The navbar has 5 dropdown trigger buttons and a standalone Settings link
+    await expect(navbar.getByRole('button', { name: /Account/i })).toBeVisible();
+    await expect(navbar.getByRole('button', { name: /Assets/i })).toBeVisible();
+    await expect(navbar.getByRole('button', { name: /Trading/i })).toBeVisible();
+    await expect(navbar.getByRole('button', { name: /Industry/i })).toBeVisible();
+    await expect(navbar.getByRole('button', { name: /Logistics/i })).toBeVisible();
+    await expect(navbar.getByRole('link', { name: 'Settings' })).toBeVisible();
+
+    // Open Account dropdown and verify menu items, then close
+    await navbar.getByRole('button', { name: /Account/i }).click();
+    await expect(page.getByRole('menuitem', { name: 'Characters' })).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole('menuitem', { name: 'Corporations' })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    // Open Assets dropdown and verify menu items, then close
+    await navbar.getByRole('button', { name: /Assets/i }).click();
+    await expect(page.getByRole('menuitem', { name: 'Inventory' })).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole('menuitem', { name: 'Stockpiles' })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    // Open Trading dropdown and verify menu items, then close
+    await navbar.getByRole('button', { name: /Trading/i }).click();
+    await expect(page.getByRole('menuitem', { name: /Contacts/ })).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole('menuitem', { name: 'Marketplace' })).toBeVisible();
+    await page.keyboard.press('Escape');
   });
 
   test('characters page loads', async ({ page }) => {
