@@ -244,7 +244,7 @@ Note: The FK constraint to `solar_systems` was dropped to allow storing stations
 
 ## 4. SDE (Static Data Export)
 
-SDE tables are populated by the SDE import pipeline. Full column details are in `docs/features/sde-import.md`. The tables below use a compact format.
+SDE tables are populated by the SDE import pipeline. Full column details are in `docs/features/core/sde-import.md`. The tables below use a compact format.
 
 ### Core SDE Tables
 

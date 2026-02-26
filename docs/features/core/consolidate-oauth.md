@@ -139,7 +139,7 @@ Change `href` from `/api/auth/signin` to `/api/auth/login`:
 
 **`docker-compose.e2e.yaml`**: No changes needed — `EVE_CLIENT_ID`/`EVE_CLIENT_SECRET` already set for frontend
 
-**`docs/features/railway-deployment.md`**:
+**`docs/features/infrastructure/railway-deployment.md`**:
 - Remove `ALT_EVE_CLIENT_ID`/`ALT_EVE_CLIENT_SECRET` from Frontend env vars
 - Update callback URLs section to show single URL: `https://<railway-url>/api/auth/callback`
 - Remove troubleshooting entry about `ALT_EVE_CLIENT_ID`
@@ -175,7 +175,7 @@ Change `href` from `/api/auth/signin` to `/api/auth/login`:
 | `frontend/packages/pages/index.tsx` | Update — sign-in link |
 | `frontend/packages/components/unauthorized.tsx` | Update — sign-in link |
 | `frontend/.env.local` | Update — remove ALT_ vars |
-| `docs/features/railway-deployment.md` | Update — single callback URL, remove ALT_ vars |
+| `docs/features/infrastructure/railway-deployment.md` | Update — single callback URL, remove ALT_ vars |
 | `frontend/packages/components/__tests__/unauthorized.test.tsx` | Update — expected href |
 | `e2e/seed.sql` | Update — add esi_scopes to character inserts |
 

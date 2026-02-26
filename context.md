@@ -130,52 +130,62 @@ NEXTAUTH_URL=http://localhost:3000
 
 Read the relevant doc before working on a feature. Each doc contains schema, API endpoints, key decisions, and file paths.
 
+See `docs/features/INDEX.md` for the full quick-reference index.
+
 ### Core Systems
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| Characters | `docs/features/characters.md` | ESI OAuth, token storage, character asset refresh |
-| Corporations | `docs/features/corporations.md` | Corp management, divisions, corp asset refresh |
-| SDE Import | `docs/features/sde-import.md` | Static data pipeline, all `sde_*` tables, background runners |
-| Authentication | `docs/features/consolidate-oauth.md` | OAuth consolidation, scopes, single callback |
-| Background Updates | `docs/features/background-asset-updates.md` | Asset refresh runners (1h), concurrency |
-| NPC Station Names | `docs/features/npc-station-names.md` | Station name resolution via ESI bulk endpoint |
-| Landing Page | `docs/features/landing-page.md` | Hero section, asset value metrics |
+| Characters | `docs/features/core/characters.md` | ESI OAuth, token storage, character asset refresh |
+| Corporations | `docs/features/core/corporations.md` | Corp management, divisions, corp asset refresh |
+| SDE Import | `docs/features/core/sde-import.md` | Static data pipeline, all `sde_*` tables, background runners |
+| Authentication | `docs/features/core/consolidate-oauth.md` | OAuth consolidation, scopes, single callback |
+| Background Updates | `docs/features/core/background-asset-updates.md` | Asset refresh runners (1h), concurrency |
+| NPC Station Names | `docs/features/core/npc-station-names.md` | Station name resolution via ESI bulk endpoint |
+| Landing Page | `docs/features/core/landing-page.md` | Hero section, asset value metrics |
 
 ### Market & Pricing
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| Jita Market Pricing | `docs/features/jita-market-pricing.md` | Market orders, asset valuation |
-| Stockpile Markers | `docs/features/stockpile-markers.md` | Stockpile targets, deficit tracking, inventory UI |
-| Stockpile Multibuy | `docs/features/stockpile-multibuy.md` | Shopping lists, delta calculation, bulk ops |
+| Asset Aggregation | `docs/features/market/asset-aggregation.md` | SQL-level asset stacking/aggregation within scopes |
+| Jita Market Pricing | `docs/features/market/jita-market-pricing.md` | Market orders, asset valuation |
+| Stockpile Markers | `docs/features/market/stockpile-markers.md` | Stockpile targets, deficit tracking, inventory UI |
+| Stockpile Multibuy | `docs/features/market/stockpile-multibuy.md` | Shopping lists, delta calculation, bulk ops |
 
 ### Social & Marketplace
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| Contact Marketplace | `docs/features/contact-marketplace.md` | Contacts, permissions, for-sale marketplace |
-| Contact Rules | `docs/features/contact-rules.md` | Auto-create contacts, cascade cleanup |
-| Discord Notifications | `docs/features/discord-notifications.md` | Discord bot, OAuth linking, event notifications |
+| Contact Marketplace | `docs/features/social/contact-marketplace.md` | Contacts, permissions, for-sale marketplace |
+| Contact Rules | `docs/features/social/contact-rules.md` | Auto-create contacts, cascade cleanup |
+| Discord Notifications | `docs/features/social/discord-notifications.md` | Discord bot, OAuth linking, event notifications |
 
 ### Purchase & Trade
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| Purchases | `docs/features/purchases/` | Purchase transactions, contract workflow |
-| Buy Orders | `docs/features/buy-orders/` | Demand tracking, seller demand endpoints |
-| Auto-Sell Containers | `docs/features/auto-sell-containers.md` | Auto-sell config, Jita pricing, for-sale sync |
-| Auto-Buy | `docs/features/auto-buy.md` | Auto-buy config, buy order management |
-| Auto-Fulfill | `docs/features/auto-fulfill.md` | Match buy orders to for-sale listings |
-| Contract Sync | `docs/features/contract-sync.md` | ESI contract polling, auto-complete |
-| Contract Notifications | `docs/features/contract-created-notification.md` | Discord alerts on contract creation |
+| Purchases | `docs/features/trading/purchases/` | Purchase transactions, contract workflow |
+| Buy Orders | `docs/features/trading/buy-orders/` | Demand tracking, seller demand endpoints |
+| Auto-Sell Containers | `docs/features/trading/auto-sell-containers.md` | Auto-sell config, Jita pricing, for-sale sync |
+| Auto-Buy | `docs/features/trading/auto-buy.md` | Auto-buy config, buy order management |
+| Auto-Fulfill | `docs/features/trading/auto-fulfill.md` | Match buy orders to for-sale listings |
+| Contract Sync | `docs/features/trading/contract-sync.md` | ESI contract polling, auto-complete |
+| Contract Notifications | `docs/features/trading/contract-created-notification.md` | Discord alerts on contract creation |
 
 ### Industry
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| Industry Job Manager | `docs/features/industry-job-manager/` | Skills sync, job tracking, manufacturing calc, job queue |
-| Reactions Calculator | `docs/features/reactions-calculator.md` | Moon reactions, batch ME, shopping list |
-| Planetary Industry | `docs/features/planetary-industry.md` | PI data, stall detection, profit calc |
-| Transportation | `docs/features/transportation.md` | Transport profiles, JF routes, cost calc |
+| Industry Job Manager | `docs/features/industry/industry-job-manager/` | Skills sync, job tracking, manufacturing calc, job queue |
+| Auto-Production | `docs/features/industry/auto-production.md` | Stockpile-driven background production plan runs |
+| Reactions Calculator | `docs/features/industry/reactions-calculator.md` | Moon reactions, batch ME, shopping list |
+| Planetary Industry | `docs/features/industry/planetary-industry.md` | PI data, stall detection, profit calc |
+| Transportation | `docs/features/industry/transportation.md` | Transport profiles, JF routes, cost calc |
 
 ### Infrastructure
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| E2E Testing | `docs/features/e2e-testing.md` | Mock ESI, Playwright, test users |
-| Railway Deployment | `docs/features/railway-deployment.md` | PostgreSQL, backend, frontend deployment |
+| E2E Testing | `docs/features/infrastructure/e2e-testing.md` | Mock ESI, Playwright, test users |
+| Railway Deployment | `docs/features/infrastructure/railway-deployment.md` | PostgreSQL, backend, frontend deployment |
+
+### Agents
+| Agent | Doc | Summary |
+|-------|-----|---------|
+| DBA | `docs/agents/dba-agent.md` | Schema research, migration review, query optimization |
+| Docs | `docs/agents/docs-agent.md` | Documentation maintenance, index updates, organization |

@@ -22,7 +22,7 @@ An EVE Online industry and asset management tool.
   - Cancel and restore functionality
   - Full transaction history
 
-See [Purchase System Documentation](docs/features/purchases/) for complete documentation.
+See [Purchase System Documentation](docs/features/trading/purchases/) for complete documentation.
 
 ## Development
 
@@ -71,28 +71,28 @@ Coverage reports are generated in `artifacts/coverage/`:
 ### Documentation
 
 **Purchase System (Phase 4):**
-- **[PURCHASES.md](docs/features/purchases/PURCHASES.md)** - Complete technical documentation
+- **[PURCHASES.md](docs/features/trading/purchases/PURCHASES.md)** - Complete technical documentation
   - Architecture and database schema
   - Business logic and workflows
   - Error handling and troubleshooting
   - Performance and security considerations
-- **[API_PURCHASES.md](docs/features/purchases/API_PURCHASES.md)** - API reference
+- **[API_PURCHASES.md](docs/features/trading/purchases/API_PURCHASES.md)** - API reference
   - Endpoint specifications
   - Request/response formats
   - Error codes and handling
   - TypeScript types
-- **[QUICK_START_PURCHASES.md](docs/features/purchases/QUICK_START_PURCHASES.md)** - Quick start guide
+- **[QUICK_START_PURCHASES.md](docs/features/trading/purchases/QUICK_START_PURCHASES.md)** - Quick start guide
   - Step-by-step purchase flow
   - Common operations
   - cURL examples
-- **[TESTING_PURCHASES.md](docs/features/purchases/TESTING_PURCHASES.md)** - Test suite documentation
+- **[TESTING_PURCHASES.md](docs/features/trading/purchases/TESTING_PURCHASES.md)** - Test suite documentation
   - Test coverage summary (19 tests)
   - Running tests
   - Bug fixes verified
 
 **Other Features:**
-- **[Contact & Marketplace](docs/features/contact-marketplace.md)** - Contact system and marketplace overview
-- **[Jita Market Pricing](docs/features/jita-market-pricing.md)** - Market price integration
+- **[Contact & Marketplace](docs/features/social/contact-marketplace.md)** - Contact system and marketplace overview
+- **[Jita Market Pricing](docs/features/market/jita-market-pricing.md)** - Market price integration
 
 ## CI/CD
 

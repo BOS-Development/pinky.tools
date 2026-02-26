@@ -4,10 +4,10 @@
 2. **Always run tests with Makefile targets** (`make test-e2e-ci`, `make test-backend`, etc.) — never run test commands directly.
 3. **Write tests for every new backend file.** Every new repository, controller, and updater must have a corresponding `_test.go` file. When asked to "write tests," cover all three layers — not just controllers and updaters.
 4. **All changes must have tests.** Every code change — bug fixes, new features, refactors — must include corresponding test coverage. No code changes without tests.
-5. **Create/update feature docs in `docs/features/`** for every new feature or significant change. Use `lowercase-kebab-case.md` naming (e.g., `sde-import.md`, `reactions-calculator.md`).
+5. **Create/update feature docs in `docs/features/{category}/`** for every new feature or significant change. Use `lowercase-kebab-case.md` naming. Categories: `core/`, `market/`, `social/`, `trading/`, `industry/`, `infrastructure/`. Agent docs go in `docs/agents/`. Spawn the `docs` agent to create docs and update `docs/features/INDEX.md`.
 6. **Go slices: initialize as `items := []*Type{}` NOT `var items []*Type`.** Prevents nil JSON marshaling (`null` instead of `[]`).
 7. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
-8. **Check feature docs first.** Before exploring code or planning a feature, read the relevant `docs/features/` doc (if one exists). Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
+8. **Check feature docs first.** Before exploring code or planning a feature, check `docs/features/INDEX.md` to find the relevant doc. Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
 9. Always use the executor sub-agent for bash commands instead of running them directly.
 10. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. **For database schema design, migration review, or query optimization, spawn the `dba` agent first** — it provides schema context, migration drafts, and optimization recommendations before backend-dev implements. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both backend and frontend agents.
 
@@ -71,7 +71,7 @@ This catches issues like untyped arrays (`const x = []` → `never[]`) that pass
 - For multi-file changes or architectural decisions, use plan mode first
 - Present options to the user when multiple approaches are valid
 - Break down large features into phases with clear verification steps
-- Always check for existing feature plans in `docs/features/` before starting work
+- Always check `docs/features/INDEX.md` for existing feature docs before starting work
 
 ---
 
@@ -84,7 +84,8 @@ After completing a task (all agents done, tests passing), review agent output fo
 - If the agent discovered a new project pattern, document it in the agent instructions
 - **Review agent memory files** (`.claude/agent-memory/{agent}/MEMORY.md`): Agents accumulate session-specific learnings here. Agent memory files are gitignored and ephemeral — promote anything worth keeping:
   - Reusable patterns and conventions → `.claude/agents/{agent-name}.md`
-  - Domain knowledge, algorithms, bug fixes, key decisions → `docs/features/` feature docs
+  - Domain knowledge, algorithms, bug fixes, key decisions → `docs/features/{category}/` feature docs
+- **Spawn the `docs` agent** after feature work to create/update feature docs and keep `docs/features/INDEX.md` current
 
 ---
 
