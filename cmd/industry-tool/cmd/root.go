@@ -112,7 +112,7 @@ var rootCmd = &cobra.Command{
 		var notificationsUpdater *updaters.NotificationsUpdater
 		if settings.DiscordBotToken != "" {
 			discordClient = client.NewDiscordClient(settings.DiscordBotToken)
-			notificationsUpdater = updaters.NewNotifications(discordNotificationsRepository, discordClient)
+			notificationsUpdater = updaters.NewNotifications(discordNotificationsRepository, discordClient, settings.FrontendURL)
 			purchaseNotifier = notificationsUpdater
 			contractCreatedNotifier = notificationsUpdater
 			log.Info("discord notifications enabled")
@@ -128,7 +128,7 @@ var rootCmd = &cobra.Command{
 		characterBlueprintsUpdater := updaters.NewCharacterBlueprintsUpdater(usersRepository, charactersRepository, playerCorporationRepostiory, characterBlueprintsRepository, esiClient)
 		industryJobsUpdater := updaters.NewIndustryJobsUpdater(usersRepository, charactersRepository, playerCorporationRepostiory, industryJobsRepository, jobQueueRepository, esiClient)
 
-		piUpdater := updaters.NewPiUpdater(usersRepository, charactersRepository, piPlanetsRepository, esiClient, systemRepository, sdeDataRepository)
+		piUpdater := updaters.NewPiUpdater(usersRepository, charactersRepository, piPlanetsRepository, esiClient, systemRepository, sdeDataRepository, itemTypesRepository)
 		if notificationsUpdater != nil {
 			piUpdater.WithStallNotifier(notificationsUpdater)
 		}

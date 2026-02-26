@@ -26,6 +26,7 @@ type Settings struct {
 	IndustryJobsUpdateIntervalSec    int
 	BlueprintsUpdateIntervalSec      int
 	AutoProductionIntervalSec        int
+	FrontendURL                      string
 }
 
 func GetSettings() (*Settings, error) {
@@ -121,6 +122,8 @@ func GetSettings() (*Settings, error) {
 	} else {
 		settings.AutoProductionIntervalSec = 1800 // 30 minutes
 	}
+
+	settings.FrontendURL = os.Getenv("FRONTEND_URL")
 
 	return settings, nil
 }

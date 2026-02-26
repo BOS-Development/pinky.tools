@@ -127,6 +127,7 @@ When reporting audit results, use:
 
 ## Conventions
 
+- **Environment variable defaults**: When documenting env vars, use the actual default from `settings.go`, not a guess. If the code does `os.Getenv("X")` with no fallback, the default is empty string — write `*(empty)*` in the Default column.
 - File naming: `lowercase-kebab-case.md`
 - Agent docs go in `docs/agents/`, not `docs/features/`
 - Complex features with multiple sub-docs get their own subdirectory within the category folder

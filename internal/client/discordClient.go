@@ -63,6 +63,7 @@ type DiscordClientInterface interface {
 type DiscordEmbed struct {
 	Title       string              `json:"title,omitempty"`
 	Description string              `json:"description,omitempty"`
+	URL         string              `json:"url,omitempty"`
 	Color       int                 `json:"color,omitempty"`
 	Fields      []DiscordEmbedField `json:"fields,omitempty"`
 	Footer      *DiscordEmbedFooter `json:"footer,omitempty"`
