@@ -71,6 +71,7 @@ Nil slices marshal to JSON `null` instead of `[]`.
 - Format: `{YYYYMMDDHHMMSS}_{name}.up.sql` / `.down.sql`
 - Use lowercase SQL keywords, tab indentation
 - Server auto-applies on restart
+- **When the planner provides a migration draft from the DBA agent, use it as-is** unless you find a Go-specific issue (e.g., scan compatibility, column order mismatch with struct fields). The DBA has already reviewed naming, indexes, and cascades.
 
 ### New Repository Checklist
 

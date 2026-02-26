@@ -9,7 +9,7 @@
 7. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
 8. **Check feature docs first.** Before exploring code or planning a feature, read the relevant `docs/features/` doc (if one exists). Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
 9. Always use the executor sub-agent for bash commands instead of running them directly.
-10. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both agents.
+10. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. **For database schema design, migration review, or query optimization, spawn the `dba` agent first** — it provides schema context, migration drafts, and optimization recommendations before backend-dev implements. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both backend and frontend agents.
 
 ---
 
@@ -58,10 +58,11 @@ This catches issues like untyped arrays (`const x = []` → `never[]`) that pass
 
 ### Update Database Schema
 
-1. Run `./scripts/new-migration.sh migration_name`
-2. Write SQL in generated `.up.sql` and `.down.sql`
-3. Restart server to auto-apply
-4. Update repository methods as needed
+1. Spawn `dba` agent to analyze existing schema, check for naming conflicts, and draft migration SQL
+2. Spawn `backend-dev` with the DBA's migration draft — it runs `./scripts/new-migration.sh` and writes the SQL
+3. backend-dev implements/updates repository methods and tests
+4. Restart server to auto-apply migration
+5. Spawn `dba` to update `docs/database-schema.md`
 
 ---
 
