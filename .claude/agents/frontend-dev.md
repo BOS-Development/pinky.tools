@@ -31,6 +31,15 @@ You are a frontend specialist for this EVE Online industry tool. The frontend is
 - Define TypeScript interfaces in the component file
 - Read existing components before creating similar ones
 
+### Paired Create/Edit Dialogs — IMPORTANT
+
+Some entities have **separate** create and edit dialogs in different files. When adding or modifying fields on one dialog, always search for the other and update both.
+
+Known pairs:
+- **Stockpile markers**: `AddStockpileDialog.tsx` (create new) + inline edit dialog in `AssetsList.tsx` (edit existing, search for "Stockpile Marker" in DialogTitle)
+
+When asked to add fields to a dialog, **grep for the entity name** (e.g., "Stockpile Marker") across all `.tsx` files to find all dialogs that manage it.
+
 ### Pages
 
 - Use `getServerSideProps` for data fetching

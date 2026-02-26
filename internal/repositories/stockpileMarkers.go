@@ -20,7 +20,8 @@ func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*mode
 	query := `
 		SELECT user_id, type_id, owner_type, owner_id, location_id,
 		       container_id, division_number, desired_quantity, notes,
-		       price_source, price_percentage
+		       price_source, price_percentage,
+		       plan_id, auto_production_parallelism, auto_production_enabled
 		FROM stockpile_markers
 		WHERE user_id = $1
 		ORDER BY type_id, location_id
@@ -32,7 +33,7 @@ func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*mode
 	}
 	defer rows.Close()
 
-	var markers []*models.StockpileMarker
+	markers := []*models.StockpileMarker{}
 	for rows.Next() {
 		var marker models.StockpileMarker
 		err = rows.Scan(
@@ -47,6 +48,9 @@ func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*mode
 			&marker.Notes,
 			&marker.PriceSource,
 			&marker.PricePercentage,
+			&marker.PlanID,
+			&marker.AutoProductionParallelism,
+			&marker.AutoProductionEnabled,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan stockpile marker")
@@ -60,14 +64,17 @@ func (r *StockpileMarkers) GetByUser(ctx context.Context, userID int64) ([]*mode
 func (r *StockpileMarkers) Upsert(ctx context.Context, marker *models.StockpileMarker) error {
 	query := `
 		INSERT INTO stockpile_markers
-		(user_id, type_id, owner_type, owner_id, location_id, container_id, division_number, desired_quantity, notes, price_source, price_percentage, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+		(user_id, type_id, owner_type, owner_id, location_id, container_id, division_number, desired_quantity, notes, price_source, price_percentage, plan_id, auto_production_parallelism, auto_production_enabled, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
 		ON CONFLICT (user_id, type_id, owner_type, owner_id, location_id, COALESCE(container_id, 0::BIGINT), COALESCE(division_number, 0))
 		DO UPDATE SET
 			desired_quantity = EXCLUDED.desired_quantity,
 			notes = EXCLUDED.notes,
 			price_source = EXCLUDED.price_source,
 			price_percentage = EXCLUDED.price_percentage,
+			plan_id = EXCLUDED.plan_id,
+			auto_production_parallelism = EXCLUDED.auto_production_parallelism,
+			auto_production_enabled = EXCLUDED.auto_production_enabled,
 			updated_at = NOW()
 	`
 
@@ -83,6 +90,9 @@ func (r *StockpileMarkers) Upsert(ctx context.Context, marker *models.StockpileM
 		marker.Notes,
 		marker.PriceSource,
 		marker.PricePercentage,
+		marker.PlanID,
+		marker.AutoProductionParallelism,
+		marker.AutoProductionEnabled,
 	)
 	if err != nil {
 		return errors.Wrap(err, "failed to upsert stockpile marker")
@@ -104,7 +114,8 @@ func (r *StockpileMarkers) GetByContainerContext(
 	query := `
 		SELECT user_id, type_id, owner_type, owner_id, location_id,
 		       container_id, division_number, desired_quantity, notes,
-		       price_source, price_percentage
+		       price_source, price_percentage,
+		       plan_id, auto_production_parallelism, auto_production_enabled
 		FROM stockpile_markers
 		WHERE user_id = $1
 		  AND owner_type = $2
@@ -137,11 +148,61 @@ func (r *StockpileMarkers) GetByContainerContext(
 			&marker.Notes,
 			&marker.PriceSource,
 			&marker.PricePercentage,
+			&marker.PlanID,
+			&marker.AutoProductionParallelism,
+			&marker.AutoProductionEnabled,
 		)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan stockpile marker")
 		}
 		markers[marker.TypeID] = &marker
+	}
+
+	return markers, nil
+}
+
+// GetAutoProductionMarkers returns all markers with auto-production enabled and a plan assigned.
+func (r *StockpileMarkers) GetAutoProductionMarkers(ctx context.Context) ([]*models.StockpileMarker, error) {
+	query := `
+		SELECT user_id, type_id, owner_type, owner_id, location_id,
+		       container_id, division_number, desired_quantity, notes,
+		       price_source, price_percentage,
+		       plan_id, auto_production_parallelism, auto_production_enabled
+		FROM stockpile_markers
+		WHERE auto_production_enabled = TRUE
+		  AND plan_id IS NOT NULL
+		ORDER BY user_id, plan_id
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query auto-production markers")
+	}
+	defer rows.Close()
+
+	markers := []*models.StockpileMarker{}
+	for rows.Next() {
+		var marker models.StockpileMarker
+		err = rows.Scan(
+			&marker.UserID,
+			&marker.TypeID,
+			&marker.OwnerType,
+			&marker.OwnerID,
+			&marker.LocationID,
+			&marker.ContainerID,
+			&marker.DivisionNumber,
+			&marker.DesiredQuantity,
+			&marker.Notes,
+			&marker.PriceSource,
+			&marker.PricePercentage,
+			&marker.PlanID,
+			&marker.AutoProductionParallelism,
+			&marker.AutoProductionEnabled,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan auto-production marker")
+		}
+		markers = append(markers, &marker)
 	}
 
 	return markers, nil

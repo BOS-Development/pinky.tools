@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -14,6 +14,9 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
+import Switch from '@mui/material/Switch';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Divider from '@mui/material/Divider';
 import { Asset, StockpileMarker, EveInventoryType } from "@industry-tool/client/data/models";
 
 type Owner = {
@@ -32,6 +35,12 @@ type Props = {
   owners: Owner[];
 };
 
+type AvailablePlan = {
+  id: number;
+  name: string;
+  productName?: string;
+};
+
 export default function AddStockpileDialog({ open, onClose, onSaved, locationId, containerId, divisionNumber, owners }: Props) {
   const [selectedItem, setSelectedItem] = useState<EveInventoryType | null>(null);
   const [itemOptions, setItemOptions] = useState<EveInventoryType[]>([]);
@@ -41,6 +50,11 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [autoProductionEnabled, setAutoProductionEnabled] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [availablePlans, setAvailablePlans] = useState<AvailablePlan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [parallelism, setParallelism] = useState(0);
 
   // Auto-select single owner
   const effectiveOwner = owners.length === 1
@@ -73,6 +87,27 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
     }, 300);
   }, []);
 
+  useEffect(() => {
+    if (!selectedItem) {
+      setAvailablePlans([]);
+      setSelectedPlanId(null);
+      return;
+    }
+    const fetchPlans = async () => {
+      setPlansLoading(true);
+      try {
+        const res = await fetch(`/api/industry/plans/by-product/${selectedItem.TypeID}`);
+        if (res.ok) {
+          const data: AvailablePlan[] = await res.json();
+          setAvailablePlans(data || []);
+        }
+      } finally {
+        setPlansLoading(false);
+      }
+    };
+    fetchPlans();
+  }, [selectedItem]);
+
   const handleSave = async () => {
     if (!selectedItem || !effectiveOwner || !desiredQuantity) return;
 
@@ -95,6 +130,9 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
         containerId,
         divisionNumber,
         desiredQuantity: qty,
+        autoProductionEnabled,
+        planId: autoProductionEnabled && selectedPlanId ? selectedPlanId : undefined,
+        autoProductionParallelism: autoProductionEnabled ? parallelism : undefined,
       };
 
       const res = await fetch('/api/stockpiles/upsert', {
@@ -135,6 +173,10 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
     setSelectedOwner('');
     setDesiredQuantity('');
     setError(null);
+    setAutoProductionEnabled(false);
+    setSelectedPlanId(null);
+    setAvailablePlans([]);
+    setParallelism(0);
     onClose();
   };
 
@@ -221,6 +263,54 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
             inputProps={{ min: 1 }}
             fullWidth
           />
+
+          <Divider sx={{ my: 1 }} />
+          <Typography variant="subtitle2" color="text.secondary">Auto-Production</Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={autoProductionEnabled}
+                onChange={(e) => setAutoProductionEnabled(e.target.checked)}
+                size="small"
+              />
+            }
+            label="Enable Auto-Production"
+          />
+          {autoProductionEnabled && (
+            <>
+              <FormControl size="small" fullWidth>
+                <InputLabel>Production Plan</InputLabel>
+                <Select
+                  value={selectedPlanId ?? ''}
+                  label="Production Plan"
+                  onChange={(e) => setSelectedPlanId(e.target.value ? Number(e.target.value) : null)}
+                  disabled={plansLoading || availablePlans.length === 0}
+                >
+                  {plansLoading ? (
+                    <MenuItem disabled>Loading plans...</MenuItem>
+                  ) : availablePlans.length === 0 ? (
+                    <MenuItem disabled>No plans for this item</MenuItem>
+                  ) : (
+                    availablePlans.map((plan) => (
+                      <MenuItem key={plan.id} value={plan.id}>
+                        {plan.name}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+              <TextField
+                size="small"
+                label="Max Parallelism"
+                type="number"
+                value={parallelism}
+                onChange={(e) => setParallelism(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                inputProps={{ min: 0 }}
+                helperText="0 = no character assignment"
+                fullWidth
+              />
+            </>
+          )}
 
           {error && <Alert severity="error">{error}</Alert>}
         </Box>

@@ -119,6 +119,58 @@ func (r *ProductionPlans) GetByUser(ctx context.Context, userID int64) ([]*model
 	return plans, nil
 }
 
+func (r *ProductionPlans) GetByProductTypeAndUser(ctx context.Context, productTypeID, userID int64) ([]*models.ProductionPlan, error) {
+	query := `
+		SELECT p.id, p.user_id, p.product_type_id, p.name, p.notes,
+		       p.default_manufacturing_station_id, p.default_reaction_station_id,
+		       p.transport_fulfillment, p.transport_method, p.transport_profile_id,
+		       p.courier_rate_per_m3, p.courier_collateral_rate,
+		       p.created_at, p.updated_at,
+		       COALESCE(ait.type_name, '') as product_name,
+		       (SELECT COUNT(*) FROM production_plan_steps WHERE plan_id = p.id) as step_count
+		FROM production_plans p
+		LEFT JOIN asset_item_types ait ON ait.type_id = p.product_type_id
+		WHERE p.user_id = $1 AND p.product_type_id = $2
+		ORDER BY p.updated_at DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, userID, productTypeID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query production plans by product type")
+	}
+	defer rows.Close()
+
+	plans := []*models.ProductionPlan{}
+	for rows.Next() {
+		var plan models.ProductionPlan
+		var stepCount int
+		err := rows.Scan(
+			&plan.ID,
+			&plan.UserID,
+			&plan.ProductTypeID,
+			&plan.Name,
+			&plan.Notes,
+			&plan.DefaultManufacturingStationID,
+			&plan.DefaultReactionStationID,
+			&plan.TransportFulfillment,
+			&plan.TransportMethod,
+			&plan.TransportProfileID,
+			&plan.CourierRatePerM3,
+			&plan.CourierCollateralRate,
+			&plan.CreatedAt,
+			&plan.UpdatedAt,
+			&plan.ProductName,
+			&stepCount,
+		)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan production plan")
+		}
+		plans = append(plans, &plan)
+	}
+
+	return plans, nil
+}
+
 func (r *ProductionPlans) GetByID(ctx context.Context, id, userID int64) (*models.ProductionPlan, error) {
 	// Get plan
 	planQuery := `

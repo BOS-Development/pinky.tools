@@ -95,6 +95,14 @@ func (m *MockProductionPlansRepository) GetContainersAtStation(ctx context.Conte
 	return args.Get(0).([]*models.StationContainer), args.Error(1)
 }
 
+func (m *MockProductionPlansRepository) GetByProductTypeAndUser(ctx context.Context, productTypeID, userID int64) ([]*models.ProductionPlan, error) {
+	args := m.Called(ctx, productTypeID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.ProductionPlan), args.Error(1)
+}
+
 type MockProductionPlansCharacterRepository struct {
 	mock.Mock
 }
@@ -453,6 +461,101 @@ func Test_ProductionPlans_GetPlans_Error(t *testing.T) {
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- GetPlansByProduct Tests ---
+
+func Test_ProductionPlans_GetPlansByProduct_Success(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	typeID := int64(587)
+	expectedPlans := []*models.ProductionPlan{
+		{ID: 1, UserID: 100, ProductTypeID: 587, Name: "Rifter Plan", ProductName: "Rifter"},
+	}
+
+	mocks.plansRepo.On("GetByProductTypeAndUser", mock.Anything, typeID, userID).Return(expectedPlans, nil)
+
+	req := httptest.NewRequest("GET", "/v1/industry/plans/by-product/587", nil)
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"typeId": "587"},
+	}
+
+	result, httpErr := controller.GetPlansByProduct(args)
+
+	assert.Nil(t, httpErr)
+	plans := result.([]*models.ProductionPlan)
+	assert.Len(t, plans, 1)
+	assert.Equal(t, "Rifter Plan", plans[0].Name)
+	assert.Equal(t, int64(587), plans[0].ProductTypeID)
+	mocks.plansRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_GetPlansByProduct_EmptyResult(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	typeID := int64(999)
+
+	mocks.plansRepo.On("GetByProductTypeAndUser", mock.Anything, typeID, userID).Return([]*models.ProductionPlan{}, nil)
+
+	req := httptest.NewRequest("GET", "/v1/industry/plans/by-product/999", nil)
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"typeId": "999"},
+	}
+
+	result, httpErr := controller.GetPlansByProduct(args)
+
+	assert.Nil(t, httpErr)
+	plans := result.([]*models.ProductionPlan)
+	assert.Len(t, plans, 0)
+	mocks.plansRepo.AssertExpectations(t)
+}
+
+func Test_ProductionPlans_GetPlansByProduct_InvalidTypeID(t *testing.T) {
+	controller, _ := setupProductionPlansController()
+
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/industry/plans/by-product/notanumber", nil)
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"typeId": "notanumber"},
+	}
+
+	result, httpErr := controller.GetPlansByProduct(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_ProductionPlans_GetPlansByProduct_RepoError(t *testing.T) {
+	controller, mocks := setupProductionPlansController()
+
+	userID := int64(100)
+	typeID := int64(587)
+
+	mocks.plansRepo.On("GetByProductTypeAndUser", mock.Anything, typeID, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/industry/plans/by-product/587", nil)
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"typeId": "587"},
+	}
+
+	result, httpErr := controller.GetPlansByProduct(args)
+
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+	mocks.plansRepo.AssertExpectations(t)
 }
 
 // --- CreatePlan Tests ---

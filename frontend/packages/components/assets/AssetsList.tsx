@@ -58,6 +58,7 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import Divider from '@mui/material/Divider';
 
 // Combined sell + sync icon for auto-sell features
 const AutoSellIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' | 'large' }) => (
@@ -227,6 +228,11 @@ export default function AssetsList(props: AssetsListProps) {
   } | null>(null);
   const [desiredQuantity, setDesiredQuantity] = useState('');
   const [notes, setNotes] = useState('');
+  const [autoProductionEnabled, setAutoProductionEnabled] = useState(false);
+  const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
+  const [availablePlans, setAvailablePlans] = useState<{id: number; name: string; productName?: string}[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [parallelism, setParallelism] = useState(0);
   const [addStockpileDialogOpen, setAddStockpileDialogOpen] = useState(false);
   const [addStockpileContext, setAddStockpileContext] = useState<{
     locationId: number;
@@ -286,6 +292,25 @@ export default function AssetsList(props: AssetsListProps) {
   const [autoBuyMaxPercentage, setAutoBuyMaxPercentage] = useState('100');
   const [autoBuyPriceSource, setAutoBuyPriceSource] = useState('jita_sell');
   const [submittingAutoBuy, setSubmittingAutoBuy] = useState(false);
+
+  useEffect(() => {
+    if (!selectedAsset || !stockpileModalOpen) {
+      return;
+    }
+    const fetchPlans = async () => {
+      setPlansLoading(true);
+      try {
+        const res = await fetch(`/api/industry/plans/by-product/${selectedAsset.asset.typeId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setAvailablePlans(data || []);
+        }
+      } finally {
+        setPlansLoading(false);
+      }
+    };
+    fetchPlans();
+  }, [selectedAsset, stockpileModalOpen]);
 
   const handleQuantityChange = (value: string) => {
     // Remove all non-digit characters
@@ -852,6 +877,32 @@ export default function AssetsList(props: AssetsListProps) {
     setSelectedAsset({ asset, locationId, containerId, divisionNumber });
     setDesiredQuantity(asset.desiredQuantity?.toLocaleString() || '');
     setNotes('');
+    // Reset auto-production state (will be populated by marker fetch)
+    setAutoProductionEnabled(false);
+    setSelectedPlanId(null);
+    setParallelism(0);
+
+    // Fetch existing marker data to get auto-production settings
+    if (asset.desiredQuantity) {
+      fetch('/api/stockpiles')
+        .then(res => res.ok ? res.json() : [])
+        .then((markers: StockpileMarker[]) => {
+          const marker = markers.find(m =>
+            m.typeId === asset.typeId &&
+            m.ownerId === asset.ownerId &&
+            m.locationId === locationId &&
+            (containerId ? m.containerId === containerId : !m.containerId) &&
+            (divisionNumber ? m.divisionNumber === divisionNumber : !m.divisionNumber)
+          );
+          if (marker) {
+            setAutoProductionEnabled(marker.autoProductionEnabled || false);
+            setSelectedPlanId(marker.planId || null);
+            setParallelism(marker.autoProductionParallelism || 0);
+          }
+        })
+        .catch(() => {});
+    }
+
     setStockpileModalOpen(true);
   };
 
@@ -869,6 +920,9 @@ export default function AssetsList(props: AssetsListProps) {
       divisionNumber: selectedAsset.divisionNumber,
       desiredQuantity: desiredQty,
       notes: notes || undefined,
+      autoProductionEnabled,
+      planId: autoProductionEnabled && selectedPlanId ? selectedPlanId : undefined,
+      autoProductionParallelism: autoProductionEnabled ? parallelism : undefined,
     };
 
     await fetch('/api/stockpiles/upsert', {
@@ -2125,6 +2179,53 @@ export default function AssetsList(props: AssetsListProps) {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Auto-Production</Typography>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={autoProductionEnabled}
+                    onChange={(e) => setAutoProductionEnabled(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="Enable Auto-Production"
+              />
+              {autoProductionEnabled && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel>Production Plan</InputLabel>
+                    <Select
+                      value={selectedPlanId ?? ''}
+                      label="Production Plan"
+                      onChange={(e) => setSelectedPlanId(e.target.value ? Number(e.target.value) : null)}
+                      disabled={plansLoading || availablePlans.length === 0}
+                    >
+                      {plansLoading ? (
+                        <MenuItem disabled>Loading plans...</MenuItem>
+                      ) : availablePlans.length === 0 ? (
+                        <MenuItem disabled>No plans for this item</MenuItem>
+                      ) : (
+                        availablePlans.map((plan) => (
+                          <MenuItem key={plan.id} value={plan.id}>
+                            {plan.name}
+                          </MenuItem>
+                        ))
+                      )}
+                    </Select>
+                  </FormControl>
+                  <TextField
+                    size="small"
+                    label="Max Parallelism"
+                    type="number"
+                    value={parallelism}
+                    onChange={(e) => setParallelism(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                    inputProps={{ min: 0 }}
+                    helperText="0 = no character assignment"
+                    fullWidth
+                  />
+                </Box>
+              )}
             </Box>
           </DialogContent>
           <DialogActions>

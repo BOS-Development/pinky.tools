@@ -67,6 +67,9 @@ export type StockpileMarker = {
   divisionNumber?: number;
   desiredQuantity: number;
   notes?: string;
+  planId?: number;
+  autoProductionParallelism?: number;
+  autoProductionEnabled?: boolean;
 };
 
 // Item Type Search Result (Go struct has no json tags -> PascalCase)

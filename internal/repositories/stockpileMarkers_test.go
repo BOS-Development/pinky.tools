@@ -474,6 +474,280 @@ func Test_StockpileMarkers_UpsertWithNilPricing(t *testing.T) {
 	assert.Nil(t, markers[0].PricePercentage)
 }
 
+func Test_StockpileMarkers_UpsertWithAutoProduction(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	testUser := &repositories.User{
+		ID:   6130,
+		Name: "Auto Production Test User",
+	}
+
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	// Create a production plan to link
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        testUser.ID,
+		ProductTypeID: 34,
+		Name:          "Tritanium Plan",
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, plan)
+
+	// Create marker with auto-production fields set
+	marker := &models.StockpileMarker{
+		UserID:                    testUser.ID,
+		TypeID:                    34, // Tritanium
+		OwnerType:                 "character",
+		OwnerID:                   61301,
+		LocationID:                60003760,
+		ContainerID:               nil,
+		DivisionNumber:            nil,
+		DesiredQuantity:           100000,
+		Notes:                     nil,
+		PlanID:                    &plan.ID,
+		AutoProductionParallelism: 3,
+		AutoProductionEnabled:     true,
+	}
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Verify auto-production fields persist via GetByUser
+	markers, err := stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1)
+
+	assert.Equal(t, int64(34), markers[0].TypeID)
+	assert.NotNil(t, markers[0].PlanID)
+	assert.Equal(t, plan.ID, *markers[0].PlanID)
+	assert.Equal(t, 3, markers[0].AutoProductionParallelism)
+	assert.True(t, markers[0].AutoProductionEnabled)
+}
+
+func Test_StockpileMarkers_UpsertWithAutoProductionDisabled(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	testUser := &repositories.User{
+		ID:   6140,
+		Name: "Auto Production Disabled Test User",
+	}
+
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	// Create marker without auto-production (defaults)
+	marker := &models.StockpileMarker{
+		UserID:                    testUser.ID,
+		TypeID:                    35, // Pyerite
+		OwnerType:                 "character",
+		OwnerID:                   61401,
+		LocationID:                60003760,
+		DesiredQuantity:           50000,
+		PlanID:                    nil,
+		AutoProductionParallelism: 1,
+		AutoProductionEnabled:     false,
+	}
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	markers, err := stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1)
+
+	assert.Nil(t, markers[0].PlanID)
+	assert.Equal(t, 1, markers[0].AutoProductionParallelism)
+	assert.False(t, markers[0].AutoProductionEnabled)
+}
+
+func Test_StockpileMarkers_GetAutoProductionMarkers(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	user1 := &repositories.User{ID: 6150, Name: "AutoProd User 1"}
+	user2 := &repositories.User{ID: 6151, Name: "AutoProd User 2"}
+
+	err = userRepo.Add(context.Background(), user1)
+	assert.NoError(t, err)
+	err = userRepo.Add(context.Background(), user2)
+	assert.NoError(t, err)
+
+	plan1, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user1.ID,
+		ProductTypeID: 34,
+		Name:          "Plan A",
+	})
+	assert.NoError(t, err)
+
+	plan2, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user2.ID,
+		ProductTypeID: 35,
+		Name:          "Plan B",
+	})
+	assert.NoError(t, err)
+
+	// Marker 1: auto-production enabled with plan
+	err = stockpileRepo.Upsert(context.Background(), &models.StockpileMarker{
+		UserID:                    user1.ID,
+		TypeID:                    34,
+		OwnerType:                 "character",
+		OwnerID:                   61501,
+		LocationID:                60003760,
+		DesiredQuantity:           10000,
+		PlanID:                    &plan1.ID,
+		AutoProductionParallelism: 2,
+		AutoProductionEnabled:     true,
+	})
+	assert.NoError(t, err)
+
+	// Marker 2: auto-production enabled with plan (different user)
+	err = stockpileRepo.Upsert(context.Background(), &models.StockpileMarker{
+		UserID:                    user2.ID,
+		TypeID:                    35,
+		OwnerType:                 "character",
+		OwnerID:                   61511,
+		LocationID:                60003760,
+		DesiredQuantity:           20000,
+		PlanID:                    &plan2.ID,
+		AutoProductionParallelism: 1,
+		AutoProductionEnabled:     true,
+	})
+	assert.NoError(t, err)
+
+	// Marker 3: auto-production disabled (should not be returned)
+	err = stockpileRepo.Upsert(context.Background(), &models.StockpileMarker{
+		UserID:                    user1.ID,
+		TypeID:                    36,
+		OwnerType:                 "character",
+		OwnerID:                   61501,
+		LocationID:                60003760,
+		DesiredQuantity:           5000,
+		PlanID:                    nil,
+		AutoProductionParallelism: 1,
+		AutoProductionEnabled:     false,
+	})
+	assert.NoError(t, err)
+
+	// Marker 4: auto-production enabled but no plan (should not be returned)
+	err = stockpileRepo.Upsert(context.Background(), &models.StockpileMarker{
+		UserID:                    user1.ID,
+		TypeID:                    27,
+		OwnerType:                 "character",
+		OwnerID:                   61501,
+		LocationID:                60003760,
+		DesiredQuantity:           3000,
+		PlanID:                    nil,
+		AutoProductionParallelism: 1,
+		AutoProductionEnabled:     true,
+	})
+	assert.NoError(t, err)
+
+	// GetAutoProductionMarkers should return only markers 1 and 2
+	autoMarkers, err := stockpileRepo.GetAutoProductionMarkers(context.Background())
+	assert.NoError(t, err)
+
+	// Filter to only the markers from our test users (other tests may have added data)
+	var filtered []*models.StockpileMarker
+	for _, m := range autoMarkers {
+		if m.UserID == user1.ID || m.UserID == user2.ID {
+			filtered = append(filtered, m)
+		}
+	}
+
+	assert.Len(t, filtered, 2)
+
+	// Should be ordered by user_id, plan_id — user1 first
+	assert.Equal(t, user1.ID, filtered[0].UserID)
+	assert.Equal(t, plan1.ID, *filtered[0].PlanID)
+	assert.Equal(t, 2, filtered[0].AutoProductionParallelism)
+	assert.True(t, filtered[0].AutoProductionEnabled)
+
+	assert.Equal(t, user2.ID, filtered[1].UserID)
+	assert.Equal(t, plan2.ID, *filtered[1].PlanID)
+	assert.Equal(t, 1, filtered[1].AutoProductionParallelism)
+	assert.True(t, filtered[1].AutoProductionEnabled)
+}
+
+func Test_StockpileMarkers_UpdateAutoProduction(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	stockpileRepo := repositories.NewStockpileMarkers(db)
+
+	testUser := &repositories.User{
+		ID:   6160,
+		Name: "Update AutoProd Test User",
+	}
+
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        testUser.ID,
+		ProductTypeID: 34,
+		Name:          "Update Plan",
+	})
+	assert.NoError(t, err)
+
+	// Create marker without auto-production
+	marker := &models.StockpileMarker{
+		UserID:                    testUser.ID,
+		TypeID:                    34,
+		OwnerType:                 "character",
+		OwnerID:                   61601,
+		LocationID:                60003760,
+		DesiredQuantity:           10000,
+		PlanID:                    nil,
+		AutoProductionParallelism: 1,
+		AutoProductionEnabled:     false,
+	}
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Enable auto-production via upsert (ON CONFLICT)
+	marker.PlanID = &plan.ID
+	marker.AutoProductionParallelism = 4
+	marker.AutoProductionEnabled = true
+
+	err = stockpileRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	// Verify update
+	markers, err := stockpileRepo.GetByUser(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, markers, 1, "Should still have one marker after upsert")
+
+	assert.NotNil(t, markers[0].PlanID)
+	assert.Equal(t, plan.ID, *markers[0].PlanID)
+	assert.Equal(t, 4, markers[0].AutoProductionParallelism)
+	assert.True(t, markers[0].AutoProductionEnabled)
+}
+
 func Test_StockpileMarkers_UpdatePricing(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)
