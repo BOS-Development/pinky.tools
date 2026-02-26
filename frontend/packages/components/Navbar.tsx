@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
@@ -7,7 +7,14 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Badge from '@mui/material/Badge';
+import Paper from '@mui/material/Paper';
+import MenuList from '@mui/material/MenuList';
+import MenuItem from '@mui/material/MenuItem';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import Popper from '@mui/material/Popper';
+import Grow from '@mui/material/Grow';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 type Contact = {
   id: number;
@@ -19,6 +26,70 @@ type Contact = {
   requestedAt: string;
   respondedAt?: string;
 };
+
+type NavItem = { label: string; href: string; badge?: number };
+
+type DropdownProps = {
+  label: React.ReactNode;
+  items: NavItem[];
+};
+
+function NavDropdown({ label, items }: DropdownProps) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLButtonElement>(null);
+
+  const handleToggle = () => setOpen((prev) => !prev);
+  const handleClose = () => setOpen(false);
+
+  return (
+    <>
+      <Button
+        ref={anchorRef}
+        color="inherit"
+        onClick={handleToggle}
+        endIcon={<KeyboardArrowDownIcon />}
+        aria-haspopup="true"
+        aria-expanded={open}
+      >
+        {label}
+      </Button>
+      <Popper
+        open={open}
+        anchorEl={anchorRef.current}
+        placement="bottom-start"
+        transition
+        style={{ zIndex: 1300 }}
+      >
+        {({ TransitionProps }) => (
+          <Grow {...TransitionProps}>
+            <Paper>
+              <ClickAwayListener onClickAway={handleClose}>
+                <MenuList>
+                  {items.map((item) => (
+                    <MenuItem
+                      key={item.href}
+                      component="a"
+                      href={item.href}
+                      onClick={handleClose}
+                    >
+                      {item.badge ? (
+                        <Badge badgeContent={item.badge} color="error">
+                          {item.label}
+                        </Badge>
+                      ) : (
+                        item.label
+                      )}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+    </>
+  );
+}
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -73,47 +144,56 @@ export default function Navbar() {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             EVE Industry Tool
           </Typography>
-          <Button color="inherit" href="/characters">
-            Characters
-          </Button>
-          <Button color="inherit" href="/corporations">
-            Corporations
-          </Button>
-          <Button color="inherit" href="/inventory">
-            Inventory
-          </Button>
-          <Button color="inherit" href="/stockpiles">
-            Stockpiles
-          </Button>
-          <Button color="inherit" href="/contacts">
-            <Badge badgeContent={pendingCount} color="error">
-              Contacts
-            </Badge>
-          </Button>
-          <Button color="inherit" href="/marketplace">
-            Marketplace
-          </Button>
-          <Button color="inherit" href="/reactions">
-            Reactions
-          </Button>
-          <Button color="inherit" href="/industry">
-            Industry
-          </Button>
-          <Button color="inherit" href="/production-plans">
-            Plans
-          </Button>
-          <Button color="inherit" href="/plan-runs">
-            Runs
-          </Button>
-          <Button color="inherit" href="/transport">
-            Transport
-          </Button>
-          <Button color="inherit" href="/stations">
-            Stations
-          </Button>
-          <Button color="inherit" href="/pi">
-            Planets
-          </Button>
+
+          <NavDropdown
+            label="Account"
+            items={[
+              { label: 'Characters', href: '/characters' },
+              { label: 'Corporations', href: '/corporations' },
+            ]}
+          />
+
+          <NavDropdown
+            label="Assets"
+            items={[
+              { label: 'Inventory', href: '/inventory' },
+              { label: 'Stockpiles', href: '/stockpiles' },
+            ]}
+          />
+
+          {/* Trading — badge on top-level button */}
+          <NavDropdown
+            label={
+              <Badge badgeContent={pendingCount} color="error">
+                Trading
+              </Badge>
+            }
+            items={[
+              { label: 'Contacts', href: '/contacts', badge: pendingCount },
+              { label: 'Marketplace', href: '/marketplace' },
+            ]}
+          />
+
+          <NavDropdown
+            label="Industry"
+            items={[
+              { label: 'Reactions', href: '/reactions' },
+              { label: 'Industry', href: '/industry' },
+              { label: 'Plans', href: '/production-plans' },
+              { label: 'Runs', href: '/plan-runs' },
+              { label: 'Planets', href: '/pi' },
+            ]}
+          />
+
+          <NavDropdown
+            label="Logistics"
+            items={[
+              { label: 'Transport', href: '/transport' },
+              { label: 'Stations', href: '/stations' },
+            ]}
+          />
+
+          {/* Settings — standalone */}
           <Button color="inherit" href="/settings">
             Settings
           </Button>
