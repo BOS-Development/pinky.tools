@@ -56,14 +56,14 @@ test-backend: test-clean
 	@echo "Running backend tests with coverage..."
 	@mkdir -p artifacts/coverage/backend
 	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm backend-test \
-		sh -c "go test -v -p 1 -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
+		sh -c "gotestsum --format pkgname -- -p 1 -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
 		       go tool cover -html=/artifacts/coverage/backend/coverage.out -o /artifacts/coverage/backend/coverage.html"
 	@echo "✓ Backend coverage report: artifacts/coverage/backend/coverage.html"
 
 test-backend-sde-integration:
 	@echo "Running SDE integration test (downloads real SDE from CCP)..."
 	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm backend-test \
-		sh -c "SDE_INTEGRATION_TEST=1 go test -v -run Test_SdeClient_Integration -timeout 300s ./internal/client/"
+		sh -c "SDE_INTEGRATION_TEST=1 gotestsum --format pkgname -- -run Test_SdeClient_Integration -timeout 300s ./internal/client/"
 	@echo "✓ SDE integration test passed"
 
 test-frontend: test-clean

@@ -1,6 +1,8 @@
 services:
   backend-test:
-    image: golang:1.25
+    build:
+      context: .
+      dockerfile: Dockerfile.test
     volumes:
       - ./artifacts:/artifacts
       - .:/app

@@ -416,20 +416,6 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 					OwnerID:   testCorp.ID,
 					Assets: []*repositories.Asset{
 						{
-							Name:            "Pyerite",
-							TypeID:          35,
-							Quantity:        50,
-							Volume:          0.16,
-							OwnerType:       "corporation",
-							OwnerName:       testCorp.Name,
-							OwnerID:         testCorp.ID,
-							DesiredQuantity: nil,
-							StockpileDelta:  &expectedQuantity50,
-			UnitPrice:    nil,
-			TotalValue:   ptrFloat64(0),
-			DeficitValue: ptrFloat64(0),
-						},
-						{
 							Name:            "Mexallon",
 							TypeID:          36,
 							Quantity:        25,
@@ -439,6 +425,20 @@ func Test_AssetsShouldGetCorporationAssetsInDivisions(t *testing.T) {
 							OwnerID:         testCorp.ID,
 							DesiredQuantity: nil,
 							StockpileDelta:  &expectedQuantity25,
+			UnitPrice:    nil,
+			TotalValue:   ptrFloat64(0),
+			DeficitValue: ptrFloat64(0),
+						},
+						{
+							Name:            "Pyerite",
+							TypeID:          35,
+							Quantity:        50,
+							Volume:          0.16,
+							OwnerType:       "corporation",
+							OwnerName:       testCorp.Name,
+							OwnerID:         testCorp.ID,
+							DesiredQuantity: nil,
+							StockpileDelta:  &expectedQuantity50,
 			UnitPrice:    nil,
 			TotalValue:   ptrFloat64(0),
 			DeficitValue: ptrFloat64(0),
@@ -1717,6 +1717,414 @@ func Test_AssetsShouldReturnZeroSummaryForNoAssets(t *testing.T) {
 
 	assert.Equal(t, 0.0, summary.TotalValue, "Total value should be 0 for user with no assets")
 	assert.Equal(t, 0.0, summary.TotalDeficit, "Total deficit should be 0 for user with no assets")
+}
+
+func Test_AssetsShouldAggregateMultipleStacksInHangar(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepository := repositories.NewUserRepository(db)
+	characterRepository := repositories.NewCharacterRepository(db)
+	characterAssetsRepository := repositories.NewCharacterAssets(db)
+	assetsRepository := repositories.NewAssets(db)
+
+	testUser := &repositories.User{
+		ID:   42,
+		Name: "Ibn Kabab",
+	}
+	err = userRepository.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	testCharacter := &repositories.Character{
+		ID:     1337,
+		Name:   "Crushim deez nuts",
+		UserID: 42,
+	}
+	err = characterRepository.Add(context.Background(), testCharacter)
+	assert.NoError(t, err)
+
+	// Two stacks of Tritanium (same type_id=34) with different item_ids
+	characterAssets := []*models.EveAsset{
+		{
+			ItemID:       11001,
+			IsSingleton:  false,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     60,
+			TypeID:       34, // Tritanium
+			LocationFlag: "Hangar",
+		},
+		{
+			ItemID:       11002,
+			IsSingleton:  false,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     40,
+			TypeID:       34, // Tritanium
+			LocationFlag: "Hangar",
+		},
+		{
+			ItemID:       11003,
+			IsSingleton:  false,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     100,
+			TypeID:       35, // Pyerite
+			LocationFlag: "Hangar",
+		},
+	}
+
+	err = characterAssetsRepository.UpdateAssets(context.Background(), testCharacter.ID, testUser.ID, characterAssets)
+	assert.NoError(t, err)
+
+	response, err := assetsRepository.GetUserAssets(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Len(t, response.Structures, 1)
+
+	// Two stacks of Tritanium should be aggregated into one row with Quantity=100
+	assert.Len(t, response.Structures[0].HangarAssets, 2, "Should have 2 distinct item types (not 3 rows)")
+
+	expectedQtyTrit := int64(100)
+	expectedQtyPyer := int64(100)
+	expectedAssets := []*repositories.Asset{
+		{
+			Name:            "Tritanium",
+			TypeID:          34,
+			Quantity:        100,
+			Volume:          1.0,
+			OwnerType:       "character",
+			OwnerName:       testCharacter.Name,
+			OwnerID:         testCharacter.ID,
+			DesiredQuantity: nil,
+			StockpileDelta:  &expectedQtyTrit,
+			UnitPrice:       nil,
+			TotalValue:      ptrFloat64(0),
+			DeficitValue:    ptrFloat64(0),
+		},
+		{
+			Name:            "Pyerite",
+			TypeID:          35,
+			Quantity:        100,
+			Volume:          0.32,
+			OwnerType:       "character",
+			OwnerName:       testCharacter.Name,
+			OwnerID:         testCharacter.ID,
+			DesiredQuantity: nil,
+			StockpileDelta:  &expectedQtyPyer,
+			UnitPrice:       nil,
+			TotalValue:      ptrFloat64(0),
+			DeficitValue:    ptrFloat64(0),
+		},
+	}
+
+	assert.ElementsMatch(t, expectedAssets, response.Structures[0].HangarAssets)
+}
+
+func Test_AssetsShouldAggregateMultipleStacksInContainers(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepository := repositories.NewUserRepository(db)
+	characterRepository := repositories.NewCharacterRepository(db)
+	characterAssetsRepository := repositories.NewCharacterAssets(db)
+	assetsRepository := repositories.NewAssets(db)
+
+	testUser := &repositories.User{
+		ID:   42,
+		Name: "Ibn Kabab",
+	}
+	err = userRepository.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	testCharacter := &repositories.Character{
+		ID:     1337,
+		Name:   "Crushim deez nuts",
+		UserID: 42,
+	}
+	err = characterRepository.Add(context.Background(), testCharacter)
+	assert.NoError(t, err)
+
+	characterAssets := []*models.EveAsset{
+		{
+			// Container in Hangar
+			ItemID:       11010,
+			IsSingleton:  true,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     1,
+			TypeID:       3293, // Medium Standard Container
+			LocationFlag: "Hangar",
+		},
+		{
+			// First Tritanium stack inside container
+			ItemID:       11011,
+			IsSingleton:  false,
+			LocationID:   11010,
+			LocationType: "item",
+			Quantity:     30,
+			TypeID:       34, // Tritanium
+			LocationFlag: "Hangar",
+		},
+		{
+			// Second Tritanium stack inside container
+			ItemID:       11012,
+			IsSingleton:  false,
+			LocationID:   11010,
+			LocationType: "item",
+			Quantity:     20,
+			TypeID:       34, // Tritanium
+			LocationFlag: "Hangar",
+		},
+	}
+
+	err = characterAssetsRepository.UpdateAssets(context.Background(), testCharacter.ID, testUser.ID, characterAssets)
+	assert.NoError(t, err)
+
+	containerNames := map[int64]string{
+		11010: "Aggregation Container",
+	}
+	err = characterAssetsRepository.UpsertContainerNames(context.Background(), testCharacter.ID, testUser.ID, containerNames)
+	assert.NoError(t, err)
+
+	response, err := assetsRepository.GetUserAssets(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Len(t, response.Structures, 1)
+
+	containers := response.Structures[0].HangarContainers
+	assert.Len(t, containers, 1)
+	assert.Equal(t, int64(11010), containers[0].ID)
+	assert.Equal(t, "Aggregation Container", containers[0].Name)
+
+	// Two stacks of Tritanium inside the container should be aggregated into one row
+	assert.Len(t, containers[0].Assets, 1, "Should have 1 distinct item type inside container (not 2 rows)")
+
+	expectedQty := int64(50)
+	expectedContainerAssets := []*repositories.Asset{
+		{
+			Name:            "Tritanium",
+			TypeID:          34,
+			Quantity:        50,
+			Volume:          0.5,
+			OwnerType:       "character",
+			OwnerName:       testCharacter.Name,
+			OwnerID:         testCharacter.ID,
+			DesiredQuantity: nil,
+			StockpileDelta:  &expectedQty,
+			UnitPrice:       nil,
+			TotalValue:      ptrFloat64(0),
+			DeficitValue:    ptrFloat64(0),
+		},
+	}
+
+	assert.Equal(t, expectedContainerAssets, containers[0].Assets)
+}
+
+func Test_AssetsShouldAggregateCorpDivisionItems(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepository := repositories.NewUserRepository(db)
+	playerCorpsRepository := repositories.NewPlayerCorporations(db)
+	corpAssetsRepository := repositories.NewCorporationAssets(db)
+	assetsRepository := repositories.NewAssets(db)
+
+	testUser := &repositories.User{
+		ID:   42,
+		Name: "Ibn Kabab",
+	}
+	err = userRepository.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	testCorp := repositories.PlayerCorporation{
+		ID:              2001,
+		UserID:          42,
+		Name:            "Test Corporation",
+		EsiToken:        "token123",
+		EsiRefreshToken: "refresh456",
+		EsiExpiresOn:    time.Now().Add(time.Hour),
+	}
+	err = playerCorpsRepository.Upsert(context.Background(), testCorp)
+	assert.NoError(t, err)
+
+	divisions := &models.CorporationDivisions{
+		Hanger: map[int]string{
+			1: "Main Hangar",
+		},
+		Wallet: map[int]string{},
+	}
+	err = playerCorpsRepository.UpsertDivisions(context.Background(), testCorp.ID, testUser.ID, divisions)
+	assert.NoError(t, err)
+
+	corpAssets := []*models.EveAsset{
+		{
+			// Office at station
+			ItemID:       11020,
+			IsSingleton:  true,
+			LocationID:   60003760,
+			LocationType: "item",
+			Quantity:     1,
+			TypeID:       27, // Office
+			LocationFlag: "OfficeFolder",
+		},
+		{
+			// First Tritanium stack in CorpSAG1
+			ItemID:       11021,
+			IsSingleton:  false,
+			LocationID:   11020, // inside office
+			LocationType: "item",
+			Quantity:     75,
+			TypeID:       34, // Tritanium
+			LocationFlag: "CorpSAG1",
+		},
+		{
+			// Second Tritanium stack in CorpSAG1
+			ItemID:       11022,
+			IsSingleton:  false,
+			LocationID:   11020, // inside office
+			LocationType: "item",
+			Quantity:     25,
+			TypeID:       34, // Tritanium
+			LocationFlag: "CorpSAG1",
+		},
+	}
+
+	err = corpAssetsRepository.Upsert(context.Background(), testCorp.ID, testUser.ID, corpAssets)
+	assert.NoError(t, err)
+
+	response, err := assetsRepository.GetUserAssets(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Len(t, response.Structures, 1)
+
+	// Find the Main Hangar division
+	var mainHangar *repositories.CorporationHanger
+	for _, h := range response.Structures[0].CorporationHangers {
+		if h.Name == "Main Hangar" {
+			mainHangar = h
+			break
+		}
+	}
+	assert.NotNil(t, mainHangar, "Main Hangar division should exist")
+
+	// Two stacks of Tritanium in the same division should be aggregated into one row
+	assert.Len(t, mainHangar.Assets, 1, "Should have 1 distinct item type in division (not 2 rows)")
+
+	expectedQty := int64(100)
+	expectedAssets := []*repositories.Asset{
+		{
+			Name:            "Tritanium",
+			TypeID:          34,
+			Quantity:        100,
+			Volume:          1.0,
+			OwnerType:       "corporation",
+			OwnerName:       testCorp.Name,
+			OwnerID:         testCorp.ID,
+			DesiredQuantity: nil,
+			StockpileDelta:  &expectedQty,
+			UnitPrice:       nil,
+			TotalValue:      ptrFloat64(0),
+			DeficitValue:    ptrFloat64(0),
+		},
+	}
+
+	assert.Equal(t, expectedAssets, mainHangar.Assets)
+}
+
+func Test_AggregatedAssetsWithStockpileMarkers(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	setupTestUniverse(t, db)
+
+	userRepository := repositories.NewUserRepository(db)
+	characterRepository := repositories.NewCharacterRepository(db)
+	characterAssetsRepository := repositories.NewCharacterAssets(db)
+	stockpileMarkersRepo := repositories.NewStockpileMarkers(db)
+	assetsRepository := repositories.NewAssets(db)
+
+	testUser := &repositories.User{
+		ID:   42,
+		Name: "Ibn Kabab",
+	}
+	err = userRepository.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	testCharacter := &repositories.Character{
+		ID:     1337,
+		Name:   "Crushim deez nuts",
+		UserID: 42,
+	}
+	err = characterRepository.Add(context.Background(), testCharacter)
+	assert.NoError(t, err)
+
+	// Two stacks of Tritanium in the character hangar
+	characterAssets := []*models.EveAsset{
+		{
+			ItemID:       11030,
+			IsSingleton:  false,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     60,
+			TypeID:       34, // Tritanium
+			LocationFlag: "Hangar",
+		},
+		{
+			ItemID:       11031,
+			IsSingleton:  false,
+			LocationID:   60003760,
+			LocationType: "station",
+			Quantity:     40,
+			TypeID:       34, // Tritanium
+			LocationFlag: "Hangar",
+		},
+	}
+	err = characterAssetsRepository.UpdateAssets(context.Background(), testCharacter.ID, testUser.ID, characterAssets)
+	assert.NoError(t, err)
+
+	// Create a stockpile marker: desired 150 Tritanium for this character at this station
+	marker := &models.StockpileMarker{
+		UserID:          testUser.ID,
+		TypeID:          34,
+		OwnerType:       "character",
+		OwnerID:         testCharacter.ID,
+		LocationID:      60003760,
+		DesiredQuantity: 150,
+	}
+	err = stockpileMarkersRepo.Upsert(context.Background(), marker)
+	assert.NoError(t, err)
+
+	response, err := assetsRepository.GetUserAssets(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, response)
+	assert.Len(t, response.Structures, 1)
+
+	// Two stacks (total 100) should aggregate into one asset with stockpile marker applied
+	assert.Len(t, response.Structures[0].HangarAssets, 1, "Should have 1 aggregated Tritanium entry")
+
+	asset := response.Structures[0].HangarAssets[0]
+	assert.Equal(t, int64(34), asset.TypeID)
+	assert.Equal(t, "Tritanium", asset.Name)
+	assert.Equal(t, int64(100), asset.Quantity)
+	assert.Equal(t, 1.0, asset.Volume)
+
+	// Stockpile marker fields: desired=150, have=100, delta=-50
+	assert.NotNil(t, asset.DesiredQuantity, "DesiredQuantity should be set from stockpile marker")
+	assert.Equal(t, int64(150), *asset.DesiredQuantity)
+
+	assert.NotNil(t, asset.StockpileDelta, "StockpileDelta should be set")
+	assert.Equal(t, int64(-50), *asset.StockpileDelta)
+
+	// No market price set up, so deficit value should be 0
+	assert.Equal(t, ptrFloat64(0), asset.DeficitValue)
+	assert.Nil(t, asset.UnitPrice)
 }
 
 func ptrFloat64(v float64) *float64 {
