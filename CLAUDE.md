@@ -9,7 +9,7 @@
 7. **Do NOT include Discord usernames or other personal attributions in GitHub issues.**
 8. **Check feature docs first.** Before exploring code or planning a feature, check `docs/features/INDEX.md` to find the relevant doc. Feature docs contain schema, API, key decisions, and file paths — use them as the starting point.
 9. Always use the executor sub-agent for bash commands instead of running them directly.
-10. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. **For database schema design, migration review, or query optimization, spawn the `dba` agent first** — it provides schema context, migration drafts, and optimization recommendations before backend-dev implements. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both backend and frontend agents.
+10. **Delegate all implementation work to domain agents.** Never write Go, SQL, or migration code directly — use the `backend-dev` agent. Never write React, TypeScript, or MUI code directly — use the `frontend-dev` agent. Never write Playwright tests, mock ESI code, or E2E seed data directly — use the `sdet` agent. **For database schema design, migration review, or query optimization, spawn the `dba` agent first** — it provides schema context, migration drafts, and optimization recommendations before backend-dev implements. The main thread plans and orchestrates; agents execute. For cross-cutting tasks (e.g., new API endpoint), spawn both backend and frontend agents.
 
 ---
 

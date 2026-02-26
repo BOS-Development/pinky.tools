@@ -68,3 +68,4 @@ Agent docs live in [`docs/agents/`](../agents/):
 |-------|-----|---------|
 | DBA | [dba-agent.md](../agents/dba-agent.md) | Schema research, migration review, query optimization |
 | Docs | [docs-agent.md](../agents/docs-agent.md) | Documentation maintenance, index updates, organization |
+| SDET | [sdet-agent.md](../agents/sdet-agent.md) | E2E test creation, mock ESI updates, Playwright maintenance |
