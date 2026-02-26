@@ -519,6 +519,246 @@ func Test_PlanRunsShouldCancelPlannedJobs(t *testing.T) {
 	assert.Equal(t, 3, fetched.JobSummary.Cancelled)
 }
 
+func Test_PlanRunsGetPendingOutputForPlan_WithPlannedJobs(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 8610, Name: "Pending Output User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Pending Output Plan",
+	})
+	assert.NoError(t, err)
+
+	run, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 50,
+	})
+	assert.NoError(t, err)
+
+	// Create a planned job (status = 'planned')
+	_, err = queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run.ID,
+	})
+	assert.NoError(t, err)
+
+	pending, err := runsRepo.GetPendingOutputForPlan(context.Background(), plan.ID, user.ID)
+	assert.NoError(t, err)
+	// run has quantity=50 and it has a 'planned' job, so pending = 50
+	assert.Equal(t, int64(50), pending)
+}
+
+func Test_PlanRunsGetPendingOutputForPlan_WithActiveJob(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 8611, Name: "Active Job User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Active Job Plan",
+	})
+	assert.NoError(t, err)
+
+	run, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 30,
+	})
+	assert.NoError(t, err)
+
+	// Create a job and mark it active
+	job, err := queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run.ID,
+	})
+	assert.NoError(t, err)
+	err = queueRepo.LinkToEsiJob(context.Background(), job.ID, 12345)
+	assert.NoError(t, err)
+
+	pending, err := runsRepo.GetPendingOutputForPlan(context.Background(), plan.ID, user.ID)
+	assert.NoError(t, err)
+	// run has quantity=30 and an 'active' job, so pending = 30
+	assert.Equal(t, int64(30), pending)
+}
+
+func Test_PlanRunsGetPendingOutputForPlan_AllCompleted(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 8612, Name: "All Completed User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "All Completed Plan",
+	})
+	assert.NoError(t, err)
+
+	run, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 20,
+	})
+	assert.NoError(t, err)
+
+	// Create a job and complete it
+	job, err := queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run.ID,
+	})
+	assert.NoError(t, err)
+	err = queueRepo.CompleteJob(context.Background(), job.ID)
+	assert.NoError(t, err)
+
+	pending, err := runsRepo.GetPendingOutputForPlan(context.Background(), plan.ID, user.ID)
+	assert.NoError(t, err)
+	// All jobs are completed, so pending = 0
+	assert.Equal(t, int64(0), pending)
+}
+
+func Test_PlanRunsGetPendingOutputForPlan_NoRuns(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+
+	user := &repositories.User{ID: 8613, Name: "No Runs Output User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "No Runs Output Plan",
+	})
+	assert.NoError(t, err)
+
+	pending, err := runsRepo.GetPendingOutputForPlan(context.Background(), plan.ID, user.ID)
+	assert.NoError(t, err)
+	// No runs at all, so pending = 0
+	assert.Equal(t, int64(0), pending)
+}
+
+func Test_PlanRunsGetPendingOutputForPlan_MultipleRuns(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	plansRepo := repositories.NewProductionPlans(db)
+	runsRepo := repositories.NewPlanRuns(db)
+	queueRepo := repositories.NewJobQueue(db)
+
+	user := &repositories.User{ID: 8614, Name: "Multi Run Output User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	plan, err := plansRepo.Create(context.Background(), &models.ProductionPlan{
+		UserID:        user.ID,
+		ProductTypeID: 587,
+		Name:          "Multi Run Plan",
+	})
+	assert.NoError(t, err)
+
+	// Run 1: quantity=10 with a planned job (pending)
+	run1, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 10,
+	})
+	assert.NoError(t, err)
+	_, err = queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run1.ID,
+	})
+	assert.NoError(t, err)
+
+	// Run 2: quantity=15 with a planned job (pending)
+	run2, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 15,
+	})
+	assert.NoError(t, err)
+	_, err = queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run2.ID,
+	})
+	assert.NoError(t, err)
+
+	// Run 3: quantity=20 with a completed job (not pending)
+	run3, err := runsRepo.Create(context.Background(), &models.ProductionPlanRun{
+		PlanID:   plan.ID,
+		UserID:   user.ID,
+		Quantity: 20,
+	})
+	assert.NoError(t, err)
+	job3, err := queueRepo.Create(context.Background(), &models.IndustryJobQueueEntry{
+		UserID:          user.ID,
+		BlueprintTypeID: 787,
+		Activity:        "manufacturing",
+		Runs:            1,
+		FacilityTax:     1.0,
+		PlanRunID:       &run3.ID,
+	})
+	assert.NoError(t, err)
+	err = queueRepo.CompleteJob(context.Background(), job3.ID)
+	assert.NoError(t, err)
+
+	pending, err := runsRepo.GetPendingOutputForPlan(context.Background(), plan.ID, user.ID)
+	assert.NoError(t, err)
+	// Runs 1 and 2 are pending: 10 + 15 = 25
+	assert.Equal(t, int64(25), pending)
+}
+
 func Test_PlanRunsShouldCancelPlannedJobsNoneToCancel(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)

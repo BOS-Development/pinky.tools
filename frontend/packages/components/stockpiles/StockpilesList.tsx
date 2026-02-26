@@ -40,6 +40,10 @@ export type StockpileItem = {
   solarSystem: string;
   region: string;
   containerName?: string;
+  planId?: number;
+  planName?: string;
+  autoProductionEnabled?: boolean;
+  autoProductionParallelism?: number;
 };
 
 export type StockpilesResponse = {
@@ -316,6 +320,7 @@ export default function StockpilesList() {
                       <TableCell align="right">Target</TableCell>
                       <TableCell align="right">Deficit</TableCell>
                       <TableCell align="right">Cost (ISK)</TableCell>
+                      <TableCell>Auto-Production</TableCell>
                       <TableCell>Owner</TableCell>
                     </TableRow>
                   </TableHead>
@@ -346,6 +351,15 @@ export default function StockpilesList() {
                           <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
                             {item.deficitValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                           </Typography>
+                        </TableCell>
+                        <TableCell>
+                          {item.autoProductionEnabled ? (
+                            <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
+                              {item.planName || 'Linked'}
+                            </Typography>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">—</Typography>
+                          )}
                         </TableCell>
                         <TableCell>{item.ownerName}</TableCell>
                       </TableRow>

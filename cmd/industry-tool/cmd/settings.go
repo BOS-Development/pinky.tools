@@ -25,6 +25,7 @@ type Settings struct {
 	SkillsUpdateIntervalSec          int
 	IndustryJobsUpdateIntervalSec    int
 	BlueprintsUpdateIntervalSec      int
+	AutoProductionIntervalSec        int
 }
 
 func GetSettings() (*Settings, error) {
@@ -110,6 +111,15 @@ func GetSettings() (*Settings, error) {
 		}
 	} else {
 		settings.BlueprintsUpdateIntervalSec = 3600 // 1 hour
+	}
+
+	if s := os.Getenv("AUTO_PRODUCTION_INTERVAL_SEC"); s != "" {
+		settings.AutoProductionIntervalSec, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.Wrapf(err, "AUTO_PRODUCTION_INTERVAL_SEC '%s' is not a number", s)
+		}
+	} else {
+		settings.AutoProductionIntervalSec = 1800 // 30 minutes
 	}
 
 	return settings, nil

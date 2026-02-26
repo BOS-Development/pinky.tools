@@ -318,6 +318,29 @@ func (r *PlanRuns) GetByID(ctx context.Context, runID, userID int64) (*models.Pr
 	return &run, nil
 }
 
+// GetPendingOutputForPlan returns the total quantity of root product still being produced
+// for a given plan. This sums the quantity from all production_plan_runs that have at least
+// one job in 'planned' or 'active' status.
+func (r *PlanRuns) GetPendingOutputForPlan(ctx context.Context, planID, userID int64) (int64, error) {
+	query := `
+		SELECT COALESCE(SUM(r.quantity), 0)
+		FROM production_plan_runs r
+		WHERE r.plan_id = $1 AND r.user_id = $2
+		AND EXISTS (
+			SELECT 1 FROM industry_job_queue q
+			WHERE q.plan_run_id = r.id AND q.status IN ('planned', 'active')
+		)
+	`
+
+	var pending int64
+	err := r.db.QueryRowContext(ctx, query, planID, userID).Scan(&pending)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get pending output for plan")
+	}
+
+	return pending, nil
+}
+
 func (r *PlanRuns) Delete(ctx context.Context, runID, userID int64) error {
 	result, err := r.db.ExecContext(ctx, `
 		DELETE FROM production_plan_runs

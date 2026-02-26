@@ -238,6 +238,23 @@ var rootCmd = &cobra.Command{
 			return blueprintsRunner.Run(ctx)
 		})
 
+		// Start auto-production runner (configurable, default 30m)
+		autoProductionUpdater := updaters.NewAutoProductionUpdater(
+			stockpileMarkersRepository,
+			assetsRepository,
+			productionPlansRepository,
+			planRunsRepository,
+			marketPricesRepository,
+			jobQueueRepository,
+			charactersRepository,
+			characterSkillsRepository,
+			sdeDataRepository,
+		)
+		autoProductionRunner := runners.NewAutoProductionRunner(autoProductionUpdater, time.Duration(settings.AutoProductionIntervalSec)*time.Second)
+		group.Go(func() error {
+			return autoProductionRunner.Run(ctx)
+		})
+
 		log.Info("services started")
 
 		eventChan := make(chan os.Signal, 1)

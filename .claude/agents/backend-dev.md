@@ -22,6 +22,7 @@ You are a backend specialist for this EVE Online industry tool. The backend is G
 - Controllers: `internal/controllers/`
 - Updaters: `internal/updaters/`
 - Runners: `internal/runners/`
+- Services: `internal/services/` (shared business logic used by both controllers and updaters)
 - Router: `internal/web/router.go`
 - ESI client: `internal/client/esiClient.go`
 - SDE client: `internal/client/sdeClient.go`
@@ -85,13 +86,39 @@ Nil slices marshal to JSON `null` instead of `[]`.
 2. Create test file for controller
 3. Register route in `internal/web/router.go`
 
+### Code Extraction / Refactoring
+
+When moving code from one package to another (e.g., extracting shared logic from `controllers/` into `services/`):
+
+1. **Create the new file** with exported types and functions
+2. **In the SAME pass**, fully update the source file:
+   - Remove ALL old private types/functions that were moved
+   - Update ALL references to use the new package prefix (e.g., `services.TypeName`)
+   - Update ALL field references from unexported to exported names (e.g., `item.typeID` → `item.TypeID`)
+   - Add the new import
+   - Remove unused imports (`math`, `sort`, etc.) if the code that needed them moved
+3. **Verify** with `go build ./...` and `go vet ./...` before declaring done
+
+**Common mistake**: Creating the new file but leaving old duplicate types/functions in the source file, causing compilation errors. Always do both sides of the extraction in one pass.
+
+### Services Package
+
+`internal/services/` contains shared business logic used by both controllers and updaters. This avoids circular dependencies (updaters can't import controllers).
+
+Current services:
+- `jobGeneration.go` — Production plan job generation: `WalkAndMergeSteps`, `SimulateAssignment`, `EstimateWallClock`, `FormatLocation`
+
 ## Testing
 
-Every new file must have a corresponding `_test.go`:
+**All code must have tests — no exceptions.**
 
-- Repositories, controllers, and updaters all need tests
+- Every new `.go` file must have a corresponding `_test.go`. This applies to all packages: repositories, controllers, updaters, services, runners, and any others.
+- When adding new features or functionality to an existing file (new methods, new endpoints, new behavior), you must add tests covering the new code — even if the file already has a test file.
+- Tests must be written before declaring the work done.
+
 - Use table-driven tests for multiple scenarios
-- Test with real database (testcontainers)
+- Test with real database (testcontainers) for repository tests
+- Use testify mocks for controller, updater, and service tests
 - Cover success cases, edge cases, and error scenarios
 
 ### Controller test patterns

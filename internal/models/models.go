@@ -75,17 +75,20 @@ type CorporationDivisions struct {
 }
 
 type StockpileMarker struct {
-	UserID          int64    `json:"userId"`
-	TypeID          int64    `json:"typeId"`
-	OwnerType       string   `json:"ownerType"`
-	OwnerID         int64    `json:"ownerId"`
-	LocationID      int64    `json:"locationId"`
-	ContainerID     *int64   `json:"containerId"`
-	DivisionNumber  *int     `json:"divisionNumber"`
-	DesiredQuantity int64    `json:"desiredQuantity"`
-	Notes           *string  `json:"notes"`
-	PriceSource     *string  `json:"priceSource"`
-	PricePercentage *float64 `json:"pricePercentage"`
+	UserID                    int64    `json:"userId"`
+	TypeID                    int64    `json:"typeId"`
+	OwnerType                 string   `json:"ownerType"`
+	OwnerID                   int64    `json:"ownerId"`
+	LocationID                int64    `json:"locationId"`
+	ContainerID               *int64   `json:"containerId"`
+	DivisionNumber            *int     `json:"divisionNumber"`
+	DesiredQuantity           int64    `json:"desiredQuantity"`
+	Notes                     *string  `json:"notes"`
+	PriceSource               *string  `json:"priceSource"`
+	PricePercentage           *float64 `json:"pricePercentage"`
+	PlanID                    *int64   `json:"planId"`
+	AutoProductionParallelism int      `json:"autoProductionParallelism"`
+	AutoProductionEnabled     bool     `json:"autoProductionEnabled"`
 }
 
 type MarketPrice struct {
