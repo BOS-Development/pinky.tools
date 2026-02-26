@@ -41,13 +41,9 @@ func (r *ForSaleItems) GetByUser(ctx context.Context, userID int64) ([]*models.F
 			t.type_name,
 			f.owner_type,
 			f.owner_id,
-			CASE
-				WHEN f.owner_type = 'character' THEN c.name
-				WHEN f.owner_type = 'corporation' THEN corp.name
-				ELSE 'Unknown'
-			END AS owner_name,
+			resolve_owner_name(f.owner_type, f.owner_id) AS owner_name,
 			f.location_id,
-			COALESCE(s.name, st.name, 'Unknown Location') AS location_name,
+			resolve_location_name(f.location_id) AS location_name,
 			f.container_id,
 			f.division_number,
 			f.quantity_available,
@@ -59,10 +55,6 @@ func (r *ForSaleItems) GetByUser(ctx context.Context, userID int64) ([]*models.F
 			f.updated_at
 		FROM for_sale_items f
 		JOIN asset_item_types t ON f.type_id = t.type_id
-		LEFT JOIN characters c ON f.owner_type = 'character' AND f.owner_id = c.id
-		LEFT JOIN player_corporations corp ON f.owner_type = 'corporation' AND f.owner_id = corp.id
-		LEFT JOIN solar_systems s ON f.location_id = s.solar_system_id
-		LEFT JOIN stations st ON f.location_id = st.station_id
 		WHERE f.user_id = $1 AND f.is_active = true
 		ORDER BY f.created_at DESC
 	`
@@ -119,13 +111,9 @@ func (r *ForSaleItems) GetBrowsableItems(ctx context.Context, buyerUserID int64,
 			t.type_name,
 			f.owner_type,
 			f.owner_id,
-			CASE
-				WHEN f.owner_type = 'character' THEN c.name
-				WHEN f.owner_type = 'corporation' THEN corp.name
-				ELSE 'Unknown'
-			END AS owner_name,
+			resolve_owner_name(f.owner_type, f.owner_id) AS owner_name,
 			f.location_id,
-			COALESCE(s.name, st.name, 'Unknown Location') AS location_name,
+			resolve_location_name(f.location_id) AS location_name,
 			f.container_id,
 			f.division_number,
 			f.quantity_available,
@@ -137,10 +125,6 @@ func (r *ForSaleItems) GetBrowsableItems(ctx context.Context, buyerUserID int64,
 			f.updated_at
 		FROM for_sale_items f
 		JOIN asset_item_types t ON f.type_id = t.type_id
-		LEFT JOIN characters c ON f.owner_type = 'character' AND f.owner_id = c.id
-		LEFT JOIN player_corporations corp ON f.owner_type = 'corporation' AND f.owner_id = corp.id
-		LEFT JOIN solar_systems s ON f.location_id = s.solar_system_id
-		LEFT JOIN stations st ON f.location_id = st.station_id
 		WHERE f.user_id = ANY($1) AND f.is_active = true
 		ORDER BY f.created_at DESC
 	`
@@ -291,13 +275,9 @@ func (r *ForSaleItems) GetByID(ctx context.Context, itemID int64) (*models.ForSa
 			t.type_name,
 			f.owner_type,
 			f.owner_id,
-			CASE
-				WHEN f.owner_type = 'character' THEN c.name
-				WHEN f.owner_type = 'corporation' THEN corp.name
-				ELSE 'Unknown'
-			END AS owner_name,
+			resolve_owner_name(f.owner_type, f.owner_id) AS owner_name,
 			f.location_id,
-			COALESCE(s.name, st.name, 'Unknown Location') AS location_name,
+			resolve_location_name(f.location_id) AS location_name,
 			f.container_id,
 			f.division_number,
 			f.quantity_available,
@@ -309,10 +289,6 @@ func (r *ForSaleItems) GetByID(ctx context.Context, itemID int64) (*models.ForSa
 			f.updated_at
 		FROM for_sale_items f
 		JOIN asset_item_types t ON f.type_id = t.type_id
-		LEFT JOIN characters c ON f.owner_type = 'character' AND f.owner_id = c.id
-		LEFT JOIN player_corporations corp ON f.owner_type = 'corporation' AND f.owner_id = corp.id
-		LEFT JOIN solar_systems s ON f.location_id = s.solar_system_id
-		LEFT JOIN stations st ON f.location_id = st.station_id
 		WHERE f.id = $1
 	`
 
@@ -431,7 +407,7 @@ func (r *ForSaleItems) GetMatchingForSaleItems(ctx context.Context, typeID int64
 			f.owner_id,
 			'' AS owner_name,
 			f.location_id,
-			COALESCE(s.name, st.name, 'Unknown Location') AS location_name,
+			resolve_location_name(f.location_id) AS location_name,
 			f.container_id,
 			f.division_number,
 			f.quantity_available,
@@ -443,8 +419,6 @@ func (r *ForSaleItems) GetMatchingForSaleItems(ctx context.Context, typeID int64
 			f.updated_at
 		FROM for_sale_items f
 		LEFT JOIN asset_item_types t ON f.type_id = t.type_id
-		LEFT JOIN solar_systems s ON f.location_id = s.solar_system_id
-		LEFT JOIN stations st ON f.location_id = st.station_id
 		WHERE f.type_id = $1
 			AND f.is_active = true
 			AND f.quantity_available > 0

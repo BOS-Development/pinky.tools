@@ -212,7 +212,7 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 			pt.type_id,
 			t.type_name,
 			fsi.location_id,
-			COALESCE(s.name, st.name, 'Unknown Location') AS location_name,
+			resolve_location_name(fsi.location_id) AS location_name,
 			pt.quantity_purchased,
 			pt.price_per_unit,
 			pt.total_price,
@@ -226,8 +226,6 @@ func (r *PurchaseTransactions) GetPendingForSeller(ctx context.Context, sellerUs
 		JOIN asset_item_types t ON pt.type_id = t.type_id
 		JOIN for_sale_items fsi ON pt.for_sale_item_id = fsi.id
 		LEFT JOIN users buyer_user ON pt.buyer_user_id = buyer_user.id
-		LEFT JOIN solar_systems s ON fsi.location_id = s.solar_system_id
-		LEFT JOIN stations st ON fsi.location_id = st.station_id
 		WHERE pt.seller_user_id = $1 AND pt.status = 'pending'
 		ORDER BY fsi.location_id, COALESCE(buyer_user.name, CONCAT('User ', pt.buyer_user_id)), pt.purchased_at DESC
 	`

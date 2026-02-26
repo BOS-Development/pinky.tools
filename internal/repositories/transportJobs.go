@@ -5,6 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -68,13 +69,46 @@ func (r *TransportJobs) GetByUser(ctx context.Context, userID int64) ([]*models.
 		jobs = append(jobs, &j)
 	}
 
-	// Load items for all jobs
-	for _, job := range jobs {
-		items, err := r.getItems(ctx, job.ID)
-		if err != nil {
-			return nil, err
+	// Batch load items for all jobs
+	if len(jobs) > 0 {
+		jobIDs := make([]int64, len(jobs))
+		for i, j := range jobs {
+			jobIDs[i] = j.ID
 		}
-		job.Items = items
+
+		itemQuery := `
+			select i.id, i.transport_job_id, i.type_id, i.quantity, i.volume_m3, i.estimated_value,
+			       COALESCE(t.type_name, '')
+			from transport_job_items i
+			left join asset_item_types t on t.type_id = i.type_id
+			where i.transport_job_id = ANY($1)
+			order by i.transport_job_id, i.id asc
+		`
+
+		itemRows, err := r.db.QueryContext(ctx, itemQuery, pq.Array(jobIDs))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to batch query transport job items")
+		}
+		defer itemRows.Close()
+
+		itemMap := map[int64][]*models.TransportJobItem{}
+		for itemRows.Next() {
+			var item models.TransportJobItem
+			if err := itemRows.Scan(
+				&item.ID, &item.TransportJobID, &item.TypeID,
+				&item.Quantity, &item.VolumeM3, &item.EstimatedValue,
+				&item.TypeName,
+			); err != nil {
+				return nil, errors.Wrap(err, "failed to scan transport job item")
+			}
+			itemMap[item.TransportJobID] = append(itemMap[item.TransportJobID], &item)
+		}
+
+		for _, job := range jobs {
+			if items, ok := itemMap[job.ID]; ok {
+				job.Items = items
+			}
+		}
 	}
 
 	return jobs, nil
