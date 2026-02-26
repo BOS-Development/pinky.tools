@@ -149,7 +149,7 @@ CREATE TABLE purchase_transactions (
 
 ## Related Features
 
-- **Contact System** - [docs/features/contact-marketplace.md](../contact-marketplace.md)
+- **Contact System** - [docs/features/social/contact-marketplace.md](../../social/contact-marketplace.md)
 - **For-Sale Listings** - Part of marketplace system
 - **Permissions** - Granular service-based access control
 

@@ -22,7 +22,7 @@ You provide schema context, review migrations, advise on query patterns, identif
 - Repositories: `internal/repositories/` (76 files, raw SQL queries)
 - Database setup: `internal/database/postgres.go` (embedded migrations via go:embed)
 - Schema reference: `docs/database-schema.md` (maintained by you)
-- Feature docs: `docs/features/` (schema fragments across 42 docs)
+- Feature docs: `docs/features/{category}/` — see `docs/features/INDEX.md` for full listing
 
 ## Core Capabilities
 
