@@ -29,7 +29,15 @@ export default async function handler(
     esiToken: `fake-token-${characterName.toLowerCase().replace(/\s+/g, "-")}`,
     esiRefreshToken: `fake-refresh-${characterName.toLowerCase().replace(/\s+/g, "-")}`,
     esiTokenExpiresOn: expiresOn,
-    esiScopes: "publicData esi-assets.read_assets.v1",
+    esiScopes: [
+      "publicData",
+      "esi-assets.read_assets.v1",
+      "esi-skills.read_skills.v1",
+      "esi-industry.read_character_jobs.v1",
+      "esi-characters.read_blueprints.v1",
+      "esi-planets.manage_planets.v1",
+      "esi-contracts.read_character_contracts.v1",
+    ].join(" "),
   });
 
   if (response.kind === "error") {

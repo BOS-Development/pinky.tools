@@ -24,6 +24,9 @@ services:
       dockerfile: Dockerfile.mock-esi
     environment:
       PORT: "8090"
+      E2E_TESTING: "true"
+    ports:
+      - "8090:8090"
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8090/latest/markets/10000002/orders/ || exit 1"]
       interval: 2s
@@ -48,6 +51,8 @@ services:
       OAUTH_CLIENT_SECRET: "e2e-dummy"
       ESI_BASE_URL: "http://mock-esi:8090"
       ASSET_UPDATE_INTERVAL_SEC: "10"
+      INDUSTRY_JOBS_UPDATE_INTERVAL_SEC: "10"
+      PI_UPDATE_INTERVAL_SEC: "10"
     depends_on:
       database:
         condition: service_healthy
@@ -107,6 +112,7 @@ services:
     environment:
       CI: "true"
       BASE_URL: "http://frontend:3000"
+      MOCK_ESI_URL: "http://mock-esi:8090"
     depends_on:
       frontend:
         condition: service_healthy
