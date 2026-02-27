@@ -72,4 +72,12 @@ test.describe('Characters', () => {
 
     await expect(page.getByRole('heading', { name: 'Characters' })).toBeVisible({ timeout: 10000 });
   });
+
+  test('character cards show scope warning when scopes are outdated', async ({ page }) => {
+    await page.goto('/characters');
+    await expect(page.getByText('Alice Alpha')).toBeVisible({ timeout: 10000 });
+
+    // E2E characters are added with a subset of required scopes, so Re-authorize button should appear
+    await expect(page.getByRole('link', { name: /Re-authorize/i }).first()).toBeVisible();
+  });
 });

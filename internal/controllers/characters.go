@@ -14,8 +14,9 @@ import (
 )
 
 type CharacterModel struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	EsiScopes string `json:"esiScopes"`
 }
 
 type CharacterRepository interface {
@@ -71,8 +72,9 @@ func (c *Characters) GetAllCharacters(args *web.HandlerArgs) (interface{}, *web.
 	models := []CharacterModel{}
 	for _, char := range characters {
 		models = append(models, CharacterModel{
-			ID:   char.ID,
-			Name: char.Name,
+			ID:        char.ID,
+			Name:      char.Name,
+			EsiScopes: char.EsiScopes,
 		})
 	}
 	return models, nil

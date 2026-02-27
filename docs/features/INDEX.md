@@ -9,6 +9,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 | Characters | [characters.md](core/characters.md) | ESI OAuth, token storage, character asset refresh |
 | Corporations | [corporations.md](core/corporations.md) | Corp management, divisions, corp asset refresh |
 | Authentication | [consolidate-oauth.md](core/consolidate-oauth.md) | OAuth consolidation, scopes, single callback |
+| ESI Scope Warnings | [esi-scope-warnings.md](core/esi-scope-warnings.md) | Scope update detection, re-auth warnings |
 | Background Updates | [background-asset-updates.md](core/background-asset-updates.md) | Asset refresh runners (1h), concurrency |
 | SDE Import | [sde-import.md](core/sde-import.md) | Static data pipeline, all `sde_*` tables, background runners |
 | NPC Station Names | [npc-station-names.md](core/npc-station-names.md) | Station name resolution via ESI bulk endpoint |

@@ -1,11 +1,13 @@
 export type Character = {
   id: number;
   name: string;
+  esiScopes: string;
 };
 
 export type Corporation = {
   id: number;
   name: string;
+  esiScopes: string;
 };
 
 export type Asset = {

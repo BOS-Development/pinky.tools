@@ -64,4 +64,11 @@ test.describe('Navigation', () => {
     await page.goto('/marketplace');
     await expect(page.getByRole('tab', { name: 'My Listings' })).toBeVisible({ timeout: 10000 });
   });
+
+  test('shows scope warning banner when characters have outdated scopes', async ({ page }) => {
+    await page.goto('/characters');
+    // Characters and corps added by specs 02 and 03 have a subset of required scopes,
+    // so the global navbar banner should be visible on any page
+    await expect(page.getByText('Some characters or corporations need to be re-authorized')).toBeVisible({ timeout: 15000 });
+  });
 });
