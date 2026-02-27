@@ -53,6 +53,7 @@ export let corpScopesArray = [
     "esi-corporations.read_starbases.v1",
     "esi-industry.read_corporation_jobs.v1",
     "esi-markets.read_corporation_orders.v1",
+    "esi-contracts.read_corporation_contracts.v1",
     "esi-corporations.read_container_logs.v1",
     "esi-industry.read_corporation_mining.v1",
     "esi-corporations.read_facilities.v1",
