@@ -1,0 +1,171 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Character Item Component should match snapshot for character with no scopes 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-emrazf-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-79elbk"
+    >
+      <img
+        alt="No Scopes Pilot"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        src="https://image.eveonline.com/Character/11111_128.jpg"
+      />
+      <svg
+        aria-hidden="true"
+        aria-label="Scopes need updating"
+        class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-163k00c-MuiSvgIcon-root"
+        data-mui-internal-clone-element="true"
+        data-testid="WarningAmberIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+        />
+        <path
+          d="M13 16h-2v2h2zm0-6h-2v5h2z"
+        />
+      </svg>
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+      >
+        No Scopes Pilot
+      </div>
+      <div
+        class="MuiBox-root css-1mpg011"
+      >
+        <svg
+          aria-hidden="true"
+          aria-label="This character needs to be re-authorized to grant new permissions"
+          class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-pr4iv3-MuiSvgIcon-root"
+          data-mui-internal-clone-element="true"
+          data-testid="WarningAmberIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+          />
+          <path
+            d="M13 16h-2v2h2zm0-6h-2v5h2z"
+          />
+        </svg>
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning css-r30sdl-MuiButtonBase-root-MuiButton-root"
+          href="/api/characters/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Character Item Component should match snapshot for outdated character 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-emrazf-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-79elbk"
+    >
+      <img
+        alt="Outdated Pilot"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        src="https://image.eveonline.com/Character/67890_128.jpg"
+      />
+      <svg
+        aria-hidden="true"
+        aria-label="Scopes need updating"
+        class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-163k00c-MuiSvgIcon-root"
+        data-mui-internal-clone-element="true"
+        data-testid="WarningAmberIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+        />
+        <path
+          d="M13 16h-2v2h2zm0-6h-2v5h2z"
+        />
+      </svg>
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+      >
+        Outdated Pilot
+      </div>
+      <div
+        class="MuiBox-root css-1mpg011"
+      >
+        <svg
+          aria-hidden="true"
+          aria-label="This character needs to be re-authorized to grant new permissions"
+          class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-pr4iv3-MuiSvgIcon-root"
+          data-mui-internal-clone-element="true"
+          data-testid="WarningAmberIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+          />
+          <path
+            d="M13 16h-2v2h2zm0-6h-2v5h2z"
+          />
+        </svg>
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning css-r30sdl-MuiButtonBase-root-MuiButton-root"
+          href="/api/characters/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Character Item Component should match snapshot for up-to-date character 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-byyo48-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-79elbk"
+    >
+      <img
+        alt="Test Pilot"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        src="https://image.eveonline.com/Character/12345_128.jpg"
+      />
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+      >
+        Test Pilot
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -38,4 +38,12 @@ test.describe('Corporations', () => {
 
     await expect(page.getByRole('heading', { name: 'Corporations' })).toBeVisible({ timeout: 10000 });
   });
+
+  test('corporation cards show scope warning when scopes are outdated', async ({ page }) => {
+    await page.goto('/corporations');
+    await expect(page.getByText('Stargazer Industries')).toBeVisible({ timeout: 10000 });
+
+    // E2E corps are added with a subset of required scopes, so Re-authorize button should appear
+    await expect(page.getByRole('link', { name: /Re-authorize/i })).toBeVisible();
+  });
 });

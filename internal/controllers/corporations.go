@@ -122,8 +122,9 @@ func (c *Corporations) Add(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 }
 
 type PlayerCorporation struct {
-	ID   int64  `json:"id"`
-	Name string `json:"name"`
+	ID        int64  `json:"id"`
+	Name      string `json:"name"`
+	EsiScopes string `json:"esiScopes"`
 }
 
 func (c *Corporations) Get(args *web.HandlerArgs) (interface{}, *web.HttpError) {
@@ -139,8 +140,9 @@ func (c *Corporations) Get(args *web.HandlerArgs) (interface{}, *web.HttpError) 
 
 	for _, corp := range corps {
 		webCorps = append(webCorps, PlayerCorporation{
-			ID:   corp.ID,
-			Name: corp.Name,
+			ID:        corp.ID,
+			Name:      corp.Name,
+			EsiScopes: corp.EsiScopes,
 		})
 	}
 

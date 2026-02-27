@@ -265,22 +265,23 @@ describe('Navbar Component', () => {
 
     render(<Navbar />);
 
-    await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledTimes(1);
-    });
-
-    // Fast forward 30 seconds
-    jest.advanceTimersByTime(30000);
-
+    // On mount: contacts fetch + scope-status fetch (both fire once)
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
     });
 
-    // Fast forward another 30 seconds
+    // Fast forward 30 seconds — contacts polls again (scope-status does not poll)
     jest.advanceTimersByTime(30000);
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(3);
+    });
+
+    // Fast forward another 30 seconds — contacts polls again
+    jest.advanceTimersByTime(30000);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledTimes(4);
     });
 
     jest.useRealTimers();

@@ -15,6 +15,7 @@ import Popper from '@mui/material/Popper';
 import Grow from '@mui/material/Grow';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import Alert from '@mui/material/Alert';
 
 type Contact = {
   id: number;
@@ -94,6 +95,7 @@ function NavDropdown({ label, items }: DropdownProps) {
 export default function Navbar() {
   const { data: session } = useSession();
   const [pendingCount, setPendingCount] = useState(0);
+  const [scopeWarning, setScopeWarning] = useState(false);
 
   useEffect(() => {
     if (!session?.providerAccountId) return;
@@ -128,6 +130,23 @@ export default function Navbar() {
     return () => clearInterval(interval);
   }, [session]);
 
+  useEffect(() => {
+    if (!session?.providerAccountId) return;
+
+    const fetchScopeStatus = async () => {
+      try {
+        const response = await fetch('/api/scope-status');
+        if (!response.ok) return;
+        const data = await response.json();
+        setScopeWarning(data.hasOutdated);
+      } catch (error) {
+        console.error('Failed to fetch scope status:', error);
+      }
+    };
+
+    fetchScopeStatus();
+  }, [session]);
+
   return (
     <>
       <AppBar position="fixed">
@@ -146,7 +165,15 @@ export default function Navbar() {
           </Typography>
 
           <NavDropdown
-            label="Account"
+            label={
+              scopeWarning ? (
+                <Badge variant="dot" color="warning">
+                  Account
+                </Badge>
+              ) : (
+                "Account"
+              )
+            }
             items={[
               { label: 'Characters', href: '/characters' },
               { label: 'Corporations', href: '/corporations' },
@@ -200,6 +227,19 @@ export default function Navbar() {
         </Toolbar>
       </AppBar>
       <Toolbar />
+      {scopeWarning && (
+        <Alert
+          severity="warning"
+          sx={{ borderRadius: 0 }}
+          action={
+            <Button color="inherit" size="small" href="/characters">
+              View
+            </Button>
+          }
+        >
+          Some characters or corporations need to be re-authorized with updated permissions.
+        </Alert>
+      )}
     </>
   );
 }

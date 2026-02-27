@@ -1,0 +1,246 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Corporation Item Component should match snapshot for corporation with no scopes 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-emrazf-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-v1g7g9"
+    >
+      <img
+        alt="No Scopes Corp"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-1234tsp-MuiCardMedia-root"
+        height="200"
+        src="https://images.evetech.net/corporations/11111/logo?size=256&tenant=tranquility"
+      />
+      <svg
+        aria-hidden="true"
+        aria-label="Scopes need updating"
+        class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-163k00c-MuiSvgIcon-root"
+        data-mui-internal-clone-element="true"
+        data-testid="WarningAmberIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+        />
+        <path
+          d="M13 16h-2v2h2zm0-6h-2v5h2z"
+        />
+      </svg>
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiBox-root css-19idom"
+      >
+        <div
+          class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorPrimary MuiChip-outlinedPrimary css-1ogcyzq-MuiChip-root"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiChip-icon MuiChip-iconSmall MuiChip-iconColorPrimary css-1umw9bq-MuiSvgIcon-root"
+            data-testid="BusinessIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 7V3H2v18h20V7zM6 19H4v-2h2zm0-4H4v-2h2zm0-4H4V9h2zm0-4H4V5h2zm4 12H8v-2h2zm0-4H8v-2h2zm0-4H8V9h2zm0-4H8V5h2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8zm-2-8h-2v2h2zm0 4h-2v2h2z"
+            />
+          </svg>
+          <span
+            class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+          >
+            Corporation
+          </span>
+        </div>
+      </div>
+      <div
+        class="MuiTypography-root MuiTypography-h5 css-vtle5o-MuiTypography-root"
+      >
+        No Scopes Corp
+      </div>
+      <div
+        class="MuiBox-root css-1mpg011"
+      >
+        <svg
+          aria-hidden="true"
+          aria-label="This corporation needs to be re-authorized to grant new permissions"
+          class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-pr4iv3-MuiSvgIcon-root"
+          data-mui-internal-clone-element="true"
+          data-testid="WarningAmberIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+          />
+          <path
+            d="M13 16h-2v2h2zm0-6h-2v5h2z"
+          />
+        </svg>
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning css-r30sdl-MuiButtonBase-root-MuiButton-root"
+          href="/api/corporations/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Corporation Item Component should match snapshot for outdated corporation 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-emrazf-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-v1g7g9"
+    >
+      <img
+        alt="Outdated Corp"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-1234tsp-MuiCardMedia-root"
+        height="200"
+        src="https://images.evetech.net/corporations/54321/logo?size=256&tenant=tranquility"
+      />
+      <svg
+        aria-hidden="true"
+        aria-label="Scopes need updating"
+        class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-163k00c-MuiSvgIcon-root"
+        data-mui-internal-clone-element="true"
+        data-testid="WarningAmberIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+        />
+        <path
+          d="M13 16h-2v2h2zm0-6h-2v5h2z"
+        />
+      </svg>
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiBox-root css-19idom"
+      >
+        <div
+          class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorPrimary MuiChip-outlinedPrimary css-1ogcyzq-MuiChip-root"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiChip-icon MuiChip-iconSmall MuiChip-iconColorPrimary css-1umw9bq-MuiSvgIcon-root"
+            data-testid="BusinessIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 7V3H2v18h20V7zM6 19H4v-2h2zm0-4H4v-2h2zm0-4H4V9h2zm0-4H4V5h2zm4 12H8v-2h2zm0-4H8v-2h2zm0-4H8V9h2zm0-4H8V5h2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8zm-2-8h-2v2h2zm0 4h-2v2h2z"
+            />
+          </svg>
+          <span
+            class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+          >
+            Corporation
+          </span>
+        </div>
+      </div>
+      <div
+        class="MuiTypography-root MuiTypography-h5 css-vtle5o-MuiTypography-root"
+      >
+        Outdated Corp
+      </div>
+      <div
+        class="MuiBox-root css-1mpg011"
+      >
+        <svg
+          aria-hidden="true"
+          aria-label="This corporation needs to be re-authorized to grant new permissions"
+          class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-pr4iv3-MuiSvgIcon-root"
+          data-mui-internal-clone-element="true"
+          data-testid="WarningAmberIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+          />
+          <path
+            d="M13 16h-2v2h2zm0-6h-2v5h2z"
+          />
+        </svg>
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning css-r30sdl-MuiButtonBase-root-MuiButton-root"
+          href="/api/corporations/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Corporation Item Component should match snapshot for up-to-date corporation 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-byyo48-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-v1g7g9"
+    >
+      <img
+        alt="Test Corporation"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-1234tsp-MuiCardMedia-root"
+        height="200"
+        src="https://images.evetech.net/corporations/98765/logo?size=256&tenant=tranquility"
+      />
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiBox-root css-19idom"
+      >
+        <div
+          class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorPrimary MuiChip-outlinedPrimary css-1ogcyzq-MuiChip-root"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiChip-icon MuiChip-iconSmall MuiChip-iconColorPrimary css-1umw9bq-MuiSvgIcon-root"
+            data-testid="BusinessIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M12 7V3H2v18h20V7zM6 19H4v-2h2zm0-4H4v-2h2zm0-4H4V9h2zm0-4H4V5h2zm4 12H8v-2h2zm0-4H8v-2h2zm0-4H8V9h2zm0-4H8V5h2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8zm-2-8h-2v2h2zm0 4h-2v2h2z"
+            />
+          </svg>
+          <span
+            class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+          >
+            Corporation
+          </span>
+        </div>
+      </div>
+      <div
+        class="MuiTypography-root MuiTypography-h5 css-vtle5o-MuiTypography-root"
+      >
+        Test Corporation
+      </div>
+    </div>
+  </div>
+</div>
+`;

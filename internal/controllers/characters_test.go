@@ -64,8 +64,8 @@ func Test_CharactersController_GetAllCharacters_Success(t *testing.T) {
 
 	userID := int64(42)
 	expectedChars := []*repositories.Character{
-		{ID: 12345, Name: "Character 1"},
-		{ID: 12346, Name: "Character 2"},
+		{ID: 12345, Name: "Character 1", EsiScopes: "esi-assets.read_assets.v1 publicData"},
+		{ID: 12346, Name: "Character 2", EsiScopes: "esi-assets.read_assets.v1"},
 	}
 
 	mockRepo.On("GetAll", mock.Anything, userID).Return(expectedChars, nil)
@@ -85,6 +85,7 @@ func Test_CharactersController_GetAllCharacters_Success(t *testing.T) {
 	assert.Len(t, models, 2)
 	assert.Equal(t, int64(12345), models[0].ID)
 	assert.Equal(t, "Character 1", models[0].Name)
+	assert.Equal(t, "esi-assets.read_assets.v1 publicData", models[0].EsiScopes)
 
 	mockRepo.AssertExpectations(t)
 }

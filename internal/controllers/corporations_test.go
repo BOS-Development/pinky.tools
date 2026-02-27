@@ -66,8 +66,8 @@ func Test_CorporationsController_Get_Success(t *testing.T) {
 
 	userID := int64(42)
 	expectedCorps := []repositories.PlayerCorporation{
-		{ID: 2001, Name: "Corp 1"},
-		{ID: 2002, Name: "Corp 2"},
+		{ID: 2001, Name: "Corp 1", EsiScopes: "esi-assets.read_corporation_assets.v1"},
+		{ID: 2002, Name: "Corp 2", EsiScopes: ""},
 	}
 
 	mockRepo.On("Get", mock.Anything, userID).Return(expectedCorps, nil)
@@ -87,6 +87,7 @@ func Test_CorporationsController_Get_Success(t *testing.T) {
 	assert.Len(t, corps, 2)
 	assert.Equal(t, int64(2001), corps[0].ID)
 	assert.Equal(t, "Corp 1", corps[0].Name)
+	assert.Equal(t, "esi-assets.read_corporation_assets.v1", corps[0].EsiScopes)
 
 	mockRepo.AssertExpectations(t)
 }

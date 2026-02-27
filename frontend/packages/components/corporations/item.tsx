@@ -1,4 +1,5 @@
 import { Corporation } from "@industry-tool/client/data/models";
+import { corporationScopesUpToDate } from "@industry-tool/client/scopes";
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import CardMedia from '@mui/material/CardMedia';
@@ -6,12 +7,17 @@ import Typography from '@mui/material/Typography';
 import BusinessIcon from '@mui/icons-material/Business';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
+import Button from '@mui/material/Button';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 export type CorporationItemProps = {
   corporation: Corporation;
 };
 
 export default function Item(props: CorporationItemProps) {
+  const needsUpdate = !corporationScopesUpToDate(props.corporation);
+
   return (
     <Card
       sx={{
@@ -20,7 +26,11 @@ export default function Item(props: CorporationItemProps) {
         '&:hover': {
           transform: 'translateY(-4px)',
           boxShadow: 6,
-        }
+        },
+        ...(needsUpdate && {
+          border: '2px solid',
+          borderColor: 'warning.main',
+        }),
       }}
     >
       <Box
@@ -45,11 +55,24 @@ export default function Item(props: CorporationItemProps) {
             filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
           }}
           onError={(e) => {
-            // Fallback to icon if logo fails to load
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';
           }}
         />
+        {needsUpdate && (
+          <Tooltip title="Scopes need updating">
+            <WarningAmberIcon
+              color="warning"
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                fontSize: 32,
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+              }}
+            />
+          </Tooltip>
+        )}
       </Box>
       <CardContent>
         <Box sx={{ mb: 1 }}>
@@ -72,6 +95,21 @@ export default function Item(props: CorporationItemProps) {
         >
           {props.corporation.name}
         </Typography>
+        {needsUpdate && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Tooltip title="This corporation needs to be re-authorized to grant new permissions">
+              <WarningAmberIcon color="warning" />
+            </Tooltip>
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              href="/api/corporations/add"
+            >
+              Re-authorize
+            </Button>
+          </Box>
+        )}
       </CardContent>
     </Card>
   );
