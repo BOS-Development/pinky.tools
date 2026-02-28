@@ -268,15 +268,23 @@ func newDefaultState() *State {
 		characterSkills: map[int64]skillsResponse{
 			2001001: {
 				Skills: []skillEntry{
-					{SkillID: 3380, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},  // Industry
-					{SkillID: 3388, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},  // Advanced Industry
-					{SkillID: 45746, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 45255},  // Reactions
+					{SkillID: 3380, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},   // Industry
+					{SkillID: 3388, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},   // Advanced Industry
+					{SkillID: 3387, TrainedSkillLevel: 5, ActiveSkillLevel: 5, SkillpointsInSkill: 256000},   // Mass Production
+					{SkillID: 24625, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 135765},  // Advanced Mass Production
+					{SkillID: 45746, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 135765},  // Reactions
+					{SkillID: 45748, TrainedSkillLevel: 3, ActiveSkillLevel: 3, SkillpointsInSkill: 40000},   // Mass Reactions
+					{SkillID: 45749, TrainedSkillLevel: 2, ActiveSkillLevel: 2, SkillpointsInSkill: 11314},   // Advanced Mass Reactions
+					{SkillID: 3402, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 135765},   // Science
+					{SkillID: 3406, TrainedSkillLevel: 3, ActiveSkillLevel: 3, SkillpointsInSkill: 40000},    // Laboratory Operation
+					{SkillID: 24624, TrainedSkillLevel: 2, ActiveSkillLevel: 2, SkillpointsInSkill: 11314},   // Advanced Laboratory Operation
 				},
 				TotalSP: 5000000,
 			},
 			2002001: {
 				Skills: []skillEntry{
-					{SkillID: 3380, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 45255},
+					{SkillID: 3380, TrainedSkillLevel: 4, ActiveSkillLevel: 4, SkillpointsInSkill: 135765},  // Industry
+					{SkillID: 3387, TrainedSkillLevel: 3, ActiveSkillLevel: 3, SkillpointsInSkill: 40000},   // Mass Production
 				},
 				TotalSP: 2000000,
 			},

@@ -1216,3 +1216,86 @@ type BlueprintLevel struct {
 	OwnerName          string `json:"ownerName"`
 	Runs               int    `json:"runs"`
 }
+
+// --- Job Slot Rental Models ---
+
+type JobSlotRentalListing struct {
+	ID            int64     `json:"id"`
+	UserID        int64     `json:"userId"`
+	CharacterID   int64     `json:"characterId"`
+	CharacterName string    `json:"characterName"`
+	ActivityType  string    `json:"activityType"`
+	SlotsListed   int       `json:"slotsListed"`
+	PriceAmount   float64   `json:"priceAmount"`
+	PricingUnit   string    `json:"pricingUnit"`
+	LocationID    *int64    `json:"locationId"`
+	LocationName  string    `json:"locationName"`
+	Notes         *string   `json:"notes"`
+	IsActive      bool      `json:"isActive"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
+type JobSlotInterestRequest struct {
+	ID              int64     `json:"id"`
+	ListingID       int64     `json:"listingId"`
+	RequesterUserID int64     `json:"requesterUserId"`
+	RequesterName   string    `json:"requesterName"`
+	SlotsRequested  int       `json:"slotsRequested"`
+	DurationDays    *int      `json:"durationDays"`
+	Message         *string   `json:"message"`
+	Status          string    `json:"status"`
+	CreatedAt       time.Time `json:"createdAt"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	// Enriched fields for buyer view
+	ListingActivityType  string  `json:"listingActivityType,omitempty"`
+	ListingCharacterName string  `json:"listingCharacterName,omitempty"`
+	ListingOwnerName     string  `json:"listingOwnerName,omitempty"`
+	ListingPriceAmount   float64 `json:"listingPriceAmount,omitempty"`
+	ListingPricingUnit   string  `json:"listingPricingUnit,omitempty"`
+}
+
+type CharacterSlotInventory struct {
+	CharacterID     int64                       `json:"characterId"`
+	CharacterName   string                      `json:"characterName"`
+	SlotsByActivity map[string]*ActivitySlotInfo `json:"slotsByActivity"`
+}
+
+type ActivitySlotInfo struct {
+	ActivityType   string `json:"activityType"`
+	SlotsMax       int    `json:"slotsMax"`
+	SlotsInUse     int    `json:"slotsInUse"`
+	SlotsReserved  int    `json:"slotsReserved"`
+	SlotsAvailable int    `json:"slotsAvailable"`
+	SlotsListed    int    `json:"slotsListed"`
+}
+
+type CreateJobSlotListingRequest struct {
+	CharacterID  int64   `json:"characterId"`
+	ActivityType string  `json:"activityType"`
+	SlotsListed  int     `json:"slotsListed"`
+	PriceAmount  float64 `json:"priceAmount"`
+	PricingUnit  string  `json:"pricingUnit"`
+	LocationID   *int64  `json:"locationId"`
+	Notes        *string `json:"notes"`
+}
+
+type UpdateJobSlotListingRequest struct {
+	SlotsListed int     `json:"slotsListed"`
+	PriceAmount float64 `json:"priceAmount"`
+	PricingUnit string  `json:"pricingUnit"`
+	LocationID  *int64  `json:"locationId"`
+	Notes       *string `json:"notes"`
+	IsActive    *bool   `json:"isActive"`
+}
+
+type CreateInterestRequest struct {
+	ListingID      int64   `json:"listingId"`
+	SlotsRequested int     `json:"slotsRequested"`
+	DurationDays   *int    `json:"durationDays"`
+	Message        *string `json:"message"`
+}
+
+type UpdateInterestStatusRequest struct {
+	Status string `json:"status"`
+}

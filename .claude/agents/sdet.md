@@ -42,6 +42,7 @@ e2e/
     14-pi.spec.ts           # Planetary industry data + stall detection
     15-transport.spec.ts    # Transportation routes + JF cost calc
     16-settings.spec.ts     # User preferences + character settings
+    17-job-slot-exchange.spec.ts  # Job slot rental exchange
 
 cmd/mock-esi/
   main.go                   # Mock ESI HTTP server (canned responses)
@@ -151,6 +152,73 @@ page.getByText('Jita IV - Moon 4')
 page.getByText(/Auto-Sell @ 90% JBV/)
 ```
 
+### MUI Select (InputLabel + Select) — CRITICAL
+
+MUI `<Select>` with `<InputLabel>` does NOT create proper ARIA label associations. `getByLabel('Character')` will NOT work. Use this pattern instead:
+
+```typescript
+// Find the MUI FormControl by its label text, then click the combobox inside
+const characterControl = dialog.locator('.MuiFormControl-root').filter({
+  has: page.locator('label').filter({ hasText: 'Character' }),
+});
+await characterControl.getByRole('combobox').click();
+await page.getByRole('option', { name: /Alice Alpha/i }).click();
+```
+
+### MUI Switch in FormControlLabel — CRITICAL
+
+MUI Switch's internal `<input type="checkbox">` is visually hidden (opacity: 0). `getByRole('checkbox')` won't find it. Use `force: true`:
+
+```typescript
+// Find the FormControlLabel by its text, then click the hidden checkbox
+const label = dialog.locator('label').filter({ hasText: /Browse Job Slot Listings/i });
+await expect(label).toBeVisible({ timeout: 5000 });
+await label.locator('input[type="checkbox"]').click({ force: true });
+await expect(label.locator('input[type="checkbox"]')).toBeChecked({ timeout: 5000 });
+```
+
+### MUI IconButton — Needs aria-label
+
+MUI `<IconButton>` with only an icon child (e.g., `<EditIcon />`) has NO accessible name. `getByRole('button', { name: /Edit/i })` will NOT find it. The component MUST have `aria-label="Edit"`. If it doesn't, ask the frontend-dev agent to add it.
+
+### Strict Mode — Always Use `.first()` for Ambiguous Text
+
+Playwright strict mode fails when `getByText()` matches multiple elements. This is common with:
+- Character names that appear in multiple table rows or panels
+- Activity type labels ("Manufacturing", "Reaction") that appear in inventory AND listings
+- Status labels ("pending", "accepted") that appear in both chips and snackbars
+
+Always add `.first()` when the text could appear multiple times:
+```typescript
+await expect(page.getByText('Alice Alpha').first()).toBeVisible();
+await expect(page.getByText(/Manufacturing/i).first()).toBeVisible();
+await expect(page.getByText(/accepted/i).first()).toBeVisible();
+```
+
+### Subtab Navigation — Wait Before Clicking
+
+Never use `if (await tab.count() > 0)` for subtab navigation — `count()` resolves immediately and returns 0 before the tab renders. Always wait for visibility first:
+
+```typescript
+// WRONG — tab.count() may return 0 before tab renders
+const sentTab = page.getByRole('tab', { name: /Sent/i });
+if (await sentTab.count() > 0) { await sentTab.click(); }
+
+// RIGHT — wait for tab to be visible, then click
+const sentTab = page.getByRole('tab', { name: /Sent/i });
+await expect(sentTab).toBeVisible({ timeout: 10000 });
+await sentTab.click();
+```
+
+### formatISK Assertions
+
+The `formatISK()` utility uses K/M/B/T suffixes, NOT comma formatting:
+- `formatISK(75000)` → `"75.00K ISK"` (NOT `"75,000 ISK"`)
+- `formatISK(100000)` → `"100.00K ISK"`
+- `formatISK(1500000)` → `"1.50M ISK"`
+
+Use regex for price assertions: `getByText(/75\.00K/)` not `getByText('75,000')`
+
 ### Scoping to Avoid Ambiguity
 
 When the same text appears in multiple places, scope your locator:
@@ -218,7 +286,7 @@ The mock ESI server (`cmd/mock-esi/main.go`) is a plain Go HTTP server with hard
 
 - **Character assets**: Alice Alpha (Jita: Tritanium 50k, Pyerite 25k, Mexallon 10k, Raven Navy Issue, "Minerals Box" container with Isogen 5k), Alice Beta (Amarr: Rifter x3, Nocxium 5k), Bob Bravo (Jita: Tritanium 30k, Rifter x10), Charlie (Pyerite 1k), Diana (Tritanium 15k in Amarr)
 - **Corp assets**: Stargazer Industries (office at Jita, Tritanium 100k in CorpSAG1, Rifter x5 in CorpSAG2)
-- **Skills**: Alice Alpha (Industry 5, Advanced Industry 5, Reactions 4), Bob (Industry 4)
+- **Skills**: Alice Alpha (Industry 5, Advanced Industry 5, Mass Production 4, Adv Mass Production 4, Lab Operation 4, Adv Lab Operation 4, Reactions 4, Mass Reactions 4, Adv Mass Reactions 4), Bob Bravo (Industry 4, Mass Production 3). **Slot counts**: Alice has 9 mfg, 9 science, 9 reaction slots. Bob has 4 mfg slots. Tests must respect these limits when listing slots.
 - **Blueprints**: Alice Alpha (Rifter BPO ME10, BPC ME8), Bob (Rifter BPO ME8), Corp (Rifter BPO ME9)
 - **Industry jobs**: Alice Alpha (1 active Rifter manufacturing)
 - **Market orders**: Tritanium (sell 6.00/buy 5.50), Pyerite (sell 11.50/buy 10.00), Mexallon (sell 75/buy 70), Isogen (sell 55/buy 50), Rifter (sell 600k/buy 500k), Raven Navy Issue (sell 520M/buy 500M)
@@ -368,6 +436,7 @@ make test-e2e-clean
 | PI | `/pi` | 14-pi.spec.ts | ✅ |
 | Transport | `/transport` | 15-transport.spec.ts | ✅ |
 | Settings | `/settings` | 16-settings.spec.ts | ✅ |
+| Job Slots | `/job-slots` | 17-job-slot-exchange.spec.ts | ✅ |
 
 When adding a new page, create a corresponding E2E test file. Minimum coverage: page loads, primary happy path, empty state.
 

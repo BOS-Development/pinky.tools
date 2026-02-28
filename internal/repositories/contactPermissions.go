@@ -153,7 +153,7 @@ func (r *ContactPermissions) GetUserPermissionsForService(ctx context.Context, v
 // InitializePermissionsForContact creates default (all denied) permissions when contact accepted
 func (r *ContactPermissions) InitializePermissionsForContact(ctx context.Context, tx *sql.Tx, contactID, userID1, userID2 int64) error {
 	// Default service types
-	serviceTypes := []string{"for_sale_browse"}
+	serviceTypes := []string{"for_sale_browse", "job_slot_browse"}
 
 	query := `
 		INSERT INTO contact_permissions

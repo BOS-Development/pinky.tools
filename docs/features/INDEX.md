@@ -43,6 +43,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 | Auto-Fulfill | [auto-fulfill.md](trading/auto-fulfill.md) | Match buy orders to for-sale listings |
 | Contract Sync | [contract-sync.md](trading/contract-sync.md) | ESI contract polling, auto-complete |
 | Contract Notifications | [contract-created-notification.md](trading/contract-created-notification.md) | Discord alerts on contract creation |
+| Job Slot Rental Exchange | [job-slot-rental-exchange.md](trading/job-slot-rental-exchange.md) | Marketplace for renting idle industry job slots |
 
 ## Industry & Production
 
