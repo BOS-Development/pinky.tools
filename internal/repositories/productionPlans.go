@@ -758,6 +758,11 @@ func (r *ProductionPlans) enrichStepsWithStationData(ctx context.Context, steps 
 		if rigs, ok := rigMap[*step.UserStationID]; ok {
 			if tier, ok := rigs[step.RigCategory]; ok {
 				step.Rig = tier
+			} else if step.RigCategory == "component" {
+				// Thukker Component rigs are stored as "thukker" but apply to component steps
+				if tier, ok := rigs["thukker"]; ok {
+					step.Rig = tier
+				}
 			}
 		}
 	}
