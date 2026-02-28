@@ -209,6 +209,7 @@ export default function Navbar() {
               { label: 'Plans', href: '/production-plans' },
               { label: 'Runs', href: '/plan-runs' },
               { label: 'Planets', href: '/pi' },
+              { label: 'Job Slots', href: '/job-slots' },
             ]}
           />
 

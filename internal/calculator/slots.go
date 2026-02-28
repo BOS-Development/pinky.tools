@@ -4,19 +4,23 @@ import "sort"
 
 // Skill ID constants for industry-related skills.
 const (
-	SkillIndustry          int64 = 3380  // 4% mfg time reduction per level
-	SkillAdvIndustry       int64 = 3388  // 3% mfg time reduction per level
-	SkillMassProduction    int64 = 3387  // +1 mfg slot per level
-	SkillAdvMassProduction int64 = 24625 // +1 mfg slot per level
-	SkillReactions         int64 = 45746 // 4% reaction time reduction per level; enables reactions
-	SkillMassReactions     int64 = 45748 // +1 reaction slot per level
-	SkillAdvMassReactions  int64 = 45749 // +1 reaction slot per level
+	SkillIndustry                int64 = 3380  // 4% mfg time reduction per level
+	SkillAdvIndustry             int64 = 3388  // 3% mfg time reduction per level
+	SkillMassProduction          int64 = 3387  // +1 mfg slot per level
+	SkillAdvMassProduction       int64 = 24625 // +1 mfg slot per level
+	SkillReactions               int64 = 45746 // 4% reaction time reduction per level; enables reactions
+	SkillMassReactions           int64 = 45748 // +1 reaction slot per level
+	SkillAdvMassReactions        int64 = 45749 // +1 reaction slot per level
+	SkillScience                 int64 = 3402  // Enables science activities
+	SkillLaboratoryOperation     int64 = 3406  // +1 science slot per level
+	SkillAdvLaboratoryOperation  int64 = 24624 // +1 science slot per level
 )
 
 // IndustrySkillIDs is a convenience slice for fetching all industry-related skills at once.
 var IndustrySkillIDs = []int64{
 	SkillIndustry, SkillAdvIndustry, SkillMassProduction, SkillAdvMassProduction,
 	SkillReactions, SkillMassReactions, SkillAdvMassReactions,
+	SkillScience, SkillLaboratoryOperation, SkillAdvLaboratoryOperation,
 }
 
 // CharacterCapacity holds the manufacturing and reaction slot capacity for a character.
@@ -27,9 +31,12 @@ type CharacterCapacity struct {
 	MfgSlotsUsed     int
 	ReactSlotsMax    int
 	ReactSlotsUsed   int
+	SciSlotsMax      int
+	SciSlotsUsed     int
 	IndustrySkill    int // 0-5
 	AdvIndustrySkill int // 0-5
 	ReactionsSkill   int // 0-5
+	ScienceSkill     int // 0-5
 }
 
 // CalculateManufacturingSlots returns the maximum number of manufacturing slots
@@ -51,6 +58,18 @@ func CalculateReactionSlots(skills map[int64]int) int {
 	return 1 + skills[SkillMassReactions] + skills[SkillAdvMassReactions]
 }
 
+// CalculateScienceSlots returns the maximum number of science slots available
+// to a character based on their skills.
+// Requires at least level 1 of Science to use any science slots.
+// Base is 1 slot (when Science >= 1), +1 per level of Laboratory Operation,
+// +1 per level of Advanced Laboratory Operation.
+func CalculateScienceSlots(skills map[int64]int) int {
+	if skills[SkillScience] < 1 {
+		return 0
+	}
+	return 1 + skills[SkillLaboratoryOperation] + skills[SkillAdvLaboratoryOperation]
+}
+
 // MfgSlotsAvailable returns the number of free manufacturing slots for a character.
 // Never returns a negative value.
 func MfgSlotsAvailable(c *CharacterCapacity) int {
@@ -65,6 +84,16 @@ func MfgSlotsAvailable(c *CharacterCapacity) int {
 // Never returns a negative value.
 func ReactSlotsAvailable(c *CharacterCapacity) int {
 	avail := c.ReactSlotsMax - c.ReactSlotsUsed
+	if avail < 0 {
+		return 0
+	}
+	return avail
+}
+
+// SciSlotsAvailable returns the number of free science slots for a character.
+// Never returns a negative value.
+func SciSlotsAvailable(c *CharacterCapacity) int {
+	avail := c.SciSlotsMax - c.SciSlotsUsed
 	if avail < 0 {
 		return 0
 	}
@@ -102,27 +131,32 @@ func BuildCharacterCapacities(
 
 		mfgSlots := CalculateManufacturingSlots(skills)
 		reactSlots := CalculateReactionSlots(skills)
+		sciSlots := CalculateScienceSlots(skills)
 
 		industrySkill := skills[SkillIndustry]
 		advIndustrySkill := skills[SkillAdvIndustry]
 		reactionsSkill := skills[SkillReactions]
+		scienceSkill := skills[SkillScience]
 
-		// Only include characters that have earned at least one slot in either activity.
+		// Only include characters that have earned at least one slot in any activity.
 		// Industry skill is not required for the base manufacturing slot (everyone starts
 		// with 1), but we gate on Industry >= 1 to exclude characters that haven't trained
 		// any industry skills at all.
 		hasMfg := industrySkill >= 1
 		hasReact := reactionsSkill >= 1
-		if !hasMfg && !hasReact {
+		hasSci := scienceSkill >= 1
+		if !hasMfg && !hasReact && !hasSci {
 			continue
 		}
 
 		usage := slotUsage[charID]
 		mfgUsed := 0
 		reactUsed := 0
+		sciUsed := 0
 		if usage != nil {
 			mfgUsed = usage["manufacturing"]
 			reactUsed = usage["reaction"]
+			sciUsed = usage["te_research"] + usage["me_research"] + usage["copying"] + usage["invention"]
 		}
 
 		capacities = append(capacities, &CharacterCapacity{
@@ -132,9 +166,12 @@ func BuildCharacterCapacities(
 			MfgSlotsUsed:     mfgUsed,
 			ReactSlotsMax:    reactSlots,
 			ReactSlotsUsed:   reactUsed,
+			SciSlotsMax:      sciSlots,
+			SciSlotsUsed:     sciUsed,
 			IndustrySkill:    industrySkill,
 			AdvIndustrySkill: advIndustrySkill,
 			ReactionsSkill:   reactionsSkill,
+			ScienceSkill:     scienceSkill,
 		})
 	}
 

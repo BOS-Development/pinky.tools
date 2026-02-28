@@ -39,6 +39,7 @@ type PermissionsDialogProps = {
 
 const SERVICE_TYPES = [
   { type: 'for_sale_browse', label: 'Browse For-Sale Items' },
+  { type: 'job_slot_browse', label: 'Browse Job Slot Listings' },
 ];
 
 export default function PermissionsDialog({

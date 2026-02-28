@@ -82,13 +82,16 @@ ON CONFLICT (type_id) DO NOTHING;
 
 -- Skill item types (referenced by sde_blueprint_skills)
 INSERT INTO asset_item_types (type_id, type_name, volume, group_id) VALUES
-  (3380,  'Industry',                  0.01, 270),
-  (3388,  'Advanced Industry',         0.01, 270),
-  (3387,  'Mass Production',           0.01, 270),
-  (24625, 'Advanced Mass Production',  0.01, 270),
-  (45746, 'Reactions',                 0.01, 270),
-  (45748, 'Mass Reactions',            0.01, 270),
-  (45749, 'Advanced Mass Reactions',   0.01, 270)
+  (3380,  'Industry',                      0.01, 270),
+  (3388,  'Advanced Industry',             0.01, 270),
+  (3387,  'Mass Production',               0.01, 270),
+  (24625, 'Advanced Mass Production',      0.01, 270),
+  (45746, 'Reactions',                     0.01, 270),
+  (45748, 'Mass Reactions',                0.01, 270),
+  (45749, 'Advanced Mass Reactions',       0.01, 270),
+  (3402,  'Science',                       0.01, 270),
+  (3406,  'Laboratory Operation',          0.01, 270),
+  (24624, 'Advanced Laboratory Operation', 0.01, 270)
 ON CONFLICT (type_id) DO NOTHING;
 
 -- Blueprint definition
@@ -193,5 +196,26 @@ ON CONFLICT (type_id) DO UPDATE SET
   buy_price      = EXCLUDED.buy_price,
   sell_price     = EXCLUDED.sell_price,
   adjusted_price = EXCLUDED.adjusted_price;
+
+-- ===========================================
+-- Character Skills for Job Slot & Industry Tests
+-- ===========================================
+
+INSERT INTO character_skills (character_id, user_id, skill_id, trained_level, active_level, skillpoints, updated_at) VALUES
+  -- Alice Alpha (2001001, user 1001): Full industry skill set
+  (2001001, 1001, 3380,  5, 5, 256000, NOW()),   -- Industry
+  (2001001, 1001, 3388,  5, 5, 256000, NOW()),   -- Advanced Industry
+  (2001001, 1001, 3387,  5, 5, 256000, NOW()),   -- Mass Production
+  (2001001, 1001, 24625, 4, 4, 135765, NOW()),   -- Advanced Mass Production
+  (2001001, 1001, 45746, 4, 4, 135765, NOW()),   -- Reactions
+  (2001001, 1001, 45748, 3, 3, 40000,  NOW()),   -- Mass Reactions
+  (2001001, 1001, 45749, 2, 2, 11314,  NOW()),   -- Advanced Mass Reactions
+  (2001001, 1001, 3402,  4, 4, 135765, NOW()),   -- Science
+  (2001001, 1001, 3406,  3, 3, 40000,  NOW()),   -- Laboratory Operation
+  (2001001, 1001, 24624, 2, 2, 11314,  NOW()),   -- Advanced Laboratory Operation
+  -- Bob Bravo (2002001, user 1002): Basic manufacturing
+  (2002001, 1002, 3380,  4, 4, 135765, NOW()),   -- Industry
+  (2002001, 1002, 3387,  3, 3, 40000,  NOW())    -- Mass Production
+ON CONFLICT (character_id, skill_id) DO NOTHING;
 
 COMMIT;

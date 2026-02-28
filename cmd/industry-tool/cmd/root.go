@@ -175,6 +175,9 @@ var rootCmd = &cobra.Command{
 
 		controllers.NewTransportation(router, transportProfilesRepo, jfRoutesRepo, transportJobsRepo, triggerConfigRepo, jobQueueRepository, marketPricesRepository, systemRepository, esiClient)
 
+		jobSlotRentalsRepository := repositories.NewJobSlotRentals(db)
+		controllers.NewJobSlotRentals(router, jobSlotRentalsRepository, contactPermissionsRepository)
+
 		group.Go(router.Run(ctx))
 
 		// Start SDE update scheduler (24h)
