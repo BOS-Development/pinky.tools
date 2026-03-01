@@ -2,15 +2,17 @@
 
 ## Status
 
-- **Phase**: 1 - Market Scanner & Run CRUD (Implemented)
-- **Scope**: Hub-to-hub arbitrage scanning, run creation/tracking, per-item fill progress
-- **Future**: Phase 2 adds Discord alerts, split-run operators, corp wallet buy orders, P&L UI
+- **Phase**: 2 - Discord Alerts, Corp Orders, P&L UI (Implemented)
+- **Scope**: Hub-to-hub arbitrage scanning, run creation/tracking, per-item fill progress, Discord notifications, corp order auto-fill, post-run P&L tracking
+- **Future**: Phase 3 adds split-run operators, undercut monitoring, Dotlan integration
 
 ## Overview
 
-Hauling Runs is a logistics planning feature that helps players identify profitable item-hauling opportunities between trade hubs and track acquisition progress. Phase 1 provides a market scanner that identifies arbitrage spreads and a run planner to organize items by destination, fill capacity, and compute net profit per haul.
+Hauling Runs is a logistics planning feature that helps players identify profitable item-hauling opportunities between trade hubs and track acquisition progress. The system provides a market scanner that identifies arbitrage spreads, a run planner to organize items by destination and fill capacity, and post-run P&L tracking.
 
-Phase 1 focuses on the planning workflow: scanning markets for opportunities, creating hauling runs with source/destination regions, adding items to runs with target quantities, and tracking fill progress toward ship capacity. Phase 2 will add Discord notifications for fill alerts and post-run P&L tracking.
+**Phase 1** covers the planning workflow: scanning markets for opportunities, creating hauling runs with source/destination regions, adding items to runs with target quantities, and tracking fill progress toward ship capacity.
+
+**Phase 2** adds Discord notifications (Tier 2 fill alerts at ≥80%, run completion alerts, daily digests), automatic corp buy order polling (matching corp wallet orders to run items every 15 minutes), and post-run P&L tracking with revenue, cost, and profit summary.
 
 ## Key Decisions
 
@@ -33,6 +35,14 @@ Phase 1 focuses on the planning workflow: scanning markets for opportunities, cr
 9. **Notification schema ready** — notify_tier2, notify_tier3, daily_digest flags stored on run; alerting logic deferred to Phase 2.
 
 10. **P&L scaffold** — hauling_run_pnl table exists for future post-run accounting; Phase 1 does not populate it.
+
+11. **Corp order auto-fill** — Corp buy orders are polled every 15 minutes (esi-corporations.read_orders.v1 scope) and matched to run items by type_id; quantity_acquired is updated automatically when corp orders are partially filled.
+
+12. **Post-run P&L is per-item** — hauling_run_pnl records one entry per (run_id, type_id) with UNIQUE constraint. Total summary is computed as SQL aggregate in PnL summary endpoint.
+
+13. **Tier 2 notification fires once per fill crossing** — The 80% threshold check in UpdateItemAcquired fires a goroutine to send Discord alert; duplicate firing is acceptable (Discord dedup not implemented).
+
+14. **Route safety is frontend-only** — Jump count and kill count data are fetched client-side from public ESI and zKillboard APIs; no server-side caching.
 
 ## Schema
 
@@ -106,18 +116,20 @@ Cached market order data per type/region/system for fast scanner results.
 - Full refresh: all items in source region + selected items in destination
 - Partial refresh: specific items on user request (e.g., after manual price update)
 
-### `hauling_run_pnl` (NEW, SCAFFOLD ONLY)
+### `hauling_run_pnl` (NEW, IMPLEMENTED IN PHASE 2)
 
-Post-run P&L tracking (Phase 2 UI, Phase 1 schema ready).
+Post-run P&L tracking — one entry per (run_id, type_id) pair.
 
 - `id` (bigint, PK)
-- `run_id` (bigint, FK hauling_runs CASCADE, UNIQUE)
+- `run_id` (bigint, FK hauling_runs CASCADE)
 - `type_id` (bigint)
 - `quantity_sold` (bigint) — units actually sold
 - `avg_sell_price_isk` (numeric(12,2)) — average price per unit sold
 - `total_revenue_isk` (numeric(14,2)) — quantity_sold × avg_sell_price
 - `total_cost_isk` (numeric(14,2)) — cost to acquire (sum of buys)
 - `net_profit_isk` (numeric(14,2)) — GENERATED ALWAYS as total_revenue - total_cost STORED
+
+**Unique constraint:** `(run_id, type_id)` — one P&L record per item type per run
 
 ## API Endpoints
 
@@ -299,33 +311,99 @@ Triggers background market fetch; returns job_id for polling.
 
 Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with populated type_id, type_name, quantity_planned = units_fit, buy_price, sell_price.
 
+### P&L Tracking (Phase 2)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/hauling/runs/{id}/pnl` | Get P&L entries for run (all items) |
+| PUT | `/v1/hauling/runs/{id}/pnl` | Upsert P&L entry (quantity_sold, avg_sell_price, total_revenue, total_cost) |
+| GET | `/v1/hauling/runs/{id}/pnl/summary` | Get P&L summary (total revenue, cost, profit) |
+
+**PUT /runs/{id}/pnl body:**
+```json
+{
+  "type_id": 1234,
+  "quantity_sold": 100,
+  "avg_sell_price_isk": 2750000,
+  "total_revenue_isk": 275000000,
+  "total_cost_isk": 250000000
+}
+```
+
+**GET /runs/{id}/pnl response:**
+```json
+[
+  {
+    "id": 100,
+    "run_id": 1,
+    "type_id": 1234,
+    "quantity_sold": 100,
+    "avg_sell_price_isk": 2750000,
+    "total_revenue_isk": 275000000,
+    "total_cost_isk": 250000000,
+    "net_profit_isk": 25000000
+  }
+]
+```
+
+**GET /runs/{id}/pnl/summary response:**
+```json
+{
+  "run_id": 1,
+  "total_revenue_isk": 550000000,
+  "total_cost_isk": 500000000,
+  "total_profit_isk": 50000000,
+  "item_count": 2
+}
+```
+
+### Discord Notifications & Polling (Phase 2)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| N/A | Tier 2 Fill Alert | Fires when item reaches ≥80% fill and notify_tier2=true |
+| N/A | Run Completion Alert | Fires when run status changes to COMPLETE |
+| N/A | Daily Digest | Sent once per day to users with runs where daily_digest=true |
+| N/A | Corp Order Poll | Background job every 15 minutes: fetches corp buy orders and matches to run items |
+
+**Triggering Conditions:**
+- **Tier 2 notification** — item.quantity_acquired / item.quantity_planned ≥ 0.8 AND run.notify_tier2=true
+- **Run completion** — run.status changes from any state to COMPLETE
+- **Daily digest** — runs with daily_digest=true, sent at configured time
+- **Corp order match** — run.corporation_id orders matched by type_id, quantity_acquired auto-updated
+
 ## File Structure
 
 ### Backend
 
 **Migrations:**
-- `internal/database/migrations/20260301010649_create_hauling_runs.up.sql`
+- `internal/database/migrations/20260301010649_create_hauling_runs.up.sql` — Phase 1: runs, items, snapshots
 - `internal/database/migrations/20260301010649_create_hauling_runs.down.sql`
+- `internal/database/migrations/20260301110717_hauling_run_pnl_unique.up.sql` — Phase 2: adds UNIQUE(run_id, type_id) constraint
 
 **Models:**
 - `internal/models/models.go` — HaulingRun, HaulingRunItem, HaulingMarketSnapshot, HaulingArbitrageRow (scanner result DTO)
 
 **Repositories:**
-- `internal/repositories/haulingRuns.go` — CRUD: CreateRun, GetRun, UpdateRun, DeleteRun, ListRuns, UpdateStatus
+- `internal/repositories/haulingRuns.go` — CRUD: CreateRun, GetRun, UpdateRun, DeleteRun, ListRuns, UpdateStatus; Phase 2 adds ListAccumulatingByUser, ListDigestRunsByUser
 - `internal/repositories/haulingRunItems.go` — CRUD: AddItem, UpdateItem, DeleteItem, GetRunItems
 - `internal/repositories/haulingMarket.go` — Cache: UpsertSnapshot, GetSnapshot, GetSnapshotsForType, GetSnapshotsOlderThan
+- `internal/repositories/haulingRunPnl.go` — Phase 2: UpsertPnlEntry, GetPnlByRunID, GetPnlSummaryByRunID
 
 **Updaters:**
 - `internal/updaters/haulingMarket.go` — Market scanning and snapshot refresh:
   - `FetchMarketOrdersForRegion(regionID, systemID)` — ESI market orders
   - `ComputeArbitrage(sourceRegion, destRegion)` — price comparison, spread tiering
   - `RefreshExpiredSnapshots()` — background job (runs hourly)
+- `internal/updaters/haulingNotifications.go` — Phase 2: Discord alerts for Tier 2 fill (≥80%), run completion, daily digest
+- `internal/updaters/haulingCorpOrders.go` — Phase 2: matches corp buy orders to run items by type_id, updates quantity_acquired
 
 **Controllers:**
-- `internal/controllers/haulingRuns.go` — HTTP handlers (11 endpoints):
-  - ListRuns, CreateRun, GetRun, UpdateRun, DeleteRun, UpdateStatus
-  - GetRunItems, AddRunItem, UpdateRunItem, DeleteRunItem
-  - ScanMarket, GetScanResults, GetFillSuggestions
+- `internal/controllers/haulingRuns.go` — HTTP handlers (14+ endpoints):
+  - Phase 1: ListRuns, CreateRun, GetRun, UpdateRun, DeleteRun, UpdateStatus
+  - Phase 1: GetRunItems, AddRunItem, UpdateRunItem, DeleteRunItem
+  - Phase 1: ScanMarket, GetScanResults, GetFillSuggestions
+  - Phase 2: GetPnlByRunID, UpsertPnlEntry, GetPnlSummaryByRunID
 
 **Client:**
 - `internal/client/esiClient.go` — added MarketHistoryEntry type and GetMarketHistory method for future analytics
@@ -340,16 +418,20 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - `frontend/pages/api/hauling/scanner.ts` — GET scan results
 - `frontend/pages/api/hauling/scan.ts` — POST to trigger scan
 - `frontend/pages/api/hauling/suggestions.ts` — GET fill suggestions
+- `frontend/pages/api/hauling/pnl.ts` — Phase 2: GET/PUT P&L entries
+- `frontend/pages/api/hauling/pnl-summary.ts` — Phase 2: GET P&L summary
 
 **Package Components:**
 - `frontend/packages/pages/hauling.tsx` — Main page with tabs
 - `frontend/packages/pages/hauling/detail.tsx` — Run detail view
 - `frontend/packages/pages/hauling/scanner.tsx` — Scanner with sort/filter
 - `frontend/packages/components/hauling/HaulingRunsList.tsx` — List view with creation
-- `frontend/packages/components/hauling/HaulingRunDetail.tsx` — Detail editor + item list
+- `frontend/packages/components/hauling/HaulingRunDetail.tsx` — Detail editor + item list; Phase 2 adds P&L section and Route Safety card
 - `frontend/packages/components/hauling/MarketScanner.tsx` — Scanner with result table
 - `frontend/packages/components/hauling/FillSuggestionsPanel.tsx` — Top 3 fits + [Add] buttons
-- `frontend/packages/client/api.ts` — API client methods for all endpoints
+- `frontend/packages/components/hauling/HaulingRunPnlSection.tsx` — Phase 2: P&L entry form and summary display
+- `frontend/packages/components/hauling/RouteSafetyCard.tsx` — Phase 2: Jump count + kill count from ESI and zKillboard
+- `frontend/packages/client/api.ts` — API client methods for all endpoints; Phase 2 adds getPnl, upsertPnl, getPnlSummary
 
 **Navigation:**
 - `frontend/packages/components/Navbar.tsx` — Added "Hauling Runs" link to Industry menu
@@ -360,33 +442,37 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - `internal/repositories/haulingRuns_test.go` — CRUD, list, status transitions
 - `internal/repositories/haulingRunItems_test.go` — item CRUD, fill percentage
 - `internal/repositories/haulingMarket_test.go` — cache, snapshot upsert, expiry
+- `internal/repositories/haulingRunPnl_test.go` — Phase 2: upsert, retrieval, summary aggregation
 - `internal/updaters/haulingMarket_test.go` — arbitrage calculation, spread tiering
-- `internal/controllers/haulingRuns_test.go` — endpoint handlers, error cases
+- `internal/updaters/haulingNotifications_test.go` — Phase 2: Tier 2 threshold, run completion, digest triggers
+- `internal/updaters/haulingCorpOrders_test.go` — Phase 2: corp order matching, quantity_acquired updates
+- `internal/controllers/haulingRuns_test.go` — endpoint handlers, error cases; Phase 2 adds P&L endpoint tests
 
 **E2E Tests:**
-- `e2e/tests/18-hauling-runs.spec.ts` — Full workflow:
+- `e2e/tests/18-hauling-runs.spec.ts` — Phase 1 workflow:
   - Create run, add items
   - Update acquired quantities
   - Verify fill percentages and net profit
   - Market scanner flow
   - Fill suggestions [Add] integration
 
+- `e2e/tests/19-hauling-runs-phase2.spec.ts` — Phase 2 workflow:
+  - Discord notification toggles in New Run dialog
+  - P&L entry UI on run detail page
+  - Route Safety card (jump count + kills)
+  - Corp order auto-fill scenarios
+  - Daily digest runner behavior
+
 **Mock ESI:**
-- `cmd/mock-esi/main.go` — Added market history endpoint for scanner caching validation
+- `cmd/mock-esi/main.go` — Added market history endpoint for scanner caching validation; Phase 2 adds corp orders endpoint (esi-corporations.read_orders.v1)
 
-## Phase 2 Deferred Items
+## Phase 3 Deferred Items
 
-1. **Acquisition alerts** — Discord Tier 1/2/3 notifications when run hits haul_threshold_isk or tier2/tier3 fill flags. Schema ready; alerting logic deferred.
+1. **Split-run operators** — Track which character is responsible for final haul in multi-char runs (operator_character_id on run). Phase 2 treats all runs as single-character.
 
-2. **Corp wallet buy order polling** — Integrate `esi-corporations.read_orders.v1` scope to auto-detect buy orders placed by corp characters and auto-fill quantities.
+2. **Undercut monitoring** — Alert if destination sell price undercuts by >X% after initial scan. Phase 2 deferred to Phase 3.
 
-3. **Split-run operators** — Track which character is responsible for final haul in multi-char runs (operator_character_id on run). Phase 1 treats all runs as single-character.
-
-4. **Post-run P&L UI** — Dashboard and detail views for hauling_run_pnl table. Manual or auto-entry of sold quantities and final prices.
-
-5. **Undercut monitoring** — Alert if destination sell price undercuts by >X% after initial scan.
-
-6. **Dotlan integration** — Fetch kill data and player traffic statistics to highlight risky routes.
+3. **Dotlan integration** — Fetch kill data and player traffic statistics to highlight risky routes. Phase 2 replaced with client-side zKillboard lookup.
 
 ## Open Questions
 

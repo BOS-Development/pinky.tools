@@ -1,0 +1,350 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`HaulingRunsList Component should match snapshot with new run dialog open 1`] = `
+<div>
+  <div
+    data-testid="loading"
+  >
+    Loading...
+  </div>
+</div>
+`;
+
+exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
+<div>
+  <div
+    data-testid="navbar"
+  >
+    Navbar
+  </div>
+  <div
+    class="MuiContainer-root css-a6n79r-MuiContainer-root"
+  >
+    <div
+      class="MuiBox-root css-1gbbedy"
+    >
+      <div
+        class="MuiBox-root css-axw7ok"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge css-l4l7om-MuiSvgIcon-root"
+          data-testid="LocalShippingIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5m13.5-9 1.96 2.5H17V9.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5"
+          />
+        </svg>
+        <h4
+          class="MuiTypography-root MuiTypography-h4 css-17nmnue-MuiTypography-root"
+        >
+          Hauling Runs
+        </h4>
+      </div>
+      <button
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        tabindex="0"
+        type="button"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="AddIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+            />
+          </svg>
+        </span>
+        New Run
+      </button>
+    </div>
+    <div
+      class="MuiBox-root css-41s49e"
+    >
+      <div
+        class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorPrimary MuiChip-outlinedPrimary css-19gasz3-MuiChip-root"
+      >
+        <span
+          class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+        >
+          PLANNING: 1
+        </span>
+      </div>
+      <div
+        class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorInfo MuiChip-outlinedInfo css-mr7bkj-MuiChip-root"
+      >
+        <span
+          class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+        >
+          IN_TRANSIT: 1
+        </span>
+      </div>
+    </div>
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1j74uew-MuiPaper-root-MuiCard-root"
+      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    >
+      <div
+        class="MuiCardContent-root css-127evc8-MuiCardContent-root"
+      >
+        <div
+          class="MuiPaper-root MuiPaper-outlined MuiPaper-rounded MuiTableContainer-root css-bt151f-MuiPaper-root-MuiTableContainer-root"
+        >
+          <table
+            class="MuiTable-root css-1xwxv7r-MuiTable-root"
+          >
+            <thead
+              class="MuiTableHead-root css-6o3ywp-MuiTableHead-root"
+            >
+              <tr
+                class="MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"
+              >
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-8pm5ul-MuiTableCell-root"
+                  scope="col"
+                >
+                  Name
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-8pm5ul-MuiTableCell-root"
+                  scope="col"
+                >
+                  Status
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-8pm5ul-MuiTableCell-root"
+                  scope="col"
+                >
+                  Route
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1rbfj31-MuiTableCell-root"
+                  scope="col"
+                >
+                  Volume Used
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-1rbfj31-MuiTableCell-root"
+                  scope="col"
+                >
+                  Items
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-115vkh8-MuiTableCell-root"
+                  scope="col"
+                >
+                  Progress
+                </th>
+                <th
+                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-8pm5ul-MuiTableCell-root"
+                  scope="col"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+            >
+              <tr
+                class="MuiTableRow-root MuiTableRow-hover css-10bu4dj-MuiTableRow-root"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-113q5m0-MuiTableCell-root"
+                >
+                  <a
+                    href="/hauling/1"
+                  >
+                    Jita to Amarr Run
+                  </a>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <div
+                    class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorPrimary MuiChip-filledPrimary css-2mz69a-MuiChip-root"
+                  >
+                    <span
+                      class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+                    >
+                      PLANNING
+                    </span>
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <p
+                    class="MuiTypography-root MuiTypography-body2 css-7ctihp-MuiTypography-root"
+                  >
+                    The Forge
+                     → 
+                    Domain
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                >
+                  100 / 300,000 m³
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                >
+                  1
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <div
+                    class="MuiBox-root css-axw7ok"
+                  >
+                    <div
+                      class="MuiBox-root css-1rr4qq7"
+                    >
+                      <span
+                        aria-valuemax="100"
+                        aria-valuemin="0"
+                        aria-valuenow="50"
+                        class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-p1f78v-MuiLinearProgress-root"
+                        role="progressbar"
+                      >
+                        <span
+                          class="MuiLinearProgress-bar MuiLinearProgress-bar1 MuiLinearProgress-barColorPrimary MuiLinearProgress-bar1Determinate css-l16vtb-MuiLinearProgress-bar1"
+                          style="transform: translateX(-50%);"
+                        />
+                      </span>
+                    </div>
+                    <span
+                      class="MuiTypography-root MuiTypography-caption css-kpuhmr-MuiTypography-root"
+                    >
+                      50
+                      %
+                    </span>
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <a
+                    href="/hauling/1"
+                  >
+                    View
+                  </a>
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-17gfo7l-MuiButtonBase-root-MuiButton-root"
+                    tabindex="0"
+                    type="button"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+              <tr
+                class="MuiTableRow-root MuiTableRow-hover css-10bu4dj-MuiTableRow-root"
+              >
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-113q5m0-MuiTableCell-root"
+                >
+                  <a
+                    href="/hauling/2"
+                  >
+                    Dodixie Run
+                  </a>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <div
+                    class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorInfo MuiChip-filledInfo css-1f9sg9q-MuiChip-root"
+                  >
+                    <span
+                      class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
+                    >
+                      IN_TRANSIT
+                    </span>
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <p
+                    class="MuiTypography-root MuiTypography-body2 css-7ctihp-MuiTypography-root"
+                  >
+                    The Forge
+                     → 
+                    Sinq Laison
+                  </p>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                >
+                  —
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                >
+                  0
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <div
+                    class="MuiBox-root css-axw7ok"
+                  >
+                    <div
+                      class="MuiBox-root css-1rr4qq7"
+                    >
+                      <span
+                        aria-valuemax="100"
+                        aria-valuemin="0"
+                        aria-valuenow="0"
+                        class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-ophkj8-MuiLinearProgress-root"
+                        role="progressbar"
+                      >
+                        <span
+                          class="MuiLinearProgress-bar MuiLinearProgress-bar1 MuiLinearProgress-barColorPrimary MuiLinearProgress-bar1Determinate css-l16vtb-MuiLinearProgress-bar1"
+                          style="transform: translateX(-100%);"
+                        />
+                      </span>
+                    </div>
+                    <span
+                      class="MuiTypography-root MuiTypography-caption css-kpuhmr-MuiTypography-root"
+                    >
+                      0
+                      %
+                    </span>
+                  </div>
+                </td>
+                <td
+                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                >
+                  <a
+                    href="/hauling/2"
+                  >
+                    View
+                  </a>
+                  <button
+                    class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-17gfo7l-MuiButtonBase-root-MuiButton-root"
+                    tabindex="0"
+                    type="button"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

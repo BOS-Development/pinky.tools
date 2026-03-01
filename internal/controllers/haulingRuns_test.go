@@ -117,24 +117,87 @@ func (m *MockHaulingMarketUpdater) ScanRegion(ctx context.Context, regionID int6
 	return args.Error(0)
 }
 
+// --- Mock HaulingPnlRepository ---
+
+type MockHaulingPnlRepository struct {
+	mock.Mock
+}
+
+func (m *MockHaulingPnlRepository) UpsertPnlEntry(ctx context.Context, entry *models.HaulingRunPnlEntry) error {
+	args := m.Called(ctx, entry)
+	return args.Error(0)
+}
+
+func (m *MockHaulingPnlRepository) GetPnlByRunID(ctx context.Context, runID int64) ([]*models.HaulingRunPnlEntry, error) {
+	args := m.Called(ctx, runID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.HaulingRunPnlEntry), args.Error(1)
+}
+
+func (m *MockHaulingPnlRepository) GetPnlSummaryByRunID(ctx context.Context, runID int64) (*models.HaulingRunPnlSummary, error) {
+	args := m.Called(ctx, runID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.HaulingRunPnlSummary), args.Error(1)
+}
+
+// --- Mock HaulingRunNotifier ---
+
+type MockHaulingRunNotifier struct {
+	mock.Mock
+}
+
+func (m *MockHaulingRunNotifier) NotifyHaulingTier2(ctx context.Context, userID int64, run *models.HaulingRun, fillPct float64) {
+	m.Called(ctx, userID, run, fillPct)
+}
+
+func (m *MockHaulingRunNotifier) NotifyHaulingComplete(ctx context.Context, userID int64, run *models.HaulingRun, summary *models.HaulingRunPnlSummary) {
+	m.Called(ctx, userID, run, summary)
+}
+
+func (m *MockHaulingRunNotifier) SendHaulingDailyDigest(ctx context.Context, userID int64, runs []*models.HaulingRun) {
+	m.Called(ctx, userID, runs)
+}
+
 // --- Setup helper ---
 
 type haulingMocks struct {
-	runs    *MockHaulingRunsRepository
-	items   *MockHaulingRunItemsRepository
-	market  *MockHaulingMarketRepo
-	scanner *MockHaulingMarketUpdater
+	runs     *MockHaulingRunsRepository
+	items    *MockHaulingRunItemsRepository
+	market   *MockHaulingMarketRepo
+	scanner  *MockHaulingMarketUpdater
+	pnl      *MockHaulingPnlRepository
+	notifier *MockHaulingRunNotifier
 }
 
 func setupHaulingController() (*controllers.HaulingRunsController, haulingMocks) {
 	mocks := haulingMocks{
-		runs:    new(MockHaulingRunsRepository),
-		items:   new(MockHaulingRunItemsRepository),
-		market:  new(MockHaulingMarketRepo),
-		scanner: new(MockHaulingMarketUpdater),
+		runs:     new(MockHaulingRunsRepository),
+		items:    new(MockHaulingRunItemsRepository),
+		market:   new(MockHaulingMarketRepo),
+		scanner:  new(MockHaulingMarketUpdater),
+		pnl:      new(MockHaulingPnlRepository),
+		notifier: nil, // default: no notifier
 	}
 	router := &MockRouter{}
-	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner)
+	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, nil)
+	return controller, mocks
+}
+
+func setupHaulingControllerWithNotifier() (*controllers.HaulingRunsController, haulingMocks) {
+	mocks := haulingMocks{
+		runs:     new(MockHaulingRunsRepository),
+		items:    new(MockHaulingRunItemsRepository),
+		market:   new(MockHaulingMarketRepo),
+		scanner:  new(MockHaulingMarketUpdater),
+		pnl:      new(MockHaulingPnlRepository),
+		notifier: new(MockHaulingRunNotifier),
+	}
+	router := &MockRouter{}
+	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, mocks.notifier)
 	return controller, mocks
 }
 
@@ -689,4 +752,233 @@ func Test_HaulingRuns_TriggerScan_InvalidBody(t *testing.T) {
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+// --- Tests: GetPnl ---
+
+func Test_HaulingRuns_GetPnl_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	run := &models.HaulingRun{ID: int64(5), UserID: userID, Status: "SELLING", Items: []*models.HaulingRunItem{}}
+	netProfit := 50000.0
+	entries := []*models.HaulingRunPnlEntry{
+		{ID: int64(1), RunID: int64(5), TypeID: int64(34), QuantitySold: int64(100), NetProfitISK: &netProfit},
+	}
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(run, nil)
+	mocks.pnl.On("GetPnlByRunID", mock.Anything, int64(5)).Return(entries, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/runs/5/pnl", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.GetPnl(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	e := result.([]*models.HaulingRunPnlEntry)
+	assert.Len(t, e, 1)
+	mocks.runs.AssertExpectations(t)
+	mocks.pnl.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetPnl_RunNotFound(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(nil, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/runs/5/pnl", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.GetPnl(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 404, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetPnl_InvalidID(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/runs/abc/pnl", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "abc"}}
+
+	result, httpErr := controller.GetPnl(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetPnl_RepoError(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	run := &models.HaulingRun{ID: int64(5), UserID: userID, Status: "SELLING", Items: []*models.HaulingRunItem{}}
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(run, nil)
+	mocks.pnl.On("GetPnlByRunID", mock.Anything, int64(5)).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/runs/5/pnl", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.GetPnl(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: UpsertPnlEntry ---
+
+func Test_HaulingRuns_UpsertPnlEntry_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	run := &models.HaulingRun{ID: int64(5), UserID: userID, Status: "SELLING", Items: []*models.HaulingRunItem{}}
+	totalRevenue := 150000.0
+	totalCost := 100000.0
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(run, nil)
+	mocks.pnl.On("UpsertPnlEntry", mock.Anything, mock.AnythingOfType("*models.HaulingRunPnlEntry")).Return(nil)
+
+	entryBody := models.HaulingRunPnlEntry{
+		TypeID:          int64(34),
+		QuantitySold:    int64(100),
+		TotalRevenueISK: &totalRevenue,
+		TotalCostISK:    &totalCost,
+	}
+	body, _ := json.Marshal(entryBody)
+	req := httptest.NewRequest("PUT", "/v1/hauling/runs/5/pnl", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.UpsertPnlEntry(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	mocks.runs.AssertExpectations(t)
+	mocks.pnl.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_UpsertPnlEntry_RunNotFound(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(nil, nil)
+
+	body, _ := json.Marshal(models.HaulingRunPnlEntry{TypeID: int64(34), QuantitySold: int64(10)})
+	req := httptest.NewRequest("PUT", "/v1/hauling/runs/5/pnl", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.UpsertPnlEntry(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 404, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_UpsertPnlEntry_InvalidBody(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	run := &models.HaulingRun{ID: int64(5), UserID: userID, Status: "SELLING"}
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(run, nil)
+
+	req := httptest.NewRequest("PUT", "/v1/hauling/runs/5/pnl", bytes.NewReader([]byte("not json")))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.UpsertPnlEntry(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+// --- Tests: GetPnlSummary ---
+
+func Test_HaulingRuns_GetPnlSummary_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	run := &models.HaulingRun{ID: int64(5), UserID: userID, Status: "SELLING", Items: []*models.HaulingRunItem{}}
+	summary := &models.HaulingRunPnlSummary{
+		TotalRevenueISK: 150000.0,
+		TotalCostISK:    100000.0,
+		NetProfitISK:    50000.0,
+		MarginPct:       33.33,
+		ItemsSold:       int64(2),
+	}
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(run, nil)
+	mocks.pnl.On("GetPnlSummaryByRunID", mock.Anything, int64(5)).Return(summary, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/runs/5/pnl/summary", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.GetPnlSummary(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	s := result.(*models.HaulingRunPnlSummary)
+	assert.Equal(t, 50000.0, s.NetProfitISK)
+	mocks.runs.AssertExpectations(t)
+	mocks.pnl.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetPnlSummary_RunNotFound(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(nil, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/runs/5/pnl/summary", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.GetPnlSummary(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 404, httpErr.StatusCode)
+}
+
+// --- Tests: UpdateStatus with notifier ---
+
+func Test_HaulingRuns_UpdateStatus_CompleteTriggersNotifier(t *testing.T) {
+	controller, mocks := setupHaulingControllerWithNotifier()
+	userID := int64(100)
+
+	mocks.runs.On("UpdateRunStatus", mock.Anything, int64(5), userID, "COMPLETE").Return(nil)
+	// Async goroutine calls these — use Maybe() since timing is uncertain
+	mocks.runs.On("GetRunByID", mock.Anything, int64(5), userID).Return(
+		&models.HaulingRun{ID: int64(5), UserID: userID, Status: "COMPLETE"},
+		nil,
+	).Maybe()
+	mocks.pnl.On("GetPnlSummaryByRunID", mock.Anything, int64(5)).Return(
+		&models.HaulingRunPnlSummary{}, nil,
+	).Maybe()
+	mocks.notifier.On("NotifyHaulingComplete", mock.Anything, userID,
+		mock.AnythingOfType("*models.HaulingRun"),
+		mock.AnythingOfType("*models.HaulingRunPnlSummary"),
+	).Maybe()
+
+	body, _ := json.Marshal(map[string]string{"status": "COMPLETE"})
+	req := httptest.NewRequest("PUT", "/v1/hauling/runs/5/status", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.UpdateStatus(args)
+	assert.Nil(t, httpErr)
+	assert.Nil(t, result)
+	// The main mock must be satisfied (sync call)
+	mocks.runs.AssertCalled(t, "UpdateRunStatus", mock.Anything, int64(5), userID, "COMPLETE")
+}
+
+func Test_HaulingRuns_UpdateStatus_NonCompleteNoNotifier(t *testing.T) {
+	controller, mocks := setupHaulingControllerWithNotifier()
+	userID := int64(100)
+
+	mocks.runs.On("UpdateRunStatus", mock.Anything, int64(5), userID, "SELLING").Return(nil)
+
+	body, _ := json.Marshal(map[string]string{"status": "SELLING"})
+	req := httptest.NewRequest("PUT", "/v1/hauling/runs/5/status", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
+
+	result, httpErr := controller.UpdateStatus(args)
+	assert.Nil(t, httpErr)
+	assert.Nil(t, result)
+	// Notifier should not be called for non-COMPLETE status
+	mocks.notifier.AssertNotCalled(t, "NotifyHaulingComplete", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	mocks.runs.AssertExpectations(t)
 }

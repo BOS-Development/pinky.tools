@@ -307,3 +307,132 @@ func Test_HaulingRuns_DeleteRun_NotFound(t *testing.T) {
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "not found")
 }
+
+func Test_HaulingRuns_ListAccumulatingByUser(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9070)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Accumulating Test User"})
+	assert.NoError(t, err)
+
+	repo := repositories.NewHaulingRuns(db)
+
+	// Create runs with various statuses
+	statuses := []string{"PLANNING", "ACCUMULATING", "ACCUMULATING", "READY"}
+	for i, status := range statuses {
+		_, err := repo.CreateRun(context.Background(), &models.HaulingRun{
+			UserID:       userID,
+			Name:         "Run " + string(rune('A'+i)),
+			Status:       status,
+			FromRegionID: int64(10000002),
+			ToRegionID:   int64(10000043),
+		})
+		assert.NoError(t, err)
+	}
+
+	runs, err := repo.ListAccumulatingByUser(context.Background(), userID)
+	assert.NoError(t, err)
+	assert.Len(t, runs, 2)
+	for _, r := range runs {
+		assert.Equal(t, "ACCUMULATING", r.Status)
+		assert.NotNil(t, r.Items)
+	}
+}
+
+func Test_HaulingRuns_ListAccumulatingByUser_Empty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewHaulingRuns(db)
+	runs, err := repo.ListAccumulatingByUser(context.Background(), int64(99999999))
+	assert.NoError(t, err)
+	assert.NotNil(t, runs)
+	assert.Len(t, runs, 0)
+}
+
+func Test_HaulingRuns_ListDigestRunsByUser(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9080)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Digest Test User"})
+	assert.NoError(t, err)
+
+	repo := repositories.NewHaulingRuns(db)
+
+	// Create runs: digest=true active, digest=false, digest=true COMPLETE
+	digestActive := true
+	digestFalse := false
+
+	_, err = repo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "Digest Active Run",
+		Status:       "PLANNING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+		DailyDigest:  digestActive,
+	})
+	assert.NoError(t, err)
+
+	_, err = repo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "No Digest Run",
+		Status:       "ACCUMULATING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+		DailyDigest:  digestFalse,
+	})
+	assert.NoError(t, err)
+
+	completeRun, err := repo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "Complete Digest Run",
+		Status:       "PLANNING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+		DailyDigest:  digestActive,
+	})
+	assert.NoError(t, err)
+	// Mark it complete
+	err = repo.UpdateRunStatus(context.Background(), completeRun.ID, userID, "COMPLETE")
+	assert.NoError(t, err)
+
+	runs, err := repo.ListDigestRunsByUser(context.Background(), userID)
+	assert.NoError(t, err)
+	// Should only return the PLANNING run with daily_digest=true
+	assert.Len(t, runs, 1)
+	assert.Equal(t, "Digest Active Run", runs[0].Name)
+	assert.True(t, runs[0].DailyDigest)
+}
+
+func Test_HaulingRuns_ListDigestRunsByUser_ExcludesCancelled(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9090)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Digest Test User 2"})
+	assert.NoError(t, err)
+
+	repo := repositories.NewHaulingRuns(db)
+
+	// Create a cancelled run with daily_digest=true
+	cancelledRun, err := repo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "Cancelled Digest Run",
+		Status:       "PLANNING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+		DailyDigest:  true,
+	})
+	assert.NoError(t, err)
+	err = repo.UpdateRunStatus(context.Background(), cancelledRun.ID, userID, "CANCELLED")
+	assert.NoError(t, err)
+
+	runs, err := repo.ListDigestRunsByUser(context.Background(), userID)
+	assert.NoError(t, err)
+	assert.Len(t, runs, 0)
+}

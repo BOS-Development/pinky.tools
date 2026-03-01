@@ -1368,3 +1368,28 @@ type HaulingArbitrageRow struct {
 	Indicator       string   `json:"indicator"` // "gap", "markup", "thin"
 	UpdatedAt       string   `json:"updatedAt"`
 }
+
+// HaulingRunPnlEntry is a P&L record for a single item type within a hauling run.
+type HaulingRunPnlEntry struct {
+	ID              int64    `json:"id"`
+	RunID           int64    `json:"runId"`
+	TypeID          int64    `json:"typeId"`
+	TypeName        string   `json:"typeName,omitempty"` // joined from hauling_run_items
+	QuantitySold    int64    `json:"quantitySold"`
+	AvgSellPriceISK *float64 `json:"avgSellPriceIsk,omitempty"`
+	TotalRevenueISK *float64 `json:"totalRevenueIsk,omitempty"`
+	TotalCostISK    *float64 `json:"totalCostIsk,omitempty"`
+	NetProfitISK    *float64 `json:"netProfitIsk,omitempty"`
+	CreatedAt       string   `json:"createdAt"`
+	UpdatedAt       string   `json:"updatedAt"`
+}
+
+// HaulingRunPnlSummary is an aggregated P&L summary for a hauling run.
+type HaulingRunPnlSummary struct {
+	TotalRevenueISK float64 `json:"totalRevenueIsk"`
+	TotalCostISK    float64 `json:"totalCostIsk"`
+	NetProfitISK    float64 `json:"netProfitIsk"`
+	MarginPct       float64 `json:"marginPct"`    // netProfit/totalRevenue * 100
+	ItemsSold       int64   `json:"itemsSold"`
+	ItemsPending    int64   `json:"itemsPending"` // items with qty_sold < qty_acquired
+}

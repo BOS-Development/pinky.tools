@@ -182,7 +182,24 @@ var rootCmd = &cobra.Command{
 		haulingRunItemsRepo := repositories.NewHaulingRunItems(db)
 		haulingMarketRepo := repositories.NewHaulingMarket(db)
 		haulingMarketUpdater := updaters.NewHaulingMarket(haulingMarketRepo, esiClient)
-		controllers.NewHaulingRuns(router, haulingRunsRepo, haulingRunItemsRepo, haulingMarketRepo, haulingMarketUpdater)
+		haulingPnlRepo := repositories.NewHaulingRunPnl(db)
+
+		var haulingNotifier controllers.HaulingRunNotifier
+		if notificationsUpdater != nil {
+			haulingNotificationsUpdater := updaters.NewHaulingNotifications(discordNotificationsRepository, discordClient, settings.FrontendURL)
+			haulingNotifier = haulingNotificationsUpdater
+
+			// Daily digest runner (24h)
+			haulingDigestRunner := runners.NewHaulingDigestRunner(haulingNotificationsUpdater, haulingRunsRepo, usersRepository, 24*time.Hour)
+			group.Go(func() error { return haulingDigestRunner.Run(ctx) })
+		}
+
+		controllers.NewHaulingRuns(router, haulingRunsRepo, haulingRunItemsRepo, haulingMarketRepo, haulingMarketUpdater, haulingPnlRepo, haulingNotifier)
+
+		// Corp orders runner (15 min) — runs even without Discord
+		haulingCorpOrdersUpdater := updaters.NewHaulingCorpOrders(usersRepository, playerCorporationRepostiory, haulingRunsRepo, haulingRunItemsRepo, haulingRunItemsRepo, esiClient)
+		haulingCorpOrdersRunner := runners.NewHaulingCorpOrdersRunner(haulingCorpOrdersUpdater, 15*time.Minute)
+		group.Go(func() error { return haulingCorpOrdersRunner.Run(ctx) })
 
 		group.Go(router.Run(ctx))
 

@@ -753,3 +753,26 @@ export type HaulingArbitrageRow = {
   indicator: 'gap' | 'markup' | 'thin';
   updatedAt: string;
 };
+
+export type HaulingRunPnlEntry = {
+  id: number;
+  runId: number;
+  typeId: number;
+  typeName?: string;
+  quantitySold: number;
+  avgSellPriceIsk?: number;
+  totalRevenueIsk?: number;
+  totalCostIsk?: number;
+  netProfitIsk?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type HaulingRunPnlSummary = {
+  totalRevenueIsk: number;
+  totalCostIsk: number;
+  netProfitIsk: number;
+  marginPct: number;
+  itemsSold: number;
+  itemsPending: number;
+};

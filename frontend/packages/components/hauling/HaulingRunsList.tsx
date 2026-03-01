@@ -27,6 +27,9 @@ import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
 import AddIcon from '@mui/icons-material/Add';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import Link from 'next/link';
@@ -87,6 +90,9 @@ interface NewRunForm {
   toRegionId: number | '';
   maxVolumeM3: string;
   haulThresholdIsk: string;
+  notifyTier2: boolean;
+  notifyTier3: boolean;
+  dailyDigest: boolean;
 }
 
 export default function HaulingRunsList() {
@@ -102,6 +108,9 @@ export default function HaulingRunsList() {
     toRegionId: '',
     maxVolumeM3: '',
     haulThresholdIsk: '',
+    notifyTier2: false,
+    notifyTier3: false,
+    dailyDigest: false,
   });
 
   const fetchRuns = useCallback(async () => {
@@ -134,6 +143,9 @@ export default function HaulingRunsList() {
         name: form.name,
         fromRegionId: form.fromRegionId,
         toRegionId: form.toRegionId,
+        notifyTier2: form.notifyTier2,
+        notifyTier3: form.notifyTier3,
+        dailyDigest: form.dailyDigest,
       };
       if (form.maxVolumeM3) body.maxVolumeM3 = Number(form.maxVolumeM3);
       if (form.haulThresholdIsk) body.haulThresholdIsk = Number(form.haulThresholdIsk);
@@ -146,7 +158,7 @@ export default function HaulingRunsList() {
 
       if (response.ok) {
         setDialogOpen(false);
-        setForm({ name: '', fromRegionId: '', toRegionId: '', maxVolumeM3: '', haulThresholdIsk: '' });
+        setForm({ name: '', fromRegionId: '', toRegionId: '', maxVolumeM3: '', haulThresholdIsk: '', notifyTier2: false, notifyTier3: false, dailyDigest: false });
         await fetchRuns();
       }
     } catch (error) {
@@ -383,6 +395,44 @@ export default function HaulingRunsList() {
               inputProps={{ min: 0 }}
               helperText="Minimum net profit to consider hauling"
             />
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>Discord Notifications</Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                Requires Discord linked in Settings.
+              </Typography>
+              <FormGroup>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.notifyTier2}
+                      onChange={(e) => setForm({ ...form, notifyTier2: e.target.checked })}
+                      size="small"
+                    />
+                  }
+                  label="Notify when fill crosses 80% (requires Discord)"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.notifyTier3}
+                      onChange={(e) => setForm({ ...form, notifyTier3: e.target.checked })}
+                      size="small"
+                    />
+                  }
+                  label="Notify when items are slow to fill (requires Discord)"
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={form.dailyDigest}
+                      onChange={(e) => setForm({ ...form, dailyDigest: e.target.checked })}
+                      size="small"
+                    />
+                  }
+                  label="Daily digest in Discord"
+                />
+              </FormGroup>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>
