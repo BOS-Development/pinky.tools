@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -156,12 +157,15 @@ export default function Navbar() {
             edge="start"
             color="inherit"
             aria-label="menu"
+            href="/"
             sx={{ mr: 2 }}
           >
             <RocketLaunchIcon />
           </IconButton>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            EVE Industry Tool
+            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              EVE Industry Tool
+            </Link>
           </Typography>
 
           <NavDropdown
