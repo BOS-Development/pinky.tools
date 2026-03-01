@@ -177,10 +177,10 @@ test.describe('Hauling Runs', () => {
     // Region selection controls should be present
     await expect(
       page.getByText(/Source Region|From Region/i).first()
-    ).toBeVisible({ timeout: 15000 });
+    ).toBeVisible({ timeout: 5000 });
     await expect(
       page.getByText(/Destination Region|To Region/i).first()
-    ).toBeVisible({ timeout: 15000 });
+    ).toBeVisible({ timeout: 5000 });
   });
 
   test('scanner page has Scan button', async ({ page }) => {
