@@ -51,6 +51,9 @@ test.describe('Hauling Runs', () => {
 
     await expect(page.getByRole('heading', { name: /Hauling Runs/i }).first()).toBeVisible({ timeout: 10000 });
 
+    // Wait for the New Run button to be interactive (belt-and-suspenders after the heading check)
+    await expect(page.getByRole('button', { name: /New Run/i })).toBeVisible({ timeout: 5000 });
+
     // Open the create dialog
     await page.getByRole('button', { name: /New Run/i }).click();
 
@@ -63,14 +66,14 @@ test.describe('Hauling Runs', () => {
     // Select source region: The Forge (10000002)
     // MUI Select — find FormControl by label then click combobox inside
     const sourceControl = dialog.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: /Source Region/i }),
+      has: page.locator('label').filter({ hasText: /Source Region|From Region/i }),
     });
     await sourceControl.getByRole('combobox').click();
     await page.getByRole('option', { name: /The Forge/i }).click();
 
     // Select destination region: Domain (10000043)
     const destControl = dialog.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: /Destination Region/i }),
+      has: page.locator('label').filter({ hasText: /Destination Region|To Region/i }),
     });
     await destControl.getByRole('combobox').click();
     await page.getByRole('option', { name: /Domain/i }).click();
