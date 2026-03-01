@@ -42,7 +42,12 @@ const getRigCategoriesForStructure = (structure: string): string[] => {
   }
   return ["ship", "component", "equipment", "ammo", "drone", "thukker"];
 };
-const rigTiers = ["t1", "t2"];
+const getRigTiersForCategory = (category: string): string[] => {
+  if (category === "component") {
+    return ["t1", "t2", "thukker"];
+  }
+  return ["t1", "t2"];
+};
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -193,6 +198,10 @@ export default function StationDialog({ open, station, onClose }: Props) {
   const handleRigChange = (index: number, field: string, value: string) => {
     const updated = [...rigs];
     updated[index] = { ...updated[index], [field]: value };
+    // If category changed away from component and tier is thukker, reset tier
+    if (field === "category" && value !== "component" && updated[index].tier === "thukker") {
+      updated[index] = { ...updated[index], tier: "t1" };
+    }
     setRigs(updated);
   };
 
@@ -451,7 +460,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
                       handleRigChange(index, "tier", e.target.value)
                     }
                   >
-                    {rigTiers.map((t) => (
+                    {getRigTiersForCategory(rig.category).map((t) => (
                       <MenuItem key={t} value={t}>
                         {t.toUpperCase()}
                       </MenuItem>
