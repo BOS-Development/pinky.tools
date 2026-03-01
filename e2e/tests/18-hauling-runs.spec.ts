@@ -26,7 +26,7 @@ test.describe('Hauling Runs', () => {
     await page.goto('/hauling');
 
     // Page should load without error and show a heading
-    await expect(page.getByRole('heading', { name: /Hauling Runs/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /Hauling Runs/i }).first()).toBeVisible({ timeout: 10000 });
 
     // "New Run" button should be visible
     await expect(page.getByRole('button', { name: /New Run/i })).toBeVisible({ timeout: 5000 });
@@ -36,7 +36,7 @@ test.describe('Hauling Runs', () => {
     await page.goto('/hauling');
 
     // Page heading confirms we are on the right page
-    await expect(page.getByRole('heading', { name: /Hauling Runs/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /Hauling Runs/i }).first()).toBeVisible({ timeout: 10000 });
 
     // Before any runs are created the list should show an empty state message
     await expect(page.getByText(/No hauling runs/i)).toBeVisible({ timeout: 10000 });
@@ -49,7 +49,7 @@ test.describe('Hauling Runs', () => {
   test('create a hauling run via New Run dialog', async ({ page }) => {
     await page.goto('/hauling');
 
-    await expect(page.getByRole('heading', { name: /Hauling Runs/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: /Hauling Runs/i }).first()).toBeVisible({ timeout: 10000 });
 
     // Open the create dialog
     await page.getByRole('button', { name: /New Run/i }).click();
