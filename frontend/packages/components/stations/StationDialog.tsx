@@ -38,9 +38,9 @@ interface Props {
 
 const getRigCategoriesForStructure = (structure: string): string[] => {
   if (["athanor", "tatara"].includes(structure)) {
-    return ["reaction", "reprocessing", "thukker"];
+    return ["reaction", "reprocessing"];
   }
-  return ["ship", "component", "equipment", "ammo", "drone"];
+  return ["ship", "component", "equipment", "ammo", "drone", "thukker"];
 };
 const rigTiers = ["t1", "t2"];
 

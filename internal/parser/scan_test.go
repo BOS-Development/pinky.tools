@@ -162,7 +162,7 @@ Standup Manufacturing Plant I`
 
 	result := ParseStructureScan(scan)
 
-	assert.Equal(t, "athanor", result.Structure)
+	assert.Equal(t, "raitaru", result.Structure)
 	assert.Len(t, result.Rigs, 1)
 	assert.Equal(t, "thukker", result.Rigs[0].Category)
 	assert.Equal(t, "t1", result.Rigs[0].Tier)
