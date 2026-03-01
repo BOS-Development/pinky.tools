@@ -65,6 +65,50 @@ Nil slices marshal to JSON `null` instead of `[]`.
 - User-scoped endpoints also need `USER-ID` header
 - Two middleware levels: `AuthAccessBackend`, `AuthAccessUser`
 
+### Generated Columns — CRITICAL
+
+PostgreSQL `GENERATED ALWAYS AS (...) STORED` columns cannot appear in INSERT or UPDATE statements (including `ON CONFLICT DO UPDATE SET`). Exclude them entirely:
+
+```go
+// BAD — net_profit_isk is a generated column
+_, err = tx.ExecContext(ctx, `INSERT INTO hauling_run_pnl (run_id, type_id, net_profit_isk) VALUES ($1, $2, $3)`, ...)
+
+// GOOD — omit generated columns from INSERT/UPDATE
+_, err = tx.ExecContext(ctx, `INSERT INTO hauling_run_pnl (run_id, type_id, qty_sold, avg_sell_price_isk, total_cost_isk) VALUES ($1, $2, $3, $4, $5) ON CONFLICT (run_id, type_id) DO UPDATE SET qty_sold = EXCLUDED.qty_sold, ...`, ...)
+```
+
+Check `\d tablename` or the migration SQL to identify generated columns before writing INSERT/UPDATE queries.
+
+### Interface Separation for Updaters
+
+When an updater needs two or more methods from the same repository, define separate interfaces — one per logical concern. This keeps dependency injection clean and mocks focused:
+
+```go
+// Separate interfaces even when both come from the same concrete repo
+type runItemsRepository interface {
+    GetRunItemsByType(ctx context.Context, typeID int64) ([]*models.HaulingRunItem, error)
+}
+type itemsRepository interface {
+    UpsertRunItem(ctx context.Context, item *models.HaulingRunItem) error
+}
+
+type MyUpdater struct {
+    runItemsRepo runItemsRepository
+    itemsRepo    itemsRepository
+}
+```
+
+### Optional Services in root.go
+
+Services that depend on external configuration (e.g., Discord webhook) may be nil when the config is absent. Always nil-check before passing to constructors:
+
+```go
+// Wrap optional services in nil guards
+if notificationsUpdater != nil {
+    runners = append(runners, haulingNotificationsRunner)
+}
+```
+
 ### Database Migrations
 
 - Create via: `./scripts/new-migration.sh <name>`
@@ -151,6 +195,12 @@ args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{
 result, httpErr := controller.Handler(args)
 assert.Nil(t, httpErr)
 mocks.repo.AssertExpectations(t)
+```
+
+**Async goroutine calls in handlers:** When a handler fires a goroutine (e.g., to send a Discord notification), the mock method may be called asynchronously after the test assertion. Use `.Maybe()` on the mock expectation to avoid "unexpected call" panics without requiring the call to happen:
+
+```go
+mocks.notifier.On("SendAlert", mock.Anything, mock.Anything).Return(nil).Maybe()
 ```
 
 **Common mistakes that cause test failures:**
