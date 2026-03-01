@@ -14,9 +14,10 @@ import (
 )
 
 type CharacterModel struct {
-	ID        int64  `json:"id"`
-	Name      string `json:"name"`
-	EsiScopes string `json:"esiScopes"`
+	ID          int64  `json:"id"`
+	Name        string `json:"name"`
+	EsiScopes   string `json:"esiScopes"`
+	NeedsReauth bool   `json:"needsReauth"`
 }
 
 type CharacterRepository interface {
@@ -72,9 +73,10 @@ func (c *Characters) GetAllCharacters(args *web.HandlerArgs) (interface{}, *web.
 	models := []CharacterModel{}
 	for _, char := range characters {
 		models = append(models, CharacterModel{
-			ID:        char.ID,
-			Name:      char.Name,
-			EsiScopes: char.EsiScopes,
+			ID:          char.ID,
+			Name:        char.Name,
+			EsiScopes:   char.EsiScopes,
+			NeedsReauth: char.EsiNeedsReauth,
 		})
 	}
 	return models, nil

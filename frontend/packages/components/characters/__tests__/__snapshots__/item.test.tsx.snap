@@ -1,5 +1,70 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`Character Item Component should match snapshot for character needing reauth 1`] = `
+<div>
+  <div
+    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1i1l0ei-MuiPaper-root-MuiCard-root"
+    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+  >
+    <div
+      class="MuiBox-root css-79elbk"
+    >
+      <img
+        alt="Revoked Pilot"
+        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        src="https://image.eveonline.com/Character/22222_128.jpg"
+      />
+      <svg
+        aria-hidden="true"
+        aria-label="Authorization revoked — re-authorize required"
+        class="MuiSvgIcon-root MuiSvgIcon-colorError MuiSvgIcon-fontSizeMedium css-mkba7d-MuiSvgIcon-root"
+        data-mui-internal-clone-element="true"
+        data-testid="ErrorIcon"
+        focusable="false"
+        viewBox="0 0 24 24"
+      >
+        <path
+          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
+        />
+      </svg>
+    </div>
+    <div
+      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+    >
+      <div
+        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+      >
+        Revoked Pilot
+      </div>
+      <div
+        class="MuiBox-root css-1mpg011"
+      >
+        <svg
+          aria-hidden="true"
+          aria-label="This character's ESI authorization has been revoked and requires re-authorization"
+          class="MuiSvgIcon-root MuiSvgIcon-colorError MuiSvgIcon-fontSizeMedium css-n4bcw2-MuiSvgIcon-root"
+          data-mui-internal-clone-element="true"
+          data-testid="ErrorIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
+          />
+        </svg>
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-1vvreb9-MuiButtonBase-root-MuiButton-root"
+          href="/api/characters/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
 exports[`Character Item Component should match snapshot for character with no scopes 1`] = `
 <div>
   <div

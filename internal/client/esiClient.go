@@ -19,6 +19,16 @@ import (
 
 //go:generate mockgen -source=./esiClient.go -destination=./esiClient_mock_test.go -package=client_test
 
+// EsiUnauthorizedError is returned when ESI responds with 401 Unauthorized,
+// indicating the access token is invalid and re-authorization may be required.
+type EsiUnauthorizedError struct {
+	Endpoint string
+}
+
+func (e *EsiUnauthorizedError) Error() string {
+	return fmt.Sprintf("ESI returned 401 Unauthorized for %s: re-authorization required", e.Endpoint)
+}
+
 // HTTPDoer interface for making HTTP requests (allows mocking)
 type HTTPDoer interface {
 	Do(req *http.Request) (*http.Response, error)
@@ -119,6 +129,9 @@ func (c *EsiClient) GetCharacterAssets(ctx context.Context, characterID int64, t
 		}
 		defer res.Body.Close()
 
+		if res.StatusCode == 401 {
+			return nil, &EsiUnauthorizedError{Endpoint: fmt.Sprintf("/characters/%d/assets", characterID)}
+		}
 		if res.StatusCode != 200 {
 			errText, _ := io.ReadAll(res.Body)
 			return nil, errors.New(fmt.Sprintf("failed get character assets, expected statusCode 200 got %d, %s", res.StatusCode, errText))
@@ -189,6 +202,9 @@ func (c *EsiClient) GetCharacterLocationNames(ctx context.Context, characterID i
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode == 401 {
+		return nil, &EsiUnauthorizedError{Endpoint: fmt.Sprintf("/characters/%d/assets/names", characterID)}
+	}
 	if res.StatusCode != 200 {
 		errText, _ := io.ReadAll(res.Body)
 		return nil, errors.New(fmt.Sprintf("failed get character location names, expected statusCode 200 got %d, %s", res.StatusCode, errText))

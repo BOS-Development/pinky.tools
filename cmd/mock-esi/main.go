@@ -205,6 +205,7 @@ type State struct {
 	knownNames            map[int64]knownNameEntry
 	characterPlanets      map[int64][]piPlanet
 	planetDetails         map[string]piColony
+	characterForce401     map[int64]bool
 }
 
 // newDefaultState returns a fresh State populated with the standard E2E test fixtures.
@@ -389,8 +390,9 @@ func newDefaultState() *State {
 			{Date: "2026-02-28", Average: 5.57, Highest: 5.74, Lowest: 5.44, Volume: 135000, OrderCount: 68},
 		},
 		// PI data — empty by default; tests inject via admin API
-		characterPlanets: map[int64][]piPlanet{},
-		planetDetails:    map[string]piColony{},
+		characterPlanets:  map[int64][]piPlanet{},
+		planetDetails:     map[string]piColony{},
+		characterForce401: map[int64]bool{},
 	}
 }
 
@@ -485,6 +487,13 @@ func main() {
 			charID, ok := extractID(path, "/characters/", "/assets")
 			if !ok {
 				http.Error(w, "invalid character id", 400)
+				return
+			}
+			state.mu.RLock()
+			force401 := state.characterForce401[charID]
+			state.mu.RUnlock()
+			if force401 {
+				http.Error(w, `{"error":"token is expired or invalid"}`, http.StatusUnauthorized)
 				return
 			}
 			state.mu.RLock()
@@ -875,6 +884,7 @@ func main() {
 			state.knownNames = fresh.knownNames
 			state.characterPlanets = fresh.characterPlanets
 			state.planetDetails = fresh.planetDetails
+			state.characterForce401 = fresh.characterForce401
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})
@@ -1024,6 +1034,23 @@ func main() {
 			}
 			state.mu.Lock()
 			state.characterPlanets[charID] = planets
+			state.mu.Unlock()
+			writeAdminOK(w)
+		})
+
+		// PUT /_admin/character-force-401/{charID}
+		mux.HandleFunc("/_admin/character-force-401/", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "PUT" {
+				writeAdminError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			charID, ok := extractID(r.URL.Path, "/_admin/character-force-401/", "")
+			if !ok {
+				writeAdminError(w, http.StatusBadRequest, "invalid character id")
+				return
+			}
+			state.mu.Lock()
+			state.characterForce401[charID] = true
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})

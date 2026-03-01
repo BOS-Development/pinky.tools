@@ -47,6 +47,13 @@ describe('Character Item Component', () => {
     esiScopes: '',
   };
 
+  const reauthCharacter = {
+    id: 22222,
+    name: 'Revoked Pilot',
+    esiScopes: 'publicData esi-skills.read_skills.v1',
+    needsReauth: true,
+  };
+
   it('should match snapshot for up-to-date character', () => {
     const { container } = render(<Item character={upToDateCharacter} />);
     expect(container).toMatchSnapshot();
@@ -59,6 +66,11 @@ describe('Character Item Component', () => {
 
   it('should match snapshot for character with no scopes', () => {
     const { container } = render(<Item character={noScopesCharacter} />);
+    expect(container).toMatchSnapshot();
+  });
+
+  it('should match snapshot for character needing reauth', () => {
+    const { container } = render(<Item character={reauthCharacter} />);
     expect(container).toMatchSnapshot();
   });
 
@@ -95,5 +107,22 @@ describe('Character Item Component', () => {
     render(<Item character={outdatedCharacter} />);
     const button = screen.getByRole('link', { name: 'Re-authorize' });
     expect(button).toHaveAttribute('href', '/api/characters/add');
+  });
+
+  it('should show Re-authorize button for character needing reauth', () => {
+    render(<Item character={reauthCharacter} />);
+    expect(screen.getByText('Re-authorize')).toBeInTheDocument();
+  });
+
+  it('should show error (not warning) indicator for needsReauth character', () => {
+    render(<Item character={reauthCharacter} />);
+    expect(screen.queryByTestId('WarningAmberIcon')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('ErrorIcon').length).toBeGreaterThan(0);
+  });
+
+  it('should not show error indicator for scope-outdated character', () => {
+    render(<Item character={outdatedCharacter} />);
+    expect(screen.queryByTestId('ErrorIcon')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('WarningAmberIcon').length).toBeGreaterThan(0);
   });
 });

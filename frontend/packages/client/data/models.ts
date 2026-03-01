@@ -2,6 +2,7 @@ export type Character = {
   id: number;
   name: string;
   esiScopes: string;
+  needsReauth?: boolean;
 };
 
 export type Corporation = {
