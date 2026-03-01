@@ -58,6 +58,47 @@ test.describe('Stations', () => {
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
   });
 
+  test('Component rig shows T1, T2, and Thukker tier options', async ({ page }) => {
+    await page.goto('/stations');
+
+    // Open Add Station dialog
+    await page.getByRole('button', { name: /Add Station/i }).click();
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // Click "Add Rig" to add a rig row (defaults to category "ship" for Raitaru)
+    await dialog.getByRole('button', { name: /Add Rig/i }).click();
+
+    // There should now be exactly one rig row. Locate the Category FormControl inside the dialog.
+    // MUI Select with InputLabel does not create proper ARIA associations, so use
+    // the .MuiFormControl-root filter approach scoped to the dialog.
+    const categoryControl = dialog.locator('.MuiFormControl-root').filter({
+      has: page.locator('label').filter({ hasText: /^Category$/ }),
+    });
+    await expect(categoryControl).toBeVisible({ timeout: 5000 });
+
+    // Open the Category dropdown and select "component"
+    await categoryControl.getByRole('combobox').click();
+    await page.getByRole('option', { name: /^component$/i }).click();
+
+    // Now open the Tier dropdown and assert T1, T2, and THUKKER are all present
+    const tierControl = dialog.locator('.MuiFormControl-root').filter({
+      has: page.locator('label').filter({ hasText: /^Tier$/ }),
+    });
+    await expect(tierControl).toBeVisible({ timeout: 5000 });
+    await tierControl.getByRole('combobox').click();
+
+    // All three tier options must be visible
+    await expect(page.getByRole('option', { name: 'T1' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('option', { name: 'T2' })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('option', { name: 'THUKKER' })).toBeVisible({ timeout: 5000 });
+
+    // Dismiss the listbox by pressing Escape, then close the dialog
+    await page.keyboard.press('Escape');
+    await dialog.getByRole('button', { name: /Cancel/i }).click();
+    await expect(dialog).not.toBeVisible({ timeout: 5000 });
+  });
+
   test('create station with Jita and Raitaru structure', async ({ page }) => {
     await page.goto('/stations');
 
