@@ -6,7 +6,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 
 | Feature | Doc | Summary |
 |---------|-----|---------|
-| Characters | [characters.md](core/characters.md) | ESI OAuth, token storage, character asset refresh |
+| Characters | [characters.md](core/characters.md) | ESI OAuth, token storage, 401 re-auth detection, asset refresh |
 | Corporations | [corporations.md](core/corporations.md) | Corp management, divisions, corp asset refresh |
 | Authentication | [consolidate-oauth.md](core/consolidate-oauth.md) | OAuth consolidation, scopes, single callback |
 | ESI Scope Warnings | [esi-scope-warnings.md](core/esi-scope-warnings.md) | Scope update detection, re-auth warnings |
