@@ -113,6 +113,15 @@ type knownNameEntry struct {
 	Category string
 }
 
+type marketHistoryEntry struct {
+	Date       string  `json:"date"`
+	Average    float64 `json:"average"`
+	Highest    float64 `json:"highest"`
+	Lowest     float64 `json:"lowest"`
+	Volume     int64   `json:"volume"`
+	OrderCount int64   `json:"order_count"`
+}
+
 // PI types
 
 type piPlanet struct {
@@ -192,6 +201,7 @@ type State struct {
 	characterBlueprints   map[int64][]blueprintEntry
 	corpBlueprints        map[int64][]blueprintEntry
 	marketOrders          []marketOrder
+	marketHistory         []marketHistoryEntry
 	knownNames            map[int64]knownNameEntry
 	characterPlanets      map[int64][]piPlanet
 	planetDetails         map[string]piColony
@@ -345,6 +355,38 @@ func newDefaultState() *State {
 		knownNames: map[int64]knownNameEntry{
 			60003760: {Name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant", Category: "station"},
 			60008494: {Name: "Amarr VIII (Oris) - Emperor Family Academy", Category: "station"},
+		},
+		marketHistory: []marketHistoryEntry{
+			{Date: "2026-01-30", Average: 5.45, Highest: 5.60, Lowest: 5.30, Volume: 120000, OrderCount: 60},
+			{Date: "2026-01-31", Average: 5.48, Highest: 5.62, Lowest: 5.32, Volume: 115000, OrderCount: 58},
+			{Date: "2026-02-01", Average: 5.50, Highest: 5.65, Lowest: 5.35, Volume: 130000, OrderCount: 65},
+			{Date: "2026-02-02", Average: 5.52, Highest: 5.68, Lowest: 5.38, Volume: 125000, OrderCount: 62},
+			{Date: "2026-02-03", Average: 5.49, Highest: 5.64, Lowest: 5.34, Volume: 118000, OrderCount: 59},
+			{Date: "2026-02-04", Average: 5.51, Highest: 5.66, Lowest: 5.36, Volume: 122000, OrderCount: 61},
+			{Date: "2026-02-05", Average: 5.53, Highest: 5.70, Lowest: 5.40, Volume: 128000, OrderCount: 64},
+			{Date: "2026-02-06", Average: 5.47, Highest: 5.63, Lowest: 5.33, Volume: 117000, OrderCount: 57},
+			{Date: "2026-02-07", Average: 5.50, Highest: 5.65, Lowest: 5.35, Volume: 126000, OrderCount: 63},
+			{Date: "2026-02-08", Average: 5.54, Highest: 5.72, Lowest: 5.42, Volume: 132000, OrderCount: 66},
+			{Date: "2026-02-09", Average: 5.46, Highest: 5.61, Lowest: 5.31, Volume: 114000, OrderCount: 57},
+			{Date: "2026-02-10", Average: 5.48, Highest: 5.63, Lowest: 5.33, Volume: 119000, OrderCount: 59},
+			{Date: "2026-02-11", Average: 5.50, Highest: 5.66, Lowest: 5.36, Volume: 124000, OrderCount: 62},
+			{Date: "2026-02-12", Average: 5.52, Highest: 5.68, Lowest: 5.38, Volume: 127000, OrderCount: 63},
+			{Date: "2026-02-13", Average: 5.55, Highest: 5.71, Lowest: 5.41, Volume: 133000, OrderCount: 67},
+			{Date: "2026-02-14", Average: 5.49, Highest: 5.64, Lowest: 5.34, Volume: 121000, OrderCount: 60},
+			{Date: "2026-02-15", Average: 5.51, Highest: 5.67, Lowest: 5.37, Volume: 129000, OrderCount: 64},
+			{Date: "2026-02-16", Average: 5.53, Highest: 5.69, Lowest: 5.39, Volume: 131000, OrderCount: 65},
+			{Date: "2026-02-17", Average: 5.47, Highest: 5.62, Lowest: 5.32, Volume: 116000, OrderCount: 58},
+			{Date: "2026-02-18", Average: 5.50, Highest: 5.65, Lowest: 5.35, Volume: 123000, OrderCount: 61},
+			{Date: "2026-02-19", Average: 5.52, Highest: 5.67, Lowest: 5.37, Volume: 128000, OrderCount: 64},
+			{Date: "2026-02-20", Average: 5.54, Highest: 5.70, Lowest: 5.40, Volume: 130000, OrderCount: 65},
+			{Date: "2026-02-21", Average: 5.48, Highest: 5.63, Lowest: 5.33, Volume: 118000, OrderCount: 59},
+			{Date: "2026-02-22", Average: 5.51, Highest: 5.66, Lowest: 5.36, Volume: 125000, OrderCount: 62},
+			{Date: "2026-02-23", Average: 5.53, Highest: 5.68, Lowest: 5.38, Volume: 126000, OrderCount: 63},
+			{Date: "2026-02-24", Average: 5.56, Highest: 5.73, Lowest: 5.43, Volume: 134000, OrderCount: 67},
+			{Date: "2026-02-25", Average: 5.50, Highest: 5.65, Lowest: 5.35, Volume: 122000, OrderCount: 61},
+			{Date: "2026-02-26", Average: 5.52, Highest: 5.67, Lowest: 5.37, Volume: 127000, OrderCount: 63},
+			{Date: "2026-02-27", Average: 5.55, Highest: 5.71, Lowest: 5.41, Volume: 132000, OrderCount: 66},
+			{Date: "2026-02-28", Average: 5.57, Highest: 5.74, Lowest: 5.44, Volume: 135000, OrderCount: 68},
 		},
 		// PI data — empty by default; tests inject via admin API
 		characterPlanets: map[int64][]piPlanet{},
@@ -784,7 +826,20 @@ func main() {
 	})
 
 	// GET /latest/markets/{regionID}/orders/
+	// GET /latest/markets/{regionID}/history/?type_id={typeID}
 	mux.HandleFunc("/latest/markets/", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+
+		// Dispatch history requests: /latest/markets/{regionID}/history/
+		if strings.Contains(path, "/history") {
+			state.mu.RLock()
+			history := state.marketHistory
+			state.mu.RUnlock()
+			writeJSON(w, history)
+			return
+		}
+
+		// Default: return market orders for /latest/markets/{regionID}/orders/
 		state.mu.RLock()
 		orders := state.marketOrders
 		state.mu.RUnlock()
@@ -816,6 +871,7 @@ func main() {
 			state.characterBlueprints = fresh.characterBlueprints
 			state.corpBlueprints = fresh.corpBlueprints
 			state.marketOrders = fresh.marketOrders
+			state.marketHistory = fresh.marketHistory
 			state.knownNames = fresh.knownNames
 			state.characterPlanets = fresh.characterPlanets
 			state.planetDetails = fresh.planetDetails

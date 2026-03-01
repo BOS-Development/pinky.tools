@@ -54,6 +54,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 | Reactions Calculator | [reactions-calculator.md](industry/reactions-calculator.md) | Moon reactions, batch ME, shopping list |
 | Planetary Industry | [planetary-industry.md](industry/planetary-industry.md) | PI data, stall detection, profit calc |
 | Transportation | [transportation.md](industry/transportation.md) | Transport profiles, JF routes, cost calc |
+| Hauling Runs | [hauling-runs.md](industry/hauling-runs.md) | Hub-to-hub arbitrage, run planning, fill tracking |
 
 ## Infrastructure
 

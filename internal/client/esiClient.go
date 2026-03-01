@@ -615,6 +615,93 @@ func (c *EsiClient) GetMarketOrders(ctx context.Context, regionID int64) ([]*Mar
 	return orders, nil
 }
 
+// GetMarketOrdersFiltered gets market orders for a region with optional system filter.
+// systemID=0 means region-wide. Uses pagination via X-Pages header.
+func (c *EsiClient) GetMarketOrdersFiltered(ctx context.Context, regionID int64, systemID int64) ([]*MarketOrder, error) {
+	orders := []*MarketOrder{}
+	page := 1
+	for {
+		urlStr := fmt.Sprintf("%s/latest/markets/%d/orders/?page=%d&order_type=sell", c.baseURL, regionID, page)
+		if systemID != 0 {
+			urlStr += fmt.Sprintf("&system_id=%d", systemID)
+		}
+		u, err := url.Parse(urlStr)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse market orders url")
+		}
+		req := &http.Request{Method: "GET", URL: u, Header: c.getCommonHeaders()}
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get market orders")
+		}
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+			return nil, errors.New(fmt.Sprintf("failed to get market orders: %d %s", res.StatusCode, errText))
+		}
+		var pageOrders []*MarketOrder
+		j, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read market orders body")
+		}
+		if err = json.Unmarshal(j, &pageOrders); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal market orders")
+		}
+		orders = append(orders, pageOrders...)
+		pages := res.Header.Get("X-Pages")
+		if pages == "" {
+			break
+		}
+		totalPages, err := strconv.Atoi(pages)
+		if err != nil {
+			break
+		}
+		if page >= totalPages {
+			break
+		}
+		page++
+	}
+	return orders, nil
+}
+
+// MarketHistoryEntry is a single day of market history
+type MarketHistoryEntry struct {
+	Date       string  `json:"date"`
+	Average    float64 `json:"average"`
+	Highest    float64 `json:"highest"`
+	Lowest     float64 `json:"lowest"`
+	Volume     int64   `json:"volume"`
+	OrderCount int64   `json:"order_count"`
+}
+
+// GetMarketHistory returns market history for an item in a region (last N days)
+func (c *EsiClient) GetMarketHistory(ctx context.Context, regionID int64, typeID int64) ([]*MarketHistoryEntry, error) {
+	u, err := url.Parse(fmt.Sprintf("%s/latest/markets/%d/history/?type_id=%d", c.baseURL, regionID, typeID))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse market history url")
+	}
+	req := &http.Request{Method: "GET", URL: u, Header: c.getCommonHeaders()}
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get market history")
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, errors.New(fmt.Sprintf("failed to get market history: %d %s", res.StatusCode, errText))
+	}
+	j, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read market history body")
+	}
+	var entries []*MarketHistoryEntry
+	if err = json.Unmarshal(j, &entries); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal market history")
+	}
+	return entries, nil
+}
+
 func (c *EsiClient) getCommonHeaders() http.Header {
 	headers := http.Header{}
 	headers.Add("X-Compatibility-Date", "2025-12-16")

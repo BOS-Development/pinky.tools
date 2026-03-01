@@ -177,6 +177,7 @@ See `docs/features/INDEX.md` for the full quick-reference index.
 | Reactions Calculator | `docs/features/industry/reactions-calculator.md` | Moon reactions, batch ME, shopping list |
 | Planetary Industry | `docs/features/industry/planetary-industry.md` | PI data, stall detection, profit calc |
 | Transportation | `docs/features/industry/transportation.md` | Transport profiles, JF routes, cost calc |
+| Hauling Runs | `docs/features/industry/hauling-runs.md` | Hub-to-hub arbitrage, run planning, fill tracking |
 
 ### Infrastructure
 | Feature | Doc | Summary |
