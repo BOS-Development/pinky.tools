@@ -222,6 +222,8 @@ export default function Navbar() {
             items={[
               { label: 'Transport', href: '/transport' },
               { label: 'Stations', href: '/stations' },
+              { label: 'Hauling Runs', href: '/hauling' },
+              { label: 'Market Scanner', href: '/hauling/scanner' },
             ]}
           />
 

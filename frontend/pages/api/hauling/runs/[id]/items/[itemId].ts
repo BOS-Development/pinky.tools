@@ -1,0 +1,59 @@
+import type { NextApiRequest, NextApiResponse } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../../../../auth/[...nextauth]";
+
+const backend = process.env.BACKEND_URL as string;
+const backendKey = process.env.BACKEND_KEY as string;
+
+const getHeaders = (userId: string) => ({
+  "Content-Type": "application/json",
+  "USER-ID": userId,
+  "BACKEND-KEY": backendKey,
+});
+
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  const { id, itemId } = req.query;
+
+  try {
+    if (req.method === "PUT") {
+      const response = await fetch(`${backend}v1/hauling/runs/${id}/items/${itemId}`, {
+        method: "PUT",
+        headers: getHeaders(session.providerAccountId),
+        body: JSON.stringify(req.body),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({ error: errorText });
+      }
+
+      const data = await response.json();
+      return res.status(200).json(data);
+    } else if (req.method === "DELETE") {
+      const response = await fetch(`${backend}v1/hauling/runs/${id}/items/${itemId}`, {
+        method: "DELETE",
+        headers: getHeaders(session.providerAccountId),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        return res.status(response.status).json({ error: errorText });
+      }
+
+      return res.status(200).json({ success: true });
+    } else {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+  } catch (error) {
+    console.error("Hauling run item API error:", error);
+    return res.status(500).json({ error: "Failed to process hauling run item request" });
+  }
+}

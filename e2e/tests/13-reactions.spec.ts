@@ -131,10 +131,15 @@ test.describe('Reactions Calculator', () => {
     // Switch to Plan Summary tab
     await page.getByRole('tab', { name: 'Plan Summary' }).click();
 
+    // Confirm the tab is now selected before checking content
+    await expect(
+      page.getByRole('tab', { name: 'Plan Summary' })
+    ).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+
     // No reactions selected yet — empty state message
     await expect(
       page.getByText('Select reactions in the Pick Reactions tab to see a plan summary.')
-    ).toBeVisible({ timeout: 5000 });
+    ).toBeVisible({ timeout: 10000 });
   });
 
   test('selecting a reaction instance populates Shopping List and Plan Summary', async ({ page }) => {

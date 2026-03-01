@@ -1299,3 +1299,72 @@ type CreateInterestRequest struct {
 type UpdateInterestStatusRequest struct {
 	Status string `json:"status"`
 }
+
+// HaulingRun represents a hauling trip in EVE Online
+type HaulingRun struct {
+	ID               int64             `json:"id"`
+	UserID           int64             `json:"userId"`
+	Name             string            `json:"name"`
+	Status           string            `json:"status"` // PLANNING, ACCUMULATING, READY, IN_TRANSIT, SELLING, COMPLETE, CANCELLED
+	FromRegionID     int64             `json:"fromRegionId"`
+	FromSystemID     *int64            `json:"fromSystemId,omitempty"`
+	ToRegionID       int64             `json:"toRegionId"`
+	MaxVolumeM3      *float64          `json:"maxVolumeM3,omitempty"`
+	HaulThresholdISK *float64          `json:"haulThresholdIsk,omitempty"`
+	NotifyTier2      bool              `json:"notifyTier2"`
+	NotifyTier3      bool              `json:"notifyTier3"`
+	DailyDigest      bool              `json:"dailyDigest"`
+	Notes            *string           `json:"notes,omitempty"`
+	CreatedAt        string            `json:"createdAt"`
+	UpdatedAt        string            `json:"updatedAt"`
+	Items            []*HaulingRunItem `json:"items,omitempty"`
+}
+
+// HaulingRunItem is an item within a hauling run
+type HaulingRunItem struct {
+	ID               int64    `json:"id"`
+	RunID            int64    `json:"runId"`
+	TypeID           int64    `json:"typeId"`
+	TypeName         string   `json:"typeName"`
+	QuantityPlanned  int64    `json:"quantityPlanned"`
+	QuantityAcquired int64    `json:"quantityAcquired"`
+	BuyPriceISK      *float64 `json:"buyPriceIsk,omitempty"`
+	SellPriceISK     *float64 `json:"sellPriceIsk,omitempty"`
+	VolumeM3         *float64 `json:"volumeM3,omitempty"`
+	CharacterID      *int64   `json:"characterId,omitempty"`
+	Notes            *string  `json:"notes,omitempty"`
+	CreatedAt        string   `json:"createdAt"`
+	UpdatedAt        string   `json:"updatedAt"`
+	// Computed
+	FillPercent  float64  `json:"fillPercent"`             // QuantityAcquired / QuantityPlanned * 100
+	NetProfitISK *float64 `json:"netProfitIsk,omitempty"` // (SellPriceISK - BuyPriceISK) * QuantityPlanned
+}
+
+// HaulingMarketSnapshot is cached market data for the scanner
+type HaulingMarketSnapshot struct {
+	TypeID          int64    `json:"typeId"`
+	TypeName        string   `json:"typeName"`
+	RegionID        int64    `json:"regionId"`
+	SystemID        int64    `json:"systemId"` // 0 = region-wide
+	BuyPrice        *float64 `json:"buyPrice,omitempty"`
+	SellPrice       *float64 `json:"sellPrice,omitempty"`
+	VolumeAvailable *int64   `json:"volumeAvailable,omitempty"`
+	AvgDailyVolume  *float64 `json:"avgDailyVolume,omitempty"`
+	DaysToSell      *float64 `json:"daysToSell,omitempty"`
+	UpdatedAt       string   `json:"updatedAt"`
+}
+
+// HaulingArbitrageRow is a computed row in the market scanner
+type HaulingArbitrageRow struct {
+	TypeID          int64    `json:"typeId"`
+	TypeName        string   `json:"typeName"`
+	VolumeM3        *float64 `json:"volumeM3,omitempty"`
+	BuyPrice        *float64 `json:"buyPrice,omitempty"`        // best buy at source
+	SellPrice       *float64 `json:"sellPrice,omitempty"`       // best sell at destination
+	NetProfitISK    *float64 `json:"netProfitIsk,omitempty"`    // (sell - buy) * qty
+	Spread          *float64 `json:"spread,omitempty"`          // sell/buy - 1 (%)
+	VolumeAvailable *int64   `json:"volumeAvailable,omitempty"` // units available at source
+	DaysToSell      *float64 `json:"daysToSell,omitempty"`
+	Indicator       string   `json:"indicator"` // "gap", "markup", "thin"
+	UpdatedAt       string   `json:"updatedAt"`
+}

@@ -700,3 +700,56 @@ export type ScanService = {
   name: string;
   activity: string;
 };
+
+// Hauling Runs Types
+
+export type HaulingRun = {
+  id: number;
+  userId: number;
+  name: string;
+  status: 'PLANNING' | 'ACCUMULATING' | 'READY' | 'IN_TRANSIT' | 'SELLING' | 'COMPLETE' | 'CANCELLED';
+  fromRegionId: number;
+  fromSystemId?: number;
+  toRegionId: number;
+  maxVolumeM3?: number;
+  haulThresholdIsk?: number;
+  notifyTier2: boolean;
+  notifyTier3: boolean;
+  dailyDigest: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  items?: HaulingRunItem[];
+};
+
+export type HaulingRunItem = {
+  id: number;
+  runId: number;
+  typeId: number;
+  typeName: string;
+  quantityPlanned: number;
+  quantityAcquired: number;
+  buyPriceIsk?: number;
+  sellPriceIsk?: number;
+  volumeM3?: number;
+  characterId?: number;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  fillPercent: number;
+  netProfitIsk?: number;
+};
+
+export type HaulingArbitrageRow = {
+  typeId: number;
+  typeName: string;
+  volumeM3?: number;
+  buyPrice?: number;
+  sellPrice?: number;
+  netProfitIsk?: number;
+  spread?: number;
+  volumeAvailable?: number;
+  daysToSell?: number;
+  indicator: 'gap' | 'markup' | 'thin';
+  updatedAt: string;
+};
