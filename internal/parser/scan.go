@@ -118,7 +118,7 @@ func detectRigCategory(name string) string {
 		return "reaction"
 	}
 	if strings.Contains(upper, "THUKKER COMPONENT") {
-		return "component"
+		return "thukker"
 	}
 	if strings.Contains(upper, "REACTOR") {
 		return "reaction"
@@ -134,7 +134,7 @@ func detectRigCategory(name string) string {
 func detectStructureFromRig(name string, category string) string {
 	upper := strings.ToUpper(name)
 
-	isRefinery := category == "reaction" || category == "reprocessing" || strings.Contains(upper, "THUKKER")
+	isRefinery := category == "reaction" || category == "reprocessing"
 
 	if strings.Contains(upper, "XL-SET") {
 		return "sotiyo"

@@ -36,7 +36,12 @@ interface Props {
   onClose: (saved: boolean) => void;
 }
 
-const rigCategories = ["ship", "component", "equipment", "ammo", "drone", "reaction", "reprocessing"];
+const getRigCategoriesForStructure = (structure: string): string[] => {
+  if (["athanor", "tatara"].includes(structure)) {
+    return ["reaction", "reprocessing"];
+  }
+  return ["ship", "component", "equipment", "ammo", "drone", "thukker"];
+};
 const rigTiers = ["t1", "t2"];
 
 const getCategoryColor = (category: string) => {
@@ -48,6 +53,7 @@ const getCategoryColor = (category: string) => {
     case "drone": return "#06b6d4";
     case "reaction": return "#ec4899";
     case "reprocessing": return "#f97316";
+    case "thukker": return "#d97706";
     default: return "#94a3b8";
   }
 };
@@ -176,7 +182,8 @@ export default function StationDialog({ open, station, onClose }: Props) {
   };
 
   const handleAddRig = () => {
-    setRigs([...rigs, { rigName: "", category: "ship", tier: "t1" }]);
+    const validCategories = getRigCategoriesForStructure(structure);
+    setRigs([...rigs, { rigName: "", category: validCategories[0], tier: "t1" }]);
   };
 
   const handleRemoveRig = (index: number) => {
@@ -311,7 +318,12 @@ export default function StationDialog({ open, station, onClose }: Props) {
             <Select
               value={structure}
               label="Structure"
-              onChange={(e) => setStructure(e.target.value)}
+              onChange={(e) => {
+                const newStructure = e.target.value;
+                setStructure(newStructure);
+                const validCategories = getRigCategoriesForStructure(newStructure);
+                setRigs((prev) => prev.filter((r) => validCategories.includes(r.category)));
+              }}
             >
               <MenuItem value="raitaru">Raitaru</MenuItem>
               <MenuItem value="azbel">Azbel</MenuItem>
@@ -412,7 +424,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
                       handleRigChange(index, "category", e.target.value)
                     }
                   >
-                    {rigCategories.map((cat) => (
+                    {getRigCategoriesForStructure(structure).map((cat) => (
                       <MenuItem key={cat} value={cat}>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           <Box
