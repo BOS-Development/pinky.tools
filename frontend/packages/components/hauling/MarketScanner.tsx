@@ -242,10 +242,10 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                 </Select>
               </FormControl>
               <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Dest Region</InputLabel>
+                <InputLabel>Destination Region</InputLabel>
                 <Select
                   value={destRegionId}
-                  label="Dest Region"
+                  label="Destination Region"
                   onChange={(e) => setDestRegionId(Number(e.target.value))}
                 >
                   {REGION_OPTIONS.map((r) => (
