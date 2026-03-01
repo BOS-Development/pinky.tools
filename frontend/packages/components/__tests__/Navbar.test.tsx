@@ -221,7 +221,11 @@ describe('Navbar Component', () => {
     });
 
     // Badge should not be visible when count is 0
-    expect(screen.queryByText('0')).not.toBeInTheDocument();
+    // MUI Badge may render an invisible '0' element in the DOM with MuiBadge-invisible class
+    const zeroBadge = screen.queryByText('0');
+    if (zeroBadge) {
+      expect(zeroBadge.className).toMatch(/invisible/i);
+    }
   });
 
   it('should handle fetch errors gracefully', async () => {
