@@ -1494,6 +1494,78 @@ func (c *EsiClient) GetCorporationBlueprints(ctx context.Context, corporationID 
 	}
 }
 
+// CorpOrder represents a corporation market order from ESI.
+type CorpOrder struct {
+	OrderID      int64   `json:"order_id"`
+	TypeID       int64   `json:"type_id"`
+	LocationID   int64   `json:"location_id"`
+	Price        float64 `json:"price"`
+	VolumeTotal  int64   `json:"volume_total"`
+	VolumeRemain int64   `json:"volume_remain"`
+	IsBuyOrder   bool    `json:"is_buy_order"`
+	IssuedBy     int64   `json:"issued_by"` // character ID
+	Duration     int     `json:"duration"`
+	Issued       string  `json:"issued"`
+}
+
+// GetCorporationOrders fetches buy orders for a corporation using a character's token.
+// Requires esi-corporations.read_orders.v1 scope.
+func (c *EsiClient) GetCorporationOrders(ctx context.Context, corporationID int64, token string) ([]*CorpOrder, error) {
+	orders := []*CorpOrder{}
+
+	page := 1
+	for {
+		parsedURL, err := url.Parse(fmt.Sprintf("%s/latest/corporations/%d/orders/?page=%d", c.baseURL, corporationID, page))
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse url")
+		}
+
+		req := &http.Request{
+			Method: "GET",
+			URL:    parsedURL,
+			Header: c.getAuthHeaders(token),
+		}
+
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get corporation orders")
+		}
+		defer res.Body.Close()
+
+		if res.StatusCode != 200 {
+			errText, _ := io.ReadAll(res.Body)
+			return nil, fmt.Errorf("failed to get corporation orders, expected 200 got %d, %s", res.StatusCode, errText)
+		}
+
+		totalPagesStr := res.Header.Get("X-Pages")
+		totalPages := 1
+		if totalPagesStr != "" {
+			totalPages, err = strconv.Atoi(totalPagesStr)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse X-Pages header")
+			}
+		}
+
+		respBody, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read response body")
+		}
+
+		pageOrders := []*CorpOrder{}
+		if err := json.Unmarshal(respBody, &pageOrders); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal corporation orders")
+		}
+
+		orders = append(orders, pageOrders...)
+
+		if totalPages == page {
+			return orders, nil
+		}
+
+		page++
+	}
+}
+
 // RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
 // Returns the new access token, refresh token, and expiry. The caller is responsible
 // for persisting these back to the database.

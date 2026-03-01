@@ -165,6 +165,23 @@ await characterControl.getByRole('combobox').click();
 await page.getByRole('option', { name: /Alice Alpha/i }).click();
 ```
 
+### MUI Checkbox in FormControlLabel — CRITICAL
+
+MUI `<Checkbox>` renders a visually hidden `<input type="checkbox">`. Clicking the hidden input with `{ force: true }` does NOT trigger React's synthetic event handler — the checkbox state will NOT change. Instead, click the visible `.MuiCheckbox-root` span (the icon area):
+
+```typescript
+// WRONG — force-clicking the hidden input does NOT trigger React onChange
+await dialog.locator('label').filter({ hasText: /Daily Digest/i })
+  .locator('input[type="checkbox"]').click({ force: true });
+
+// RIGHT — click the visible MuiCheckbox-root span to trigger React's handler
+const dailyDigestLabel = dialog.locator('label').filter({ hasText: /daily digest/i });
+await expect(dailyDigestLabel).toBeVisible({ timeout: 5000 });
+const checkboxRoot = dailyDigestLabel.locator('.MuiCheckbox-root');
+await checkboxRoot.click();
+await expect(dailyDigestLabel.locator('input[type="checkbox"]')).toBeChecked({ timeout: 5000 });
+```
+
 ### MUI Switch in FormControlLabel — CRITICAL
 
 MUI Switch's internal `<input type="checkbox">` is visually hidden (opacity: 0). `getByRole('checkbox')` won't find it. Use `force: true`:
@@ -176,6 +193,8 @@ await expect(label).toBeVisible({ timeout: 5000 });
 await label.locator('input[type="checkbox"]').click({ force: true });
 await expect(label.locator('input[type="checkbox"]')).toBeChecked({ timeout: 5000 });
 ```
+
+**MUI Checkbox vs MUI Switch**: Both use hidden inputs, but the interaction method differs. Checkbox: click `.MuiCheckbox-root`. Switch: click hidden `input[type="checkbox"]` with `{ force: true }`.
 
 ### MUI IconButton — Needs aria-label
 
@@ -437,8 +456,24 @@ make test-e2e-clean
 | Transport | `/transport` | 15-transport.spec.ts | ✅ |
 | Settings | `/settings` | 16-settings.spec.ts | ✅ |
 | Job Slots | `/job-slots` | 17-job-slot-exchange.spec.ts | ✅ |
+| Hauling Runs (list) | `/hauling` | 18-hauling-runs.spec.ts | ✅ |
+| Hauling Runs (P&L, alerts) | `/hauling/[id]` | 19-hauling-runs-phase2.spec.ts | ✅ |
 
 When adding a new page, create a corresponding E2E test file. Minimum coverage: page loads, primary happy path, empty state.
+
+### External API Cards (Route Safety pattern)
+
+Some detail pages show cards that make calls to external APIs (e.g., ESI, zKillboard). These may be unreachable in the test environment. Write tests that accept either outcome:
+
+```typescript
+// Accept "card present" OR "card gracefully absent" — never hard-assert on external data
+const isCardVisible = await page.getByText(/Route Safety/i).first().isVisible().catch(() => false);
+if (isCardVisible) {
+  // Happy path assertions
+}
+// The run/page itself must still render correctly regardless
+await expect(page.getByText(runName).first()).toBeVisible({ timeout: 5000 });
+```
 
 ## Output
 

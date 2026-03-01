@@ -36,11 +36,27 @@ type HaulingMarketRepository interface {
 	GetScannerResults(ctx context.Context, sourceRegionID int64, sourceSystemID int64, destRegionID int64) ([]*models.HaulingArbitrageRow, error)
 }
 
+// HaulingPnlRepository provides P&L data access for hauling runs.
+type HaulingPnlRepository interface {
+	UpsertPnlEntry(ctx context.Context, entry *models.HaulingRunPnlEntry) error
+	GetPnlByRunID(ctx context.Context, runID int64) ([]*models.HaulingRunPnlEntry, error)
+	GetPnlSummaryByRunID(ctx context.Context, runID int64) (*models.HaulingRunPnlSummary, error)
+}
+
+// HaulingRunNotifier sends Discord notifications for hauling events.
+type HaulingRunNotifier interface {
+	NotifyHaulingTier2(ctx context.Context, userID int64, run *models.HaulingRun, fillPct float64)
+	NotifyHaulingComplete(ctx context.Context, userID int64, run *models.HaulingRun, summary *models.HaulingRunPnlSummary)
+	SendHaulingDailyDigest(ctx context.Context, userID int64, runs []*models.HaulingRun)
+}
+
 type HaulingRunsController struct {
-	runs    HaulingRunsRepository
-	items   HaulingRunItemsRepository
-	market  HaulingMarketRepository
-	scanner HaulingMarketUpdater
+	runs     HaulingRunsRepository
+	items    HaulingRunItemsRepository
+	market   HaulingMarketRepository
+	scanner  HaulingMarketUpdater
+	pnl      HaulingPnlRepository
+	notifier HaulingRunNotifier // may be nil
 }
 
 func NewHaulingRuns(
@@ -49,8 +65,17 @@ func NewHaulingRuns(
 	items HaulingRunItemsRepository,
 	market HaulingMarketRepository,
 	scanner HaulingMarketUpdater,
+	pnl HaulingPnlRepository,
+	notifier HaulingRunNotifier,
 ) *HaulingRunsController {
-	c := &HaulingRunsController{runs: runs, items: items, market: market, scanner: scanner}
+	c := &HaulingRunsController{
+		runs:     runs,
+		items:    items,
+		market:   market,
+		scanner:  scanner,
+		pnl:      pnl,
+		notifier: notifier,
+	}
 	router.RegisterRestAPIRoute("/v1/hauling/runs", web.AuthAccessUser, c.ListRuns, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/runs", web.AuthAccessUser, c.CreateRun, "POST")
 	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}", web.AuthAccessUser, c.GetRun, "GET")
@@ -60,6 +85,9 @@ func NewHaulingRuns(
 	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/items", web.AuthAccessUser, c.AddItem, "POST")
 	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/items/{itemId}", web.AuthAccessUser, c.UpdateItemAcquired, "PUT")
 	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/items/{itemId}", web.AuthAccessUser, c.RemoveItem, "DELETE")
+	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/pnl", web.AuthAccessUser, c.GetPnl, "GET")
+	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/pnl", web.AuthAccessUser, c.UpsertPnlEntry, "PUT")
+	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/pnl/summary", web.AuthAccessUser, c.GetPnlSummary, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/scanner", web.AuthAccessUser, c.GetScannerResults, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/scanner/scan", web.AuthAccessUser, c.TriggerScan, "POST")
 	return c
@@ -146,6 +174,18 @@ func (c *HaulingRunsController) UpdateStatus(args *web.HandlerArgs) (interface{}
 	if err := c.runs.UpdateRunStatus(args.Request.Context(), id, *args.User, body.Status); err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to update status")}
 	}
+
+	// When status transitions to COMPLETE, asynchronously send completion notification with P&L
+	if body.Status == "COMPLETE" && c.notifier != nil && c.pnl != nil {
+		userID := *args.User
+		go func() {
+			ctx := context.Background()
+			run, _ := c.runs.GetRunByID(ctx, id, userID)
+			summary, _ := c.pnl.GetPnlSummaryByRunID(ctx, id)
+			c.notifier.NotifyHaulingComplete(ctx, userID, run, summary)
+		}()
+	}
+
 	return nil, nil
 }
 
@@ -206,6 +246,32 @@ func (c *HaulingRunsController) UpdateItemAcquired(args *web.HandlerArgs) (inter
 	if err := c.items.UpdateItemAcquired(args.Request.Context(), itemID, runID, body.QuantityAcquired); err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to update item")}
 	}
+
+	// TODO(Phase 3): Undercut alert — if destination sell price has dropped below item.SellPriceISK
+	// by more than X% since the run was created, fire a Discord alert via notifier.NotifyUndercutAlert().
+
+	// After successful update, check Tier 2 threshold
+	if c.notifier != nil {
+		userID := *args.User
+		go func() {
+			ctx := context.Background()
+			run, _ := c.runs.GetRunByID(ctx, runID, userID)
+			if run != nil && run.NotifyTier2 {
+				items, _ := c.items.GetItemsByRunID(ctx, runID)
+				if len(items) > 0 {
+					total := 0.0
+					for _, item := range items {
+						total += item.FillPercent
+					}
+					fillPct := total / float64(len(items))
+					if fillPct >= 80 {
+						c.notifier.NotifyHaulingTier2(ctx, userID, run, fillPct)
+					}
+				}
+			}
+		}()
+	}
+
 	return nil, nil
 }
 
@@ -232,6 +298,73 @@ func (c *HaulingRunsController) RemoveItem(args *web.HandlerArgs) (interface{}, 
 	return nil, nil
 }
 
+// GetPnl returns all P&L entries for a run.
+func (c *HaulingRunsController) GetPnl(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	id, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid run id")}
+	}
+	// Verify user owns the run
+	run, err := c.runs.GetRunByID(args.Request.Context(), id, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get run")}
+	}
+	if run == nil {
+		return nil, &web.HttpError{StatusCode: http.StatusNotFound, Error: errors.New("run not found")}
+	}
+	entries, err := c.pnl.GetPnlByRunID(args.Request.Context(), id)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get pnl entries")}
+	}
+	return entries, nil
+}
+
+// UpsertPnlEntry creates or updates a P&L entry for a run item.
+func (c *HaulingRunsController) UpsertPnlEntry(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	id, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid run id")}
+	}
+	// Verify user owns the run
+	run, err := c.runs.GetRunByID(args.Request.Context(), id, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get run")}
+	}
+	if run == nil {
+		return nil, &web.HttpError{StatusCode: http.StatusNotFound, Error: errors.New("run not found")}
+	}
+	var entry models.HaulingRunPnlEntry
+	if err := json.NewDecoder(args.Request.Body).Decode(&entry); err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.Wrap(err, "invalid request body")}
+	}
+	entry.RunID = id
+	if err := c.pnl.UpsertPnlEntry(args.Request.Context(), &entry); err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to upsert pnl entry")}
+	}
+	return &entry, nil
+}
+
+// GetPnlSummary returns an aggregated P&L summary for a run.
+func (c *HaulingRunsController) GetPnlSummary(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	id, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid run id")}
+	}
+	// Verify user owns the run
+	run, err := c.runs.GetRunByID(args.Request.Context(), id, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get run")}
+	}
+	if run == nil {
+		return nil, &web.HttpError{StatusCode: http.StatusNotFound, Error: errors.New("run not found")}
+	}
+	summary, err := c.pnl.GetPnlSummaryByRunID(args.Request.Context(), id)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get pnl summary")}
+	}
+	return summary, nil
+}
+
 func (c *HaulingRunsController) GetScannerResults(args *web.HandlerArgs) (interface{}, *web.HttpError) {
 	q := args.Request.URL.Query()
 	sourceRegionStr := q.Get("source_region_id")
@@ -256,6 +389,10 @@ func (c *HaulingRunsController) GetScannerResults(args *web.HandlerArgs) (interf
 			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid source_system_id")}
 		}
 	}
+
+	// TODO(Phase 3): Undercut alert — if destination sell price has dropped below item.SellPriceISK
+	// by more than X% since the run was created, fire a Discord alert via notifier.NotifyUndercutAlert().
+
 	results, err := c.market.GetScannerResults(args.Request.Context(), sourceRegionID, sourceSystemID, destRegionID)
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get scanner results")}

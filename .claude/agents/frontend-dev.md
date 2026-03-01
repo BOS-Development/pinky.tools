@@ -56,6 +56,23 @@ When asked to add fields to a dialog, **grep for the entity name** (e.g., "Stock
 - Proxy to backend — never implement business logic in API routes
 - Use headers: `BACKEND-KEY` and `USER-ID`
 
+### External API Calls (ESI, zKillboard, etc.)
+
+When calling public external APIs (no auth required, e.g., ESI universe endpoints, zKillboard):
+- Always wrap in `try/catch`
+- Return `null` or a fallback on error — never throw to the client
+- Render graceful fallback UI (e.g., hide the card, show `—`) when external data is unavailable
+
+```ts
+try {
+  const res = await fetch('https://external-api.example.com/data');
+  if (!res.ok) return null;
+  return await res.json();
+} catch {
+  return null;
+}
+```
+
 ### Formatting
 
 - Use utilities from `packages/utils/formatting.ts`: `formatISK`, `formatNumber`, `formatCompact`
@@ -98,6 +115,12 @@ afterEach(() => jest.useRealTimers());
 // Render and snapshot
 const { container } = render(<Component data={testData} />);
 expect(container).toMatchSnapshot();
+```
+
+**next/image requires manual mocking for jsdom:**
+The `next/jest` preset does NOT auto-mock `next/image`. If a component uses `<Image />`, add this to your test file or Jest setup:
+```tsx
+jest.mock('next/image', () => ({ src, alt }: { src: string; alt: string }) => <img src={src} alt={alt} />);
 ```
 
 **Common mistakes that cause test failures:**
