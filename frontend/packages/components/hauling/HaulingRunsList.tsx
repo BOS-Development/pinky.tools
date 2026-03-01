@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import Navbar from '@industry-tool/components/Navbar';
 import Loading from '@industry-tool/components/loading';
 import Container from '@mui/material/Container';
@@ -90,6 +91,7 @@ interface NewRunForm {
 
 export default function HaulingRunsList() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [runs, setRuns] = useState<HaulingRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -151,6 +153,16 @@ export default function HaulingRunsList() {
       console.error('Failed to create hauling run:', error);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteRun = async (id: number) => {
+    if (!window.confirm('Delete this run?')) return;
+    try {
+      await fetch(`/api/hauling/runs/${id}`, { method: 'DELETE' });
+      await fetchRuns();
+    } catch (error) {
+      console.error('Failed to delete hauling run:', error);
     }
   };
 
@@ -235,11 +247,17 @@ export default function HaulingRunsList() {
                         <TableRow
                           key={run.id}
                           hover
+                          onClick={() => router.push(`/hauling/${run.id}`)}
                           sx={{
+                            cursor: 'pointer',
                             '&:nth-of-type(odd)': { backgroundColor: 'action.hover' },
                           }}
                         >
-                          <TableCell sx={{ fontWeight: 600 }}>{run.name}</TableCell>
+                          <TableCell sx={{ fontWeight: 600 }}>
+                            <Link href={`/hauling/${run.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                              {run.name}
+                            </Link>
+                          </TableCell>
                           <TableCell>
                             <Chip
                               label={run.status}
@@ -289,6 +307,15 @@ export default function HaulingRunsList() {
                               variant="outlined"
                             >
                               View
+                            </Button>
+                            <Button
+                              size="small"
+                              color="error"
+                              variant="outlined"
+                              sx={{ ml: 1 }}
+                              onClick={(e) => { e.stopPropagation(); handleDeleteRun(run.id); }}
+                            >
+                              Delete
                             </Button>
                           </TableCell>
                         </TableRow>
