@@ -287,6 +287,43 @@ func Test_CharacterBlueprints_GetBlueprintLevels_EmptyTypeIDs(t *testing.T) {
 	assert.Len(t, levels, 0)
 }
 
+func Test_CharacterBlueprints_ReplaceBlueprints_UpsertOnConflictingItemID(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	charRepo := repositories.NewCharacterRepository(db)
+	bpRepo := repositories.NewCharacterBlueprints(db)
+
+	user := &repositories.User{ID: 7060, Name: "BP Upsert User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	charA := &repositories.Character{ID: 70601, Name: "Upsert Char", UserID: user.ID}
+	err = charRepo.Add(context.Background(), charA)
+	assert.NoError(t, err)
+
+	// Insert a blueprint for character owner
+	err = bpRepo.ReplaceBlueprints(context.Background(), charA.ID, "character", user.ID, []*models.CharacterBlueprint{
+		{ItemID: 86001, TypeID: 787, LocationID: 60003760, LocationFlag: "Hangar", Quantity: -1, MaterialEfficiency: 5, TimeEfficiency: 10, Runs: -1},
+	})
+	assert.NoError(t, err)
+
+	// Insert the same item_id for a corporation owner — this would previously fail with
+	// "duplicate key value violates unique constraint character_blueprints_pkey"
+	err = bpRepo.ReplaceBlueprints(context.Background(), 90001, "corporation", user.ID, []*models.CharacterBlueprint{
+		{ItemID: 86001, TypeID: 787, LocationID: 60003760, LocationFlag: "CorpSAG1", Quantity: -1, MaterialEfficiency: 10, TimeEfficiency: 20, Runs: -1},
+	})
+	assert.NoError(t, err)
+
+	// The row should now reflect the corporation owner's values (latest write wins)
+	levels, err := bpRepo.GetBlueprintLevels(context.Background(), user.ID, []int64{787})
+	assert.NoError(t, err)
+	assert.Len(t, levels, 1)
+	assert.Equal(t, 10, levels[787].MaterialEfficiency)
+	assert.Equal(t, 20, levels[787].TimeEfficiency)
+}
+
 func Test_CharacterBlueprints_DeleteByOwner_RemovesOnlyMatchingOwner(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)

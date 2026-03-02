@@ -40,6 +40,18 @@ func (r *CharacterBlueprints) ReplaceBlueprints(ctx context.Context, ownerID int
 				(item_id, user_id, owner_id, owner_type, type_id, location_id, location_flag,
 				 quantity, material_efficiency, time_efficiency, runs, updated_at)
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, now())
+			ON CONFLICT (item_id) DO UPDATE SET
+				user_id = EXCLUDED.user_id,
+				owner_id = EXCLUDED.owner_id,
+				owner_type = EXCLUDED.owner_type,
+				type_id = EXCLUDED.type_id,
+				location_id = EXCLUDED.location_id,
+				location_flag = EXCLUDED.location_flag,
+				quantity = EXCLUDED.quantity,
+				material_efficiency = EXCLUDED.material_efficiency,
+				time_efficiency = EXCLUDED.time_efficiency,
+				runs = EXCLUDED.runs,
+				updated_at = EXCLUDED.updated_at
 		`
 
 		stmt, err := tx.PrepareContext(ctx, insertQuery)
