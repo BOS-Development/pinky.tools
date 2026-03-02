@@ -108,7 +108,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                 {planData.intermediates.map((item) => (
                   <TableRow
                     key={item.type_id}
-                    className="odd:bg-white/[0.02]"
+                    className="odd:bg-[rgba(192,197,208,0.03)]"
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -127,7 +127,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                     <TableCell className="text-right">{formatNumber(item.produced)}</TableCell>
                   </TableRow>
                 ))}
-                <TableRow className="[&_td]:font-bold [&_td]:border-t-2 [&_td]:border-white/10">
+                <TableRow className="[&_td]:font-bold [&_td]:text-[var(--color-text-emphasis)] [&_td]:border-t-2 [&_td]:border-[var(--color-border-dim)]">
                   <TableCell>Total</TableCell>
                   <TableCell className="text-right">{summary.intermediate_slots}</TableCell>
                   <TableCell />
@@ -170,7 +170,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                       return (
                         <TableRow
                           key={r.reaction_type_id}
-                          className="odd:bg-white/[0.02]"
+                          className="odd:bg-[rgba(192,197,208,0.03)]"
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                     {(() => {
                       const totalMargin = totalRevenue > 0 ? (totalNetProfit / totalRevenue) * 100 : 0;
                       return (
-                        <TableRow className="[&_td]:font-bold [&_td]:border-t-2 [&_td]:border-white/10">
+                        <TableRow className="[&_td]:font-bold [&_td]:text-[var(--color-text-emphasis)] [&_td]:border-t-2 [&_td]:border-[var(--color-border-dim)]">
                           <TableCell>Total</TableCell>
                           <TableCell />
                           <TableCell className="text-right">{summary.complex_slots}</TableCell>

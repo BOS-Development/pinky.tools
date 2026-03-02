@@ -221,7 +221,7 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
             return (
               <TableRow
                 key={item.type_id}
-                className="odd:bg-white/[0.02]"
+                className="odd:bg-[rgba(192,197,208,0.03)]"
               >
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
                   <TableCell className="text-right">{formatNumber(have)}</TableCell>
                 )}
                 {stockpileMap && (
-                  <TableCell className={cn("text-right", fulfilled && "text-[#10b981]")}>
+                  <TableCell className={cn("text-right", fulfilled && "text-[var(--color-success-teal)]")}>
                     {fulfilled ? (
                       <span className="inline-flex items-center justify-end gap-1">
                         <CheckCircle2 className="h-4 w-4" />
@@ -257,7 +257,7 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
               </TableRow>
             );
           })}
-          <TableRow className="[&_td]:font-bold [&_td]:border-t-2 [&_td]:border-white/10">
+          <TableRow className="[&_td]:font-bold [&_td]:text-[var(--color-text-emphasis)] [&_td]:border-t-2 [&_td]:border-[var(--color-border-dim)]">
             <TableCell>Total</TableCell>
             <TableCell />
             {stockpileMap && <TableCell />}

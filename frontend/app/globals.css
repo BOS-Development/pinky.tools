@@ -37,10 +37,11 @@ body {
   --color-success-teal: #2dd4bf;
   --color-danger-rose: #f43f5e;
 
-  /* Text */
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #94a3b8;
+  /* Text — Neocom muted hierarchy (no harsh white) */
+  --color-text-primary: #c0c5d0;
+  --color-text-secondary: #808898;
   --color-text-muted: #64748b;
+  --color-text-emphasis: #e0e4eb;
 
   /* ============================================================
      shadcn/ui HSL semantic tokens — Neocom Dark mapping
@@ -48,16 +49,16 @@ body {
 
   /* #0a0a0f → hsl(240, 20%, 5%) */
   --background: 240 20% 5%;
-  /* #e2e8f0 → hsl(214, 32%, 91%) */
-  --foreground: 214 32% 91%;
+  /* #c0c5d0 → hsl(221, 15%, 78%) — muted gray-blue, not harsh white */
+  --foreground: 221 15% 78%;
 
   /* Card: #12141a → hsl(225, 18%, 9%) */
   --card: 225 18% 9%;
-  --card-foreground: 214 32% 91%;
+  --card-foreground: 221 15% 78%;
 
   /* Popover same as card */
   --popover: 225 18% 9%;
-  --popover-foreground: 214 32% 91%;
+  --popover-foreground: 221 15% 78%;
 
   /* Primary: #00d4ff → hsl(191, 100%, 50%) */
   --primary: 191 100% 50%;
@@ -66,12 +67,12 @@ body {
 
   /* Secondary: #1a1d24 → hsl(222, 16%, 12%) */
   --secondary: 222 16% 12%;
-  --secondary-foreground: 214 32% 91%;
+  --secondary-foreground: 221 15% 78%;
 
   /* Muted */
   --muted: 222 16% 15%;
-  /* #94a3b8 → hsl(215, 20%, 65%) */
-  --muted-foreground: 215 20% 65%;
+  /* #808898 → hsl(220, 10%, 55%) */
+  --muted-foreground: 220 10% 55%;
 
   /* Accent = secondary */
   --accent: 222 16% 12%;
@@ -79,7 +80,7 @@ body {
 
   /* Destructive: #f43f5e → hsl(350, 90%, 60%) */
   --destructive: 350 90% 60%;
-  --destructive-foreground: 214 32% 91%;
+  --destructive-foreground: 221 15% 78%;
 
   /* Border: cyan tint */
   --border: 222 16% 18%;
@@ -107,8 +108,7 @@ h1, h2 {
 }
 
 h3 {
-  color: var(--color-text-primary);
-  opacity: 0.95;
+  color: var(--color-text-emphasis);
 }
 
 h4, h5, h6 {
