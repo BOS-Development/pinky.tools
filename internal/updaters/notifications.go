@@ -3,7 +3,6 @@ package updaters
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/client"
@@ -219,43 +218,9 @@ func (u *NotificationsUpdater) NotifyPiStalls(ctx context.Context, userID int64,
 }
 
 func buildPiStallEmbed(alerts []*PiStallAlert, frontendURL string) *client.DiscordEmbed {
-	description := fmt.Sprintf("**%d** planet(s) need attention", len(alerts))
-	if len(alerts) == 1 {
-		description = fmt.Sprintf("**%s**'s colony needs attention", alerts[0].CharacterName)
-	}
-
-	fields := []client.DiscordEmbedField{}
-	for _, alert := range alerts {
-		extractorCount := 0
-		for _, pin := range alert.StalledPins {
-			if pin.PinCategory == "extractor" {
-				extractorCount++
-			}
-		}
-
-		parts := []string{}
-		if extractorCount > 0 {
-			if extractorCount == 1 {
-				parts = append(parts, "1 extractor expired")
-			} else {
-				parts = append(parts, fmt.Sprintf("%d extractors expired", extractorCount))
-			}
-		}
-		if alert.DepletionTime != nil {
-			depletedSince := alert.DepletionTime.UTC().Format("Jan 2 15:04 UTC")
-			depletionDesc := fmt.Sprintf("Inputs depleted since %s", depletedSince)
-			if alert.DepletedInputName != "" {
-				depletionDesc = fmt.Sprintf("Inputs depleted since %s (%s)", depletedSince, alert.DepletedInputName)
-			}
-			parts = append(parts, depletionDesc)
-		}
-
-		name := fmt.Sprintf("%s — %s (%s)", alert.CharacterName, alert.SolarSystemName, alert.PlanetType)
-		fields = append(fields, client.DiscordEmbedField{
-			Name:   name,
-			Value:  strings.Join(parts, ", "),
-			Inline: false,
-		})
+	description := fmt.Sprintf("🪐 **%d** planet(s) need attention", len(alerts))
+	if frontendURL != "" {
+		description += fmt.Sprintf(" — [View PI →](%spi)", frontendURL)
 	}
 
 	embedURL := ""
@@ -268,7 +233,6 @@ func buildPiStallEmbed(alerts []*PiStallAlert, frontendURL string) *client.Disco
 		Description: description,
 		URL:         embedURL,
 		Color:       0xef4444, // Red for alert
-		Fields:      fields,
 		Footer: &client.DiscordEmbedFooter{
 			Text: fmt.Sprintf("Pinky.Tools • %s", time.Now().UTC().Format("Jan 2, 2006 15:04 UTC")),
 		},
