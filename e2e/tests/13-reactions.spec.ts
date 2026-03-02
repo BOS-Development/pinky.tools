@@ -19,32 +19,26 @@ test.describe('Reactions Calculator', () => {
   test('settings toolbar controls are visible', async ({ page }) => {
     await page.goto('/reactions');
 
-    // MUI Select without explicit labelId prop does not wire aria-labelledby automatically
-    // in MUI v7. Scope to the FormControl container using the label text to find each combobox.
+    // shadcn/Radix Select triggers render as <button role="combobox">.
+    // The custom Combobox (System) also uses role="combobox".
+    // All four comboboxes should be visible in the settings toolbar.
+    const comboboxes = page.getByRole('combobox');
+    await expect(comboboxes.first()).toBeVisible({ timeout: 10000 });
 
-    // Structure dropdown — find the FormControl containing the "Structure" label
-    const structureControl = page.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: 'Structure' }),
-    });
-    await expect(structureControl.getByRole('combobox')).toBeVisible({ timeout: 10000 });
+    // Structure — displays "Tatara" by default
+    await expect(comboboxes.filter({ hasText: 'Tatara' })).toBeVisible();
 
-    // Rig dropdown
-    const rigControl = page.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: 'Rig' }),
-    });
-    await expect(rigControl.getByRole('combobox')).toBeVisible();
+    // Rig — displays "T2" by default
+    await expect(comboboxes.filter({ hasText: 'T2' })).toBeVisible();
 
-    // Security dropdown
-    const securityControl = page.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: 'Security' }),
-    });
-    await expect(securityControl.getByRole('combobox')).toBeVisible();
+    // Security — displays a security value (e.g. "Null / WH")
+    await expect(comboboxes.filter({ hasText: /Null|Low|High/i })).toBeVisible();
 
-    // Cycle Days input
-    await expect(page.getByLabel('Cycle Days')).toBeVisible();
+    // Cycle Days input — number input next to the "Cycle" label text
+    await expect(page.locator('text=Cycle').locator('..').getByRole('spinbutton')).toBeVisible();
 
-    // System autocomplete (Autocomplete renders a combobox input with associated label)
-    await expect(page.getByRole('combobox', { name: /System/i })).toBeVisible();
+    // System combobox — shows "System" placeholder when no system selected
+    await expect(comboboxes.filter({ hasText: 'System' })).toBeVisible();
   });
 
   test('Pick Reactions tab shows reaction list with seeded Crystalline Carbonide', async ({ page }) => {
@@ -92,7 +86,7 @@ test.describe('Reactions Calculator', () => {
     await expect(page.getByText('Crystalline Carbonide')).toBeVisible({ timeout: 15000 });
 
     // Search for "crystal" — should still show Crystalline Carbonide
-    const searchInput = page.getByLabel('Search');
+    const searchInput = page.getByPlaceholder('Search...');
     await searchInput.fill('crystal');
     await expect(page.getByText('Crystalline Carbonide')).toBeVisible({ timeout: 5000 });
 
@@ -185,23 +179,19 @@ test.describe('Reactions Calculator', () => {
   test('structure dropdown changes persist to default Tatara', async ({ page }) => {
     await page.goto('/reactions');
 
-    // MUI v7 Select without explicit labelId prop does not wire aria-labelledby automatically.
-    // Scope to the FormControl container that wraps the Structure label and combobox.
-    const structureControl = page.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: 'Structure' }),
-    });
-    const structureSelect = structureControl.getByRole('combobox');
+    // Radix Select triggers render as <button role="combobox">.
+    // Find the Structure select by its default "Tatara" text content.
+    const structureSelect = page.getByRole('combobox').filter({ hasText: 'Tatara' });
     await expect(structureSelect).toBeVisible({ timeout: 10000 });
 
-    // The default structure is 'tatara' — verify the displayed value in the combobox
-    await expect(structureControl.getByRole('combobox')).toHaveText('Tatara', { timeout: 5000 });
+    // The default structure is 'tatara' — verify the displayed value
+    await expect(structureSelect).toHaveText(/Tatara/, { timeout: 5000 });
 
-    // Change to Athanor
+    // Change to Athanor — Radix Select items use role="option"
     await structureSelect.click();
     await page.getByRole('option', { name: 'Athanor' }).click();
 
-    // Verify the selection changed — scope to the combobox display value to avoid matching
-    // the MUI MenuItem "Athanor" that may still be in DOM after the dropdown closes.
-    await expect(structureControl.getByRole('combobox')).toHaveText('Athanor', { timeout: 5000 });
+    // Verify the selection changed — the combobox should now show "Athanor"
+    await expect(page.getByRole('combobox').filter({ hasText: 'Athanor' })).toBeVisible({ timeout: 5000 });
   });
 });
