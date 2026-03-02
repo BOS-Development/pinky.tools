@@ -402,7 +402,7 @@ export default function AddJob({ onJobAdded }: Props) {
 
       {calcResult && !calcLoading && (
         <Paper sx={{ backgroundColor: "#12151f", p: 2 }}>
-          <Typography variant="subtitle2" sx={{ color: "#3b82f6", mb: 1 }}>
+          <Typography variant="subtitle2" sx={{ color: "#00d4ff", mb: 1 }}>
             Cost Estimate: {calcResult.productName} x{formatNumber(calcResult.totalProducts)}
           </Typography>
           <Box sx={{ display: "flex", gap: 4, flexWrap: "wrap", mb: 2 }}>

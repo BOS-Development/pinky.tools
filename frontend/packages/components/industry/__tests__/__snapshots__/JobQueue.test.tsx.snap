@@ -558,7 +558,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="MuiBox-root css-0"
             >
               <p
-                class="MuiTypography-root MuiTypography-body2 css-4v8hqy-MuiTypography-root"
+                class="MuiTypography-root MuiTypography-body2 css-1tavt2p-MuiTypography-root"
               >
                 3D 16:33:00
               </p>

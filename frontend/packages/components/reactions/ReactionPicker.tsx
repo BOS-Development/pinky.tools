@@ -192,7 +192,7 @@ function ReactionRow({ reaction: r, instances, onInstanceChange, expanded, onTog
       <TableRow
         sx={{
           '&:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.02)' },
-          backgroundColor: instances > 0 ? 'rgba(59, 130, 246, 0.08)' : undefined,
+          backgroundColor: instances > 0 ? 'rgba(0, 212, 255, 0.08)' : undefined,
         }}
       >
         <TableCell>
@@ -275,7 +275,7 @@ function ReactionRow({ reaction: r, instances, onInstanceChange, expanded, onTog
                       <TableCell>
                         <Typography
                           variant="caption"
-                          sx={{ color: m.is_intermediate ? '#3b82f6' : '#94a3b8' }}
+                          sx={{ color: m.is_intermediate ? '#00d4ff' : '#94a3b8' }}
                         >
                           {m.is_intermediate ? 'Intermediate' : 'Raw'}
                         </Typography>

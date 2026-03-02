@@ -231,7 +231,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
         class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
       >
         <tr
-          class="MuiTableRow-root css-jgrlj7-MuiTableRow-root"
+          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-5i58p1-MuiTableCell-root"
@@ -268,7 +268,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
               class="MuiBox-root css-1ttbi7w"
             >
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-18aao4r-MuiChip-root"
+                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-xc4noc-MuiChip-root"
               >
                 <span
                   class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
@@ -285,7 +285,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
               class="MuiBox-root css-1ttbi7w"
             >
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-k8pe1t-MuiChip-root"
+                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-1rhgh5y-MuiChip-root"
               >
                 <span
                   class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
@@ -314,7 +314,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
           >
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
               tabindex="0"
               type="button"
             >
@@ -350,7 +350,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root css-jgrlj7-MuiTableRow-root"
+          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-5i58p1-MuiTableCell-root"
@@ -424,7 +424,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
           >
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
               tabindex="0"
               type="button"
             >

@@ -223,7 +223,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
               <Checkbox
                 checked={isDefault}
                 onChange={(e) => setIsDefault(e.target.checked)}
-                sx={{ color: "#94a3b8", "&.Mui-checked": { color: "#3b82f6" } }}
+                sx={{ color: "#94a3b8", "&.Mui-checked": { color: "#00d4ff" } }}
               />
             }
             label="Default profile for this method"

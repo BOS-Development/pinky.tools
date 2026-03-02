@@ -303,7 +303,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   </button>
                 </span>
                 <button
-                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                   tabindex="0"
                   type="button"
                 >
@@ -535,7 +535,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   </button>
                 </span>
                 <button
-                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                   tabindex="0"
                   type="button"
                 >
@@ -766,7 +766,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   </button>
                 </span>
                 <button
-                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                  class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                   tabindex="0"
                   type="button"
                 >

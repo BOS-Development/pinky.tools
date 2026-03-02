@@ -107,8 +107,8 @@ export default function Industry() {
             onChange={handleTabChange}
             sx={{
               "& .MuiTab-root": { color: "#64748b", textTransform: "none", fontWeight: 500 },
-              "& .Mui-selected": { color: "#3b82f6" },
-              "& .MuiTabs-indicator": { backgroundColor: "#3b82f6" },
+              "& .Mui-selected": { color: "#00d4ff" },
+              "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
             }}
           >
             <Tab label={`Active Jobs (${jobs.length})`} />

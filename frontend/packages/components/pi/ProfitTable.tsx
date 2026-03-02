@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import { PiProfitResponse, PiFactoryProfit } from "@industry-tool/client/data/models";
-import { formatISK, formatNumber } from "@industry-tool/utils/formatting";
+import { formatISK, formatNumber, FONT_NUMERIC } from "@industry-tool/utils/formatting";
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Card from '@mui/material/Card';
@@ -60,8 +60,8 @@ function ProductGroupRow({ group, expanded, onToggle }: {
       <TableRow
         sx={{
           cursor: 'pointer',
-          '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.05)' },
-          bgcolor: expanded ? 'rgba(59, 130, 246, 0.03)' : 'transparent',
+          '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.04)' },
+          bgcolor: expanded ? 'rgba(0, 212, 255, 0.03)' : 'transparent',
         }}
         onClick={onToggle}
       >
@@ -306,9 +306,9 @@ export default function ProfitTable() {
               px: 1.5,
               py: 0.5,
               '&.Mui-selected': {
-                color: '#3b82f6',
-                bgcolor: 'rgba(59, 130, 246, 0.1)',
-                borderColor: 'rgba(59, 130, 246, 0.3)',
+                color: '#00d4ff',
+                bgcolor: 'rgba(0, 212, 255, 0.1)',
+                borderColor: 'rgba(0, 212, 255, 0.3)',
               },
             },
           }}
@@ -387,7 +387,7 @@ function SummaryCard({ label, value, color, icon, bold }: {
 }) {
   return (
     <Card sx={{
-      background: `linear-gradient(135deg, ${color}08 0%, #12151f 100%)`,
+      background: '#12151f',
       border: `1px solid ${color}25`,
       borderRadius: 2,
       minWidth: 140,
@@ -397,7 +397,7 @@ function SummaryCard({ label, value, color, icon, bold }: {
           {icon}
           <Typography variant="caption" sx={{ color: '#64748b' }}>{label}</Typography>
         </Box>
-        <Typography variant="body2" sx={{ color, fontWeight: bold ? 700 : 600 }}>
+        <Typography variant="body2" sx={{ color, fontWeight: bold ? 700 : 600, fontFamily: FONT_NUMERIC }}>
           {value}
         </Typography>
       </CardContent>

@@ -193,7 +193,7 @@ export default function HaulingRunsList() {
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <LocalShippingIcon fontSize="large" sx={{ color: '#3b82f6' }} />
+            <LocalShippingIcon fontSize="large" sx={{ color: '#00d4ff' }} />
             <Typography variant="h4" sx={{ fontWeight: 600 }}>
               Hauling Runs
             </Typography>
@@ -301,7 +301,7 @@ export default function HaulingRunsList() {
                                     borderRadius: 4,
                                     backgroundColor: '#1e2a3a',
                                     '& .MuiLinearProgress-bar': {
-                                      backgroundColor: fillPercent >= 100 ? '#10b981' : fillPercent >= 50 ? '#3b82f6' : '#f59e0b',
+                                      backgroundColor: fillPercent >= 100 ? '#10b981' : fillPercent >= 50 ? '#00d4ff' : '#f59e0b',
                                     },
                                   }}
                                 />

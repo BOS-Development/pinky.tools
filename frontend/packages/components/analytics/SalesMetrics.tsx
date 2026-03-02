@@ -23,7 +23,7 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import CategoryIcon from '@mui/icons-material/Category';
 import PeopleIcon from '@mui/icons-material/People';
-import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
+import { formatISK, formatNumber, FONT_NUMERIC } from '@industry-tool/utils/formatting';
 
 interface TimeSeriesData {
   date: string;
@@ -174,8 +174,8 @@ export default function SalesMetrics() {
       >
         <Card
           sx={{
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)',
-            border: '1px solid rgba(59, 130, 246, 0.2)',
+            background: '#12151f',
+            border: '1px solid rgba(0, 212, 255, 0.08)',
           }}
         >
           <CardContent sx={{ p: 3 }}>
@@ -186,9 +186,9 @@ export default function SalesMetrics() {
               >
                 Total Revenue
               </Typography>
-              <AttachMoneyIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+              <AttachMoneyIcon sx={{ color: '#00d4ff', fontSize: 20 }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, color: '#10b981', mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, color: '#2dd4bf', mb: 0.5, fontFamily: FONT_NUMERIC }}>
               {formatISK(metrics.totalRevenue)}
             </Typography>
           </CardContent>
@@ -205,7 +205,7 @@ export default function SalesMetrics() {
               </Typography>
               <ShoppingCartIcon sx={{ color: '#8b5cf6', fontSize: 20 }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.totalTransactions)}
             </Typography>
           </CardContent>
@@ -220,9 +220,9 @@ export default function SalesMetrics() {
               >
                 Items Sold
               </Typography>
-              <TrendingUpIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+              <TrendingUpIcon sx={{ color: '#00d4ff', fontSize: 20 }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.totalQuantitySold)}
             </Typography>
           </CardContent>
@@ -239,7 +239,7 @@ export default function SalesMetrics() {
               </Typography>
               <CategoryIcon sx={{ color: '#f59e0b', fontSize: 20 }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.uniqueItemTypes)}
             </Typography>
           </CardContent>
@@ -256,7 +256,7 @@ export default function SalesMetrics() {
               </Typography>
               <PeopleIcon sx={{ color: '#10b981', fontSize: 20 }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.uniqueBuyers)}
             </Typography>
           </CardContent>
@@ -271,9 +271,9 @@ export default function SalesMetrics() {
               >
                 Avg / Transaction
               </Typography>
-              <AttachMoneyIcon sx={{ color: '#3b82f6', fontSize: 20 }} />
+              <AttachMoneyIcon sx={{ color: '#00d4ff', fontSize: 20 }} />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5 }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 0.5, fontFamily: FONT_NUMERIC }}>
               {metrics.totalTransactions > 0
                 ? formatISK(metrics.totalRevenue / metrics.totalTransactions)
                 : '0 ISK'}

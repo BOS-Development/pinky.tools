@@ -3,7 +3,7 @@
 exports[`Unauthorized Component should match snapshot 1`] = `
 <div>
   <div
-    class="MuiBox-root css-sj91j9"
+    class="MuiBox-root css-sygj3e"
   >
     <div
       class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation6 css-bgrqjf-MuiPaper-root"

@@ -148,7 +148,7 @@ export default function ActiveJobs({ jobs, loading }: Props) {
                   />
                 </TableCell>
                 <TableCell>
-                  <Typography variant="body2" sx={{ color: job.status === "active" ? "#3b82f6" : "#94a3b8" }}>
+                  <Typography variant="body2" sx={{ color: job.status === "active" ? "#00d4ff" : "#94a3b8" }}>
                     {formatTimeRemaining(job.endDate)}
                   </Typography>
                 </TableCell>

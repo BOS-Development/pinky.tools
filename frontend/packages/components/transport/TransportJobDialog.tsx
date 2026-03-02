@@ -428,7 +428,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
             <IconButton
               onClick={handleAddItem}
               disabled={!selectedItemType || !itemQuantity}
-              sx={{ color: "#3b82f6", mt: 0.5 }}
+              sx={{ color: "#00d4ff", mt: 0.5 }}
             >
               <AddIcon />
             </IconButton>

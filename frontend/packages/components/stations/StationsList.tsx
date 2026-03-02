@@ -33,7 +33,7 @@ const getSecurityColor = (security: string) => {
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "ship": return "#3b82f6";
+    case "ship": return "#00d4ff";
     case "component": return "#8b5cf6";
     case "equipment": return "#10b981";
     case "ammo": return "#f59e0b";
@@ -120,7 +120,7 @@ export default function StationsList({ stations, loading, onRefresh }: Props) {
               </TableRow>
             ) : (
               stations.map((station) => (
-                <TableRow key={station.id} sx={{ "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.05)" } }}>
+                <TableRow key={station.id} sx={{ "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" } }}>
                   <TableCell sx={{ color: "#e2e8f0" }}>{station.stationName}</TableCell>
                   <TableCell sx={{ color: "#94a3b8" }}>{station.solarSystemName}</TableCell>
                   <TableCell>
@@ -146,8 +146,8 @@ export default function StationsList({ stations, loading, onRefresh }: Props) {
                           label={activity}
                           size="small"
                           sx={{
-                            backgroundColor: activity === "manufacturing" ? "#3b82f620" : "#ec489920",
-                            color: activity === "manufacturing" ? "#3b82f6" : "#ec4899",
+                            backgroundColor: activity === "manufacturing" ? "#00d4ff20" : "#ec489920",
+                            color: activity === "manufacturing" ? "#00d4ff" : "#ec4899",
                             textTransform: "capitalize",
                             fontSize: "0.7rem",
                           }}
@@ -178,7 +178,7 @@ export default function StationsList({ stations, loading, onRefresh }: Props) {
                     {station.facilityTax}%
                   </TableCell>
                   <TableCell align="right">
-                    <IconButton size="small" onClick={() => handleEdit(station)} sx={{ color: "#3b82f6" }}>
+                    <IconButton size="small" onClick={() => handleEdit(station)} sx={{ color: "#00d4ff" }}>
                       <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton size="small" onClick={() => handleDelete(station)} sx={{ color: "#ef4444" }}>

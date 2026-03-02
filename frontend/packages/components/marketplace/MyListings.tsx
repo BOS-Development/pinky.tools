@@ -310,10 +310,10 @@ export default function MyListings() {
                                   fontSize: '0.65rem',
                                   fontWeight: 600,
                                   height: 22,
-                                  background: 'rgba(59, 130, 246, 0.15)',
-                                  color: '#3b82f6',
-                                  border: '1px solid rgba(59, 130, 246, 0.3)',
-                                  '& .MuiChip-icon': { color: '#3b82f6', fontSize: '0.8rem' },
+                                  background: 'rgba(0, 212, 255, 0.15)',
+                                  color: '#00d4ff',
+                                  border: '1px solid rgba(0, 212, 255, 0.3)',
+                                  '& .MuiChip-icon': { color: '#00d4ff', fontSize: '0.8rem' },
                                 }}
                               />
                             </Tooltip>

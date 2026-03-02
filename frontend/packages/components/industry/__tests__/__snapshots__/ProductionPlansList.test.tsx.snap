@@ -19,7 +19,7 @@ exports[`ProductionPlansList Component should match snapshot while loading 1`] =
         Production Plans
       </h5>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1nttctm-MuiButtonBase-root-MuiButton-root"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-3ujgny-MuiButtonBase-root-MuiButton-root"
         tabindex="0"
         type="button"
       >
@@ -69,7 +69,7 @@ exports[`ProductionPlansList Component should match snapshot with empty plans 1`
         Production Plans
       </h5>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1nttctm-MuiButtonBase-root-MuiButton-root"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-3ujgny-MuiButtonBase-root-MuiButton-root"
         tabindex="0"
         type="button"
       >
@@ -124,7 +124,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
         Production Plans
       </h5>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-1nttctm-MuiButtonBase-root-MuiButton-root"
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-3ujgny-MuiButtonBase-root-MuiButton-root"
         tabindex="0"
         type="button"
       >
@@ -236,7 +236,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                 tabindex="0"
                 type="button"
               >
@@ -313,7 +313,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                 tabindex="0"
                 type="button"
               >

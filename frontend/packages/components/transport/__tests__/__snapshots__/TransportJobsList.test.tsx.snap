@@ -267,7 +267,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
         class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
       >
         <tr
-          class="MuiTableRow-root css-175jl6h-MuiTableRow-root"
+          class="MuiTableRow-root css-19428qs-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1yi0x1c-MuiTableCell-root"
@@ -294,7 +294,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
           >
             <div
-              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-101f3cx-MuiChip-root"
+              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-13xs0uu-MuiChip-root"
             >
               <span
                 class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
@@ -388,7 +388,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
           />
         </tr>
         <tr
-          class="MuiTableRow-root css-175jl6h-MuiTableRow-root"
+          class="MuiTableRow-root css-19428qs-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1yi0x1c-MuiTableCell-root"

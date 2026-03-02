@@ -38,7 +38,7 @@ const getMethodLabel = (method: string) => {
 
 const getMethodColor = (method: string) => {
   const colors: Record<string, string> = {
-    freighter: "#3b82f6",
+    freighter: "#00d4ff",
     jump_freighter: "#8b5cf6",
     dst: "#06b6d4",
     blockade_runner: "#f59e0b",
@@ -117,7 +117,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
               profiles.map((p) => (
                 <TableRow
                   key={p.id}
-                  sx={{ "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.05)" } }}
+                  sx={{ "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" } }}
                 >
                   <TableCell sx={{ fontWeight: 500 }}>{p.name}</TableCell>
                   <TableCell>

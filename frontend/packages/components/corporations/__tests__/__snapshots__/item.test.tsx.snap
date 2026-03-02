@@ -7,7 +7,7 @@ exports[`Corporation Item Component should match snapshot for corporation with n
     style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
   >
     <div
-      class="MuiBox-root css-v1g7g9"
+      class="MuiBox-root css-9ng9gz"
     >
       <img
         alt="No Scopes Corp"
@@ -103,7 +103,7 @@ exports[`Corporation Item Component should match snapshot for outdated corporati
     style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
   >
     <div
-      class="MuiBox-root css-v1g7g9"
+      class="MuiBox-root css-9ng9gz"
     >
       <img
         alt="Outdated Corp"
@@ -199,7 +199,7 @@ exports[`Corporation Item Component should match snapshot for up-to-date corpora
     style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
   >
     <div
-      class="MuiBox-root css-v1g7g9"
+      class="MuiBox-root css-9ng9gz"
     >
       <img
         alt="Test Corporation"

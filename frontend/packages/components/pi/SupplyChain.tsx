@@ -30,7 +30,7 @@ const RESIZE_PRESETS = [
 
 const SOURCE_COLORS: Record<string, { bg: string; text: string }> = {
   extracted: { bg: 'rgba(16, 185, 129, 0.1)', text: '#10b981' },
-  produced:  { bg: 'rgba(59, 130, 246, 0.1)', text: '#3b82f6' },
+  produced:  { bg: 'rgba(0, 212, 255, 0.1)', text: '#00d4ff' },
   bought:    { bg: 'rgba(245, 158, 11, 0.1)', text: '#f59e0b' },
   mixed:     { bg: 'rgba(148, 163, 184, 0.1)', text: '#94a3b8' },
 };
@@ -104,8 +104,8 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
       <TableRow
         sx={{
           cursor: hasChildren ? 'pointer' : 'default',
-          '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.04)' },
-          bgcolor: expanded ? 'rgba(59, 130, 246, 0.03)' : isDeficit ? 'rgba(239, 68, 68, 0.03)' : 'transparent',
+          '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.04)' },
+          bgcolor: expanded ? 'rgba(0, 212, 255, 0.03)' : isDeficit ? 'rgba(239, 68, 68, 0.03)' : 'transparent',
         }}
         onClick={hasChildren ? onToggle : undefined}
       >
@@ -163,7 +163,7 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
             borderColor: 'rgba(148, 163, 184, 0.08)',
             color: '#94a3b8',
             cursor: canResize ? 'pointer' : 'default',
-            '&:hover': canResize ? { color: '#3b82f6' } : {},
+            '&:hover': canResize ? { color: '#00d4ff' } : {},
           }}
         >
           <Typography variant="caption" sx={{ borderBottom: canResize ? '1px dashed currentColor' : 'none' }}>
@@ -200,11 +200,11 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
                       fontSize: '0.75rem',
                       py: 0.5,
                       px: 1,
-                      '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)' },
+                      '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.1)' },
                     }}
                   >
                     <span>{preset.label}</span>
-                    <Typography component="span" sx={{ color: '#3b82f6', fontSize: '0.75rem', fontWeight: 600, ml: 2 }}>
+                    <Typography component="span" sx={{ color: '#00d4ff', fontSize: '0.75rem', fontWeight: 600, ml: 2 }}>
                       {formatQuantity(qty)}
                     </Typography>
                   </Button>
@@ -445,14 +445,14 @@ export default function SupplyChain() {
               size="small"
               onClick={() => setTierFilter(tier)}
               sx={{
-                bgcolor: tierFilter === tier ? 'rgba(59, 130, 246, 0.15)' : 'rgba(148, 163, 184, 0.06)',
-                color: tierFilter === tier ? '#3b82f6' : '#64748b',
-                border: tierFilter === tier ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid transparent',
+                bgcolor: tierFilter === tier ? 'rgba(0, 212, 255, 0.15)' : 'rgba(148, 163, 184, 0.06)',
+                color: tierFilter === tier ? '#00d4ff' : '#64748b',
+                border: tierFilter === tier ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid transparent',
                 fontSize: '0.7rem',
                 fontWeight: 500,
                 height: 26,
                 cursor: 'pointer',
-                '&:hover': { bgcolor: tierFilter === tier ? 'rgba(59, 130, 246, 0.2)' : 'rgba(148, 163, 184, 0.1)' },
+                '&:hover': { bgcolor: tierFilter === tier ? 'rgba(0, 212, 255, 0.2)' : 'rgba(148, 163, 184, 0.1)' },
               }}
             />
           ))}
@@ -468,7 +468,7 @@ export default function SupplyChain() {
                 fontSize: '0.75rem',
                 border: '1px solid rgba(148, 163, 184, 0.15)',
                 px: 1.5,
-                '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.08)', borderColor: 'rgba(59, 130, 246, 0.3)', color: '#3b82f6' },
+                '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.08)', borderColor: 'rgba(0, 212, 255, 0.3)', color: '#00d4ff' },
               }}
             >
               Set all stockpiles
@@ -501,7 +501,7 @@ export default function SupplyChain() {
                       fontSize: '0.75rem',
                       py: 0.5,
                       px: 1,
-                      '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.1)' },
+                      '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.1)' },
                     }}
                   >
                     {preset.label}
@@ -524,8 +524,8 @@ export default function SupplyChain() {
               color: '#e2e8f0',
               fontSize: '0.8rem',
               '& fieldset': { borderColor: 'rgba(148, 163, 184, 0.15)' },
-              '&:hover fieldset': { borderColor: 'rgba(59, 130, 246, 0.3)' },
-              '&.Mui-focused fieldset': { borderColor: '#3b82f6' },
+              '&:hover fieldset': { borderColor: 'rgba(0, 212, 255, 0.3)' },
+              '&.Mui-focused fieldset': { borderColor: '#00d4ff' },
             },
             '& .MuiInputBase-input': { py: 0.75 },
           }}

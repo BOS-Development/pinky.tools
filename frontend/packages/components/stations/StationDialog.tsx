@@ -51,7 +51,7 @@ const getRigTiersForCategory = (category: string): string[] => {
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case "ship": return "#3b82f6";
+    case "ship": return "#00d4ff";
     case "component": return "#8b5cf6";
     case "equipment": return "#10b981";
     case "ammo": return "#f59e0b";
@@ -369,11 +369,11 @@ export default function StationDialog({ open, station, onClose }: Props) {
                     sx={{
                       backgroundColor:
                         svc.activity === "manufacturing"
-                          ? "#3b82f620"
+                          ? "#00d4ff20"
                           : "#ec489920",
                       color:
                         svc.activity === "manufacturing"
-                          ? "#3b82f6"
+                          ? "#00d4ff"
                           : "#ec4899",
                       fontSize: "0.75rem",
                     }}
@@ -503,7 +503,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
           disabled={!selectedStation || saving}
           variant="contained"
           sx={{
-            backgroundColor: "#3b82f6",
+            backgroundColor: "#00d4ff",
             "&:hover": { backgroundColor: "#2563eb" },
           }}
         >

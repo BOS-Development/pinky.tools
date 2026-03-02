@@ -719,7 +719,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                       <IconButton
                         size="small"
                         onClick={() => setEditGroup(group)}
-                        sx={{ color: "#3b82f6" }}
+                        sx={{ color: "#00d4ff" }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -1295,7 +1295,7 @@ function BatchEditStepDialog({
               <Button
                 size="small"
                 variant="outlined"
-                sx={{ fontSize: 11, py: 0.25, px: 1, color: "#3b82f6", borderColor: "#3b82f6", minWidth: 0 }}
+                sx={{ fontSize: 11, py: 0.25, px: 1, color: "#00d4ff", borderColor: "#00d4ff", minWidth: 0 }}
                 onClick={() => {
                   setMeLevel(detectedLevel.materialEfficiency);
                   setTeLevel(detectedLevel.timeEfficiency);
@@ -1502,7 +1502,7 @@ function BatchEditStepDialog({
           }
           variant="contained"
           sx={{
-            backgroundColor: "#3b82f6",
+            backgroundColor: "#00d4ff",
             "&:hover": { backgroundColor: "#2563eb" },
           }}
         >

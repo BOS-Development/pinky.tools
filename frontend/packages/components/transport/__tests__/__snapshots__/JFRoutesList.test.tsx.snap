@@ -211,7 +211,7 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
         class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
       >
         <tr
-          class="MuiTableRow-root css-jgrlj7-MuiTableRow-root"
+          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1cydmra-MuiTableCell-root"

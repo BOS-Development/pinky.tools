@@ -1378,11 +1378,11 @@ export default function AssetsList(props: AssetsListProps) {
                               fontSize: '0.75rem',
                               fontWeight: 600,
                               cursor: 'pointer',
-                              background: listing.autoSellContainerId ? 'rgba(59, 130, 246, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                              color: listing.autoSellContainerId ? '#3b82f6' : '#10b981',
-                              border: listing.autoSellContainerId ? '1px solid rgba(59, 130, 246, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
+                              background: listing.autoSellContainerId ? 'rgba(0, 212, 255, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                              color: listing.autoSellContainerId ? '#00d4ff' : '#10b981',
+                              border: listing.autoSellContainerId ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
                               '& .MuiChip-icon': {
-                                color: listing.autoSellContainerId ? '#3b82f6' : '#10b981',
+                                color: listing.autoSellContainerId ? '#00d4ff' : '#10b981',
                               },
                             }}
                             onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber, listing)}
@@ -1519,10 +1519,10 @@ export default function AssetsList(props: AssetsListProps) {
                     sx={{
                       fontSize: '0.7rem',
                       fontWeight: 600,
-                      background: 'rgba(59, 130, 246, 0.15)',
-                      color: '#3b82f6',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
-                      '& .MuiChip-icon': { color: '#3b82f6', fontSize: '0.9rem' },
+                      background: 'rgba(0, 212, 255, 0.15)',
+                      color: '#00d4ff',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                      '& .MuiChip-icon': { color: '#00d4ff', fontSize: '0.9rem' },
                     }}
                   />
                 )}
@@ -1578,7 +1578,7 @@ export default function AssetsList(props: AssetsListProps) {
                 e.stopPropagation();
                 handleOpenAutoSellDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
               }}
-              sx={{ color: autoSellConfig ? '#3b82f6' : undefined }}
+              sx={{ color: autoSellConfig ? '#00d4ff' : undefined }}
             >
               <AutoSellIcon fontSize="small" />
             </IconButton>
@@ -1613,10 +1613,10 @@ export default function AssetsList(props: AssetsListProps) {
                     sx={{
                       fontSize: '0.7rem',
                       fontWeight: 600,
-                      background: 'rgba(59, 130, 246, 0.15)',
-                      color: '#3b82f6',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
-                      '& .MuiChip-icon': { color: '#3b82f6', fontSize: '0.9rem' },
+                      background: 'rgba(0, 212, 255, 0.15)',
+                      color: '#00d4ff',
+                      border: '1px solid rgba(0, 212, 255, 0.3)',
+                      '& .MuiChip-icon': { color: '#00d4ff', fontSize: '0.9rem' },
                     }}
                   />
                 )}
@@ -1672,7 +1672,7 @@ export default function AssetsList(props: AssetsListProps) {
                 e.stopPropagation();
                 handleOpenAutoSellDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
               }}
-              sx={{ color: autoSellConfig ? '#3b82f6' : undefined }}
+              sx={{ color: autoSellConfig ? '#00d4ff' : undefined }}
             >
               <AutoSellIcon fontSize="small" />
             </IconButton>
@@ -1734,11 +1734,11 @@ export default function AssetsList(props: AssetsListProps) {
                   px: 2,
                   py: 1,
                   borderRadius: 1.5,
-                  background: 'rgba(59, 130, 246, 0.08)',
-                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  background: 'rgba(0, 212, 255, 0.08)',
+                  border: '1px solid rgba(0, 212, 255, 0.2)',
                 }}
               >
-                <InventoryIcon sx={{ fontSize: 20, color: '#3b82f6' }} />
+                <InventoryIcon sx={{ fontSize: 20, color: '#00d4ff' }} />
                 <Box>
                   <Typography variant="body1" fontWeight={700}>{formatCompact(totalItems)}</Typography>
                   <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Items</Typography>

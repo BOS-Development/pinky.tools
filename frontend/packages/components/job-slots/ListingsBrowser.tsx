@@ -212,8 +212,8 @@ export default function ListingsBrowser() {
                       label={listing.ownerName}
                       size="small"
                       sx={{
-                        background: 'rgba(59, 130, 246, 0.1)',
-                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        background: 'rgba(0, 212, 255, 0.1)',
+                        borderColor: 'rgba(0, 212, 255, 0.3)',
                         color: '#60a5fa',
                       }}
                     />

@@ -270,7 +270,7 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
               <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
                 Waypoints (cyno systems in order)
               </Typography>
-              <IconButton size="small" onClick={handleAddWaypoint} sx={{ color: "#3b82f6" }}>
+              <IconButton size="small" onClick={handleAddWaypoint} sx={{ color: "#00d4ff" }}>
                 <AddIcon fontSize="small" />
               </IconButton>
             </Box>
