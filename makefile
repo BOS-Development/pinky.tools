@@ -1,4 +1,4 @@
-.PHONY: build test test-backend test-backend-sde-integration test-frontend test-all test-clean dev dev-clean dev-build build-production build-production-backend build-production-frontend test-e2e test-e2e-ui test-e2e-clean test-e2e-debug test-e2e-ci
+.PHONY: build test test-backend test-backend-sde-integration test-frontend test-all test-clean dev dev-clean dev-build build-production build-production-backend build-production-frontend test-e2e test-e2e-ui test-e2e-clean test-e2e-debug test-e2e-ci visual-review
 
 # Docker Compose command (v1: docker-compose, v2: docker compose)
 DOCKER_COMPOSE ?= docker-compose
@@ -171,3 +171,11 @@ build-production: build-production-backend build-production-frontend
 	@echo "Backend:  industry-tool-backend:latest"
 	@echo "Frontend: industry-tool-frontend:latest"
 	@echo ""
+
+# Visual review — capture screenshots for design feedback
+# Usage: make visual-review [PAGES=reactions,stockpiles,market]
+visual-review:
+	@echo "Capturing page screenshots for visual review..."
+	@mkdir -p e2e/screenshots
+	cd e2e && PAGES=$(PAGES) npx playwright test visual-review --project=chromium
+	@echo "✓ Screenshots saved to e2e/screenshots/"
