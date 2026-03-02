@@ -1,6 +1,6 @@
 const config = {
   plugins: {
-    // Tailwind CSS removed - project uses Material-UI
+    "@tailwindcss/postcss": {},
   },
 };
 
