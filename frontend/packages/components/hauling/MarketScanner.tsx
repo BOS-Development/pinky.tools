@@ -147,9 +147,9 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
       await fetch('/api/hauling/scanner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ regionId: sourceRegionId }),
+        body: JSON.stringify({ regionId: sourceRegionId, destRegionId }),
       });
-      // After triggering scan, fetch updated results
+      // Scan is synchronous — results are ready after POST completes
       await fetchResults(sourceRegionId, destRegionId);
     } catch (error) {
       console.error('Failed to trigger scan:', error);

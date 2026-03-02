@@ -219,23 +219,12 @@ test.describe('Hauling Runs', () => {
     await destControl.getByRole('combobox').click();
     await page.getByRole('option', { name: /Domain/i }).click();
 
-    // Click Scan
+    // Click Scan — scan is synchronous, results load after POST completes
     await page.getByRole('button', { name: /Scan/i }).click();
 
-    // The backend triggers a background scan (returns immediately with {status:"scanning"}).
-    // The scanner page should show either:
-    //   a) A loading/scanning indicator while results come in, or
-    //   b) Scan results once the background job completes and results are fetched.
-    // Use toPass with reload to handle async scan completion.
-    await expect(async () => {
-      await page.reload();
-      // Either a results table, a "Scanning..." message, or a "No results" empty state
-      await expect(
-        page.getByRole('table').or(
-          page.getByText(/Scanning|scanning|No results|No arbitrage/i)
-        ).first()
-      ).toBeVisible({ timeout: 5000 });
-    }).toPass({ timeout: 30000 });
+    // Scan is synchronous — wait for loading to finish and results table to appear.
+    // The table only renders when results.length > 0 (otherwise the empty-state card shows).
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 30000 });
   });
 
   // -------------------------------------------------------------------------
