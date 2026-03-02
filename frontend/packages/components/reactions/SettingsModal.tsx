@@ -25,7 +25,7 @@ export default function SettingsModal({ open, onClose, settings, onSettingChange
         </DialogHeader>
 
         <div className="flex flex-col gap-4 pt-1">
-          <p className="text-sm font-medium text-[var(--color-text-secondary)]">Skills & Fees</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary-cyan)]">Skills & Fees</p>
 
           <div className="flex flex-col gap-1">
             <label className="text-xs text-[var(--color-text-secondary)]">Reactions Skill Level</label>
@@ -74,7 +74,7 @@ export default function SettingsModal({ open, onClose, settings, onSettingChange
             />
           </div>
 
-          <p className="text-sm font-medium text-[var(--color-text-secondary)] mt-2">Pricing</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary-cyan)] mt-2">Pricing</p>
 
           <div className="flex flex-col gap-1">
             <label className="text-xs text-[var(--color-text-secondary)]">Input Price</label>
@@ -113,7 +113,7 @@ export default function SettingsModal({ open, onClose, settings, onSettingChange
             />
           </div>
 
-          <p className="text-sm font-medium text-[var(--color-text-secondary)] mt-2">Shipping</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-[var(--color-primary-cyan)] mt-2">Shipping</p>
 
           <div className="flex items-center justify-between">
             <label className="text-sm text-[var(--color-text-primary)]">Ship Inputs</label>

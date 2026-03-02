@@ -210,7 +210,7 @@ export default function Reactions() {
     return (
         <>
             <Navbar />
-            <div className="w-full px-4 py-2">
+            <div className="w-full px-4 py-2 bg-[var(--color-bg-void)] min-h-screen">
                 <SettingsToolbar
                     settings={settings}
                     systems={systems}
@@ -218,7 +218,7 @@ export default function Reactions() {
                 />
 
                 <Tabs value={tabValue} onValueChange={setTabValue}>
-                    <div className="border-b border-[var(--color-border-dim)] mb-4">
+                    <div className="border-b border-[var(--color-border-active)] mb-4">
                         <TabsList className="bg-transparent">
                             <TabsTrigger value="pick">Pick Reactions</TabsTrigger>
                             <TabsTrigger value="shopping">

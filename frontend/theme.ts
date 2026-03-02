@@ -1,16 +1,18 @@
 'use client';
 import { createTheme } from '@mui/material/styles';
 
-// Neocom Dark design tokens
+// Neocom Dark design tokens — three-layer depth system
 const neocom = {
   cyan: '#00d4ff',
   cyanLight: '#33ddff',
   cyanDark: '#00a8cc',
-  bgDefault: '#0a0e1a',
-  bgPaper: '#12151f',
-  surfaceElevated: '#1a1f2e',
-  borderCyan: 'rgba(0, 212, 255, 0.08)',
-  borderCyanHover: 'rgba(0, 212, 255, 0.15)',
+  bgVoid: '#0a0a0f',
+  bgPanel: '#12141a',
+  surfaceElevated: '#1a1d24',
+  borderCyan: 'rgba(0, 212, 255, 0.10)',
+  borderCyanHover: 'rgba(0, 212, 255, 0.30)',
+  glowCyanSm: '0 0 8px rgba(0, 212, 255, 0.25)',
+  glowCyanMd: '0 0 12px rgba(0, 212, 255, 0.35)',
 };
 
 const theme = createTheme({
@@ -42,14 +44,14 @@ const theme = createTheme({
       dark: '#f59e0b',
     },
     background: {
-      default: neocom.bgDefault,
-      paper: neocom.bgPaper,
+      default: neocom.bgVoid,
+      paper: neocom.bgPanel,
     },
     text: {
       primary: '#f1f5f9',
       secondary: '#94a3b8',
     },
-    divider: 'rgba(148, 163, 184, 0.12)',
+    divider: 'rgba(0, 212, 255, 0.08)',
   },
   typography: {
     fontFamily: 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
@@ -94,17 +96,17 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          scrollbarColor: '#1e293b #0a0e1a',
+          scrollbarColor: `${neocom.surfaceElevated} ${neocom.bgVoid}`,
           '&::-webkit-scrollbar': {
             width: '8px',
             height: '8px',
           },
           '&::-webkit-scrollbar-track': {
-            background: '#0a0e1a',
+            background: neocom.bgVoid,
           },
           '&::-webkit-scrollbar-thumb': {
-            background: '#1e293b',
-            borderRadius: '4px',
+            background: neocom.surfaceElevated,
+            borderRadius: '2px',
             '&:hover': {
               background: '#334155',
             },
@@ -115,16 +117,16 @@ const theme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 2,
           textTransform: 'none',
           fontWeight: 500,
           fontSize: '0.875rem',
           padding: '8px 16px',
         },
         contained: {
-          boxShadow: 'none',
+          boxShadow: neocom.glowCyanSm,
           '&:hover': {
-            boxShadow: 'none',
+            boxShadow: neocom.glowCyanMd,
           },
         },
       },
@@ -132,9 +134,13 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
+          borderRadius: 2,
           backgroundImage: 'none',
           border: `1px solid ${neocom.borderCyan}`,
+          '&:hover': {
+            borderColor: neocom.borderCyanHover,
+            boxShadow: neocom.glowCyanSm,
+          },
         },
       },
     },
@@ -142,7 +148,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          borderRadius: 8,
+          borderRadius: 2,
         },
         outlined: {
           border: `1px solid ${neocom.borderCyan}`,
@@ -161,13 +167,13 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiTableCell-root': {
-            backgroundColor: '#0f1219',
-            color: '#94a3b8',
+            backgroundColor: neocom.bgPanel,
+            color: neocom.cyan,
             fontWeight: 600,
             fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            borderBottom: `1px solid ${neocom.borderCyan}`,
+            borderBottom: `1px solid ${neocom.borderCyanHover}`,
             padding: '12px 16px',
           },
         },
@@ -181,7 +187,7 @@ const theme = createTheme({
               backgroundColor: 'rgba(0, 212, 255, 0.04)',
             },
             '& .MuiTableCell-root': {
-              borderBottom: 'rgba(0, 212, 255, 0.04)',
+              borderBottom: `1px solid ${neocom.borderCyan}`,
               padding: '12px 16px',
               fontSize: '0.875rem',
             },
@@ -199,7 +205,7 @@ const theme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 2,
           fontWeight: 500,
           fontSize: '0.75rem',
         },
@@ -214,6 +220,7 @@ const theme = createTheme({
           minHeight: 48,
           '&.Mui-selected': {
             color: neocom.cyan,
+            textShadow: '0 0 8px rgba(0, 212, 255, 0.4)',
           },
         },
       },
@@ -223,6 +230,7 @@ const theme = createTheme({
         indicator: {
           backgroundColor: neocom.cyan,
           height: 2,
+          boxShadow: '0 0 8px rgba(0, 212, 255, 0.5)',
         },
       },
     },
@@ -230,15 +238,16 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 6,
+            borderRadius: 2,
             '& fieldset': {
-              borderColor: 'rgba(148, 163, 184, 0.2)',
+              borderColor: neocom.borderCyan,
             },
             '&:hover fieldset': {
-              borderColor: 'rgba(148, 163, 184, 0.3)',
+              borderColor: neocom.borderCyanHover,
             },
             '&.Mui-focused fieldset': {
               borderColor: neocom.cyan,
+              boxShadow: neocom.glowCyanSm,
             },
           },
         },
@@ -247,7 +256,7 @@ const theme = createTheme({
     MuiSelect: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 2,
         },
       },
     },

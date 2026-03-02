@@ -74,13 +74,13 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
         {statCards.map((card) => (
           <Card
             key={card.label}
-            className="bg-[var(--color-bg-panel)]"
-            style={{ borderLeft: `3px solid ${card.color}` }}
+            className="bg-[var(--color-bg-panel)] transition-all"
+            style={{ borderLeft: `3px solid ${card.color}`, boxShadow: `0 0 10px ${card.color}20` }}
           >
             <CardContent className="py-3 px-4">
               <div className="flex items-center gap-2 mb-1">
                 <span style={{ color: card.color }}>{card.icon}</span>
-                <span className="text-xs text-[var(--color-text-secondary)]">{card.label}</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-secondary)]">{card.label}</span>
               </div>
               <p className="text-lg font-bold" style={{ color: card.color }}>
                 {card.value}
@@ -93,7 +93,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
 
       {planData.intermediates.length > 0 && (
         <>
-          <h3 className="text-sm font-bold mb-2 text-[var(--color-text-primary)]">Intermediate Reactions</h3>
+          <h3 className="text-sm font-bold mb-2 text-[var(--color-primary-cyan)] uppercase tracking-wider">Intermediate Reactions</h3>
           <div className="mb-6">
             <Table>
               <TableHeader>
@@ -141,7 +141,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
 
       {selectedReactions.length > 0 && (
         <>
-          <h3 className="text-sm font-bold mb-2 text-[var(--color-text-primary)]">Complex Reactions</h3>
+          <h3 className="text-sm font-bold mb-2 text-[var(--color-primary-cyan)] uppercase tracking-wider">Complex Reactions</h3>
           <Table>
             <TableHeader>
               <TableRow className="bg-[var(--color-bg-panel)]">

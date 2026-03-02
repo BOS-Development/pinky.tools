@@ -51,7 +51,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] disabled:cursor-not-allowed disabled:opacity-50",
+            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50",
             !selected && "text-[var(--color-text-muted)]",
             selected && "text-[var(--color-text-primary)]",
             triggerClassName
