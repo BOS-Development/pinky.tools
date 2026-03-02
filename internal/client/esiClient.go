@@ -637,7 +637,7 @@ func (c *EsiClient) GetMarketOrdersFiltered(ctx context.Context, regionID int64,
 	orders := []*MarketOrder{}
 	page := 1
 	for {
-		urlStr := fmt.Sprintf("%s/latest/markets/%d/orders/?page=%d&order_type=sell", c.baseURL, regionID, page)
+		urlStr := fmt.Sprintf("%s/latest/markets/%d/orders/?page=%d&order_type=all", c.baseURL, regionID, page)
 		if systemID != 0 {
 			urlStr += fmt.Sprintf("&system_id=%d", systemID)
 		}

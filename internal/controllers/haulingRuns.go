@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -402,8 +401,9 @@ func (c *HaulingRunsController) GetScannerResults(args *web.HandlerArgs) (interf
 
 func (c *HaulingRunsController) TriggerScan(args *web.HandlerArgs) (interface{}, *web.HttpError) {
 	var body struct {
-		RegionID int64 `json:"regionId"`
-		SystemID int64 `json:"systemId"`
+		RegionID     int64 `json:"regionId"`
+		SystemID     int64 `json:"systemId"`
+		DestRegionID int64 `json:"destRegionId"`
 	}
 	if err := json.NewDecoder(args.Request.Body).Decode(&body); err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.Wrap(err, "invalid request body")}
@@ -411,12 +411,16 @@ func (c *HaulingRunsController) TriggerScan(args *web.HandlerArgs) (interface{},
 	if body.RegionID == 0 {
 		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("regionId is required")}
 	}
-	// Run scan in background
-	go func() {
-		ctx := context.Background()
-		if err := c.scanner.ScanRegion(ctx, body.RegionID, body.SystemID); err != nil {
-			slog.Error("background hauling scan failed", "region_id", body.RegionID, "error", err)
+	ctx := args.Request.Context()
+	// Scan source region
+	if err := c.scanner.ScanRegion(ctx, body.RegionID, body.SystemID); err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan source region")}
+	}
+	// Scan destination region (region-wide, systemID=0)
+	if body.DestRegionID != 0 {
+		if err := c.scanner.ScanRegion(ctx, body.DestRegionID, 0); err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan destination region")}
 		}
-	}()
-	return map[string]string{"status": "scanning"}, nil
+	}
+	return map[string]string{"status": "done"}, nil
 }

@@ -713,8 +713,7 @@ func Test_HaulingRuns_TriggerScan_Success(t *testing.T) {
 	controller, mocks := setupHaulingController()
 	userID := int64(100)
 
-	// The scan runs in a background goroutine; set up with Maybe so it may or may not be called
-	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000002), int64(0)).Return(nil).Maybe()
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000002), int64(0)).Return(nil)
 
 	body, _ := json.Marshal(map[string]int64{"regionId": 10000002, "systemId": 0})
 	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
@@ -724,7 +723,60 @@ func Test_HaulingRuns_TriggerScan_Success(t *testing.T) {
 	assert.Nil(t, httpErr)
 	assert.NotNil(t, result)
 	resp := result.(map[string]string)
-	assert.Equal(t, "scanning", resp["status"])
+	assert.Equal(t, "done", resp["status"])
+	mocks.scanner.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_TriggerScan_WithDestRegion(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000002), int64(0)).Return(nil)
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000043), int64(0)).Return(nil)
+
+	body, _ := json.Marshal(map[string]int64{"regionId": 10000002, "systemId": 0, "destRegionId": 10000043})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]string)
+	assert.Equal(t, "done", resp["status"])
+	mocks.scanner.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_TriggerScan_SourceScanError(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000002), int64(0)).Return(errors.New("ESI timeout"))
+
+	body, _ := json.Marshal(map[string]int64{"regionId": 10000002, "destRegionId": 10000043})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_TriggerScan_DestScanError(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000002), int64(0)).Return(nil)
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000043), int64(0)).Return(errors.New("ESI timeout"))
+
+	body, _ := json.Marshal(map[string]int64{"regionId": 10000002, "destRegionId": 10000043})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
 }
 
 func Test_HaulingRuns_TriggerScan_MissingRegionID(t *testing.T) {
