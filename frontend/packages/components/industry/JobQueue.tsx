@@ -328,7 +328,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                       <TableCell>
                         {entry.esiJobEndDate ? (
                           <Box>
-                            <Typography variant="body2" sx={{ color: "#3b82f6", fontFamily: "monospace", fontWeight: 600 }}>
+                            <Typography variant="body2" sx={{ color: "#00d4ff", fontFamily: "monospace", fontWeight: 600 }}>
                               {formatTimeRemaining(entry.esiJobEndDate)}
                             </Typography>
                             <Typography variant="caption" sx={{ color: "#64748b" }}>

@@ -31,7 +31,7 @@ interface Props {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    planned: "#3b82f6",
+    planned: "#00d4ff",
     in_transit: "#f59e0b",
     delivered: "#10b981",
     cancelled: "#ef4444",
@@ -145,7 +145,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                 <React.Fragment key={job.id}>
                   <TableRow
                     sx={{
-                      "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.05)" },
+                      "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" },
                       "& > td": expandedJobId === job.id ? { borderBottom: "none" } : {},
                     }}
                   >

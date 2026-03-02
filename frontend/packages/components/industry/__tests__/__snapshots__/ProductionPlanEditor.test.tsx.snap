@@ -44,7 +44,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               Rifter Production
             </h5>
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-aqiitb-MuiButtonBase-root-MuiIconButton-root"
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-rrp6hb-MuiButtonBase-root-MuiIconButton-root"
               tabindex="0"
               type="button"
             >
@@ -96,7 +96,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
       class="MuiBox-root css-14ddptj"
     >
       <div
-        class="MuiTabs-root css-1mjdata-MuiTabs-root"
+        class="MuiTabs-root css-1nb82hl-MuiTabs-root"
       >
         <div
           class="MuiTabs-scroller MuiTabs-fixed css-s2t35c-MuiTabs-scroller"
@@ -207,7 +207,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-s4z0eu"
@@ -287,7 +287,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                 tabindex="0"
                 type="button"
               >
@@ -312,7 +312,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-en4xye"
@@ -385,7 +385,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-en4xye"
@@ -439,7 +439,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-en4xye"
@@ -523,7 +523,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               Rifter Production
             </h5>
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-aqiitb-MuiButtonBase-root-MuiIconButton-root"
+              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-rrp6hb-MuiButtonBase-root-MuiIconButton-root"
               tabindex="0"
               type="button"
             >
@@ -575,7 +575,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
       class="MuiBox-root css-14ddptj"
     >
       <div
-        class="MuiTabs-root css-1mjdata-MuiTabs-root"
+        class="MuiTabs-root css-1nb82hl-MuiTabs-root"
       >
         <div
           class="MuiTabs-scroller MuiTabs-fixed css-s2t35c-MuiTabs-scroller"
@@ -686,7 +686,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-s4z0eu"
@@ -766,7 +766,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                 tabindex="0"
                 type="button"
               >
@@ -791,10 +791,10 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
-                class="MuiBox-root css-1yjp461"
+                class="MuiBox-root css-t69bvx"
               />
               <div
                 class="MuiBox-root css-en4xye"
@@ -869,7 +869,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
             >
               <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-lsyoc6-MuiButtonBase-root-MuiIconButton-root"
+                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
                 tabindex="0"
                 type="button"
               >
@@ -911,7 +911,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-en4xye"
@@ -965,7 +965,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
               class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-11tgup3-MuiTableCell-root"
             >
               <div
-                class="MuiBox-root css-hhy3b5"
+                class="MuiBox-root css-17hleiq"
               />
               <div
                 class="MuiBox-root css-en4xye"

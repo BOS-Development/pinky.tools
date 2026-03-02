@@ -28,7 +28,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
       >
         <svg
           aria-hidden="true"
-          class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge css-l4l7om-MuiSvgIcon-root"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge css-61hq9r-MuiSvgIcon-root"
           data-testid="LocalShippingIcon"
           focusable="false"
           viewBox="0 0 24 24"
@@ -213,7 +213,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                         aria-valuemax="100"
                         aria-valuemin="0"
                         aria-valuenow="50"
-                        class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-p1f78v-MuiLinearProgress-root"
+                        class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-pihvi5-MuiLinearProgress-root"
                         role="progressbar"
                       >
                         <span

@@ -525,7 +525,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                         borderRadius: 6,
                         backgroundColor: '#1e2a3a',
                         '& .MuiLinearProgress-bar': {
-                          backgroundColor: volumePercent >= 95 ? '#10b981' : volumePercent >= 70 ? '#3b82f6' : '#f59e0b',
+                          backgroundColor: volumePercent >= 95 ? '#10b981' : volumePercent >= 70 ? '#00d4ff' : '#f59e0b',
                         },
                       }}
                     />
@@ -684,7 +684,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                                     borderRadius: 3,
                                     backgroundColor: '#1e2a3a',
                                     '& .MuiLinearProgress-bar': {
-                                      backgroundColor: item.fillPercent >= 100 ? '#10b981' : '#3b82f6',
+                                      backgroundColor: item.fillPercent >= 100 ? '#10b981' : '#00d4ff',
                                     },
                                   }}
                                 />

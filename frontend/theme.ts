@@ -1,13 +1,25 @@
 'use client';
 import { createTheme } from '@mui/material/styles';
 
+// Neocom Dark design tokens
+const neocom = {
+  cyan: '#00d4ff',
+  cyanLight: '#33ddff',
+  cyanDark: '#00a8cc',
+  bgDefault: '#0a0e1a',
+  bgPaper: '#12151f',
+  surfaceElevated: '#1a1f2e',
+  borderCyan: 'rgba(0, 212, 255, 0.08)',
+  borderCyanHover: 'rgba(0, 212, 255, 0.15)',
+};
+
 const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#3b82f6',
-      light: '#60a5fa',
-      dark: '#2563eb',
+      main: neocom.cyan,
+      light: neocom.cyanLight,
+      dark: neocom.cyanDark,
     },
     secondary: {
       main: '#8b5cf6',
@@ -15,23 +27,23 @@ const theme = createTheme({
       dark: '#7c3aed',
     },
     success: {
-      main: '#10b981',
-      light: '#34d399',
-      dark: '#059669',
+      main: '#2dd4bf',
+      light: '#5eead4',
+      dark: '#14b8a6',
     },
     error: {
-      main: '#ef4444',
-      light: '#f87171',
-      dark: '#dc2626',
+      main: '#f43f5e',
+      light: '#fb7185',
+      dark: '#e11d48',
     },
     warning: {
-      main: '#f59e0b',
-      light: '#fbbf24',
-      dark: '#d97706',
+      main: '#fbbf24',
+      light: '#fde68a',
+      dark: '#f59e0b',
     },
     background: {
-      default: '#0a0e1a',
-      paper: '#12151f',
+      default: neocom.bgDefault,
+      paper: neocom.bgPaper,
     },
     text: {
       primary: '#f1f5f9',
@@ -42,27 +54,27 @@ const theme = createTheme({
   typography: {
     fontFamily: 'var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
     h1: {
-      fontSize: '2.5rem',
+      fontSize: '1.75rem',
       fontWeight: 700,
       letterSpacing: '-0.02em',
     },
     h2: {
-      fontSize: '2rem',
+      fontSize: '1.5rem',
       fontWeight: 700,
       letterSpacing: '-0.01em',
     },
     h3: {
-      fontSize: '1.75rem',
+      fontSize: '1.375rem',
       fontWeight: 600,
       letterSpacing: '-0.01em',
     },
     h4: {
-      fontSize: '1.5rem',
+      fontSize: '1.25rem',
       fontWeight: 600,
       letterSpacing: '-0.01em',
     },
     h5: {
-      fontSize: '1.25rem',
+      fontSize: '1.125rem',
       fontWeight: 600,
     },
     h6: {
@@ -122,7 +134,7 @@ const theme = createTheme({
         root: {
           borderRadius: 8,
           backgroundImage: 'none',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          border: `1px solid ${neocom.borderCyan}`,
         },
       },
     },
@@ -133,7 +145,7 @@ const theme = createTheme({
           borderRadius: 8,
         },
         outlined: {
-          border: '1px solid rgba(148, 163, 184, 0.1)',
+          border: `1px solid ${neocom.borderCyan}`,
         },
       },
     },
@@ -155,7 +167,7 @@ const theme = createTheme({
             fontSize: '0.75rem',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
+            borderBottom: `1px solid ${neocom.borderCyan}`,
             padding: '12px 16px',
           },
         },
@@ -166,10 +178,10 @@ const theme = createTheme({
         root: {
           '& .MuiTableRow-root': {
             '&:hover': {
-              backgroundColor: 'rgba(59, 130, 246, 0.05)',
+              backgroundColor: 'rgba(0, 212, 255, 0.04)',
             },
             '& .MuiTableCell-root': {
-              borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
+              borderBottom: 'rgba(0, 212, 255, 0.04)',
               padding: '12px 16px',
               fontSize: '0.875rem',
             },
@@ -180,7 +192,7 @@ const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: {
-          borderColor: 'rgba(148, 163, 184, 0.1)',
+          borderColor: neocom.borderCyan,
         },
       },
     },
@@ -201,7 +213,7 @@ const theme = createTheme({
           fontSize: '0.875rem',
           minHeight: 48,
           '&.Mui-selected': {
-            color: '#3b82f6',
+            color: neocom.cyan,
           },
         },
       },
@@ -209,7 +221,7 @@ const theme = createTheme({
     MuiTabs: {
       styleOverrides: {
         indicator: {
-          backgroundColor: '#3b82f6',
+          backgroundColor: neocom.cyan,
           height: 2,
         },
       },
@@ -226,7 +238,7 @@ const theme = createTheme({
               borderColor: 'rgba(148, 163, 184, 0.3)',
             },
             '&.Mui-focused fieldset': {
-              borderColor: '#3b82f6',
+              borderColor: neocom.cyan,
             },
           },
         },

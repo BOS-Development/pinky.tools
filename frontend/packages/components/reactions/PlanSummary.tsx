@@ -48,7 +48,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
       value: `${summary.total_slots}`,
       subtitle: `${summary.intermediate_slots} intermediate + ${summary.complex_slots} complex`,
       icon: <ViewModuleIcon />,
-      color: '#3b82f6',
+      color: '#00d4ff',
     },
     {
       label: 'Investment',
@@ -85,7 +85,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
           <Card
             key={card.label}
             sx={{
-              background: `linear-gradient(135deg, ${card.color}15 0%, ${card.color}05 100%)`,
+              background: '#12151f',
               borderLeft: `3px solid ${card.color}`,
             }}
           >

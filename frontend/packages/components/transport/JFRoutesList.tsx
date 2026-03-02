@@ -93,7 +93,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
               routes.map((r) => (
                 <TableRow
                   key={r.id}
-                  sx={{ "&:hover": { backgroundColor: "rgba(59, 130, 246, 0.05)" } }}
+                  sx={{ "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" } }}
                 >
                   <TableCell sx={{ fontWeight: 500 }}>{r.name}</TableCell>
                   <TableCell>{r.originSystemName || r.originSystemId}</TableCell>

@@ -53,6 +53,8 @@ services:
       ASSET_UPDATE_INTERVAL_SEC: "10"
       INDUSTRY_JOBS_UPDATE_INTERVAL_SEC: "10"
       PI_UPDATE_INTERVAL_SEC: "10"
+    ports:
+      - "8080:80"
     depends_on:
       database:
         condition: service_healthy

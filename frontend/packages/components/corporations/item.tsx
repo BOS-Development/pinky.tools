@@ -39,7 +39,7 @@ export default function Item(props: CorporationItemProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(135deg, #1976d2 0%, #42a5f5 100%)',
+          background: '#1a1f2e',
           position: 'relative',
           overflow: 'hidden',
         }}

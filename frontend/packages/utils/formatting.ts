@@ -62,10 +62,15 @@ export function formatPercent(value: number, decimals: number = 2): string {
  * Get color based on value (for profit/loss, etc.)
  */
 export function getValueColor(value: number): string {
-  if (value > 0) return '#10b981'; // green
-  if (value < 0) return '#ef4444'; // red
+  if (value > 0) return '#2dd4bf'; // teal (success)
+  if (value < 0) return '#f43f5e'; // rose (danger)
   return '#94a3b8'; // gray
 }
+
+/**
+ * JetBrains Mono font family for numerical data display
+ */
+export const FONT_NUMERIC = 'var(--font-jetbrains-mono), "JetBrains Mono", monospace';
 
 /**
  * Get trend indicator

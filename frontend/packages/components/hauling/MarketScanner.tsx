@@ -60,7 +60,7 @@ function getIndicatorColor(indicator: HaulingArbitrageRow['indicator']): 'warnin
 function getRowBgColor(indicator: HaulingArbitrageRow['indicator']): string | undefined {
   switch (indicator) {
     case 'gap': return 'rgba(245, 158, 11, 0.06)';
-    case 'markup': return 'rgba(59, 130, 246, 0.04)';
+    case 'markup': return 'rgba(0, 212, 255, 0.04)';
     case 'thin': return undefined;
     default: return undefined;
   }
@@ -219,7 +219,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
       <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
         {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <ScannerIcon fontSize="large" sx={{ color: '#3b82f6' }} />
+          <ScannerIcon fontSize="large" sx={{ color: '#00d4ff' }} />
           <Typography variant="h4" sx={{ fontWeight: 600 }}>
             Market Scanner
           </Typography>
@@ -352,7 +352,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                           sx={{
                             backgroundColor: rowBg,
                             cursor: 'pointer',
-                            '&.Mui-selected': { backgroundColor: 'rgba(59, 130, 246, 0.12)' },
+                            '&.Mui-selected': { backgroundColor: 'rgba(0, 212, 255, 0.12)' },
                           }}
                         >
                           <TableCell>

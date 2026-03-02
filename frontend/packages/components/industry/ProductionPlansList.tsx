@@ -128,7 +128,7 @@ export default function ProductionPlansList() {
             startIcon={<AddIcon />}
             onClick={() => setCreateDialogOpen(true)}
             sx={{
-              backgroundColor: "#3b82f6",
+              backgroundColor: "#00d4ff",
               "&:hover": { backgroundColor: "#2563eb" },
             }}
           >
@@ -229,7 +229,7 @@ export default function ProductionPlansList() {
                           e.stopPropagation();
                           setSelectedPlanId(plan.id);
                         }}
-                        sx={{ color: "#3b82f6" }}
+                        sx={{ color: "#00d4ff" }}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -500,7 +500,7 @@ function CreatePlanDialog({
           disabled={!selectedBlueprint || creating}
           variant="contained"
           sx={{
-            backgroundColor: "#3b82f6",
+            backgroundColor: "#00d4ff",
             "&:hover": { backgroundColor: "#2563eb" },
           }}
         >

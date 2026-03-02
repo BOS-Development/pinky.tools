@@ -80,11 +80,11 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
           class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-c6csgn"
+            class="MuiBox-root css-khy5ol"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-10ehzp2-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -514,11 +514,11 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
           class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-c6csgn"
+            class="MuiBox-root css-khy5ol"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-10ehzp2-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -868,11 +868,11 @@ exports[`AssetsList Component With Containers should match snapshot with contain
           class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-c6csgn"
+            class="MuiBox-root css-khy5ol"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-10ehzp2-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1222,11 +1222,11 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
           class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-c6csgn"
+            class="MuiBox-root css-khy5ol"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-10ehzp2-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"
@@ -1576,11 +1576,11 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
           class="MuiBox-root css-13xem27"
         >
           <div
-            class="MuiBox-root css-c6csgn"
+            class="MuiBox-root css-khy5ol"
           >
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-zjfsrn-MuiSvgIcon-root"
+              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-10ehzp2-MuiSvgIcon-root"
               data-testid="InventoryIcon"
               focusable="false"
               viewBox="0 0 24 24"

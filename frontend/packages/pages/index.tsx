@@ -1,34 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
-import Loading from "@industry-tool/components/loading";
 import Box from '@mui/material/Box';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { FONT_NUMERIC } from "@industry-tool/utils/formatting";
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const [assetMetrics, setAssetMetrics] = useState({ totalValue: 0, totalDeficit: 0 });
+  const [assetMetrics, setAssetMetrics] = useState({ totalValue: 0, totalDeficit: 0, activeJobs: 0 });
 
   useEffect(() => {
     if (status === "authenticated" && session?.providerAccountId) {
-      // Fetch assets summary
       fetch('/api/assets/summary')
         .then(response => {
           if (response.ok) {
             return response.json();
           }
-          return { totalValue: 0, totalDeficit: 0 };
+          return { totalValue: 0, totalDeficit: 0, activeJobs: 0 };
         })
         .then(data => setAssetMetrics(data))
         .catch(error => {
           console.error('[Landing] Failed to fetch asset metrics:', error);
-          // Silently fail and show 0 values rather than breaking the page
         });
     }
   }, [status, session]);
@@ -39,7 +34,6 @@ export default function Home() {
     <>
       <Navbar />
 
-      {/* Hero Section */}
       <Box sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -48,7 +42,7 @@ export default function Home() {
         height: '100vh',
         mt: '-64px',
         pt: '64px',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        background: '#0a0e1a',
         textAlign: 'center',
         px: 3,
         pb: 4,
@@ -60,170 +54,109 @@ export default function Home() {
               src="https://images.evetech.net/types/23773/render?size=512"
               alt="Ragnarok Titan"
               sx={{
-                width: 120,
+                width: 100,
                 height: 'auto',
                 mb: 2,
                 borderRadius: 2,
-                filter: 'drop-shadow(0 0 20px rgba(255,255,255,0.3))'
+                filter: 'drop-shadow(0 0 24px rgba(0, 212, 255, 0.3))'
               }}
             />
-          <Typography variant="h1" color="white" gutterBottom>
-            Master Your EVE Online Assets
-          </Typography>
-          <Typography variant="h5" color="rgba(255, 255, 255, 0.9)" sx={{ mb: 3 }}>
-            Real-time asset tracking, stockpile management, and market intelligence
-            for EVE Online industrialists and corporations
-          </Typography>
+            <Typography variant="h1" sx={{ color: '#f1f5f9', mb: 1 }}>
+              EVE Industry Tool
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#94a3b8', mb: 4, maxWidth: 480, mx: 'auto' }}>
+              Real-time asset tracking, stockpile management, and market intelligence
+              for EVE Online industrialists
+            </Typography>
 
-          {isAuthenticated ? (
-            <>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mb: 4 }}>
+            {isAuthenticated ? (
+              <>
+                {/* Live Metric Strip */}
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  gap: 2,
+                  mb: 4,
+                  flexWrap: 'wrap',
+                }}>
+                  <MetricCard
+                    label="Asset Value"
+                    value={assetMetrics.totalValue === 0
+                      ? '—'
+                      : `${assetMetrics.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
+                    }
+                    color="#00d4ff"
+                  />
+                  <MetricCard
+                    label="Stockpile Deficit"
+                    value={assetMetrics.totalDeficit > 0
+                      ? `${assetMetrics.totalDeficit.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
+                      : 'None'
+                    }
+                    color={assetMetrics.totalDeficit > 0 ? '#f43f5e' : '#2dd4bf'}
+                  />
+                  <MetricCard
+                    label="Active Jobs"
+                    value={assetMetrics.activeJobs > 0 ? String(assetMetrics.activeJobs) : '—'}
+                    color="#fbbf24"
+                  />
+                </Box>
+
                 <Button
                   variant="contained"
                   size="large"
-                  href="/characters"
-                  sx={{
-                    fontSize: '1.1rem',
-                    px: 4,
-                    py: 1.5,
-                    backgroundColor: 'white',
-                    color: 'primary.main',
-                    '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' }
-                  }}
-                >
-                  Characters
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
                   href="/inventory"
                   sx={{
-                    fontSize: '1.1rem',
                     px: 4,
                     py: 1.5,
-                    borderColor: 'white',
-                    color: 'white',
-                    '&:hover': {
-                      borderColor: 'white',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                    }
                   }}
                 >
-                  View Assets
+                  Open Dashboard
                 </Button>
-                <Button
-                  variant="outlined"
-                  size="large"
-                  href="/stockpiles"
-                  sx={{
-                    fontSize: '1.1rem',
-                    px: 4,
-                    py: 1.5,
-                    borderColor: 'white',
-                    color: 'white',
-                    '&:hover': {
-                      borderColor: 'white',
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                    }
-                  }}
-                >
-                  Manage Stockpiles
-                </Button>
-              </Stack>
-
-              {/* Metrics Section */}
-              <Box sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
-                gap: 3,
-                maxWidth: 'lg',
-                mx: 'auto'
-              }}>
-                {/* Total Asset Value Card */}
-                <Card sx={{
-                  p: 3,
-                  background: 'linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%)',
-                  color: 'white',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 },
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <TrendingUpIcon sx={{ fontSize: 48 }} />
-                    <Box>
-                      <Typography variant="h4" fontWeight={600} gutterBottom>
-                        {assetMetrics.totalValue === 0 ? (
-                          'Dirty Poor'
-                        ) : (
-                          `${assetMetrics.totalValue.toLocaleString(undefined, {
-                            maximumFractionDigits: 0
-                          })} ISK`
-                        )}
-                      </Typography>
-                      <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                        Total Asset Value
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Card>
-
-                {/* Stockpile Deficit Card */}
-                <Card sx={{
-                  p: 3,
-                  background: assetMetrics.totalDeficit > 0
-                    ? 'linear-gradient(135deg, #991b1b 0%, #dc2626 100%)'
-                    : 'linear-gradient(135deg, #166534 0%, #22c55e 100%)',
-                  color: 'white',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': { transform: 'translateY(-4px)', boxShadow: 6 },
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <WarningAmberIcon sx={{ fontSize: 48 }} />
-                    <Box>
-                      <Typography variant="h4" fontWeight={600} gutterBottom>
-                        {assetMetrics.totalDeficit > 0 ? (
-                          `${assetMetrics.totalDeficit.toLocaleString(undefined, {
-                            maximumFractionDigits: 0
-                          })} ISK`
-                        ) : (
-                          'No Deficits'
-                        )}
-                      </Typography>
-                      <Typography variant="body1" sx={{ opacity: 0.9 }}>
-                        {assetMetrics.totalDeficit > 0 ? 'Stockpile Deficit Cost' : 'All Stockpiles Met'}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Card>
-              </Box>
-            </>
-          ) : (
-            <Button
-              variant="contained"
-              size="large"
-              href="/api/auth/login"
-              sx={{
-                fontSize: '1.1rem',
-                px: 4,
-                py: 1.5,
-                backgroundColor: 'white',
-                color: 'primary.main',
-                '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.9)' }
-              }}
-            >
-              Sign In with EVE Online
-            </Button>
-          )}
+              </>
+            ) : (
+              <Button
+                variant="contained"
+                size="large"
+                href="/api/auth/login"
+                sx={{
+                  px: 4,
+                  py: 1.5,
+                }}
+              >
+                Sign In with EVE Online
+              </Button>
+            )}
           </Container>
         </Box>
 
         {/* Footer */}
         <Box sx={{ py: 2, textAlign: 'center' }}>
-          <Typography variant="caption" color="rgba(255, 255, 255, 0.7)">
+          <Typography variant="caption" sx={{ color: 'rgba(148, 163, 184, 0.6)' }}>
             EVE Industry Tool is not affiliated with CCP Games. EVE Online and the EVE logo
             are the intellectual property of CCP hf.
           </Typography>
         </Box>
       </Box>
     </>
+  );
+}
+
+function MetricCard({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <Card sx={{
+      px: 3,
+      py: 2,
+      background: '#12151f',
+      border: '1px solid rgba(0, 212, 255, 0.08)',
+      minWidth: 180,
+    }}>
+      <Typography variant="caption" sx={{ color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+        {label}
+      </Typography>
+      <Typography variant="h5" sx={{ color, fontWeight: 700, fontFamily: FONT_NUMERIC, mt: 0.5 }}>
+        {value}
+      </Typography>
+    </Card>
   );
 }

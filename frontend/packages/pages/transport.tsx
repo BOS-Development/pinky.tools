@@ -184,8 +184,8 @@ export default function TransportPage() {
           onChange={(_, v) => setTabIndex(v)}
           sx={{
             "& .MuiTab-root": { color: "#94a3b8" },
-            "& .Mui-selected": { color: "#3b82f6" },
-            "& .MuiTabs-indicator": { backgroundColor: "#3b82f6" },
+            "& .Mui-selected": { color: "#00d4ff" },
+            "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
           }}
         >
           <Tab label="Transport Jobs" />

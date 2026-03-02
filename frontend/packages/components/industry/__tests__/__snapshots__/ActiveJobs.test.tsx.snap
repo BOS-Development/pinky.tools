@@ -296,7 +296,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
           >
             <p
-              class="MuiTypography-root MuiTypography-body2 css-17fxm6e-MuiTypography-root"
+              class="MuiTypography-root MuiTypography-body2 css-1xxnkgx-MuiTypography-root"
             >
               Ready
             </p>

@@ -202,7 +202,7 @@ export default function LaunchpadDetail({
           width: 450,
           maxWidth: '100vw',
           bgcolor: '#0a0e1a',
-          borderLeft: '1px solid rgba(59, 130, 246, 0.15)',
+          borderLeft: '1px solid rgba(0, 212, 255, 0.15)',
         },
       }}
     >
@@ -215,11 +215,11 @@ export default function LaunchpadDetail({
           px: 2.5,
           py: 2,
           borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
-          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, #0a0e1a 100%)',
+          background: '#0a0e1a',
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
-          <RocketLaunchIcon sx={{ color: '#3b82f6', fontSize: 24, flexShrink: 0 }} />
+          <RocketLaunchIcon sx={{ color: '#00d4ff', fontSize: 24, flexShrink: 0 }} />
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography
               variant="body1"
@@ -245,8 +245,8 @@ export default function LaunchpadDetail({
                   '& .MuiInput-root': {
                     color: '#94a3b8',
                     fontSize: '0.75rem',
-                    '&:before': { borderColor: 'rgba(59, 130, 246, 0.3)' },
-                    '&:after': { borderColor: '#3b82f6' },
+                    '&:before': { borderColor: 'rgba(0, 212, 255, 0.3)' },
+                    '&:after': { borderColor: '#00d4ff' },
                   },
                   '& .MuiInputBase-input': { py: 0.25 },
                 }}
@@ -293,7 +293,7 @@ export default function LaunchpadDetail({
       <Box sx={{ flex: 1, overflow: 'auto', px: 2.5, py: 2 }}>
         {loading && (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-            <CircularProgress size={36} sx={{ color: '#3b82f6' }} />
+            <CircularProgress size={36} sx={{ color: '#00d4ff' }} />
           </Box>
         )}
 
@@ -309,7 +309,7 @@ export default function LaunchpadDetail({
           <>
             {/* Input Requirements (aggregated across all factories) */}
             <SectionHeader
-              icon={<FactoryIcon sx={{ fontSize: 16, color: '#3b82f6' }} />}
+              icon={<FactoryIcon sx={{ fontSize: 16, color: '#00d4ff' }} />}
               label={`Input Requirements (${aggregatedInputs.length})`}
             />
             {aggregatedInputs.length === 0 ? (
@@ -328,7 +328,7 @@ export default function LaunchpadDetail({
 
             {/* Current Contents */}
             <SectionHeader
-              icon={<InventoryIcon sx={{ fontSize: 16, color: '#3b82f6' }} />}
+              icon={<InventoryIcon sx={{ fontSize: 16, color: '#00d4ff' }} />}
               label={`Current Contents (${sortedContents.length})`}
             />
             {sortedContents.length === 0 ? (

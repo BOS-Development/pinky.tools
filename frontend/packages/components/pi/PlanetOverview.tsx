@@ -35,7 +35,7 @@ const PLANET_TYPE_IDS: Record<string, number> = {
 const PLANET_TYPE_COLORS: Record<string, string> = {
   temperate: '#10b981',
   barren: '#94a3b8',
-  oceanic: '#3b82f6',
+  oceanic: '#00d4ff',
   ice: '#67e8f9',
   gas: '#f59e0b',
   lava: '#ef4444',
@@ -114,10 +114,8 @@ function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpa
   return (
     <Card
       sx={{
-        background: hasIssues
-          ? `linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, #12151f 100%)`
-          : `linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, #12151f 100%)`,
-        border: `1px solid ${hasIssues ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.15)'}`,
+        background: '#12151f',
+        border: `1px solid ${hasIssues ? 'rgba(244, 63, 94, 0.2)' : 'rgba(0, 212, 255, 0.08)'}`,
         borderRadius: 2,
         height: '100%',
       }}
@@ -244,7 +242,7 @@ function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpa
                   borderRadius: 0.75,
                   cursor: 'pointer',
                   border: '1px solid transparent',
-                  '&:hover': { bgcolor: 'rgba(59, 130, 246, 0.06)', borderColor: 'rgba(59, 130, 246, 0.15)' },
+                  '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.06)', borderColor: 'rgba(0, 212, 255, 0.15)' },
                 }}
               >
                 <Typography variant="caption" sx={{ color: lp.label ? '#94a3b8' : '#475569', fontWeight: lp.label ? 500 : 400, fontStyle: lp.label ? 'normal' : 'italic' }}>
@@ -358,7 +356,7 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
     <>
         {/* Stats Row */}
         <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-          <StatChip label="Planets" value={stats.total} color="#3b82f6" />
+          <StatChip label="Planets" value={stats.total} color="#00d4ff" />
           <StatChip label="Running" value={stats.running} color="#10b981" />
           {stats.stalled > 0 && <StatChip label="Issues" value={stats.stalled} color="#ef4444" />}
           {stats.stale > 0 && <StatChip label="Stale" value={stats.stale} color="#94a3b8" />}
@@ -387,7 +385,7 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
             '& .MuiOutlinedInput-root': {
               bgcolor: '#12151f',
               '& fieldset': { borderColor: 'rgba(148, 163, 184, 0.15)' },
-              '&:hover fieldset': { borderColor: 'rgba(59, 130, 246, 0.3)' },
+              '&:hover fieldset': { borderColor: 'rgba(0, 212, 255, 0.3)' },
             },
             '& .MuiInputBase-input': { color: '#e2e8f0', fontSize: '0.875rem' },
           }}

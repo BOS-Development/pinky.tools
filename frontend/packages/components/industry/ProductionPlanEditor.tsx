@@ -439,7 +439,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
     }
   }
 
-  const depthColors = ["#3b82f6", "#10b981", "#f59e0b", "#a78bfa", "#ec4899", "#06b6d4"];
+  const depthColors = ["#00d4ff", "#10b981", "#f59e0b", "#a78bfa", "#ec4899", "#06b6d4"];
 
   const renderDepthIndicators = (colorPath: number[]) =>
     colorPath.map((colorIndex, i) => (
@@ -520,7 +520,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                (detectedLevels[step.blueprintTypeId].materialEfficiency !== step.meLevel ||
                 detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
                 <Tooltip title={`Detected: ME ${detectedLevels[step.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[step.blueprintTypeId].timeEfficiency} from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
-                  <InfoIcon sx={{ fontSize: 14, color: "#3b82f6" }} />
+                  <InfoIcon sx={{ fontSize: 14, color: "#00d4ff" }} />
                 </Tooltip>
               ) : (
                 <Tooltip title={`Blueprint detected from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
@@ -572,7 +572,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
           <IconButton
             size="small"
             onClick={() => setEditStepId(step.id)}
-            sx={{ color: "#3b82f6" }}
+            sx={{ color: "#00d4ff" }}
           >
             <EditIcon fontSize="small" />
           </IconButton>
@@ -796,7 +796,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     setNameValue(plan.name);
                     setEditingName(true);
                   }}
-                  sx={{ color: "#64748b", "&:hover": { color: "#3b82f6" } }}
+                  sx={{ color: "#64748b", "&:hover": { color: "#00d4ff" } }}
                 >
                   <EditIcon fontSize="small" />
                 </IconButton>
@@ -826,8 +826,8 @@ export default function ProductionPlanEditor({ planId }: Props) {
           onChange={(_, newValue) => setTab(newValue)}
           sx={{
             "& .MuiTab-root": { color: "#64748b", textTransform: "none", fontWeight: 500 },
-            "& .Mui-selected": { color: "#3b82f6" },
-            "& .MuiTabs-indicator": { backgroundColor: "#3b82f6" },
+            "& .Mui-selected": { color: "#00d4ff" },
+            "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
           }}
         >
           <Tab label="Step Tree" />
@@ -960,7 +960,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
               )}
               {generateResult.transportJobs?.length > 0 && (
                 <>
-                  <Typography sx={{ color: "#3b82f6", mt: 2, mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Typography sx={{ color: "#00d4ff", mt: 2, mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
                     <LocalShippingIcon fontSize="small" />
                     Created {generateResult.transportJobs.length} transport job(s)
                   </Typography>
@@ -1015,15 +1015,15 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   onClick={() => handlePreview(generateQuantity)}
                   disabled={previewLoading}
                   sx={{
-                    color: "#3b82f6",
-                    borderColor: "#3b82f6",
+                    color: "#00d4ff",
+                    borderColor: "#00d4ff",
                     mt: 0.5,
                     "&:hover": { borderColor: "#2563eb", color: "#2563eb" },
                   }}
                 >
                   {previewLoading ? (
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CircularProgress size={16} sx={{ color: "#3b82f6" }} />
+                      <CircularProgress size={16} sx={{ color: "#00d4ff" }} />
                       Previewing...
                     </Box>
                   ) : (
@@ -1078,7 +1078,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                               <Radio
                                 value="0"
                                 size="small"
-                                sx={{ color: "#475569", "&.Mui-checked": { color: "#3b82f6" }, p: 0 }}
+                                sx={{ color: "#475569", "&.Mui-checked": { color: "#00d4ff" }, p: 0 }}
                               />
                             </TableCell>
                             <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b" }}>No assignment</TableCell>
@@ -1114,7 +1114,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                                   <Radio
                                     value={String(option.parallelism)}
                                     size="small"
-                                    sx={{ color: "#475569", "&.Mui-checked": { color: "#3b82f6" }, p: 0 }}
+                                    sx={{ color: "#475569", "&.Mui-checked": { color: "#00d4ff" }, p: 0 }}
                                   />
                                 </TableCell>
                                 <TableCell sx={{ color: "#e2e8f0", borderColor: "#1e293b" }}>{option.parallelism}</TableCell>
@@ -1145,7 +1145,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
               }}
               variant="contained"
               sx={{
-                backgroundColor: "#3b82f6",
+                backgroundColor: "#00d4ff",
                 "&:hover": { backgroundColor: "#2563eb" },
               }}
             >
@@ -1672,7 +1672,7 @@ function EditStepDialog({
                 <Button
                   size="small"
                   variant="outlined"
-                  sx={{ fontSize: 11, py: 0.25, px: 1, color: "#3b82f6", borderColor: "#3b82f6", minWidth: 0 }}
+                  sx={{ fontSize: 11, py: 0.25, px: 1, color: "#00d4ff", borderColor: "#00d4ff", minWidth: 0 }}
                   onClick={() => {
                     setMeLevel(detectedLevel.materialEfficiency);
                     setTeLevel(detectedLevel.timeEfficiency);
@@ -1895,7 +1895,7 @@ function EditStepDialog({
           }
           variant="contained"
           sx={{
-            backgroundColor: "#3b82f6",
+            backgroundColor: "#00d4ff",
             "&:hover": { backgroundColor: "#2563eb" },
           }}
         >
@@ -2036,7 +2036,7 @@ function TransportSettingsTab({
           variant="contained"
           onClick={handleSave}
           sx={{
-            backgroundColor: "#3b82f6",
+            backgroundColor: "#00d4ff",
             "&:hover": { backgroundColor: "#2563eb" },
             alignSelf: "flex-start",
           }}

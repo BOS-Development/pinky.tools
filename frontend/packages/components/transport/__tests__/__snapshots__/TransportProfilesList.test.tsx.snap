@@ -247,7 +247,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
         class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
       >
         <tr
-          class="MuiTableRow-root css-jgrlj7-MuiTableRow-root"
+          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1cydmra-MuiTableCell-root"
@@ -258,7 +258,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
           >
             <div
-              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-101f3cx-MuiChip-root"
+              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-13xs0uu-MuiChip-root"
             >
               <span
                 class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
@@ -346,7 +346,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root css-jgrlj7-MuiTableRow-root"
+          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
         >
           <td
             class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1cydmra-MuiTableCell-root"
