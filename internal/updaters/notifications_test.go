@@ -443,10 +443,10 @@ func Test_NotifyPiStalls_WithDepletionAndURL(t *testing.T) {
 	assert.NotNil(t, capturedEmbed)
 	assert.Equal(t, "PI Stall Detected", capturedEmbed.Title)
 	assert.Equal(t, "https://example.com/pi", capturedEmbed.URL)
-	assert.Len(t, capturedEmbed.Fields, 1)
-	assert.Contains(t, capturedEmbed.Fields[0].Value, "1 extractor expired")
-	assert.Contains(t, capturedEmbed.Fields[0].Value, "Inputs depleted since")
-	assert.Contains(t, capturedEmbed.Fields[0].Value, "Water")
+	assert.Empty(t, capturedEmbed.Fields)
+	assert.Contains(t, capturedEmbed.Description, "1")
+	assert.Contains(t, capturedEmbed.Description, "planet(s) need attention")
+	assert.Contains(t, capturedEmbed.Description, "https://example.com/pi")
 }
 
 func Test_NotifyPiStalls_NoURL_WhenFrontendURLEmpty(t *testing.T) {
@@ -484,4 +484,6 @@ func Test_NotifyPiStalls_NoURL_WhenFrontendURLEmpty(t *testing.T) {
 
 	assert.NotNil(t, capturedEmbed)
 	assert.Equal(t, "", capturedEmbed.URL)
+	assert.Empty(t, capturedEmbed.Fields)
+	assert.NotContains(t, capturedEmbed.Description, "View PI")
 }
