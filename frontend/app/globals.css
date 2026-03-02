@@ -4,6 +4,11 @@ body {
   padding: 0;
 }
 
+/* Force dark color scheme for native form elements (prevents white defaults) */
+html {
+  color-scheme: dark;
+}
+
 /* Tailwind CSS v4 — import utilities layer only (skip preflight to avoid conflicting with MUI base reset) */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);

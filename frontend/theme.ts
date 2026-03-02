@@ -234,11 +234,54 @@ const theme = createTheme({
         },
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          color: '#f1f5f9',
+        },
+        input: {
+          '&::placeholder': {
+            color: '#94a3b8',
+            opacity: 1,
+          },
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 2,
+          backgroundColor: neocom.surfaceElevated,
+          '& .MuiOutlinedInput-notchedOutline': {
+            borderColor: neocom.borderCyan,
+          },
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: neocom.borderCyanHover,
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: neocom.cyan,
+            boxShadow: neocom.glowCyanSm,
+          },
+        },
+      },
+    },
+    MuiFilledInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: neocom.surfaceElevated,
+          '&:hover': {
+            backgroundColor: neocom.surfaceElevated,
+          },
+          '&.Mui-focused': {
+            backgroundColor: neocom.surfaceElevated,
+          },
+        },
+      },
+    },
     MuiTextField: {
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 2,
             '& fieldset': {
               borderColor: neocom.borderCyan,
             },
@@ -253,10 +296,65 @@ const theme = createTheme({
         },
       },
     },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          color: '#94a3b8',
+          '&.Mui-focused': {
+            color: neocom.cyan,
+          },
+        },
+      },
+    },
     MuiSelect: {
       styleOverrides: {
         root: {
           borderRadius: 2,
+        },
+        icon: {
+          color: '#94a3b8',
+        },
+      },
+    },
+    MuiAutocomplete: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: neocom.bgPanel,
+          border: `1px solid ${neocom.borderCyan}`,
+        },
+        listbox: {
+          backgroundColor: neocom.bgPanel,
+        },
+        option: {
+          '&[aria-selected="true"]': {
+            backgroundColor: `${neocom.surfaceElevated} !important`,
+          },
+          '&.Mui-focused': {
+            backgroundColor: 'rgba(0, 212, 255, 0.08) !important',
+          },
+        },
+      },
+    },
+    MuiMenu: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: neocom.bgPanel,
+          border: `1px solid ${neocom.borderCyan}`,
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected': {
+            backgroundColor: neocom.surfaceElevated,
+          },
+          '&.Mui-selected:hover': {
+            backgroundColor: neocom.surfaceElevated,
+          },
+          '&:hover': {
+            backgroundColor: 'rgba(0, 212, 255, 0.08)',
+          },
         },
       },
     },
