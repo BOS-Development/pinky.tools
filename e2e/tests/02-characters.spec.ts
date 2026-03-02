@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { setCharacterForce401, resetMockESI } from '../helpers/mock-esi';
 
 test.describe('Characters', () => {
   test('shows empty state with no characters', async ({ page }) => {
@@ -79,5 +80,34 @@ test.describe('Characters', () => {
 
     // E2E characters are added with a subset of required scopes, so Re-authorize button should appear
     await expect(page.getByRole('link', { name: /Re-authorize/i }).first()).toBeVisible();
+  });
+
+  test('shows reauth banner when character has revoked ESI authorization', async ({ page }) => {
+    // Force the mock ESI to return 401 for Alice Alpha's assets
+    await setCharacterForce401(2001001);
+
+    // Re-add Alice Alpha — this triggers the async asset sync goroutine
+    // which will hit the mock ESI 401 and set esi_needs_reauth=true
+    await page.request.post('/api/e2e/add-character', {
+      data: { userId: 1001, characterId: 2001001, characterName: 'Alice Alpha' },
+    });
+
+    // Wait for the goroutine to complete (mock ESI is fast, 3s is generous)
+    await page.waitForTimeout(3000);
+
+    await page.goto('/characters');
+
+    // The error alert banner should appear for Alice Alpha
+    const banner = page.getByRole('alert').filter({ hasText: 'Alice Alpha' });
+    await expect(banner).toBeVisible({ timeout: 10000 });
+    await expect(banner).toContainText('revoked');
+
+    // Reset mock ESI state for subsequent tests
+    await resetMockESI();
+
+    // Also re-add Alice Alpha to clear esi_needs_reauth (UPSERT resets the flag)
+    await page.request.post('/api/e2e/add-character', {
+      data: { userId: 1001, characterId: 2001001, characterName: 'Alice Alpha' },
+    });
   });
 });

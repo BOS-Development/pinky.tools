@@ -16,6 +16,7 @@ type Character struct {
 	EsiTokenExpiresOn time.Time
 	UserID            int64
 	EsiScopes         string
+	EsiNeedsReauth    bool
 }
 
 type CharacterRepository struct {
@@ -56,7 +57,8 @@ select
 	esi_token,
 	esi_refresh_token,
 	esi_token_expires_on,
-	esi_scopes
+	esi_scopes,
+	esi_needs_reauth
 from
 	characters
 where
@@ -71,7 +73,7 @@ where
 	for rows.Next() {
 		var char Character
 
-		err = rows.Scan(&char.ID, &char.Name, &char.UserID, &char.EsiToken, &char.EsiRefreshToken, &char.EsiTokenExpiresOn, &char.EsiScopes)
+		err = rows.Scan(&char.ID, &char.Name, &char.UserID, &char.EsiToken, &char.EsiRefreshToken, &char.EsiTokenExpiresOn, &char.EsiScopes, &char.EsiNeedsReauth)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to scan charater")
 		}
@@ -144,10 +146,24 @@ do update set
 	esi_token = EXCLUDED.esi_token,
 	esi_refresh_token = EXCLUDED.esi_refresh_token,
 	esi_token_expires_on = EXCLUDED.esi_token_expires_on,
-	esi_scopes = EXCLUDED.esi_scopes;
+	esi_scopes = EXCLUDED.esi_scopes,
+	esi_needs_reauth = FALSE;
 	`, character.ID, character.Name, character.UserID, character.EsiToken, character.EsiRefreshToken, character.EsiTokenExpiresOn, character.EsiScopes)
 	if err != nil {
 		return errors.Wrap(err, "failed to insert character into database")
+	}
+	return nil
+}
+
+func (r *CharacterRepository) SetNeedsReauth(ctx context.Context, id, userID int64, value bool) error {
+	_, err := r.db.ExecContext(ctx, `
+update characters set
+	esi_needs_reauth = $1
+where
+	id = $2 and user_id = $3;
+	`, value, id, userID)
+	if err != nil {
+		return errors.Wrap(err, "failed to set character esi_needs_reauth")
 	}
 	return nil
 }

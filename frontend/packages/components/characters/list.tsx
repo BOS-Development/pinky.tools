@@ -5,6 +5,7 @@ import Container from '@mui/material/Container';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
 import AddIcon from '@mui/icons-material/Add';
 
 export type CharacterListProps = {
@@ -12,6 +13,8 @@ export type CharacterListProps = {
 };
 
 export default function List(props: CharacterListProps) {
+  const reauthChars = props.characters.filter(c => c.needsReauth === true);
+
   if (props.characters.length == 0) {
     return (
       <>
@@ -63,6 +66,20 @@ export default function List(props: CharacterListProps) {
             Add Character
           </Button>
         </Box>
+        {reauthChars.map(char => (
+          <Alert
+            key={char.id}
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button color="error" size="small" variant="outlined" href="/api/characters/add">
+                Re-authorize
+              </Button>
+            }
+          >
+            ESI authorization for <strong>{char.name}</strong> has been revoked. Re-authorize to resume syncing.
+          </Alert>
+        ))}
         <Box
           sx={{
             display: 'grid',

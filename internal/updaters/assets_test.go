@@ -16,10 +16,18 @@ import (
 
 // --- Mocks ---
 
+type setNeedsReauthCall struct {
+	id     int64
+	userID int64
+	value  bool
+}
+
 type mockCharacterRepo struct {
-	characters []*repositories.Character
-	getAllErr  error
-	updateErr  error
+	characters         []*repositories.Character
+	getAllErr           error
+	updateErr          error
+	setNeedsReauth     *setNeedsReauthCall
+	setNeedsReauthErr  error
 }
 
 func (m *mockCharacterRepo) GetAll(ctx context.Context, baseUserID int64) ([]*repositories.Character, error) {
@@ -28,6 +36,11 @@ func (m *mockCharacterRepo) GetAll(ctx context.Context, baseUserID int64) ([]*re
 
 func (m *mockCharacterRepo) UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error {
 	return m.updateErr
+}
+
+func (m *mockCharacterRepo) SetNeedsReauth(ctx context.Context, id, userID int64, value bool) error {
+	m.setNeedsReauth = &setNeedsReauthCall{id: id, userID: userID, value: value}
+	return m.setNeedsReauthErr
 }
 
 type mockCharacterAssetsRepo struct {
@@ -394,6 +407,73 @@ func Test_Assets_UpdateCharacterAssets_GetContainersError(t *testing.T) {
 	err := u.UpdateCharacterAssets(context.Background(), char, 42)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get character containers")
+}
+
+func Test_Assets_UpdateCharacterAssets_SkipsCharactersNeedingReauth(t *testing.T) {
+	// Character with EsiNeedsReauth=true should be skipped; no ESI calls made
+	esiClient := &mockEsiClientForAssets{}
+	charRepo := &mockCharacterRepo{}
+
+	u := newTestUpdater(charRepo, &mockCharacterAssetsRepo{}, &mockAssetStationRepo{}, &mockPlayerCorpRepo{}, &mockCorpAssetsRepo{}, esiClient, &mockUserTimestampRepo{}, 5)
+
+	char := &repositories.Character{
+		ID:             12345,
+		UserID:         42,
+		EsiNeedsReauth: true,
+	}
+
+	err := u.UpdateCharacterAssets(context.Background(), char, 42)
+	assert.NoError(t, err)
+	// SetNeedsReauth should not have been called since we skipped early
+	assert.Nil(t, charRepo.setNeedsReauth)
+}
+
+func Test_Assets_UpdateCharacterAssets_RefreshFailureSetsNeedsReauth(t *testing.T) {
+	esiClient := &mockEsiClientForAssets{
+		refreshErr: fmt.Errorf("invalid_grant: token revoked"),
+	}
+	charRepo := &mockCharacterRepo{}
+
+	u := newTestUpdater(charRepo, &mockCharacterAssetsRepo{}, &mockAssetStationRepo{}, &mockPlayerCorpRepo{}, &mockCorpAssetsRepo{}, esiClient, &mockUserTimestampRepo{}, 5)
+
+	char := &repositories.Character{
+		ID:                12345,
+		UserID:            42,
+		EsiToken:          "expired-token",
+		EsiRefreshToken:   "revoked-refresh",
+		EsiTokenExpiresOn: time.Now().Add(-time.Hour),
+	}
+
+	err := u.UpdateCharacterAssets(context.Background(), char, 42)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to refresh token for character 12345")
+	assert.NotNil(t, charRepo.setNeedsReauth)
+	assert.Equal(t, int64(12345), charRepo.setNeedsReauth.id)
+	assert.Equal(t, true, charRepo.setNeedsReauth.value)
+}
+
+func Test_Assets_UpdateCharacterAssets_Unauthorized401SetsNeedsReauth(t *testing.T) {
+	esiClient := &mockEsiClientForAssets{
+		charAssetsErr: &client.EsiUnauthorizedError{Endpoint: "/characters/12345/assets"},
+	}
+	charRepo := &mockCharacterRepo{}
+
+	u := newTestUpdater(charRepo, &mockCharacterAssetsRepo{}, &mockAssetStationRepo{}, &mockPlayerCorpRepo{}, &mockCorpAssetsRepo{}, esiClient, &mockUserTimestampRepo{}, 5)
+
+	char := &repositories.Character{
+		ID:                12345,
+		UserID:            42,
+		EsiToken:          "token",
+		EsiRefreshToken:   "refresh",
+		EsiTokenExpiresOn: time.Now().Add(time.Hour),
+	}
+
+	err := u.UpdateCharacterAssets(context.Background(), char, 42)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to get assets from the esi client")
+	assert.NotNil(t, charRepo.setNeedsReauth)
+	assert.Equal(t, int64(12345), charRepo.setNeedsReauth.id)
+	assert.Equal(t, true, charRepo.setNeedsReauth.value)
 }
 
 func Test_Assets_UpdateCharacterAssets_UpsertStationsError(t *testing.T) {

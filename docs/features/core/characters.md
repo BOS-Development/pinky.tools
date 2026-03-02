@@ -42,12 +42,21 @@ The backend refreshes tokens as needed when making ESI API calls. Tokens are sto
 #### 2. UPSERT on Add
 **Decision:** Character add uses `INSERT ... ON CONFLICT DO UPDATE`.
 
-If a character already exists for the user, re-adding it simply refreshes the ESI tokens. This handles token renewal gracefully.
+If a character already exists for the user, re-adding it simply refreshes the ESI tokens. This handles token renewal gracefully. On re-auth, the UPSERT automatically resets `esi_needs_reauth` to `false`.
 
 #### 3. User Isolation
 **Decision:** Characters are scoped to users via `(id, user_id)` composite key.
 
 The same EVE character ID could theoretically appear under different users. All queries filter by `user_id` from the authenticated session.
+
+#### 4. ESI Hard 401 Detection
+**Decision:** When ESI returns 401 Unauthorized or token refresh fails, set `esi_needs_reauth = true` and pause asset sync for that character.
+
+The asset sync updater catches two scenarios:
+1. **Refresh token failure** — if `RefreshAccessToken()` fails, the token is stale; mark for reauth
+2. **ESI 401 response** — when fetching assets or location names returns 401, the access token is invalid; mark for reauth
+
+Characters with `esi_needs_reauth = true` are skipped by the asset updater to avoid repeated 401s. The user sees an error alert on the characters page and must click "Re-authorize" to trigger a new OAuth flow, which resets the flag via UPSERT.
 
 ## Database Schema
 
@@ -61,18 +70,21 @@ The same EVE character ID could theoretically appear under different users. All 
 | `esi_token` | `text` | ESI access token |
 | `esi_refresh_token` | `text` | ESI refresh token |
 | `esi_token_expires_on` | `timestamp` | Token expiry |
+| `esi_scopes` | `text` | Comma-separated list of granted ESI scopes |
+| `esi_needs_reauth` | `boolean` | Flag: set to `true` when ESI returns 401 or token refresh fails; pauses asset sync until user re-authorizes |
 
 **Primary key:** `(id, user_id)`
-**Conflict target:** `(id, user_id)` — upserts update name and tokens
+**Conflict target:** `(id, user_id)` — upserts update name, tokens, scopes, and reset `esi_needs_reauth` to `false`
 
 ## Backend Implementation
 
 ### Repository (`internal/repositories/character.go`)
 
-- **`Character` struct** — ID, Name, EsiToken, EsiRefreshToken, EsiTokenExpiresOn, UserID (no JSON tags; Go's case-insensitive decoder handles frontend field mapping)
+- **`Character` struct** — ID, Name, EsiToken, EsiRefreshToken, EsiTokenExpiresOn, UserID, EsiScopes, EsiNeedsReauth
 - **`GetAll(ctx, userID)`** — fetches all characters for a user
 - **`Get(ctx, id)`** — fetches a single character by ID
-- **`Add(ctx, character)`** — upserts character with conflict on `(id, user_id)`
+- **`Add(ctx, character)`** — upserts character with conflict on `(id, user_id)`; resets `esi_needs_reauth` to `false` on conflict
+- **`SetNeedsReauth(ctx, id, userID, value)`** — sets `esi_needs_reauth` flag for a character
 
 ### Controller (`internal/controllers/characters.go`)
 
@@ -84,12 +96,14 @@ The same EVE character ID could theoretically appear under different users. All 
 
 ```go
 type CharacterModel struct {
-    ID   int64  `json:"id"`
-    Name string `json:"name"`
+    ID          int64  `json:"id"`
+    Name        string `json:"name"`
+    EsiScopes   string `json:"esiScopes"`
+    NeedsReauth bool   `json:"needsReauth"`
 }
 ```
 
-Only ID and name are returned to the frontend. ESI tokens are never exposed.
+The API returns character ID, name, granted ESI scopes, and the re-auth flag. ESI tokens are never exposed to the frontend.
 
 ## Frontend Implementation
 
@@ -100,13 +114,17 @@ Fetches characters via `api.getCharacters()` in `getServerSideProps`, passes to 
 ### List Component (`frontend/packages/components/characters/list.tsx`)
 
 - **Empty state:** "No Characters" message with "Add Character" button
-- **Populated state:** "Characters" heading, "Add Character" + "Refresh Assets" buttons, card grid
+- **Populated state:** "Characters" heading, "Add Character" button, card grid
+- **Re-auth alert:** Red error `Alert` component displays for each character with `needsReauth: true`, with a "Re-authorize" button linking to `/api/characters/add`
 
 ### Card Component (`frontend/packages/components/characters/item.tsx`)
 
 - Displays character portrait from `https://image.eveonline.com/Character/{id}_128.jpg`
 - Shows character name below the portrait
 - Hover animation (translateY + shadow increase)
+- **Red error icon & border** if `needsReauth: true` — indicates ESI authorization revoked
+- **Amber warning icon & border** if scopes are outdated — indicates scope update needed
+- Each card includes a "Re-authorize" button if either condition is true
 
 ### Add Flow (`frontend/pages/api/characters/add.ts` → `frontend/pages/api/altAuth/callback.ts`)
 
@@ -119,34 +137,42 @@ Fetches characters via `api.getCharacters()` in `getServerSideProps`, passes to 
 
 ### Unit Tests
 
-- **Controller tests** (8 tests in `internal/controllers/characters_test.go`):
-  GetAll success/error, Get success/missing ID/not found, Add success/invalid JSON/repository error
+- **Controller tests** (`internal/controllers/characters_test.go`):
+  GetAll with mixed `needsReauth` states, Get success/missing ID/not found, Add success/invalid JSON/repository error
 
-- **Repository tests** (3 tests in `internal/repositories/character_test.go`):
-  Add and get, get all, user isolation
+- **Repository tests** (`internal/repositories/character_test.go`):
+  `SetNeedsReauth` sets and gets flag, `Add` UPSERT resets flag to false, user isolation on GetAll
 
-### E2E Tests (7 tests in `e2e/tests/02-characters.spec.ts`)
+- **Asset Updater tests** (`internal/updaters/assets_test.go`):
+  Character with `EsiNeedsReauth: true` is skipped, refresh token failure sets flag, ESI 401 response sets flag
+
+### E2E Tests (`e2e/tests/02-characters.spec.ts`)
 
 1. Empty state — "No Characters" message displayed
 2. Add Alice Alpha via E2E API — character appears on page
 3. Add Alice Beta via E2E API — both characters visible
 4. Add remaining characters (Bob, Charlie, Diana) for downstream tests
 5. Character cards display portrait images with correct src
-6. "Add Character" and "Refresh Assets" buttons visible
+6. "Add Character" button visible
 7. "Characters" heading displayed
+8. Scope warning displayed for outdated scopes
+9. **Re-auth banner displayed** when character has `needsReauth: true` — uses mock ESI 401 response
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
-| `internal/repositories/character.go` | Character struct and DB operations |
-| `internal/controllers/characters.go` | REST API handlers |
+| `internal/repositories/character.go` | Character struct, DB operations, `SetNeedsReauth` method |
+| `internal/client/esiClient.go` | `EsiUnauthorizedError` type for 401 detection |
+| `internal/updaters/assets.go` | Asset sync logic, 401 detection and reauth flag setting |
+| `internal/updaters/assets_test.go` | Asset updater unit tests, 401 and token failure tests |
+| `internal/controllers/characters.go` | REST API handlers, returns `needsReauth` in response |
 | `internal/controllers/characters_test.go` | Controller unit tests |
-| `internal/repositories/character_test.go` | Repository integration tests |
+| `internal/repositories/character_test.go` | Repository integration tests, `SetNeedsReauth` test |
 | `frontend/packages/pages/characters.tsx` | SSR page |
-| `frontend/packages/components/characters/list.tsx` | List/empty state component |
-| `frontend/packages/components/characters/item.tsx` | Character card component |
+| `frontend/packages/components/characters/list.tsx` | List/empty state component, re-auth alert banner |
+| `frontend/packages/components/characters/item.tsx` | Character card component, error/warning icons |
 | `frontend/pages/api/characters/add.ts` | OAuth redirect route |
 | `frontend/pages/api/altAuth/callback.ts` | OAuth callback handler |
 | `frontend/pages/api/e2e/add-character.ts` | E2E test helper route |
-| `e2e/tests/02-characters.spec.ts` | E2E tests |
+| `e2e/tests/02-characters.spec.ts` | E2E tests, reauth banner test |

@@ -8,13 +8,15 @@ import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import Button from '@mui/material/Button';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ErrorIcon from '@mui/icons-material/Error';
 
 export type CharacterItemProps = {
   character: Character;
 };
 
 export default function Item(props: CharacterItemProps) {
-  const needsUpdate = !characterScopesUpToDate(props.character);
+  const needsReauth = props.character.needsReauth === true;
+  const needsScopeUpdate = !needsReauth && !characterScopesUpToDate(props.character);
 
   return (
     <Card
@@ -25,7 +27,11 @@ export default function Item(props: CharacterItemProps) {
           transform: 'translateY(-4px)',
           boxShadow: 6,
         },
-        ...(needsUpdate && {
+        ...((needsReauth) && {
+          border: '2px solid',
+          borderColor: 'error.main',
+        }),
+        ...((!needsReauth && needsScopeUpdate) && {
           border: '2px solid',
           borderColor: 'warning.main',
         }),
@@ -45,7 +51,21 @@ export default function Item(props: CharacterItemProps) {
             margin: '0 auto'
           }}
         />
-        {needsUpdate && (
+        {needsReauth && (
+          <Tooltip title="Authorization revoked — re-authorize required">
+            <ErrorIcon
+              color="error"
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                fontSize: 32,
+                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
+              }}
+            />
+          </Tooltip>
+        )}
+        {needsScopeUpdate && (
           <Tooltip title="Scopes need updating">
             <WarningAmberIcon
               color="warning"
@@ -64,7 +84,22 @@ export default function Item(props: CharacterItemProps) {
         <Typography gutterBottom variant="h6" component="div">
           {props.character.name}
         </Typography>
-        {needsUpdate && (
+        {needsReauth && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+            <Tooltip title="This character's ESI authorization has been revoked and requires re-authorization">
+              <ErrorIcon color="error" />
+            </Tooltip>
+            <Button
+              size="small"
+              variant="outlined"
+              color="error"
+              href="/api/characters/add"
+            >
+              Re-authorize
+            </Button>
+          </Box>
+        )}
+        {needsScopeUpdate && (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
             <Tooltip title="This character needs to be re-authorized to grant new permissions">
               <WarningAmberIcon color="warning" />

@@ -132,3 +132,47 @@ func Test_CharacterShouldIsolateByUser(t *testing.T) {
 
 // Note: Test_CharacterShouldReturnNilForNonExistent removed because Get() method
 // has a bug (queries character_id instead of id column)
+
+func Test_CharacterSetNeedsReauth(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	characterRepo := repositories.NewCharacterRepository(db)
+
+	testUser := &repositories.User{ID: 7042, Name: "Test User Reauth"}
+	err = userRepo.Add(context.Background(), testUser)
+	assert.NoError(t, err)
+
+	char := &repositories.Character{
+		ID:     71234,
+		Name:   "Test Character Reauth",
+		UserID: testUser.ID,
+	}
+	err = characterRepo.Add(context.Background(), char)
+	assert.NoError(t, err)
+
+	// Default should be false
+	characters, err := characterRepo.GetAll(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, characters, 1)
+	assert.False(t, characters[0].EsiNeedsReauth)
+
+	// Set to true
+	err = characterRepo.SetNeedsReauth(context.Background(), char.ID, testUser.ID, true)
+	assert.NoError(t, err)
+
+	characters, err = characterRepo.GetAll(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, characters, 1)
+	assert.True(t, characters[0].EsiNeedsReauth)
+
+	// Re-adding (UPSERT) should reset to false
+	err = characterRepo.Add(context.Background(), char)
+	assert.NoError(t, err)
+
+	characters, err = characterRepo.GetAll(context.Background(), testUser.ID)
+	assert.NoError(t, err)
+	assert.Len(t, characters, 1)
+	assert.False(t, characters[0].EsiNeedsReauth, "Re-adding character should reset esi_needs_reauth to false")
+}

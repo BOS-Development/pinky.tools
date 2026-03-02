@@ -286,3 +286,11 @@ export async function setPlanetDetails(
     colony,
   );
 }
+
+/**
+ * Force the mock ESI server to return 401 Unauthorized for a character's asset requests.
+ * This simulates a revoked/invalid refresh token scenario.
+ */
+export async function setCharacterForce401(charID: number): Promise<void> {
+  await adminRequest('PUT', `/_admin/character-force-401/${charID}`);
+}

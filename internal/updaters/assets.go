@@ -37,6 +37,7 @@ type PlayerCorporationAssetsRepository interface {
 type CharacterRepository interface {
 	GetAll(ctx context.Context, baseUserID int64) ([]*repositories.Character, error)
 	UpdateTokens(ctx context.Context, id, userID int64, token, refreshToken string, expiresOn time.Time) error
+	SetNeedsReauth(ctx context.Context, id, userID int64, value bool) error
 }
 
 type PlayerCorporationRepository interface {
@@ -195,11 +196,21 @@ func (u *Assets) WithAutoFulfillUpdater(syncer AutoFulfillSyncer) {
 
 // UpdateCharacterAssets updates assets for a single character
 func (u *Assets) UpdateCharacterAssets(ctx context.Context, char *repositories.Character, userID int64) error {
+	// Skip characters with revoked ESI authorization — they need user re-auth via OAuth.
+	if char.EsiNeedsReauth {
+		log.Info("skipping asset sync for character requiring re-authorization", "characterID", char.ID)
+		return nil
+	}
+
 	token, refresh, expire := char.EsiToken, char.EsiRefreshToken, char.EsiTokenExpiresOn
 
 	if time.Now().After(expire) {
 		refreshed, err := u.esiClient.RefreshAccessToken(ctx, refresh)
 		if err != nil {
+			// Any refresh failure means the refresh token is invalid; mark for re-auth.
+			if setErr := u.characterRepository.SetNeedsReauth(ctx, char.ID, char.UserID, true); setErr != nil {
+				log.Error("failed to mark character as needing reauth", "characterID", char.ID, "error", setErr)
+			}
 			return errors.Wrapf(err, "failed to refresh token for character %d", char.ID)
 		}
 		token = refreshed.AccessToken
@@ -215,6 +226,12 @@ func (u *Assets) UpdateCharacterAssets(ctx context.Context, char *repositories.C
 
 	assets, err := u.esiClient.GetCharacterAssets(ctx, char.ID, token, refresh, expire)
 	if err != nil {
+		var esiUnauth *client.EsiUnauthorizedError
+		if errors.As(err, &esiUnauth) {
+			if setErr := u.characterRepository.SetNeedsReauth(ctx, char.ID, char.UserID, true); setErr != nil {
+				log.Error("failed to mark character as needing reauth after 401", "characterID", char.ID, "error", setErr)
+			}
+		}
 		return errors.Wrap(err, "failed to get assets from the esi client")
 	}
 
@@ -230,6 +247,12 @@ func (u *Assets) UpdateCharacterAssets(ctx context.Context, char *repositories.C
 
 	containerNames, err := u.esiClient.GetCharacterLocationNames(ctx, char.ID, token, refresh, expire, containers)
 	if err != nil {
+		var esiUnauth *client.EsiUnauthorizedError
+		if errors.As(err, &esiUnauth) {
+			if setErr := u.characterRepository.SetNeedsReauth(ctx, char.ID, char.UserID, true); setErr != nil {
+				log.Error("failed to mark character as needing reauth after 401 on location names", "characterID", char.ID, "error", setErr)
+			}
+		}
 		return errors.Wrap(err, "failed to get character container names from esi")
 	}
 

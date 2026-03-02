@@ -1,0 +1,300 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Character List Component should match snapshot for empty character list 1`] = `
+<div>
+  <div
+    data-testid="navbar"
+  >
+    Navbar
+  </div>
+  <div
+    class="MuiContainer-root MuiContainer-maxWidthLg css-1bm2fm6-MuiContainer-root"
+  >
+    <div
+      class="MuiBox-root css-txuz9b"
+    >
+      <h4
+        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      >
+        No Characters
+      </h4>
+      <p
+        class="MuiTypography-root MuiTypography-body1 css-199tq25-MuiTypography-root"
+      >
+        Get started by adding your first character
+      </p>
+      <a
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-79zo2g-MuiButtonBase-root-MuiButton-root"
+        href="api/characters/add"
+        tabindex="0"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeLarge css-hev6se-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="AddIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+            />
+          </svg>
+        </span>
+        Add Character
+      </a>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Character List Component should match snapshot for list with mixed characters 1`] = `
+<div>
+  <div
+    data-testid="navbar"
+  >
+    Navbar
+  </div>
+  <div
+    class="MuiContainer-root MuiContainer-maxWidthLg css-1kj2szu-MuiContainer-root"
+  >
+    <div
+      class="MuiBox-root css-1yjvs5a"
+    >
+      <h4
+        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      >
+        Characters
+      </h4>
+      <a
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        href="api/characters/add"
+        tabindex="0"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="AddIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+            />
+          </svg>
+        </span>
+        Add Character
+      </a>
+    </div>
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation0 MuiAlert-root MuiAlert-colorError MuiAlert-standardError MuiAlert-standard css-6js25r-MuiPaper-root-MuiAlert-root"
+      role="alert"
+      style="--Paper-shadow: none;"
+    >
+      <div
+        class="MuiAlert-icon css-vab54s-MuiAlert-icon"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeInherit css-1ckov0h-MuiSvgIcon-root"
+          data-testid="ErrorOutlineIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+          />
+        </svg>
+      </div>
+      <div
+        class="MuiAlert-message css-zioonp-MuiAlert-message"
+      >
+        ESI authorization for 
+        <strong>
+          Revoked Pilot
+        </strong>
+         has been revoked. Re-authorize to resume syncing.
+      </div>
+      <div
+        class="MuiAlert-action css-rgppqo-MuiAlert-action"
+      >
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-1vvreb9-MuiButtonBase-root-MuiButton-root"
+          href="/api/characters/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+    <div
+      class="MuiBox-root css-18yqtgc"
+    >
+      <div
+        data-testid="character-item-12345"
+      >
+        Test Pilot
+      </div>
+      <div
+        data-testid="character-item-22222"
+      >
+        Revoked Pilot
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Character List Component should match snapshot for list with normal characters 1`] = `
+<div>
+  <div
+    data-testid="navbar"
+  >
+    Navbar
+  </div>
+  <div
+    class="MuiContainer-root MuiContainer-maxWidthLg css-1kj2szu-MuiContainer-root"
+  >
+    <div
+      class="MuiBox-root css-1yjvs5a"
+    >
+      <h4
+        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      >
+        Characters
+      </h4>
+      <a
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        href="api/characters/add"
+        tabindex="0"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="AddIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+            />
+          </svg>
+        </span>
+        Add Character
+      </a>
+    </div>
+    <div
+      class="MuiBox-root css-18yqtgc"
+    >
+      <div
+        data-testid="character-item-12345"
+      >
+        Test Pilot
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Character List Component should match snapshot for list with reauth character 1`] = `
+<div>
+  <div
+    data-testid="navbar"
+  >
+    Navbar
+  </div>
+  <div
+    class="MuiContainer-root MuiContainer-maxWidthLg css-1kj2szu-MuiContainer-root"
+  >
+    <div
+      class="MuiBox-root css-1yjvs5a"
+    >
+      <h4
+        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      >
+        Characters
+      </h4>
+      <a
+        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        href="api/characters/add"
+        tabindex="0"
+      >
+        <span
+          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        >
+          <svg
+            aria-hidden="true"
+            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
+            data-testid="AddIcon"
+            focusable="false"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
+            />
+          </svg>
+        </span>
+        Add Character
+      </a>
+    </div>
+    <div
+      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation0 MuiAlert-root MuiAlert-colorError MuiAlert-standardError MuiAlert-standard css-6js25r-MuiPaper-root-MuiAlert-root"
+      role="alert"
+      style="--Paper-shadow: none;"
+    >
+      <div
+        class="MuiAlert-icon css-vab54s-MuiAlert-icon"
+      >
+        <svg
+          aria-hidden="true"
+          class="MuiSvgIcon-root MuiSvgIcon-fontSizeInherit css-1ckov0h-MuiSvgIcon-root"
+          data-testid="ErrorOutlineIcon"
+          focusable="false"
+          viewBox="0 0 24 24"
+        >
+          <path
+            d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+          />
+        </svg>
+      </div>
+      <div
+        class="MuiAlert-message css-zioonp-MuiAlert-message"
+      >
+        ESI authorization for 
+        <strong>
+          Revoked Pilot
+        </strong>
+         has been revoked. Re-authorize to resume syncing.
+      </div>
+      <div
+        class="MuiAlert-action css-rgppqo-MuiAlert-action"
+      >
+        <a
+          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-1vvreb9-MuiButtonBase-root-MuiButton-root"
+          href="/api/characters/add"
+          tabindex="0"
+        >
+          Re-authorize
+        </a>
+      </div>
+    </div>
+    <div
+      class="MuiBox-root css-18yqtgc"
+    >
+      <div
+        data-testid="character-item-22222"
+      >
+        Revoked Pilot
+      </div>
+    </div>
+  </div>
+</div>
+`;
