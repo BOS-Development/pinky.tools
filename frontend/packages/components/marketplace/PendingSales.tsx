@@ -46,12 +46,25 @@ type PendingSale = {
   purchasedAt: string;
 };
 
+type AggregatedItem = {
+  typeId: number;
+  typeName: string;
+  totalQuantity: number;
+  totalPrice: number;
+  pricePerUnit: number;
+  hasAutoFulfilled: boolean;
+  notes: string[];
+  purchaseIds: number[];
+  latestPurchasedAt: string;
+};
+
 type GroupedSale = {
   buyerUserId: number;
   buyerName: string;
   locationId: number;
   locationName: string;
   items: PendingSale[];
+  aggregatedItems: AggregatedItem[];
   totalValue: number;
   contractKey?: string;
 };
@@ -111,6 +124,7 @@ export default function PendingSales() {
           locationId: sale.locationId,
           locationName: sale.locationName,
           items: [],
+          aggregatedItems: [],
           totalValue: 0,
           contractKey: contractKey,
         });
@@ -121,22 +135,46 @@ export default function PendingSales() {
       group.totalValue += sale.totalPrice;
     });
 
+    // Aggregate items by typeId within each group
+    for (const group of groups.values()) {
+      const byType = new Map<number, AggregatedItem>();
+      for (const sale of group.items) {
+        const existing = byType.get(sale.typeId);
+        if (existing) {
+          existing.totalQuantity += sale.quantityPurchased;
+          existing.totalPrice += sale.totalPrice;
+          existing.pricePerUnit = existing.totalPrice / existing.totalQuantity;
+          existing.hasAutoFulfilled = existing.hasAutoFulfilled || sale.isAutoFulfilled;
+          existing.purchaseIds.push(sale.id);
+          if (sale.transactionNotes) existing.notes.push(sale.transactionNotes);
+          if (sale.purchasedAt > existing.latestPurchasedAt) {
+            existing.latestPurchasedAt = sale.purchasedAt;
+          }
+        } else {
+          byType.set(sale.typeId, {
+            typeId: sale.typeId,
+            typeName: sale.typeName,
+            totalQuantity: sale.quantityPurchased,
+            totalPrice: sale.totalPrice,
+            pricePerUnit: sale.pricePerUnit,
+            hasAutoFulfilled: sale.isAutoFulfilled,
+            notes: sale.transactionNotes ? [sale.transactionNotes] : [],
+            purchaseIds: [sale.id],
+            latestPurchasedAt: sale.purchasedAt,
+          });
+        }
+      }
+      group.aggregatedItems = Array.from(byType.values()).sort((a, b) =>
+        a.typeName.localeCompare(b.typeName)
+      );
+    }
+
     return Array.from(groups.values()).sort((a, b) => {
       // Sort by location first, then by buyer name
       if (a.locationName !== b.locationName) {
         return a.locationName.localeCompare(b.locationName);
       }
       return a.buyerName.localeCompare(b.buyerName);
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     });
   };
 
@@ -193,22 +231,28 @@ export default function PendingSales() {
     }
   };
 
-  const handleCancel = async (purchaseId: number) => {
-    if (!confirm('Are you sure you want to cancel this sale? The quantity will be restored to the listing.')) {
+  const handleCancel = async (purchaseIds: number[]) => {
+    const count = purchaseIds.length;
+    const message = count === 1
+      ? 'Are you sure you want to cancel this sale? The quantity will be restored to the listing.'
+      : `Are you sure you want to cancel ${count} sales of this item? The quantities will be restored to listings.`;
+    if (!confirm(message)) {
       return;
     }
 
     try {
-      const response = await fetch(`/api/purchases/${purchaseId}/cancel`, {
-        method: 'POST',
-      });
+      const results = await Promise.all(
+        purchaseIds.map(id =>
+          fetch(`/api/purchases/${id}/cancel`, { method: 'POST' })
+        )
+      );
 
-      if (response.ok) {
-        await fetchPendingSales();
-        setSnackbar({ open: true, message: 'Sale cancelled successfully', severity: 'success' });
+      const failed = results.filter(r => !r.ok).length;
+      await fetchPendingSales();
+      if (failed === 0) {
+        setSnackbar({ open: true, message: count === 1 ? 'Sale cancelled successfully' : `${count} sales cancelled successfully`, severity: 'success' });
       } else {
-        const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to cancel sale', severity: 'error' });
+        setSnackbar({ open: true, message: `${failed} of ${count} cancellations failed`, severity: 'error' });
       }
     } catch (error) {
       console.error('Failed to cancel sale:', error);
@@ -361,7 +405,7 @@ export default function PendingSales() {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Typography variant="body2" color="text.secondary">
-                  {group.items.length} item{group.items.length !== 1 ? 's' : ''}
+                  {group.aggregatedItems.length} item{group.aggregatedItems.length !== 1 ? 's' : ''}
                 </Typography>
               </Box>
             </Box>
@@ -418,24 +462,21 @@ export default function PendingSales() {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>Requested</TableCell>
                     <TableCell>Item</TableCell>
                     <TableCell align="right">Quantity</TableCell>
                     <TableCell align="right">Price/Unit</TableCell>
                     <TableCell align="right">Total</TableCell>
-                    <TableCell>Status</TableCell>
-                    {group.items.some(s => s.transactionNotes) && <TableCell>Notes</TableCell>}
+                    {group.aggregatedItems.some(a => a.notes.length > 0) && <TableCell>Notes</TableCell>}
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {group.items.map((sale) => (
-                    <TableRow key={sale.id}>
-                      <TableCell>{formatDate(sale.purchasedAt)}</TableCell>
+                  {group.aggregatedItems.map((agg) => (
+                    <TableRow key={agg.typeId}>
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          {sale.typeName}
-                          {sale.isAutoFulfilled && (
+                          {agg.typeName}
+                          {agg.hasAutoFulfilled && (
                             <Chip
                               label="Auto"
                               size="small"
@@ -451,32 +492,25 @@ export default function PendingSales() {
                           )}
                         </Box>
                       </TableCell>
-                      <TableCell align="right">{sale.quantityPurchased.toLocaleString()}</TableCell>
-                      <TableCell align="right">{sale.pricePerUnit.toLocaleString()} ISK</TableCell>
+                      <TableCell align="right">{agg.totalQuantity.toLocaleString()}</TableCell>
+                      <TableCell align="right">{agg.pricePerUnit.toLocaleString()} ISK</TableCell>
                       <TableCell align="right">
                         <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
-                          {sale.totalPrice.toLocaleString()} ISK
+                          {agg.totalPrice.toLocaleString()} ISK
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={sale.status.replace('_', ' ')}
-                          size="small"
-                          color={sale.status === 'pending' ? 'warning' : 'info'}
-                        />
-                      </TableCell>
-                      {group.items.some(s => s.transactionNotes) && (
+                      {group.aggregatedItems.some(a => a.notes.length > 0) && (
                         <TableCell>
-                          {sale.transactionNotes && (
+                          {agg.notes.length > 0 && (
                             <Typography variant="caption" color="text.secondary">
-                              {sale.transactionNotes}
+                              {agg.notes.join('; ')}
                             </Typography>
                           )}
                         </TableCell>
                       )}
                       <TableCell align="center">
                         <Button
-                          onClick={() => handleCancel(sale.id)}
+                          onClick={() => handleCancel(agg.purchaseIds)}
                           variant="outlined"
                           color="error"
                           size="small"
