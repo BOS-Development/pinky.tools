@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import Alert from '@mui/material/Alert';
-import CircularProgress from '@mui/material/CircularProgress';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
 
 type Contact = {
   id: number;
@@ -79,7 +76,7 @@ export default function PermissionsDialog({
       } else {
         setError('Failed to load permissions');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to load permissions');
     } finally {
       setLoading(false);
@@ -101,13 +98,12 @@ export default function PermissionsDialog({
       });
 
       if (response.ok) {
-        // Refresh permissions
         await fetchPermissions();
       } else {
         const errorData = await response.json();
         setError(errorData.error || 'Failed to update permission');
       }
-    } catch (err) {
+    } catch {
       setError('Failed to update permission');
     } finally {
       setSaving(false);
@@ -124,78 +120,78 @@ export default function PermissionsDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Manage Permissions - {otherUserName}</DialogTitle>
-      <DialogContent>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Manage Permissions — {otherUserName}</DialogTitle>
+        </DialogHeader>
+
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-            <CircularProgress />
-          </Box>
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+          </div>
         ) : (
-          <>
+          <div className="space-y-6">
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
 
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Control what services you allow this contact to access. Permissions are unidirectional - you control what they can access from you, and vice versa.
-            </Typography>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Control what services you allow this contact to access. Permissions are unidirectional — you control what they can access from you, and vice versa.
+            </p>
 
             {/* Permissions I Grant to Them */}
-            <Box sx={{ mb: 4 }}>
-              <Typography variant="h6" gutterBottom>
+            <div>
+              <h4 className="text-sm font-semibold text-[var(--color-text-emphasis)] mb-1">
                 Permissions I Grant to {otherUserName}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              </h4>
+              <p className="text-xs text-[var(--color-text-secondary)] mb-3">
                 What {otherUserName} can access from you:
-              </Typography>
+              </p>
               {SERVICE_TYPES.map((service) => {
                 const granted = getPermission(currentUserId, otherUserId, service.type);
                 return (
-                  <FormControlLabel
-                    key={`grant-${service.type}`}
-                    control={
-                      <Switch
-                        checked={granted}
-                        onChange={() => handleTogglePermission(service.type, otherUserId, granted)}
-                        disabled={saving}
-                      />
-                    }
-                    label={service.label}
-                  />
+                  <div key={`grant-${service.type}`} className="flex items-center justify-between py-1.5">
+                    <Label className="cursor-pointer">{service.label}</Label>
+                    <Switch
+                      checked={granted}
+                      onCheckedChange={() => handleTogglePermission(service.type, otherUserId, granted)}
+                      disabled={saving}
+                    />
+                  </div>
                 );
               })}
-            </Box>
+            </div>
 
-            <Divider sx={{ my: 3 }} />
+            <Separator />
 
             {/* Permissions They Grant to Me */}
-            <Box>
-              <Typography variant="h6" gutterBottom>
+            <div>
+              <h4 className="text-sm font-semibold text-[var(--color-text-emphasis)] mb-1">
                 Permissions {otherUserName} Grants to Me
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              </h4>
+              <p className="text-xs text-[var(--color-text-secondary)] mb-3">
                 What you can access from {otherUserName}:
-              </Typography>
+              </p>
               {SERVICE_TYPES.map((service) => {
                 const granted = getPermission(otherUserId, currentUserId, service.type);
                 return (
-                  <FormControlLabel
-                    key={`receive-${service.type}`}
-                    control={<Switch checked={granted} disabled />}
-                    label={service.label}
-                  />
+                  <div key={`receive-${service.type}`} className="flex items-center justify-between py-1.5">
+                    <Label>{service.label}</Label>
+                    <Switch checked={granted} disabled />
+                  </div>
                 );
               })}
-            </Box>
-          </>
+            </div>
+          </div>
         )}
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Close</Button>
-      </DialogActions>
     </Dialog>
   );
 }

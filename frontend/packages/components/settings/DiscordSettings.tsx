@@ -1,29 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Switch from '@mui/material/Switch';
-import Chip from '@mui/material/Chip';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Divider from '@mui/material/Divider';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SendIcon from '@mui/icons-material/Send';
-import LinkIcon from '@mui/icons-material/Link';
-import LinkOffIcon from '@mui/icons-material/LinkOff';
-import AddIcon from '@mui/icons-material/Add';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+import { Bell, Link2, Link2Off, Trash2, Send, Plus, Loader2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { toast } from '@/components/ui/sonner';
 
 type DiscordLink = {
   linked: boolean;
@@ -83,7 +72,6 @@ export default function DiscordSettings() {
   const [targets, setTargets] = useState<NotificationTarget[]>([]);
   const [preferences, setPreferences] = useState<Record<number, NotificationPreference[]>>({});
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
 
   // Channel picker dialog
   const [channelDialogOpen, setChannelDialogOpen] = useState(false);
@@ -92,10 +80,6 @@ export default function DiscordSettings() {
   const [selectedGuild, setSelectedGuild] = useState<Guild | null>(null);
   const [loadingGuilds, setLoadingGuilds] = useState(false);
   const [loadingChannels, setLoadingChannels] = useState(false);
-
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbar({ open: true, message, severity });
-  };
 
   const fetchLink = useCallback(async () => {
     try {
@@ -114,7 +98,6 @@ export default function DiscordSettings() {
       if (res.ok) {
         const data: NotificationTarget[] = await res.json();
         setTargets(data);
-        // Fetch preferences for each target
         for (const target of data) {
           fetchPreferences(target.id);
         }
@@ -153,12 +136,12 @@ export default function DiscordSettings() {
         setLink({ linked: false });
         setTargets([]);
         setPreferences({});
-        showSnackbar('Discord account unlinked', 'success');
+        toast.success('Discord account unlinked');
       } else {
-        showSnackbar('Failed to unlink Discord account', 'error');
+        toast.error('Failed to unlink Discord account');
       }
     } catch {
-      showSnackbar('Failed to unlink Discord account', 'error');
+      toast.error('Failed to unlink Discord account');
     }
   };
 
@@ -170,13 +153,13 @@ export default function DiscordSettings() {
         body: JSON.stringify({ targetType: 'dm' }),
       });
       if (res.ok) {
-        showSnackbar('DM target added', 'success');
+        toast.success('DM target added');
         await fetchTargets();
       } else {
-        showSnackbar('Failed to add DM target', 'error');
+        toast.error('Failed to add DM target');
       }
     } catch {
-      showSnackbar('Failed to add DM target', 'error');
+      toast.error('Failed to add DM target');
     }
   };
 
@@ -191,7 +174,7 @@ export default function DiscordSettings() {
         setGuilds(await res.json());
       }
     } catch {
-      showSnackbar('Failed to load servers', 'error');
+      toast.error('Failed to load servers');
     }
     setLoadingGuilds(false);
   };
@@ -205,7 +188,7 @@ export default function DiscordSettings() {
         setChannels(await res.json());
       }
     } catch {
-      showSnackbar('Failed to load channels', 'error');
+      toast.error('Failed to load channels');
     }
     setLoadingChannels(false);
   };
@@ -225,13 +208,13 @@ export default function DiscordSettings() {
       });
       if (res.ok) {
         setChannelDialogOpen(false);
-        showSnackbar(`Channel #${channel.name} added`, 'success');
+        toast.success(`Channel #${channel.name} added`);
         await fetchTargets();
       } else {
-        showSnackbar('Failed to add channel target', 'error');
+        toast.error('Failed to add channel target');
       }
     } catch {
-      showSnackbar('Failed to add channel target', 'error');
+      toast.error('Failed to add channel target');
     }
   };
 
@@ -246,7 +229,7 @@ export default function DiscordSettings() {
         setTargets(prev => prev.map(t => t.id === target.id ? { ...t, isActive: !t.isActive } : t));
       }
     } catch {
-      showSnackbar('Failed to update target', 'error');
+      toast.error('Failed to update target');
     }
   };
 
@@ -255,12 +238,12 @@ export default function DiscordSettings() {
       const res = await fetch(`/api/discord/targets/${targetId}`, { method: 'DELETE' });
       if (res.ok) {
         setTargets(prev => prev.filter(t => t.id !== targetId));
-        showSnackbar('Target removed', 'success');
+        toast.success('Target removed');
       } else {
-        showSnackbar('Failed to remove target', 'error');
+        toast.error('Failed to remove target');
       }
     } catch {
-      showSnackbar('Failed to remove target', 'error');
+      toast.error('Failed to remove target');
     }
   };
 
@@ -268,15 +251,15 @@ export default function DiscordSettings() {
     try {
       const res = await fetch(`/api/discord/targets/${targetId}/test`, { method: 'POST' });
       if (res.ok) {
-        showSnackbar('Test notification sent!', 'success');
+        toast.success('Test notification sent!');
       } else {
         const data = await res.json().catch(() => null);
         const errorCode = data?.error || '';
         const message = DISCORD_ERROR_MESSAGES[errorCode] || 'Failed to send test notification';
-        showSnackbar(message, 'error');
+        toast.error(message);
       }
     } catch {
-      showSnackbar('Failed to send test notification', 'error');
+      toast.error('Failed to send test notification');
     }
   };
 
@@ -291,7 +274,7 @@ export default function DiscordSettings() {
         await fetchPreferences(targetId);
       }
     } catch {
-      showSnackbar('Failed to update preference', 'error');
+      toast.error('Failed to update preference');
     }
   };
 
@@ -303,230 +286,204 @@ export default function DiscordSettings() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+      </div>
     );
   }
 
   return (
-    <Box>
+    <div className="space-y-4">
       {/* Discord Account Section */}
-      <Card sx={{ mb: 3, bgcolor: '#12151f' }}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <NotificationsIcon sx={{ mr: 1, color: '#5865F2' }} />
-            <Typography variant="h6">Discord Notifications</Typography>
-          </Box>
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Bell className="h-5 w-5 text-[#5865F2]" />
+            <h3 className="text-lg font-semibold text-[var(--color-text-emphasis)]">Discord Notifications</h3>
+          </div>
 
           {!link?.linked ? (
-            <Box>
-              <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+            <div>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
                 Link your Discord account to receive notifications when marketplace events occur.
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<LinkIcon />}
-                href="/api/discord/login"
-                sx={{ bgcolor: '#5865F2', '&:hover': { bgcolor: '#4752C4' } }}
-              >
-                Link Discord Account
+              </p>
+              <Button asChild className="bg-[#5865F2] hover:bg-[#4752C4] text-white">
+                <a href="/api/discord/login">
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Link Discord Account
+                </a>
               </Button>
-            </Box>
+            </div>
           ) : (
-            <Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <Chip
-                  label={link.discordUsername}
-                  color="primary"
-                  sx={{ mr: 2, bgcolor: '#5865F2' }}
-                />
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<LinkOffIcon />}
-                  onClick={handleUnlink}
-                  color="error"
-                >
-                  Unlink
-                </Button>
-              </Box>
-            </Box>
+            <div className="flex items-center gap-3">
+              <Badge className="bg-[#5865F2] text-white border-[#5865F2]">
+                {link.discordUsername}
+              </Badge>
+              <Button variant="outline" size="sm" onClick={handleUnlink} className="text-[var(--color-danger-rose)] border-[var(--color-danger-rose)]/30 hover:bg-[var(--color-danger-rose)]/10">
+                <Link2Off className="h-4 w-4 mr-1" />
+                Unlink
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
 
       {/* Notification Targets Section */}
       {link?.linked && (
-        <Card sx={{ mb: 3, bgcolor: '#12151f' }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h6">Notification Targets</Typography>
-              <Box>
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-[var(--color-text-emphasis)]">Notification Targets</h3>
+              <div className="flex gap-2">
                 <Button
-                  size="small"
-                  startIcon={<AddIcon />}
+                  variant="ghost"
+                  size="sm"
                   onClick={handleAddDMTarget}
-                  sx={{ mr: 1 }}
                   disabled={targets.some(t => t.targetType === 'dm')}
                 >
+                  <Plus className="h-4 w-4 mr-1" />
                   Add DM
                 </Button>
-                <Button
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={handleOpenChannelDialog}
-                >
+                <Button variant="ghost" size="sm" onClick={handleOpenChannelDialog}>
+                  <Plus className="h-4 w-4 mr-1" />
                   Add Channel
                 </Button>
-              </Box>
-            </Box>
+              </div>
+            </div>
 
             {targets.length === 0 ? (
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              <p className="text-sm text-[var(--color-text-secondary)]">
                 No notification targets configured. Add a DM or channel target to start receiving notifications.
-              </Typography>
+              </p>
             ) : (
-              targets.map(target => (
-                <Card key={target.id} sx={{ mb: 2, bgcolor: '#0f1219', border: '1px solid #1e2130' }}>
-                  <CardContent sx={{ pb: '16px !important' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Chip
-                          label={target.targetType === 'dm' ? 'Direct Message' : `#${target.channelName}`}
-                          size="small"
-                          sx={{ mr: 1 }}
-                          color={target.isActive ? 'primary' : 'default'}
-                        />
-                        {target.targetType === 'channel' && target.guildName && (
-                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            {target.guildName}
-                          </Typography>
-                        )}
-                      </Box>
-                      <Box>
-                        <Switch
-                          checked={target.isActive}
-                          onChange={() => handleToggleTarget(target)}
-                          size="small"
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={() => handleTestTarget(target.id)}
-                          title="Send test notification"
-                        >
-                          <SendIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDeleteTarget(target.id)}
-                          color="error"
-                          title="Remove target"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
+              <div className="space-y-3">
+                {targets.map(target => (
+                  <Card key={target.id} className="bg-[var(--color-bg-void)]">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant={target.isActive ? 'default' : 'secondary'}>
+                            {target.targetType === 'dm' ? 'Direct Message' : `#${target.channelName}`}
+                          </Badge>
+                          {target.targetType === 'channel' && target.guildName && (
+                            <span className="text-sm text-[var(--color-text-secondary)]">
+                              {target.guildName}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Switch
+                            checked={target.isActive}
+                            onCheckedChange={() => handleToggleTarget(target)}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleTestTarget(target.id)}
+                            title="Send test notification"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteTarget(target.id)}
+                            title="Remove target"
+                            className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
 
-                    <Divider sx={{ my: 1 }} />
+                      <Separator className="my-2" />
 
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
-                      Event Types
-                    </Typography>
-                    {EVENT_TYPES.map(evt => (
-                      <Box key={evt.value} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <Typography variant="body2">{evt.label}</Typography>
-                        <Switch
-                          checked={isPreferenceEnabled(target.id, evt.value)}
-                          onChange={() => handleTogglePreference(target.id, evt.value, isPreferenceEnabled(target.id, evt.value))}
-                          size="small"
-                        />
-                      </Box>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))
+                      <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wider mb-2">
+                        Event Types
+                      </p>
+                      {EVENT_TYPES.map(evt => (
+                        <div key={evt.value} className="flex items-center justify-between py-1">
+                          <span className="text-sm text-[var(--color-text-primary)]">{evt.label}</span>
+                          <Switch
+                            checked={isPreferenceEnabled(target.id, evt.value)}
+                            onCheckedChange={() => handleTogglePreference(target.id, evt.value, isPreferenceEnabled(target.id, evt.value))}
+                          />
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
           </CardContent>
         </Card>
       )}
 
       {/* Channel Picker Dialog */}
-      <Dialog open={channelDialogOpen} onClose={() => setChannelDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedGuild ? `Select Channel in ${selectedGuild.name}` : 'Select Server'}
-        </DialogTitle>
-        <DialogContent>
+      <Dialog open={channelDialogOpen} onOpenChange={setChannelDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedGuild ? `Select Channel in ${selectedGuild.name}` : 'Select Server'}
+            </DialogTitle>
+          </DialogHeader>
+
           {!selectedGuild ? (
             loadingGuilds ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-                <CircularProgress />
-              </Box>
+              <div className="flex justify-center py-6">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+              </div>
             ) : guilds.length === 0 ? (
-              <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
+              <p className="text-sm text-[var(--color-text-secondary)] py-4">
                 No shared servers found. Make sure the Pinky.Tools bot is added to one of your Discord servers.
-              </Typography>
+              </p>
             ) : (
-              <List>
+              <div className="space-y-1">
                 {guilds.map(guild => (
-                  <ListItem
+                  <button
                     key={guild.id}
                     onClick={() => handleSelectGuild(guild)}
-                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: '#1e2130' }, borderRadius: 1 }}
+                    className="w-full text-left px-3 py-2 rounded-sm text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)] transition-colors cursor-pointer"
                   >
-                    <ListItemText primary={guild.name} />
-                  </ListItem>
+                    {guild.name}
+                  </button>
                 ))}
-              </List>
+              </div>
             )
           ) : (
             loadingChannels ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
-                <CircularProgress />
-              </Box>
+              <div className="flex justify-center py-6">
+                <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+              </div>
             ) : channels.length === 0 ? (
-              <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
+              <p className="text-sm text-[var(--color-text-secondary)] py-4">
                 No text channels found in this server that the bot can access.
-              </Typography>
+              </p>
             ) : (
-              <List>
+              <div className="space-y-1">
                 {channels.map(channel => (
-                  <ListItem
+                  <button
                     key={channel.id}
                     onClick={() => handleSelectChannel(channel)}
-                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: '#1e2130' }, borderRadius: 1 }}
+                    className="w-full text-left px-3 py-2 rounded-sm text-sm text-[var(--color-text-primary)] hover:bg-[var(--color-surface-elevated)] transition-colors cursor-pointer"
                   >
-                    <ListItemText primary={`# ${channel.name}`} />
-                  </ListItem>
+                    # {channel.name}
+                  </button>
                 ))}
-              </List>
+              </div>
             )
           )}
-        </DialogContent>
-        <DialogActions>
-          {selectedGuild && (
-            <Button onClick={() => { setSelectedGuild(null); setChannels([]); }}>
-              Back
-            </Button>
-          )}
-          <Button onClick={() => setChannelDialogOpen(false)}>Cancel</Button>
-        </DialogActions>
-      </Dialog>
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar(prev => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
-          variant="filled"
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+          <DialogFooter>
+            {selectedGuild && (
+              <Button variant="ghost" onClick={() => { setSelectedGuild(null); setChannels([]); }}>
+                Back
+              </Button>
+            )}
+            <Button variant="ghost" onClick={() => setChannelDialogOpen(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
