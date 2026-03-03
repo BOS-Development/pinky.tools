@@ -41,9 +41,8 @@ function NavDropdown({ label, items, pathname }: NavDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className={`gap-1 hover:text-[var(--color-primary-cyan)] ${
+        <button
+          className={`flex items-center gap-1 px-3 py-2 text-sm font-medium hover:text-[var(--color-primary-cyan)] transition-colors ${
             isActive
               ? 'text-[var(--color-primary-cyan)]'
               : 'text-[var(--color-text-primary)]'
@@ -51,7 +50,7 @@ function NavDropdown({ label, items, pathname }: NavDropdownProps) {
         >
           {label}
           <ChevronDown className="h-4 w-4 opacity-60" />
-        </Button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
         {items.map((item) => {
@@ -213,17 +212,16 @@ export default function Navbar() {
             pathname={pathname}
           />
 
-          <Button
-            variant="ghost"
-            asChild
-            className={`hover:text-[var(--color-primary-cyan)] ${
+          <Link
+            href="/settings"
+            className={`flex items-center px-3 py-2 text-sm font-medium text-muted-foreground hover:text-[var(--color-primary-cyan)] transition-colors ${
               pathname === '/settings'
                 ? 'text-[var(--color-primary-cyan)]'
                 : 'text-[var(--color-text-primary)]'
             }`}
           >
-            <Link href="/settings">Settings</Link>
-          </Button>
+            Settings
+          </Link>
         </div>
       </nav>
 

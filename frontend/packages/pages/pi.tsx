@@ -39,7 +39,7 @@ export default function PlanetaryIndustry() {
             localStorage.setItem("pi-tab", v);
           }}
         >
-          <TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-4">
+          <TabsList className="w-full justify-start mb-4">
             <TabsTrigger
               value="overview"
               className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"

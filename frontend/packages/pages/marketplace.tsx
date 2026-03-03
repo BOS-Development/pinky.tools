@@ -43,7 +43,7 @@ export default function Marketplace() {
             localStorage.setItem('marketplaceTab', String(tabMap.indexOf(v)));
           }}
         >
-          <TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-6 overflow-x-auto">
+          <TabsList className="w-full justify-start mb-6 overflow-x-auto">
             <TabsTrigger
               value="listings"
               className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"

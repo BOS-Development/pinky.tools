@@ -1,9 +1,27 @@
+/* Declare layer order: base < theme < utilities (lowest to highest priority) */
+@layer base, theme, utilities;
+
 /* Tailwind CSS v4 — import utilities layer only (skip preflight to avoid conflicting with MUI base reset) */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
 
 /* Load v3 config for content paths + custom theme extensions */
 @config "../tailwind.config.ts";
+
+/* Button reset — preflight is disabled so native buttons keep browser defaults.
+   Placed in base layer so Tailwind utilities (px-3, bg-*, etc.) can override. */
+@layer base {
+  button {
+    appearance: none;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+}
 
 /* Force dark color scheme for native form elements (prevents white defaults) */
 html {

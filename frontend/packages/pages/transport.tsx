@@ -162,7 +162,7 @@ export default function TransportPage() {
         <h2 className="text-xl font-semibold text-[#e2e8f0] mb-4">Transport</h2>
 
         <Tabs defaultValue="jobs">
-          <TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-0">
+          <TabsList className="w-full justify-start">
             <TabsTrigger
               value="jobs"
               className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
