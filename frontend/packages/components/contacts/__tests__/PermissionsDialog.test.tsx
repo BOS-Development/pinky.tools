@@ -134,7 +134,7 @@ describe('PermissionsDialog Component', () => {
       />
     );
 
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('should display permissions with correct toggle states', async () => {
@@ -279,11 +279,13 @@ describe('PermissionsDialog Component', () => {
       />
     );
 
+    // The dialog has two "Close" buttons: the explicit footer button and the built-in
+    // shadcn/ui DialogContent X button. Use getAllByText to handle both.
     await waitFor(() => {
-      expect(screen.getByText('Close')).toBeInTheDocument();
+      expect(screen.getAllByText('Close').length).toBeGreaterThanOrEqual(1);
     });
 
-    fireEvent.click(screen.getByText('Close'));
+    fireEvent.click(screen.getAllByText('Close')[0]);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });

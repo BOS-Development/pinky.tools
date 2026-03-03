@@ -96,8 +96,9 @@ describe('Navbar Component', () => {
     });
 
     render(<Navbar />);
-    const menuButton = screen.getByLabelText('menu');
-    expect(menuButton).toBeInTheDocument();
+    // New Navbar renders a logo link instead of a hamburger menu button
+    const logoLink = screen.getByRole('link', { name: /eve industry tool/i });
+    expect(logoLink).toBeInTheDocument();
   });
 
   it('should not fetch contacts when user is not authenticated', () => {

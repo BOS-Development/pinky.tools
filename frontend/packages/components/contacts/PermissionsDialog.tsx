@@ -127,7 +127,7 @@ export default function PermissionsDialog({
         </DialogHeader>
 
         {loading ? (
-          <div className="flex justify-center py-8">
+          <div className="flex justify-center py-8" role="status">
             <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
           </div>
         ) : (

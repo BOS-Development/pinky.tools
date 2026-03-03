@@ -119,8 +119,8 @@ describe('ContactsList Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('My Contacts (1)')).toBeInTheDocument();
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
-      expect(screen.getByText('Sent Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
+      expect(screen.getByText('Sent (1)')).toBeInTheDocument();
     });
   });
 
@@ -153,14 +153,14 @@ describe('ContactsList Component', () => {
     });
 
     // Switch to Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    fireEvent.click(screen.getByText('Pending (1)'));
 
     await waitFor(() => {
       expect(screen.getByText('Contact 2')).toBeInTheDocument();
     });
 
     // Switch to Sent Requests tab
-    fireEvent.click(screen.getByText('Sent Requests (1)'));
+    fireEvent.click(screen.getByText('Sent (1)'));
 
     await waitFor(() => {
       expect(screen.getByText('Contact 3')).toBeInTheDocument();
@@ -261,11 +261,11 @@ describe('ContactsList Component', () => {
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
     });
 
     // Switch to Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    fireEvent.click(screen.getByText('Pending (1)'));
 
     await waitFor(() => {
       expect(screen.getByText('Contact 2')).toBeInTheDocument();
@@ -308,11 +308,11 @@ describe('ContactsList Component', () => {
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
     });
 
     // Switch to Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    fireEvent.click(screen.getByText('Pending (1)'));
 
     await waitFor(() => {
       expect(screen.getByText('Contact 2')).toBeInTheDocument();
@@ -459,10 +459,10 @@ describe('ContactsList Component', () => {
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (0)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (0)')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Pending Requests (0)'));
+    fireEvent.click(screen.getByText('Pending (0)'));
 
     await waitFor(() => {
       expect(screen.getByText('No pending requests')).toBeInTheDocument();

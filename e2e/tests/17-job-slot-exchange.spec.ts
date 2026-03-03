@@ -105,19 +105,22 @@ test.describe('Job Slot Rental Exchange', () => {
     // Find the "Browse Job Slot Listings" switch in the "Permissions I Grant" section
     // The heading contains the other user's name, so use a partial text match
     const grantSection = dialog.getByText(/Permissions I Grant/i).locator('..');
-    // MUI FormControlLabel wraps the Switch + label text in a <label> element
-    // Find the label containing our text, then click its input checkbox with force
+    // shadcn/ui: Label and Switch are separate sibling elements inside a flex div
+    // Find the label, then navigate to its parent row to find the switch
     const jobSlotLabel = grantSection.locator('label').filter({ hasText: /Browse Job Slot Listings/i });
     await expect(jobSlotLabel).toBeVisible({ timeout: 5000 });
-    await jobSlotLabel.locator('input[type="checkbox"]').click({ force: true });
+    const jobSlotRow = jobSlotLabel.locator('..');
+    const jobSlotSwitch = jobSlotRow.getByRole('switch');
+    await jobSlotSwitch.click();
 
     // Wait for the API call to complete
     await bobPage.waitForTimeout(1000);
-    // Verify the switch is now checked
-    await expect(jobSlotLabel.locator('input[type="checkbox"]')).toBeChecked({ timeout: 5000 });
+    // Verify the switch is now on (aria-checked="true")
+    await expect(jobSlotSwitch).toHaveAttribute('aria-checked', 'true', { timeout: 5000 });
 
-    // Close dialog
-    await bobPage.getByRole('button', { name: /Close/i }).click();
+    // Close dialog - use .first() because shadcn/ui DialogContent adds a built-in
+    // X close button (sr-only "Close"), giving two buttons with name "Close"
+    await bobPage.getByRole('button', { name: /Close/i }).first().click();
   });
 
   test('Bob creates a manufacturing slot listing', async ({ bobPage }) => {
