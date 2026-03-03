@@ -5,8 +5,6 @@ import Loading from "@industry-tool/components/loading";
 import Unauthorized from "@industry-tool/components/unauthorized";
 import Navbar from "@industry-tool/components/Navbar";
 import StationsList from "@industry-tool/components/stations/StationsList";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
 
 export default function Stations() {
   const { status } = useSession();
@@ -45,16 +43,16 @@ export default function Stations() {
   return (
     <>
       <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-        <Typography variant="h5" sx={{ color: "#e2e8f0", mb: 2, fontWeight: 600 }}>
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <h2 className="text-xl font-display font-semibold text-[var(--color-text-emphasis)] mb-4">
           Preferred Stations
-        </Typography>
+        </h2>
         <StationsList
           stations={stations}
           loading={loading}
           onRefresh={fetchStations}
         />
-      </Container>
+      </div>
     </>
   );
 }

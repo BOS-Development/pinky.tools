@@ -1,20 +1,12 @@
 import { useState } from "react";
 import { UserStation } from "@industry-tool/client/data/models";
 import StationDialog from "./StationDialog";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Button from "@mui/material/Button";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
+import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
 
 interface Props {
   stations: UserStation[];
@@ -24,24 +16,30 @@ interface Props {
 
 const getSecurityColor = (security: string) => {
   switch (security) {
-    case "high": return "#10b981";
-    case "low": return "#f59e0b";
-    case "null": return "#ef4444";
-    default: return "#94a3b8";
+    case "high": return "text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30";
+    case "low": return "text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30";
+    case "null": return "text-[#ef4444] bg-[#ef4444]/10 border-[#ef4444]/30";
+    default: return "text-[#94a3b8] bg-[#94a3b8]/10 border-[#94a3b8]/30";
   }
 };
 
+const getActivityColor = (activity: string) => {
+  return activity === "manufacturing"
+    ? "text-[var(--color-primary-cyan)] bg-[var(--color-primary-cyan)]/10 border-[var(--color-primary-cyan)]/30"
+    : "text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30";
+};
+
 const getCategoryColor = (category: string) => {
-  switch (category) {
-    case "ship": return "#00d4ff";
-    case "component": return "#8b5cf6";
-    case "equipment": return "#10b981";
-    case "ammo": return "#f59e0b";
-    case "drone": return "#06b6d4";
-    case "reaction": return "#ec4899";
-    case "reprocessing": return "#f97316";
-    default: return "#94a3b8";
-  }
+  const colors: Record<string, string> = {
+    ship: "text-[#00d4ff] bg-[#00d4ff]/10 border-[#00d4ff]/30",
+    component: "text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30",
+    equipment: "text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30",
+    ammo: "text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30",
+    drone: "text-[#06b6d4] bg-[#06b6d4]/10 border-[#06b6d4]/30",
+    reaction: "text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30",
+    reprocessing: "text-[#f97316] bg-[#f97316]/10 border-[#f97316]/30",
+  };
+  return colors[category] || "text-[#94a3b8] bg-[#94a3b8]/10 border-[#94a3b8]/30";
 };
 
 export default function StationsList({ stations, loading, onRefresh }: Props) {
@@ -83,114 +81,89 @@ export default function StationsList({ stations, loading, onRefresh }: Props) {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+      </div>
     );
   }
 
   return (
     <>
-      <Box sx={{ mb: 2 }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd}>
+      <div className="mb-4">
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Add Station
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1219" }}>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Station</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>System</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Security</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Structure</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Activities</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Rigs</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Tax</TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Actions</TableCell>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-[var(--color-bg-void)]">
+            <TableHead>Station</TableHead>
+            <TableHead>System</TableHead>
+            <TableHead>Security</TableHead>
+            <TableHead>Structure</TableHead>
+            <TableHead>Activities</TableHead>
+            <TableHead>Rigs</TableHead>
+            <TableHead className="text-right">Tax</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {stations.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center text-[var(--color-text-muted)] py-8">
+                No preferred stations configured. Click &quot;Add Station&quot; to get started.
+              </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {stations.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ color: "#64748b", py: 4 }}>
-                  No preferred stations configured. Click &quot;Add Station&quot; to get started.
+          ) : (
+            stations.map((station) => (
+              <TableRow key={station.id}>
+                <TableCell className="text-[var(--color-text-emphasis)] font-medium">{station.stationName}</TableCell>
+                <TableCell className="text-[var(--color-text-secondary)]">{station.solarSystemName}</TableCell>
+                <TableCell>
+                  <Badge className={`${getSecurityColor(station.security || "")} capitalize font-semibold border`}>
+                    {station.security}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-[var(--color-text-secondary)] capitalize">{station.structure}</TableCell>
+                <TableCell>
+                  <div className="flex gap-1 flex-wrap">
+                    {station.activities.map((activity) => (
+                      <Badge key={activity} className={`${getActivityColor(activity)} capitalize text-[10px] border`}>
+                        {activity}
+                      </Badge>
+                    ))}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1 flex-wrap">
+                    {station.rigs.map((rig) => (
+                      <Badge key={rig.id} className={`${getCategoryColor(rig.category)} text-[10px] border`}>
+                        {rig.category} {rig.tier.toUpperCase()}
+                      </Badge>
+                    ))}
+                    {station.rigs.length === 0 && (
+                      <span className="text-[var(--color-text-muted)] text-xs">None</span>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right text-[var(--color-text-secondary)]">
+                  {station.facilityTax}%
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(station)} className="text-[var(--color-primary-cyan)]">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(station)} className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
-            ) : (
-              stations.map((station) => (
-                <TableRow key={station.id} sx={{ "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" } }}>
-                  <TableCell sx={{ color: "#e2e8f0" }}>{station.stationName}</TableCell>
-                  <TableCell sx={{ color: "#94a3b8" }}>{station.solarSystemName}</TableCell>
-                  <TableCell>
-                    <Chip
-                      label={station.security}
-                      size="small"
-                      sx={{
-                        backgroundColor: `${getSecurityColor(station.security || "")}20`,
-                        color: getSecurityColor(station.security || ""),
-                        fontWeight: 600,
-                        textTransform: "capitalize",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", textTransform: "capitalize" }}>
-                    {station.structure}
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {station.activities.map((activity) => (
-                        <Chip
-                          key={activity}
-                          label={activity}
-                          size="small"
-                          sx={{
-                            backgroundColor: activity === "manufacturing" ? "#00d4ff20" : "#ec489920",
-                            color: activity === "manufacturing" ? "#00d4ff" : "#ec4899",
-                            textTransform: "capitalize",
-                            fontSize: "0.7rem",
-                          }}
-                        />
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
-                      {station.rigs.map((rig) => (
-                        <Chip
-                          key={rig.id}
-                          label={`${rig.category} ${rig.tier.toUpperCase()}`}
-                          size="small"
-                          sx={{
-                            backgroundColor: `${getCategoryColor(rig.category)}20`,
-                            color: getCategoryColor(rig.category),
-                            fontSize: "0.7rem",
-                          }}
-                        />
-                      ))}
-                      {station.rigs.length === 0 && (
-                        <span style={{ color: "#64748b", fontSize: "0.8rem" }}>None</span>
-                      )}
-                    </Box>
-                  </TableCell>
-                  <TableCell align="right" sx={{ color: "#94a3b8" }}>
-                    {station.facilityTax}%
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small" onClick={() => handleEdit(station)} sx={{ color: "#00d4ff" }}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(station)} sx={{ color: "#ef4444" }}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            ))
+          )}
+        </TableBody>
+      </Table>
 
       <StationDialog
         open={dialogOpen}
