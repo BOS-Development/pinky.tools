@@ -24,9 +24,90 @@ You are a frontend specialist for this EVE Online industry tool. The frontend is
 
 ## Conventions
 
+### UI Framework (shadcn/ui + Tailwind — Phase 3+ standard)
+
+**New components use shadcn/ui + Tailwind CSS v4.** MUI is being phased out. When building new components or migrating existing ones:
+
+- Import shadcn components from `@/components/ui/` (e.g., `@/components/ui/button`, `@/components/ui/table`)
+- Use `cn()` from `@/lib/utils` for conditional class names
+- Available shadcn components: `button`, `card`, `checkbox`, `collapsible`, `dialog`, `dropdown-menu`, `input`, `label`, `popover`, `select`, `separator`, `skeleton`, `switch`, `table`, `tabs`, `tooltip`, `badge`, `alert`, `sonner`
+- Icons: use **Lucide React** (`lucide-react`) — not MUI icons
+
+### MUI → shadcn Migration Patterns
+
+| MUI Component | shadcn/Tailwind Replacement |
+|---|---|
+| `Table`, `TableHead`, `TableBody`, `TableRow`, `TableCell` | shadcn `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableHead`, `TableCell` |
+| `Dialog`, `DialogTitle`, `DialogContent`, `DialogActions` | shadcn `Dialog`, `DialogHeader`, `DialogTitle`, `DialogContent`, `DialogFooter` |
+| `Button` | shadcn `Button` (variants: `default`, `ghost`, `outline`, `destructive`) |
+| `Chip` | `<span className="...badge classes...">` or shadcn `Badge` |
+| `TextField` | shadcn `Input` + `Label` |
+| `Select` / `MenuItem` | shadcn `Select`, `SelectTrigger`, `SelectContent`, `SelectItem` — uses `onValueChange` not `onChange` |
+| `Checkbox` | shadcn `Checkbox` — uses `onCheckedChange` not `onChange` |
+| `Switch` | shadcn `Switch` — uses `onCheckedChange` |
+| `Autocomplete` (async) | Custom `Input` + absolutely-positioned dropdown div; use `Popover` from shadcn for overlay |
+| `Accordion` / `AccordionDetails` | shadcn `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` with `Set<string>` for open state |
+| `Drawer` | Fixed-position overlay div with Tailwind transitions |
+| `ToggleButtonGroup` | Custom inline `<div>` with `<button>` elements and active state styling |
+| `LinearProgress` | `<div className="w-full bg-[#1e293b] rounded h-2"><div style={{width: `${pct}%`}} className="h-full rounded bg-[color]" /></div>` |
+| `Popover` (anchor-based) | shadcn `Popover`, `PopoverTrigger`, `PopoverContent` |
+| `Snackbar` / `Alert` | `toast.success()` / `toast.error()` from `sonner` (already in layout) |
+| `Tooltip` | shadcn `Tooltip`, `TooltipTrigger`, `TooltipContent` — wrap parent in `TooltipProvider` |
+| `IconButton` | shadcn `Button` with `variant="ghost" size="icon"` |
+| `Divider` | shadcn `Separator` |
+| `CircularProgress` | `<Loader2 className="animate-spin" />` from `lucide-react` |
+| `Container` / `Box` / `Grid` | `<div>` with Tailwind layout classes |
+| `Typography` | `<h2>`, `<p>`, `<span>` with Tailwind text classes |
+| `Tabs`, `Tab` (numeric index) | shadcn `Tabs`/`TabsList`/`TabsTrigger`/`TabsContent` with **string** values |
+
+#### Tab index migration
+When migrating numeric tab state to shadcn `Tabs`, convert to string values:
+```tsx
+// Old MUI pattern (numeric)
+const [tab, setTab] = useState(0);
+// <Tab value={0} /> → <Tab value={1} />
+
+// New shadcn pattern (string)
+const [tab, setTab] = useState('overview');
+// <TabsTrigger value="overview" /> matches <TabsContent value="overview" />
+```
+If persisting to localStorage with old numeric format, use a `tabMap` string array and `tabMap.indexOf(v)` / `tabMap[parseInt(saved)]` for backward compat.
+
+#### Async autocomplete pattern (no MUI Autocomplete)
+```tsx
+const [query, setQuery] = useState('');
+const [results, setResults] = useState<Item[]>([]);
+const [open, setOpen] = useState(false);
+
+useEffect(() => {
+  if (!query) { setResults([]); return; }
+  const t = setTimeout(async () => {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+    setResults(res.ok ? await res.json() : []);
+  }, 300);
+  return () => clearTimeout(t);
+}, [query]);
+
+return (
+  <div className="relative">
+    <Input value={query} onChange={(e) => { setQuery(e.target.value); setOpen(true); }} />
+    {open && results.length > 0 && (
+      <div className="absolute z-50 w-full bg-[#1e293b] border border-[rgba(148,163,184,0.15)] rounded shadow-lg max-h-60 overflow-y-auto">
+        {results.map(item => (
+          <div key={item.id} className="px-3 py-2 cursor-pointer hover:bg-[#334155]"
+               onClick={() => { onSelect(item); setOpen(false); setQuery(''); }}>
+            {item.name}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+);
+```
+
 ### Components
 
-- Use MUI components for all UI — never raw HTML elements for layout
+- Use **shadcn/ui** for new components — never raw HTML elements for layout
 - Naming: `Item` for cards, `List` for grids
 - Define TypeScript interfaces in the component file
 - Read existing components before creating similar ones
@@ -83,8 +164,23 @@ try {
 - Background: `#0a0e1a`, Cards: `#12151f`, Primary: `#3b82f6`
 - Green `#10b981` for revenue/success, Red `#ef4444` for costs/errors
 - Tables: Dark header `#0f1219`, alternating row colors, right-align numbers
+- Muted text: `text-[#94a3b8]` (slate-400), Active/accent: `text-[#00d4ff]`
+- Borders: `border-[rgba(148,163,184,0.15)]`
 - Use `<Loading />` component, not custom spinners
 - Empty states: Centered message in table cell with `colSpan`
+
+### Tab styling convention (shadcn Tabs)
+For the standard underline-style tabs used across the app:
+```tsx
+<TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-4">
+  <TabsTrigger
+    value="tab-name"
+    className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+  >
+    Tab Label
+  </TabsTrigger>
+</TabsList>
+```
 
 ### MUI SSR
 

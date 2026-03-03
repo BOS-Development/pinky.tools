@@ -1,17 +1,22 @@
-/* Base styles */
-body {
-  margin: 0;
-  padding: 0;
-}
+/* Tailwind CSS v4 — import utilities layer only (skip preflight to avoid conflicting with MUI base reset) */
+@import "tailwindcss/theme" layer(theme);
+@import "tailwindcss/utilities" layer(utilities);
+
+/* Load v3 config for content paths + custom theme extensions */
+@config "../tailwind.config.ts";
 
 /* Force dark color scheme for native form elements (prevents white defaults) */
 html {
   color-scheme: dark;
 }
 
-/* Tailwind CSS v4 — import utilities layer only (skip preflight to avoid conflicting with MUI base reset) */
-@import "tailwindcss/theme" layer(theme);
-@import "tailwindcss/utilities" layer(utilities);
+/* Base styles */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--color-bg-void);
+  color: var(--color-text-primary);
+}
 
 /* ============================================================
    NEOCOM DARK — Design Token CSS Variables
