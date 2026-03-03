@@ -5,24 +5,17 @@ import {
   UserStationService,
   ScanResult,
 } from "@industry-tool/client/data/models";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Autocomplete from "@mui/material/Autocomplete";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Chip from "@mui/material/Chip";
-import CircularProgress from "@mui/material/CircularProgress";
-import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddIcon from "@mui/icons-material/Add";
+import { Plus, Trash2, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from '@/components/ui/dialog';
 
 type StationOption = {
   stationId: number;
@@ -50,17 +43,17 @@ const getRigTiersForCategory = (category: string): string[] => {
 };
 
 const getCategoryColor = (category: string) => {
-  switch (category) {
-    case "ship": return "#00d4ff";
-    case "component": return "#8b5cf6";
-    case "equipment": return "#10b981";
-    case "ammo": return "#f59e0b";
-    case "drone": return "#06b6d4";
-    case "reaction": return "#ec4899";
-    case "reprocessing": return "#f97316";
-    case "thukker": return "#d97706";
-    default: return "#94a3b8";
-  }
+  const colors: Record<string, string> = {
+    ship: "bg-[#00d4ff]/10 text-[#00d4ff] border-[#00d4ff]/30",
+    component: "bg-[#8b5cf6]/10 text-[#8b5cf6] border-[#8b5cf6]/30",
+    equipment: "bg-[#10b981]/10 text-[#10b981] border-[#10b981]/30",
+    ammo: "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30",
+    drone: "bg-[#06b6d4]/10 text-[#06b6d4] border-[#06b6d4]/30",
+    reaction: "bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/30",
+    reprocessing: "bg-[#f97316]/10 text-[#f97316] border-[#f97316]/30",
+    thukker: "bg-[#d97706]/10 text-[#d97706] border-[#d97706]/30",
+  };
+  return colors[category] || "bg-[#94a3b8]/10 text-[#94a3b8] border-[#94a3b8]/30";
 };
 
 export default function StationDialog({ open, station, onClose }: Props) {
@@ -69,6 +62,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
   const [stationOptions, setStationOptions] = useState<StationOption[]>([]);
   const [stationSearchLoading, setStationSearchLoading] = useState(false);
   const [selectedStation, setSelectedStation] = useState<StationOption | null>(null);
+  const [stationSearchQuery, setStationSearchQuery] = useState("");
 
   const [structure, setStructure] = useState("raitaru");
   const [facilityTax, setFacilityTax] = useState(1.0);
@@ -89,6 +83,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
         name: station.stationName || "",
         solarSystemName: station.solarSystemName || "",
       });
+      setStationSearchQuery(station.stationName || "");
       setStructure(station.structure);
       setFacilityTax(station.facilityTax);
       setRigs(
@@ -106,6 +101,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
       );
     } else {
       setSelectedStation(null);
+      setStationSearchQuery("");
       setStructure("raitaru");
       setFacilityTax(1.0);
       setRigs([]);
@@ -137,6 +133,8 @@ export default function StationDialog({ open, station, onClose }: Props) {
   }, []);
 
   const handleStationSearch = (value: string) => {
+    setStationSearchQuery(value);
+    setSelectedStation(null);
     if (stationSearchTimeoutRef.current) {
       clearTimeout(stationSearchTimeoutRef.current);
     }
@@ -198,7 +196,6 @@ export default function StationDialog({ open, station, onClose }: Props) {
   const handleRigChange = (index: number, field: string, value: string) => {
     const updated = [...rigs];
     updated[index] = { ...updated[index], [field]: value };
-    // If category changed away from component and tier is thukker, reset tier
     if (field === "category" && value !== "component" && updated[index].tier === "thukker") {
       updated[index] = { ...updated[index], tier: "t1" };
     }
@@ -247,269 +244,184 @@ export default function StationDialog({ open, station, onClose }: Props) {
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => onClose(false)}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: { backgroundColor: "#12151f", color: "#e2e8f0" },
-      }}
-    >
-      <DialogTitle>{isEdit ? "Edit Station" : "Add Station"}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(false); }}>
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit Station" : "Add Station"}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4">
           {/* Station Search */}
-          <Autocomplete
-            value={selectedStation}
-            onChange={(_, newValue) => setSelectedStation(newValue)}
-            onInputChange={(_, value) => handleStationSearch(value)}
-            options={stationOptions}
-            getOptionLabel={(option) => option.name}
-            isOptionEqualToValue={(option, value) =>
-              option.stationId === value.stationId
-            }
-            loading={stationSearchLoading}
-            disabled={isEdit}
-            filterOptions={(x) => x}
-            renderOption={(props, option) => (
-              <Box component="li" {...props}>
-                <Box>
-                  <Typography variant="body2">{option.name}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {option.solarSystemName}
-                  </Typography>
-                </Box>
-              </Box>
+          <div>
+            <Label htmlFor="station-search">Station</Label>
+            <Input
+              id="station-search"
+              value={stationSearchQuery}
+              onChange={(e) => handleStationSearch(e.target.value)}
+              placeholder="Search for a station..."
+              disabled={isEdit}
+            />
+            {stationSearchLoading && (
+              <div className="flex items-center gap-2 mt-1">
+                <Loader2 className="h-3 w-3 animate-spin text-[var(--color-primary-cyan)]" />
+                <span className="text-xs text-[var(--color-text-muted)]">Searching...</span>
+              </div>
             )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Station"
-                placeholder="Search for a station..."
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {stationSearchLoading ? (
-                        <CircularProgress color="inherit" size={20} />
-                      ) : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
+            {stationOptions.length > 0 && !selectedStation && (
+              <div className="mt-1 border border-[var(--color-border-dim)] rounded-sm max-h-40 overflow-y-auto bg-[var(--color-bg-panel)]">
+                {stationOptions.map(opt => (
+                  <button
+                    key={opt.stationId}
+                    role="option"
+                    onClick={() => {
+                      setSelectedStation(opt);
+                      setStationSearchQuery(opt.name);
+                      setStationOptions([]);
+                    }}
+                    className="w-full text-left px-3 py-2 hover:bg-[var(--color-surface-elevated)] transition-colors cursor-pointer"
+                  >
+                    <div className="text-sm text-[var(--color-text-primary)]">{opt.name}</div>
+                    <div className="text-xs text-[var(--color-text-muted)]">{opt.solarSystemName}</div>
+                  </button>
+                ))}
+              </div>
             )}
-          />
+          </div>
 
           {/* Scan Input */}
-          <TextField
-            label="Structure Fitting Scan"
-            multiline
-            rows={4}
-            value={scanText}
-            onChange={(e) => setScanText(e.target.value)}
-            placeholder="Paste structure fitting scan here..."
-            sx={{ "& .MuiInputBase-input": { fontSize: 13 } }}
-          />
-          <Button
-            variant="outlined"
-            onClick={handleParseScan}
-            disabled={!scanText.trim() || scanParsing}
-            sx={{ alignSelf: "flex-start" }}
-          >
-            {scanParsing ? "Parsing..." : "Parse Scan"}
-          </Button>
+          <div>
+            <Label htmlFor="structure-fitting-scan">Structure Fitting Scan</Label>
+            <textarea
+              id="structure-fitting-scan"
+              value={scanText}
+              onChange={(e) => setScanText(e.target.value)}
+              placeholder="Paste structure fitting scan here..."
+              rows={4}
+              className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] resize-none"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleParseScan}
+              disabled={!scanText.trim() || scanParsing}
+              className="mt-2"
+            >
+              {scanParsing ? "Parsing..." : "Parse Scan"}
+            </Button>
+          </div>
 
           {/* Structure */}
-          <FormControl fullWidth>
-            <InputLabel>Structure</InputLabel>
+          <div>
+            <Label>Structure</Label>
             <Select
               value={structure}
-              label="Structure"
-              onChange={(e) => {
-                const newStructure = e.target.value;
+              onValueChange={(newStructure) => {
                 setStructure(newStructure);
                 const validCategories = getRigCategoriesForStructure(newStructure);
                 setRigs((prev) => prev.filter((r) => validCategories.includes(r.category)));
               }}
             >
-              <MenuItem value="raitaru">Raitaru</MenuItem>
-              <MenuItem value="azbel">Azbel</MenuItem>
-              <MenuItem value="sotiyo">Sotiyo</MenuItem>
-              <MenuItem value="athanor">Athanor</MenuItem>
-              <MenuItem value="tatara">Tatara</MenuItem>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="raitaru">Raitaru</SelectItem>
+                <SelectItem value="azbel">Azbel</SelectItem>
+                <SelectItem value="sotiyo">Sotiyo</SelectItem>
+                <SelectItem value="athanor">Athanor</SelectItem>
+                <SelectItem value="tatara">Tatara</SelectItem>
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
           {/* Facility Tax */}
-          <TextField
-            type="number"
-            label="Facility Tax %"
-            value={facilityTax}
-            onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
-            inputProps={{ min: 0, step: 0.1 }}
-          />
+          <div>
+            <Label htmlFor="facility-tax">Facility Tax %</Label>
+            <Input
+              id="facility-tax"
+              type="number"
+              value={facilityTax}
+              onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
+              min={0}
+              step={0.1}
+            />
+          </div>
 
           {/* Services */}
           {services.length > 0 && (
-            <Box>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: "#94a3b8", mb: 0.5 }}
-              >
-                Services
-              </Typography>
-              <Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+            <div>
+              <Label className="text-[var(--color-text-muted)]">Services</Label>
+              <div className="flex gap-1 flex-wrap mt-1">
                 {services.map((svc, i) => (
-                  <Chip
+                  <Badge
                     key={i}
-                    label={svc.serviceName}
-                    size="small"
-                    sx={{
-                      backgroundColor:
-                        svc.activity === "manufacturing"
-                          ? "#00d4ff20"
-                          : "#ec489920",
-                      color:
-                        svc.activity === "manufacturing"
-                          ? "#00d4ff"
-                          : "#ec4899",
-                      fontSize: "0.75rem",
-                    }}
-                  />
+                    className={`text-[11px] border ${svc.activity === "manufacturing" ? "bg-[var(--color-primary-cyan)]/10 text-[var(--color-primary-cyan)] border-[var(--color-primary-cyan)]/30" : "bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/30"}`}
+                  >
+                    {svc.serviceName}
+                  </Badge>
                 ))}
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
 
           {/* Rigs */}
-          <Box>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 1,
-              }}
-            >
-              <Typography
-                variant="subtitle2"
-                sx={{ color: "#94a3b8" }}
-              >
-                Rigs
-              </Typography>
-              <Button
-                size="small"
-                startIcon={<AddIcon />}
-                onClick={handleAddRig}
-              >
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <Label className="text-[var(--color-text-muted)]">Rigs</Label>
+              <Button variant="ghost" size="sm" onClick={handleAddRig}>
+                <Plus className="h-4 w-4 mr-1" />
                 Add Rig
               </Button>
-            </Box>
+            </div>
 
             {rigs.length === 0 && (
-              <Typography sx={{ color: "#64748b", fontSize: 13 }}>
+              <p className="text-[var(--color-text-muted)] text-xs">
                 No rigs. Paste a scan or add manually.
-              </Typography>
+              </p>
             )}
 
             {rigs.map((rig, index) => (
-              <Box
-                key={index}
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  mb: 1,
-                  alignItems: "center",
-                }}
-              >
-                <FormControl size="small" sx={{ minWidth: 140 }}>
-                  <InputLabel>Category</InputLabel>
-                  <Select
-                    value={rig.category}
-                    label="Category"
-                    onChange={(e) =>
-                      handleRigChange(index, "category", e.target.value)
-                    }
-                  >
+              <div key={index} className="flex gap-2 mb-2 items-center">
+                <Select value={rig.category} onValueChange={(val) => handleRigChange(index, "category", val)}>
+                  <SelectTrigger className="w-[140px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
                     {getRigCategoriesForStructure(structure).map((cat) => (
-                      <MenuItem key={cat} value={cat}>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Box
-                            sx={{
-                              width: 8,
-                              height: 8,
-                              borderRadius: "50%",
-                              backgroundColor: getCategoryColor(cat),
-                            }}
-                          />
-                          <span style={{ textTransform: "capitalize" }}>{cat}</span>
-                        </Box>
-                      </MenuItem>
+                      <SelectItem key={cat} value={cat}>
+                        <span className="flex items-center gap-1.5">
+                          <span className={`inline-block w-2 h-2 rounded-full ${getCategoryColor(cat).split(' ')[1]}`} />
+                          <span className="capitalize">{cat}</span>
+                        </span>
+                      </SelectItem>
                     ))}
-                  </Select>
-                </FormControl>
+                  </SelectContent>
+                </Select>
 
-                <FormControl size="small" sx={{ minWidth: 80 }}>
-                  <InputLabel>Tier</InputLabel>
-                  <Select
-                    value={rig.tier}
-                    label="Tier"
-                    onChange={(e) =>
-                      handleRigChange(index, "tier", e.target.value)
-                    }
-                  >
+                <Select value={rig.tier} onValueChange={(val) => handleRigChange(index, "tier", val)}>
+                  <SelectTrigger className="w-[80px]"><SelectValue /></SelectTrigger>
+                  <SelectContent>
                     {getRigTiersForCategory(rig.category).map((t) => (
-                      <MenuItem key={t} value={t}>
-                        {t.toUpperCase()}
-                      </MenuItem>
+                      <SelectItem key={t} value={t}>{t.toUpperCase()}</SelectItem>
                     ))}
-                  </Select>
-                </FormControl>
+                  </SelectContent>
+                </Select>
 
-                <Typography
-                  sx={{
-                    color: "#64748b",
-                    fontSize: 12,
-                    flex: 1,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                  title={rig.rigName}
-                >
+                <span className="text-[var(--color-text-muted)] text-xs flex-1 truncate" title={rig.rigName}>
                   {rig.rigName || "Manual"}
-                </Typography>
+                </span>
 
-                <IconButton
-                  size="small"
-                  onClick={() => handleRemoveRig(index)}
-                  sx={{ color: "#ef4444" }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                <Button variant="ghost" size="icon" onClick={() => handleRemoveRig(index)} className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)] h-8 w-8">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onClose(false)}>Cancel</Button>
+          <Button onClick={handleSave} disabled={!selectedStation || saving}>
+            {saving ? "Saving..." : isEdit ? "Update" : "Add"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => onClose(false)} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleSave}
-          disabled={!selectedStation || saving}
-          variant="contained"
-          sx={{
-            backgroundColor: "#00d4ff",
-            "&:hover": { backgroundColor: "#2563eb" },
-          }}
-        >
-          {saving ? "Saving..." : isEdit ? "Update" : "Add"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

@@ -1,15 +1,10 @@
 import { Corporation } from "@industry-tool/client/data/models";
 import { corporationScopesUpToDate } from "@industry-tool/client/scopes";
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import Typography from '@mui/material/Typography';
-import BusinessIcon from '@mui/icons-material/Business';
-import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import Tooltip from '@mui/material/Tooltip';
-import Button from '@mui/material/Button';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { AlertTriangle, Building2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export type CorporationItemProps = {
   corporation: Corporation;
@@ -19,96 +14,40 @@ export default function Item(props: CorporationItemProps) {
   const needsUpdate = !corporationScopesUpToDate(props.corporation);
 
   return (
-    <Card
-      sx={{
-        maxWidth: 345,
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: 6,
-        },
-        ...(needsUpdate && {
-          border: '2px solid',
-          borderColor: 'warning.main',
-        }),
-      }}
-    >
-      <Box
-        sx={{
-          height: 200,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: '#1a1f2e',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <CardMedia
-          component="img"
-          height="200"
-          image={`https://images.evetech.net/corporations/${props.corporation.id}/logo?size=256&tenant=tranquility`}
+    <Card className={cn(
+      "max-w-[345px] transition-transform hover:-translate-y-1",
+      needsUpdate && "border-2 border-[var(--color-manufacturing-amber)]"
+    )}>
+      <div className="h-[200px] flex items-center justify-center bg-[var(--color-bg-void)] relative overflow-hidden">
+        <img
+          src={`https://images.evetech.net/corporations/${props.corporation.id}/logo?size=256&tenant=tranquility`}
           alt={props.corporation.name}
-          sx={{
-            objectFit: 'contain',
-            padding: 2,
-            filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
-          }}
+          className="h-[200px] object-contain p-4 drop-shadow-lg"
           onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
+            (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
         {needsUpdate && (
-          <Tooltip title="Scopes need updating">
-            <WarningAmberIcon
-              color="warning"
-              sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                fontSize: 32,
-                filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-              }}
-            />
-          </Tooltip>
+          <div title="Scopes need updating" className="absolute top-2 right-2">
+            <AlertTriangle className="h-7 w-7 text-[var(--color-manufacturing-amber)] drop-shadow-lg" />
+          </div>
         )}
-      </Box>
-      <CardContent>
-        <Box sx={{ mb: 1 }}>
-          <Chip
-            icon={<BusinessIcon />}
-            label="Corporation"
-            size="small"
-            color="primary"
-            variant="outlined"
-            sx={{ mb: 1 }}
-          />
-        </Box>
-        <Typography
-          variant="h5"
-          component="div"
-          sx={{
-            fontWeight: 600,
-            color: 'primary.light',
-          }}
-        >
+      </div>
+      <CardContent className="p-4">
+        <Badge variant="outline" className="mb-2">
+          <Building2 className="h-3 w-3 mr-1" />
+          Corporation
+        </Badge>
+        <h3 className="text-lg font-semibold text-[var(--color-primary-cyan)]">
           {props.corporation.name}
-        </Typography>
+        </h3>
         {needsUpdate && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-            <Tooltip title="This corporation needs to be re-authorized to grant new permissions">
-              <WarningAmberIcon color="warning" />
-            </Tooltip>
-            <Button
-              size="small"
-              variant="outlined"
-              color="warning"
-              href="/api/corporations/add"
-            >
-              Re-authorize
+          <div className="flex items-center gap-2 mt-2">
+            <AlertTriangle className="h-4 w-4 text-[var(--color-manufacturing-amber)]" />
+            <Button variant="outline" size="sm" asChild className="text-[var(--color-manufacturing-amber)] border-[var(--color-manufacturing-amber)]/30">
+              <a href="/api/corporations/add">Re-authorize</a>
             </Button>
-          </Box>
+          </div>
         )}
       </CardContent>
     </Card>

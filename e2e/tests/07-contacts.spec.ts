@@ -66,8 +66,8 @@ test.describe('Contacts Workflow', () => {
     await dialog.getByRole('switch').first().click();
     await expect(dialog.getByRole('switch').first()).toBeChecked({ timeout: 5000 });
 
-    // Close dialog
-    await bobPage.getByRole('button', { name: /Close/i }).click();
+    // Close dialog — use exact match to avoid the dialog's X close button
+    await bobPage.getByRole('button', { name: 'Close', exact: true }).first().click();
   });
 
   test('Alice sees Bob as accepted contact', async ({ alicePage }) => {

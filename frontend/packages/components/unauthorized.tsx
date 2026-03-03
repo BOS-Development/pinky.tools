@@ -1,47 +1,24 @@
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Paper from '@mui/material/Paper';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import { Lock } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-export default function Unuathorized() {
+export default function Unauthorized() {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        background: '#0a0e1a',
-      }}
-    >
-      <Paper
-        elevation={6}
-        sx={{
-          p: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          maxWidth: 400,
-          textAlign: 'center',
-        }}
-      >
-        <LockOutlinedIcon sx={{ fontSize: 60, mb: 2, color: 'primary.main' }} />
-        <Typography variant="h5" gutterBottom>
-          Authentication Required
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          You must sign in to access this page
-        </Typography>
-        <Button
-          variant="contained"
-          size="large"
-          href="api/auth/login"
-          fullWidth
-        >
-          Sign In
-        </Button>
-      </Paper>
-    </Box>
+    <div className="flex items-center justify-center min-h-screen bg-[var(--color-bg-void)]">
+      <Card className="max-w-[400px] w-full">
+        <CardContent className="flex flex-col items-center text-center p-8">
+          <Lock className="h-14 w-14 mb-4 text-[var(--color-primary-cyan)]" />
+          <h2 className="text-xl font-semibold text-[var(--color-text-emphasis)] mb-2">
+            Authentication Required
+          </h2>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+            You must sign in to access this page
+          </p>
+          <Button asChild size="lg" className="w-full">
+            <a href="api/auth/login">Sign In</a>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

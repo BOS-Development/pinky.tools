@@ -141,8 +141,8 @@ describe('StationsList Component', () => {
       <StationsList stations={mockStations} loading={false} onRefresh={jest.fn()} />,
     );
 
-    const editButtons = screen.getAllByTestId('EditIcon');
-    fireEvent.click(editButtons[0].closest('button')!);
+    const editButtons = screen.getAllByTitle('Edit Station');
+    fireEvent.click(editButtons[0]);
     expect(screen.getByTestId('station-dialog')).toBeInTheDocument();
     expect(screen.getByText('Edit Station Dialog')).toBeInTheDocument();
   });

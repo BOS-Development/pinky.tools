@@ -134,7 +134,7 @@ describe('PermissionsDialog Component', () => {
       />
     );
 
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('should display permissions with correct toggle states', async () => {
@@ -195,16 +195,16 @@ describe('PermissionsDialog Component', () => {
       expect(screen.getByText('Permissions I Grant to Other User')).toBeInTheDocument();
     });
 
-    // Wait for permissions to load and find the switch
-    let switchElement: HTMLInputElement | null = null;
+    // Wait for permissions to load and find the switch button (shadcn/ui Switch renders as role="switch")
+    let switchButton: HTMLElement | null = null;
     await waitFor(() => {
-      const switchLabels = screen.getAllByText('Browse For-Sale Items');
-      switchElement = switchLabels[0].closest('label')?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-      expect(switchElement).toBeInTheDocument();
+      const switches = screen.getAllByRole('switch');
+      switchButton = switches[0];
+      expect(switchButton).toBeInTheDocument();
     });
 
-    if (switchElement) {
-      fireEvent.click(switchElement);
+    if (switchButton) {
+      fireEvent.click(switchButton);
     }
 
     await waitFor(() => {
@@ -245,16 +245,16 @@ describe('PermissionsDialog Component', () => {
     );
 
     // Wait for permissions to load
-    let switchElement: HTMLInputElement | null = null;
+    let switchButton: HTMLElement | null = null;
     await waitFor(() => {
-      const switchLabels = screen.getAllByText('Browse For-Sale Items');
-      switchElement = switchLabels[0].closest('label')?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-      expect(switchElement).toBeInTheDocument();
+      const switches = screen.getAllByRole('switch');
+      switchButton = switches[0];
+      expect(switchButton).toBeInTheDocument();
     });
 
     // Try to toggle
-    if (switchElement) {
-      fireEvent.click(switchElement);
+    if (switchButton) {
+      fireEvent.click(switchButton);
     }
 
     // Should display error message
@@ -279,11 +279,13 @@ describe('PermissionsDialog Component', () => {
       />
     );
 
+    // The dialog has two "Close" buttons: the explicit footer button and the built-in
+    // shadcn/ui DialogContent X button. Use getAllByText to handle both.
     await waitFor(() => {
-      expect(screen.getByText('Close')).toBeInTheDocument();
+      expect(screen.getAllByText('Close').length).toBeGreaterThanOrEqual(1);
     });
 
-    fireEvent.click(screen.getByText('Close'));
+    fireEvent.click(screen.getAllByText('Close')[0]);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -401,15 +403,15 @@ describe('PermissionsDialog Component', () => {
     });
 
     // Wait for permissions to load and toggle
-    let switchElement: HTMLInputElement | null = null;
+    let switchButton: HTMLElement | null = null;
     await waitFor(() => {
-      const switchLabels = screen.getAllByText('Browse For-Sale Items');
-      switchElement = switchLabels[0].closest('label')?.querySelector('input[type="checkbox"]') as HTMLInputElement;
-      expect(switchElement).toBeInTheDocument();
+      const switches = screen.getAllByRole('switch');
+      switchButton = switches[0];
+      expect(switchButton).toBeInTheDocument();
     });
 
-    if (switchElement) {
-      fireEvent.click(switchElement);
+    if (switchButton) {
+      fireEvent.click(switchButton);
     }
 
     await waitFor(() => {

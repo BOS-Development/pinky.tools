@@ -4,7 +4,7 @@ test.describe('Navigation', () => {
   test('navbar displays all dropdown triggers and Settings link', async ({ page }) => {
     await page.goto('/');
 
-    const navbar = page.locator('header');
+    const navbar = page.locator('nav');
     await expect(navbar.getByText('EVE Industry Tool')).toBeVisible();
 
     // The navbar has 5 dropdown trigger buttons and a standalone Settings link

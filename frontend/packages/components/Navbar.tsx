@@ -1,22 +1,17 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Badge from '@mui/material/Badge';
-import Paper from '@mui/material/Paper';
-import MenuList from '@mui/material/MenuList';
-import MenuItem from '@mui/material/MenuItem';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
-import Popper from '@mui/material/Popper';
-import Grow from '@mui/material/Grow';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import Alert from '@mui/material/Alert';
+import { Rocket, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
 
 type Contact = {
   id: number;
@@ -31,65 +26,35 @@ type Contact = {
 
 type NavItem = { label: string; href: string; badge?: number };
 
-type DropdownProps = {
+type NavDropdownProps = {
   label: React.ReactNode;
   items: NavItem[];
 };
 
-function NavDropdown({ label, items }: DropdownProps) {
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef<HTMLButtonElement>(null);
-
-  const handleToggle = () => setOpen((prev) => !prev);
-  const handleClose = () => setOpen(false);
-
+function NavDropdown({ label, items }: NavDropdownProps) {
   return (
-    <>
-      <Button
-        ref={anchorRef}
-        color="inherit"
-        onClick={handleToggle}
-        endIcon={<KeyboardArrowDownIcon />}
-        aria-haspopup="true"
-        aria-expanded={open}
-      >
-        {label}
-      </Button>
-      <Popper
-        open={open}
-        anchorEl={anchorRef.current}
-        placement="bottom-start"
-        transition
-        style={{ zIndex: 1300 }}
-      >
-        {({ TransitionProps }) => (
-          <Grow {...TransitionProps}>
-            <Paper>
-              <ClickAwayListener onClickAway={handleClose}>
-                <MenuList>
-                  {items.map((item) => (
-                    <MenuItem
-                      key={item.href}
-                      component="a"
-                      href={item.href}
-                      onClick={handleClose}
-                    >
-                      {item.badge ? (
-                        <Badge badgeContent={item.badge} color="error">
-                          {item.label}
-                        </Badge>
-                      ) : (
-                        item.label
-                      )}
-                    </MenuItem>
-                  ))}
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Grow>
-        )}
-      </Popper>
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" className="gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]">
+          {label}
+          <ChevronDown className="h-4 w-4 opacity-60" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {items.map((item) => (
+          <DropdownMenuItem key={item.href} asChild>
+            <a href={item.href} className="flex items-center gap-2">
+              {item.label}
+              {item.badge ? (
+                <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0">
+                  {item.badge}
+                </Badge>
+              ) : null}
+            </a>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -110,7 +75,6 @@ export default function Navbar() {
         if (!contacts) return;
         const currentUserId = parseInt(session.providerAccountId);
 
-        // Count pending requests where current user is the recipient
         const pending = contacts.filter(
           (contact) =>
             contact.status === 'pending' &&
@@ -124,10 +88,7 @@ export default function Navbar() {
     };
 
     fetchPendingCount();
-
-    // Poll every 30 seconds for updates
     const interval = setInterval(fetchPendingCount, 30000);
-
     return () => clearInterval(interval);
   }, [session]);
 
@@ -150,32 +111,24 @@ export default function Navbar() {
 
   return (
     <>
-      <AppBar position="fixed">
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            href="/"
-            sx={{ mr: 2 }}
-          >
-            <RocketLaunchIcon />
-          </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-              EVE Industry Tool
-            </Link>
-          </Typography>
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[var(--color-border-dim)] bg-[var(--color-bg-panel)]/95 backdrop-blur-sm">
+        <div className="flex h-full items-center px-4 gap-1">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2 mr-4 text-[var(--color-primary-cyan)] hover:text-[var(--color-primary-cyan)] transition-colors">
+            <Rocket className="h-5 w-5" />
+            <span className="font-display font-semibold text-lg hidden sm:inline">EVE Industry Tool</span>
+          </Link>
 
+          {/* Nav Items */}
           <NavDropdown
             label={
               scopeWarning ? (
-                <Badge variant="dot" color="warning">
+                <span className="relative">
                   Account
-                </Badge>
+                  <span className="absolute -top-1 -right-2 h-2 w-2 rounded-full bg-[var(--color-manufacturing-amber)]" />
+                </span>
               ) : (
-                "Account"
+                'Account'
               )
             }
             items={[
@@ -192,12 +145,18 @@ export default function Navbar() {
             ]}
           />
 
-          {/* Trading — badge on top-level button */}
           <NavDropdown
             label={
-              <Badge badgeContent={pendingCount} color="error">
-                Trading
-              </Badge>
+              pendingCount > 0 ? (
+                <span className="flex items-center gap-1.5">
+                  Trading
+                  <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
+                    {pendingCount}
+                  </Badge>
+                </span>
+              ) : (
+                'Trading'
+              )
             }
             items={[
               { label: 'Contacts', href: '/contacts', badge: pendingCount },
@@ -227,24 +186,27 @@ export default function Navbar() {
             ]}
           />
 
-          {/* Settings — standalone */}
-          <Button color="inherit" href="/settings">
-            Settings
+          <Button variant="ghost" asChild className="text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]">
+            <Link href="/settings">Settings</Link>
           </Button>
-        </Toolbar>
-      </AppBar>
-      <Toolbar />
+        </div>
+      </nav>
+
+      {/* Spacer for fixed navbar */}
+      <div className="h-16" />
+
+      {/* Scope warning banner */}
       {scopeWarning && (
-        <Alert
-          severity="warning"
-          sx={{ borderRadius: 0 }}
-          action={
-            <Button color="inherit" size="small" href="/characters">
-              View
+        <Alert className="rounded-none border-x-0 border-t-0 border-[var(--color-manufacturing-amber)]/30 bg-[var(--color-manufacturing-amber)]/10">
+          <AlertTriangle className="h-4 w-4 text-[var(--color-manufacturing-amber)]" />
+          <AlertDescription className="flex items-center justify-between w-full">
+            <span className="text-[var(--color-manufacturing-amber)]">
+              Some characters or corporations need to be re-authorized with updated permissions.
+            </span>
+            <Button variant="ghost" size="sm" asChild className="text-[var(--color-manufacturing-amber)] hover:text-[var(--color-manufacturing-amber)]">
+              <a href="/characters">View</a>
             </Button>
-          }
-        >
-          Some characters or corporations need to be re-authorized with updated permissions.
+          </AlertDescription>
         </Alert>
       )}
     </>

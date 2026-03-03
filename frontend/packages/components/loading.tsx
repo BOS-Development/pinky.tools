@@ -1,23 +1,12 @@
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
-import Typography from '@mui/material/Typography';
+import { Loader2 } from 'lucide-react';
 
 export default function Loading() {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        gap: 2,
-      }}
-    >
-      <CircularProgress size={60} />
-      <Typography variant="h6" color="text.secondary">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+      <Loader2 className="h-12 w-12 animate-spin text-[var(--color-primary-cyan)]" />
+      <p className="text-base text-[var(--color-text-secondary)]">
         Loading...
-      </Typography>
-    </Box>
+      </p>
+    </div>
   );
 }

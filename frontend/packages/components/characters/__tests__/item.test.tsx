@@ -116,13 +116,17 @@ describe('Character Item Component', () => {
 
   it('should show error (not warning) indicator for needsReauth character', () => {
     render(<Item character={reauthCharacter} />);
-    expect(screen.queryByTestId('WarningAmberIcon')).not.toBeInTheDocument();
-    expect(screen.getAllByTestId('ErrorIcon').length).toBeGreaterThan(0);
+    // Warning icon (scope-outdated) should not be present
+    expect(screen.queryByTitle('Scopes need updating')).not.toBeInTheDocument();
+    // Error indicator (reauth required) should be present
+    expect(screen.getByTitle('Authorization revoked — re-authorize required')).toBeInTheDocument();
   });
 
   it('should not show error indicator for scope-outdated character', () => {
     render(<Item character={outdatedCharacter} />);
-    expect(screen.queryByTestId('ErrorIcon')).not.toBeInTheDocument();
-    expect(screen.getAllByTestId('WarningAmberIcon').length).toBeGreaterThan(0);
+    // Error icon (reauth required) should not be present
+    expect(screen.queryByTitle('Authorization revoked — re-authorize required')).not.toBeInTheDocument();
+    // Warning indicator (scope-outdated) should be present
+    expect(screen.getByTitle('Scopes need updating')).toBeInTheDocument();
   });
 });

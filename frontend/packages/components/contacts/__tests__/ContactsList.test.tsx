@@ -3,6 +3,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import ContactsList from '../ContactsList';
 
+const mockToastError = jest.fn();
+const mockToastSuccess = jest.fn();
+jest.mock('@/components/ui/sonner', () => ({
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+  },
+}));
+
 jest.mock('next-auth/react');
 jest.mock('../../Navbar', () => {
   return function MockNavbar() {
@@ -30,6 +39,8 @@ describe('ContactsList Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
+    mockToastError.mockClear();
+    mockToastSuccess.mockClear();
   });
 
   const mockSession = {
@@ -119,8 +130,8 @@ describe('ContactsList Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('My Contacts (1)')).toBeInTheDocument();
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
-      expect(screen.getByText('Sent Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
+      expect(screen.getByText('Sent (1)')).toBeInTheDocument();
     });
   });
 
@@ -152,15 +163,17 @@ describe('ContactsList Component', () => {
       expect(screen.getByText('Contact 1')).toBeInTheDocument();
     });
 
-    // Switch to Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    // Switch to Pending Requests tab (Radix Tabs triggers on mouseDown)
+    const pendingTab = screen.getByText('Pending (1)');
+    fireEvent.mouseDown(pendingTab);
 
     await waitFor(() => {
       expect(screen.getByText('Contact 2')).toBeInTheDocument();
     });
 
     // Switch to Sent Requests tab
-    fireEvent.click(screen.getByText('Sent Requests (1)'));
+    const sentTab = screen.getByText('Sent (1)');
+    fireEvent.mouseDown(sentTab);
 
     await waitFor(() => {
       expect(screen.getByText('Contact 3')).toBeInTheDocument();
@@ -261,11 +274,12 @@ describe('ContactsList Component', () => {
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
     });
 
-    // Switch to Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    // Switch to Pending Requests tab (Radix Tabs triggers on mouseDown)
+    const pendingTabAccept = screen.getByText('Pending (1)');
+    fireEvent.mouseDown(pendingTabAccept);
 
     await waitFor(() => {
       expect(screen.getByText('Contact 2')).toBeInTheDocument();
@@ -308,11 +322,12 @@ describe('ContactsList Component', () => {
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
     });
 
-    // Switch to Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    // Switch to Pending Requests tab (Radix Tabs triggers on mouseDown)
+    const pendingTabReject = screen.getByText('Pending (1)');
+    fireEvent.mouseDown(pendingTabReject);
 
     await waitFor(() => {
       expect(screen.getByText('Contact 2')).toBeInTheDocument();
@@ -429,7 +444,7 @@ describe('ContactsList Component', () => {
     fireEvent.click(sendButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Character not found')).toBeInTheDocument();
+      expect(mockToastError).toHaveBeenCalledWith('Character not found');
     });
   });
 
@@ -459,10 +474,12 @@ describe('ContactsList Component', () => {
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (0)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (0)')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Pending Requests (0)'));
+    // Radix Tabs triggers on mouseDown
+    const pendingTab = screen.getByText('Pending (0)');
+    fireEvent.mouseDown(pendingTab);
 
     await waitFor(() => {
       expect(screen.getByText('No pending requests')).toBeInTheDocument();

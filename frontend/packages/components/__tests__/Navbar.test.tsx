@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, cleanup } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import Navbar from '../Navbar';
 
@@ -53,39 +53,47 @@ describe('Navbar Component', () => {
     // Settings is a standalone button/link
     expect(screen.getByRole('link', { name: /settings/i })).toBeInTheDocument();
 
+    // Each dropdown must be tested independently since opening one prevents opening others.
+    // Radix DropdownMenu uses pointerDown to open.
+
     // --- Account dropdown ---
-    fireEvent.click(screen.getByRole('button', { name: /account/i }));
+    cleanup(); // Reset DOM before each dropdown test
+    mockUseSession.mockReturnValue({ data: null, status: 'unauthenticated', update: jest.fn() });
+    render(<Navbar />);
+    fireEvent.pointerDown(screen.getByRole('button', { name: /account/i }));
     expect(screen.getByRole('menuitem', { name: /characters/i })).toHaveAttribute('href', '/characters');
     expect(screen.getByRole('menuitem', { name: /corporations/i })).toHaveAttribute('href', '/corporations');
-    // Close by clicking the button again
-    fireEvent.click(screen.getByRole('button', { name: /account/i }));
 
     // --- Assets dropdown ---
-    fireEvent.click(screen.getByRole('button', { name: /assets/i }));
+    cleanup();
+    render(<Navbar />);
+    fireEvent.pointerDown(screen.getByRole('button', { name: /assets/i }));
     expect(screen.getByRole('menuitem', { name: /inventory/i })).toHaveAttribute('href', '/inventory');
     expect(screen.getByRole('menuitem', { name: /stockpiles/i })).toHaveAttribute('href', '/stockpiles');
-    fireEvent.click(screen.getByRole('button', { name: /assets/i }));
 
     // --- Trading dropdown ---
-    fireEvent.click(screen.getByRole('button', { name: /trading/i }));
+    cleanup();
+    render(<Navbar />);
+    fireEvent.pointerDown(screen.getByRole('button', { name: /trading/i }));
     expect(screen.getByRole('menuitem', { name: /contacts/i })).toHaveAttribute('href', '/contacts');
     expect(screen.getByRole('menuitem', { name: /marketplace/i })).toHaveAttribute('href', '/marketplace');
-    fireEvent.click(screen.getByRole('button', { name: /trading/i }));
 
     // --- Industry dropdown ---
-    fireEvent.click(screen.getByRole('button', { name: /industry/i }));
+    cleanup();
+    render(<Navbar />);
+    fireEvent.pointerDown(screen.getByRole('button', { name: /industry/i }));
     expect(screen.getByRole('menuitem', { name: /reactions/i })).toHaveAttribute('href', '/reactions');
     expect(screen.getByRole('menuitem', { name: /^industry$/i })).toHaveAttribute('href', '/industry');
     expect(screen.getByRole('menuitem', { name: /plans/i })).toHaveAttribute('href', '/production-plans');
     expect(screen.getByRole('menuitem', { name: /runs/i })).toHaveAttribute('href', '/plan-runs');
     expect(screen.getByRole('menuitem', { name: /planets/i })).toHaveAttribute('href', '/pi');
-    fireEvent.click(screen.getByRole('button', { name: /industry/i }));
 
     // --- Logistics dropdown ---
-    fireEvent.click(screen.getByRole('button', { name: /logistics/i }));
+    cleanup();
+    render(<Navbar />);
+    fireEvent.pointerDown(screen.getByRole('button', { name: /logistics/i }));
     expect(screen.getByRole('menuitem', { name: /transport/i })).toHaveAttribute('href', '/transport');
     expect(screen.getByRole('menuitem', { name: /stations/i })).toHaveAttribute('href', '/stations');
-    fireEvent.click(screen.getByRole('button', { name: /logistics/i }));
   });
 
   it('should have rocket icon', () => {
@@ -96,8 +104,9 @@ describe('Navbar Component', () => {
     });
 
     render(<Navbar />);
-    const menuButton = screen.getByLabelText('menu');
-    expect(menuButton).toBeInTheDocument();
+    // New Navbar renders a logo link instead of a hamburger menu button
+    const logoLink = screen.getByRole('link', { name: /eve industry tool/i });
+    expect(logoLink).toBeInTheDocument();
   });
 
   it('should not fetch contacts when user is not authenticated', () => {
@@ -181,7 +190,8 @@ describe('Navbar Component', () => {
     });
 
     // Also open the Trading dropdown and verify the badge on the Contacts item
-    fireEvent.click(screen.getByRole('button', { name: /trading/i }));
+    // Radix DropdownMenu uses pointerDown to open
+    fireEvent.pointerDown(screen.getByRole('button', { name: /trading/i }));
     // The Contacts menuitem should be present and its badge should also show "2"
     const contactsItem = screen.getByRole('menuitem', { name: /contacts/i });
     expect(contactsItem).toBeInTheDocument();

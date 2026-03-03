@@ -3,27 +3,25 @@
 exports[`StationsList Component should match snapshot while loading 1`] = `
 <div>
   <div
-    class="MuiBox-root css-zzzt33"
+    class="flex justify-center py-8"
   >
-    <span
-      class="MuiCircularProgress-root MuiCircularProgress-indeterminate MuiCircularProgress-colorPrimary css-1wxecgq-MuiCircularProgress-root"
-      role="progressbar"
-      style="width: 40px; height: 40px;"
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-[var(--color-primary-cyan)]"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <svg
-        class="MuiCircularProgress-svg css-54pwck-MuiCircularProgress-svg"
-        viewBox="22 22 44 44"
-      >
-        <circle
-          class="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate css-19t5dcl-MuiCircularProgress-circle"
-          cx="44"
-          cy="44"
-          fill="none"
-          r="20.2"
-          stroke-width="3.6"
-        />
-      </svg>
-    </span>
+      <path
+        d="M21 12a9 9 0 1 1-6.219-8.56"
+      />
+    </svg>
   </div>
 </div>
 `;
@@ -31,101 +29,96 @@ exports[`StationsList Component should match snapshot while loading 1`] = `
 exports[`StationsList Component should match snapshot with empty stations 1`] = `
 <div>
   <div
-    class="MuiBox-root css-1qm1lh"
+    class="mb-4"
   >
     <button
-      class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
-      tabindex="0"
-      type="button"
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
     >
-      <span
-        class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-plus h-4 w-4 mr-2"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-          data-testid="AddIcon"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-          />
-        </svg>
-      </span>
+        <path
+          d="M5 12h14"
+        />
+        <path
+          d="M12 5v14"
+        />
+      </svg>
       Add Station
     </button>
   </div>
   <div
-    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+    class="relative w-full overflow-auto"
   >
     <table
-      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+      class="w-full caption-bottom text-sm"
     >
       <thead
-        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+        class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
       >
         <tr
-          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[var(--color-bg-void)]"
         >
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Station
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             System
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Security
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Structure
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Activities
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Rigs
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
           >
             Tax
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
           >
             Actions
           </th>
         </tr>
       </thead>
       <tbody
-        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+        class="[&_tr:last-child]:border-0"
       >
         <tr
-          class="MuiTableRow-root css-1xtozoh-MuiTableRow-root"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
         >
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1a1qcai-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center text-[var(--color-text-muted)] py-8"
             colspan="8"
           >
             No preferred stations configured. Click "Add Station" to get started.
@@ -140,320 +133,343 @@ exports[`StationsList Component should match snapshot with empty stations 1`] = 
 exports[`StationsList Component should match snapshot with stations 1`] = `
 <div>
   <div
-    class="MuiBox-root css-1qm1lh"
+    class="mb-4"
   >
     <button
-      class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
-      tabindex="0"
-      type="button"
+      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
     >
-      <span
-        class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-plus h-4 w-4 mr-2"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-          data-testid="AddIcon"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-          />
-        </svg>
-      </span>
+        <path
+          d="M5 12h14"
+        />
+        <path
+          d="M12 5v14"
+        />
+      </svg>
       Add Station
     </button>
   </div>
   <div
-    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+    class="relative w-full overflow-auto"
   >
     <table
-      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+      class="w-full caption-bottom text-sm"
     >
       <thead
-        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+        class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
       >
         <tr
-          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[var(--color-bg-void)]"
         >
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Station
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             System
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Security
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Structure
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Activities
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             Rigs
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
           >
             Tax
           </th>
           <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
+            class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
           >
             Actions
           </th>
         </tr>
       </thead>
       <tbody
-        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+        class="[&_tr:last-child]:border-0"
       >
         <tr
-          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
         >
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-5i58p1-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-emphasis)] font-medium"
           >
             Test Sotiyo
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1fair71-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-secondary)]"
           >
             Jita
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-cow7lq-MuiChip-root"
+              class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30 capitalize font-semibold border"
             >
-              <span
-                class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-              >
-                high
-              </span>
+              high
             </div>
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1r465ak-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-secondary)] capitalize"
           >
             sotiyo
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="MuiBox-root css-1ttbi7w"
+              class="flex gap-1 flex-wrap"
             >
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-xc4noc-MuiChip-root"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[var(--color-primary-cyan)] bg-[var(--color-primary-cyan)]/10 border-[var(--color-primary-cyan)]/30 capitalize text-[10px] border"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-                >
-                  manufacturing
-                </span>
+                manufacturing
               </div>
             </div>
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="MuiBox-root css-1ttbi7w"
+              class="flex gap-1 flex-wrap"
             >
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-1rhgh5y-MuiChip-root"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#00d4ff] bg-[#00d4ff]/10 border-[#00d4ff]/30 text-[10px] border"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-                >
-                  ship T1
-                </span>
+                ship
+                 
+                T1
               </div>
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-19grusu-MuiChip-root"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30 text-[10px] border"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-                >
-                  component T1
-                </span>
+                component
+                 
+                T1
               </div>
             </div>
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-twke26-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[var(--color-text-secondary)]"
           >
             1
             %
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
           >
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
-              tabindex="0"
-              type="button"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)] h-9 w-9 text-[var(--color-primary-cyan)]"
+              title="Edit Station"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                data-testid="EditIcon"
-                focusable="false"
+                class="lucide lucide-pencil h-4 w-4"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
                 viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                  d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                />
+                <path
+                  d="m15 5 4 4"
                 />
               </svg>
             </button>
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
-              tabindex="0"
-              type="button"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 w-9 text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"
+              title="Delete Station"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                data-testid="DeleteIcon"
-                focusable="false"
+                class="lucide lucide-trash2 lucide-trash-2 h-4 w-4"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
                 viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+                  d="M10 11v6"
+                />
+                <path
+                  d="M14 11v6"
+                />
+                <path
+                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                />
+                <path
+                  d="M3 6h18"
+                />
+                <path
+                  d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                 />
               </svg>
             </button>
           </td>
         </tr>
         <tr
-          class="MuiTableRow-root css-13qbmqh-MuiTableRow-root"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
         >
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-5i58p1-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-emphasis)] font-medium"
           >
             Test Tatara
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1fair71-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-secondary)]"
           >
             Perimeter
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-1yjibm3-MuiChip-root"
+              class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30 capitalize font-semibold border"
             >
-              <span
-                class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-              >
-                low
-              </span>
+              low
             </div>
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1r465ak-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-secondary)] capitalize"
           >
             tatara
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="MuiBox-root css-1ttbi7w"
+              class="flex gap-1 flex-wrap"
             >
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-6vfr9v-MuiChip-root"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30 capitalize text-[10px] border"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-                >
-                  reaction
-                </span>
+                reaction
               </div>
             </div>
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="MuiBox-root css-1ttbi7w"
+              class="flex gap-1 flex-wrap"
             >
               <div
-                class="MuiChip-root MuiChip-filled MuiChip-sizeSmall MuiChip-colorDefault MuiChip-filledDefault css-bhi5sl-MuiChip-root"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30 text-[10px] border"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-eccknh-MuiChip-label"
-                >
-                  reaction T2
-                </span>
+                reaction
+                 
+                T2
               </div>
             </div>
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-twke26-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[var(--color-text-secondary)]"
           >
             2.5
             %
           </td>
           <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+            class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
           >
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
-              tabindex="0"
-              type="button"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)] h-9 w-9 text-[var(--color-primary-cyan)]"
+              title="Edit Station"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                data-testid="EditIcon"
-                focusable="false"
+                class="lucide lucide-pencil h-4 w-4"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
                 viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                  d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                />
+                <path
+                  d="m15 5 4 4"
                 />
               </svg>
             </button>
             <button
-              class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
-              tabindex="0"
-              type="button"
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 w-9 text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"
+              title="Delete Station"
             >
               <svg
                 aria-hidden="true"
-                class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                data-testid="DeleteIcon"
-                focusable="false"
+                class="lucide lucide-trash2 lucide-trash-2 h-4 w-4"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
                 viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+                  d="M10 11v6"
+                />
+                <path
+                  d="M14 11v6"
+                />
+                <path
+                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                />
+                <path
+                  d="M3 6h18"
+                />
+                <path
+                  d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                 />
               </svg>
             </button>

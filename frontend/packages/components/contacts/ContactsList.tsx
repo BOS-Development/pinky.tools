@@ -2,43 +2,25 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
-import SettingsIcon from '@mui/icons-material/Settings';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import RuleIcon from '@mui/icons-material/Rule';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
+import { Check, X, Trash2, Settings, UserPlus, Scale, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from '@/components/ui/select';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { toast } from '@/components/ui/sonner';
 import PermissionsDialog from './PermissionsDialog';
 
 export type Contact = {
@@ -79,10 +61,6 @@ export default function ContactsList() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactRules, setContactRules] = useState<ContactRule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tabIndex, setTabIndex] = useState(0);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [addContactOpen, setAddContactOpen] = useState(false);
   const [newContactCharacterName, setNewContactCharacterName] = useState('');
   const [permissionsDialogOpen, setPermissionsDialogOpen] = useState(false);
@@ -150,70 +128,61 @@ export default function ContactsList() {
       });
 
       if (response.ok) {
-        showSnackbar('Contact request sent!', 'success');
+        toast.success('Contact request sent!');
         setAddContactOpen(false);
         setNewContactCharacterName('');
         await fetchContacts();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to send contact request', 'error');
+        toast.error(error.error || 'Failed to send contact request');
       }
-    } catch (err) {
-      showSnackbar('Failed to send contact request', 'error');
+    } catch {
+      toast.error('Failed to send contact request');
     }
   };
 
   const handleAccept = async (contactId: number) => {
     try {
-      const response = await fetch(`/api/contacts/${contactId}/accept`, {
-        method: 'POST',
-      });
-
+      const response = await fetch(`/api/contacts/${contactId}/accept`, { method: 'POST' });
       if (response.ok) {
-        showSnackbar('Contact accepted!', 'success');
+        toast.success('Contact accepted!');
         await fetchContacts();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to accept contact', 'error');
+        toast.error(error.error || 'Failed to accept contact');
       }
-    } catch (err) {
-      showSnackbar('Failed to accept contact', 'error');
+    } catch {
+      toast.error('Failed to accept contact');
     }
   };
 
   const handleReject = async (contactId: number) => {
     try {
-      const response = await fetch(`/api/contacts/${contactId}/reject`, {
-        method: 'POST',
-      });
-
+      const response = await fetch(`/api/contacts/${contactId}/reject`, { method: 'POST' });
       if (response.ok) {
-        showSnackbar('Contact rejected', 'success');
+        toast.success('Contact rejected');
         await fetchContacts();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to reject contact', 'error');
+        toast.error(error.error || 'Failed to reject contact');
       }
-    } catch (err) {
-      showSnackbar('Failed to reject contact', 'error');
+    } catch {
+      toast.error('Failed to reject contact');
     }
   };
 
   const handleDelete = async (contactId: number) => {
     try {
-      const response = await fetch(`/api/contacts/${contactId}`, {
-        method: 'DELETE',
-      });
-
+      const response = await fetch(`/api/contacts/${contactId}`, { method: 'DELETE' });
       if (response.ok) {
-        showSnackbar('Contact removed', 'success');
+        toast.success('Contact removed');
         await fetchContacts();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to remove contact', 'error');
+        toast.error(error.error || 'Failed to remove contact');
       }
-    } catch (err) {
-      showSnackbar('Failed to remove contact', 'error');
+    } catch {
+      toast.error('Failed to remove contact');
     }
   };
 
@@ -251,7 +220,7 @@ export default function ContactsList() {
     }
   };
 
-  const handleSearchInputChange = (_event: React.SyntheticEvent, value: string) => {
+  const handleSearchInputChange = (value: string) => {
     setSearchQuery(value);
 
     if (searchTimeoutRef.current) {
@@ -267,7 +236,7 @@ export default function ContactsList() {
     if (!session) return;
 
     if (newRuleType !== 'everyone' && !selectedEntity) {
-      showSnackbar('Please select a corporation or alliance', 'error');
+      toast.error('Please select a corporation or alliance');
       return;
     }
 
@@ -289,7 +258,7 @@ export default function ContactsList() {
       });
 
       if (response.ok) {
-        showSnackbar('Contact rule created! Auto-contacts are being generated.', 'success');
+        toast.success('Contact rule created! Auto-contacts are being generated.');
         setAddRuleOpen(false);
         setNewRuleType('corporation');
         setSelectedEntity(null);
@@ -297,48 +266,38 @@ export default function ContactsList() {
         setSearchResults([]);
         setRulePermissions(SERVICE_TYPES.map(s => s.type));
         await fetchContactRules();
-        // Refresh contacts after a short delay to show auto-created ones
         setTimeout(() => fetchContacts(), 2000);
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to create contact rule', 'error');
+        toast.error(error.error || 'Failed to create contact rule');
       }
-    } catch (err) {
-      showSnackbar('Failed to create contact rule', 'error');
+    } catch {
+      toast.error('Failed to create contact rule');
     }
   };
 
   const handleDeleteRule = async (ruleId: number) => {
     try {
-      const response = await fetch(`/api/contact-rules/${ruleId}`, {
-        method: 'DELETE',
-      });
-
+      const response = await fetch(`/api/contact-rules/${ruleId}`, { method: 'DELETE' });
       if (response.ok) {
-        showSnackbar('Contact rule removed', 'success');
+        toast.success('Contact rule removed');
         await fetchContactRules();
         await fetchContacts();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to remove contact rule', 'error');
+        toast.error(error.error || 'Failed to remove contact rule');
       }
-    } catch (err) {
-      showSnackbar('Failed to remove contact rule', 'error');
+    } catch {
+      toast.error('Failed to remove contact rule');
     }
   };
 
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
-
-  const getRuleTypeColor = (ruleType: string): 'primary' | 'secondary' | 'success' => {
+  const getRuleTypeVariant = (ruleType: string): 'default' | 'secondary' | 'success' => {
     switch (ruleType) {
-      case 'corporation': return 'primary';
+      case 'corporation': return 'default';
       case 'alliance': return 'secondary';
       case 'everyone': return 'success';
-      default: return 'primary';
+      default: return 'default';
     }
   };
 
@@ -351,7 +310,6 @@ export default function ContactsList() {
     }
   };
 
-  // Filter contacts by tab
   const myContacts = contacts.filter(c => c.status === 'accepted');
   const pendingRequests = contacts.filter(c =>
     c.status === 'pending' && c.recipientUserId === currentUserId
@@ -360,108 +318,78 @@ export default function ContactsList() {
     c.status === 'pending' && c.requesterUserId === currentUserId
   );
 
-  if (!session) {
-    return null;
-  }
-
-  if (loading) {
-    return <Loading />;
-  }
+  if (!session) return null;
+  if (loading) return <Loading />;
 
   return (
     <>
       <Navbar />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4">Contacts</Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              startIcon={<RuleIcon />}
-              onClick={() => setAddRuleOpen(true)}
-            >
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-display font-semibold">Contacts</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setAddRuleOpen(true)}>
+              <Scale className="h-4 w-4 mr-2" />
               Add Rule
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<PersonAddIcon />}
-              onClick={() => setAddContactOpen(true)}
-            >
+            <Button onClick={() => setAddContactOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
               Add Contact
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
 
         <Card>
-          <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)}>
-            <Tab label={`My Contacts (${myContacts.length})`} />
-            <Tab label={`Pending Requests (${pendingRequests.length})`} />
-            <Tab label={`Sent Requests (${sentRequests.length})`} />
-            <Tab label={`Contact Rules (${contactRules.length})`} />
-          </Tabs>
+          <Tabs defaultValue="contacts">
+            <TabsList className="w-full justify-start border-b border-[var(--color-border-dim)] rounded-none bg-transparent p-0">
+              <TabsTrigger value="contacts" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--color-primary-cyan)] data-[state=active]:shadow-none">
+                My Contacts ({myContacts.length})
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--color-primary-cyan)] data-[state=active]:shadow-none">
+                Pending ({pendingRequests.length})
+              </TabsTrigger>
+              <TabsTrigger value="sent" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--color-primary-cyan)] data-[state=active]:shadow-none">
+                Sent ({sentRequests.length})
+              </TabsTrigger>
+              <TabsTrigger value="rules" className="rounded-none border-b-2 border-transparent data-[state=active]:border-[var(--color-primary-cyan)] data-[state=active]:shadow-none">
+                Rules ({contactRules.length})
+              </TabsTrigger>
+            </TabsList>
 
-          <CardContent>
-            {/* My Contacts Tab */}
-            {tabIndex === 0 && (
-              <TableContainer component={Paper} variant="outlined">
+            <TabsContent value="contacts">
+              <CardContent className="p-0">
                 {myContacts.length === 0 ? (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">
-                      No contacts yet. Add a contact to get started!
-                    </Typography>
-                  </Box>
+                  <div className="p-8 text-center">
+                    <p className="text-[var(--color-text-secondary)]">No contacts yet. Add a contact to get started!</p>
+                  </div>
                 ) : (
                   <Table>
-                    <TableHead>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell>Character Name</TableCell>
-                        <TableCell>Status</TableCell>
-                        <TableCell>Connected Since</TableCell>
-                        <TableCell align="right">Actions</TableCell>
+                        <TableHead>Character Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Connected Since</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
                     <TableBody>
                       {myContacts.map((contact) => {
                         const otherUserName = contact.requesterUserId === currentUserId
                           ? contact.recipientName
                           : contact.requesterName;
-
                         return (
-                          <TableRow key={contact.id} hover>
+                          <TableRow key={contact.id}>
                             <TableCell>
-                              {otherUserName}
-                              {contact.contactRuleId && (
-                                <Chip
-                                  label="Auto"
-                                  size="small"
-                                  color="info"
-                                  variant="outlined"
-                                  sx={{ ml: 1 }}
-                                />
-                              )}
+                              <span className="text-[var(--color-text-primary)]">{otherUserName}</span>
+                              {contact.contactRuleId && <Badge variant="info" className="ml-2 text-[10px]">Auto</Badge>}
                             </TableCell>
-                            <TableCell>
-                              <Chip label="Connected" color="success" size="small" />
-                            </TableCell>
-                            <TableCell>
+                            <TableCell><Badge variant="success">Connected</Badge></TableCell>
+                            <TableCell className="text-[var(--color-text-secondary)]">
                               {new Date(contact.respondedAt || contact.requestedAt).toLocaleDateString()}
                             </TableCell>
-                            <TableCell align="right">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleOpenPermissions(contact)}
-                                title="Manage Permissions"
-                              >
-                                <SettingsIcon />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDelete(contact.id)}
-                                title="Remove Contact"
-                                color="error"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="icon" onClick={() => handleOpenPermissions(contact)} title="Manage Permissions"><Settings className="h-4 w-4" /></Button>
+                              <Button variant="ghost" size="icon" onClick={() => handleDelete(contact.id)} title="Remove Contact" className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"><Trash2 className="h-4 w-4" /></Button>
                             </TableCell>
                           </TableRow>
                         );
@@ -469,304 +397,188 @@ export default function ContactsList() {
                     </TableBody>
                   </Table>
                 )}
-              </TableContainer>
-            )}
+              </CardContent>
+            </TabsContent>
 
-            {/* Pending Requests Tab */}
-            {tabIndex === 1 && (
-              <TableContainer component={Paper} variant="outlined">
+            <TabsContent value="pending">
+              <CardContent className="p-0">
                 {pendingRequests.length === 0 ? (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">
-                      No pending requests
-                    </Typography>
-                  </Box>
+                  <div className="p-8 text-center"><p className="text-[var(--color-text-secondary)]">No pending requests</p></div>
                 ) : (
                   <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Character Name</TableCell>
-                        <TableCell>Requested</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
+                    <TableHeader><TableRow><TableHead>Character Name</TableHead><TableHead>Requested</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {pendingRequests.map((contact) => (
-                        <TableRow key={contact.id} hover>
-                          <TableCell>{contact.requesterName}</TableCell>
-                          <TableCell>
-                            {new Date(contact.requestedAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleAccept(contact.id)}
-                              title="Accept"
-                              color="success"
-                            >
-                              <CheckIcon />
-                            </IconButton>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleReject(contact.id)}
-                              title="Reject"
-                              color="error"
-                            >
-                              <CloseIcon />
-                            </IconButton>
+                        <TableRow key={contact.id}>
+                          <TableCell className="text-[var(--color-text-primary)]">{contact.requesterName}</TableCell>
+                          <TableCell className="text-[var(--color-text-secondary)]">{new Date(contact.requestedAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => handleAccept(contact.id)} title="Accept" className="text-[var(--color-success-teal)] hover:text-[var(--color-success-teal)]"><Check className="h-4 w-4" /></Button>
+                            <Button variant="ghost" size="icon" onClick={() => handleReject(contact.id)} title="Reject" className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"><X className="h-4 w-4" /></Button>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 )}
-              </TableContainer>
-            )}
+              </CardContent>
+            </TabsContent>
 
-            {/* Sent Requests Tab */}
-            {tabIndex === 2 && (
-              <TableContainer component={Paper} variant="outlined">
+            <TabsContent value="sent">
+              <CardContent className="p-0">
                 {sentRequests.length === 0 ? (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">
-                      No sent requests
-                    </Typography>
-                  </Box>
+                  <div className="p-8 text-center"><p className="text-[var(--color-text-secondary)]">No sent requests</p></div>
                 ) : (
                   <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Character Name</TableCell>
-                        <TableCell>Sent</TableCell>
-                        <TableCell align="right">Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
+                    <TableHeader><TableRow><TableHead>Character Name</TableHead><TableHead>Sent</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
                     <TableBody>
                       {sentRequests.map((contact) => (
-                        <TableRow key={contact.id} hover>
-                          <TableCell>{contact.recipientName}</TableCell>
-                          <TableCell>
-                            {new Date(contact.requestedAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDelete(contact.id)}
-                              title="Cancel Request"
-                              color="error"
-                            >
-                              <CloseIcon />
-                            </IconButton>
+                        <TableRow key={contact.id}>
+                          <TableCell className="text-[var(--color-text-primary)]">{contact.recipientName}</TableCell>
+                          <TableCell className="text-[var(--color-text-secondary)]">{new Date(contact.requestedAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => handleDelete(contact.id)} title="Cancel Request" className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"><X className="h-4 w-4" /></Button>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 )}
-              </TableContainer>
-            )}
+              </CardContent>
+            </TabsContent>
 
-            {/* Contact Rules Tab */}
-            {tabIndex === 3 && (
-              <TableContainer component={Paper} variant="outlined">
+            <TabsContent value="rules">
+              <CardContent className="p-0">
                 {contactRules.length === 0 ? (
-                  <Box sx={{ p: 4, textAlign: 'center' }}>
-                    <Typography color="text.secondary">
-                      No contact rules yet. Add a rule to automatically connect with corporations, alliances, or everyone.
-                    </Typography>
-                  </Box>
+                  <div className="p-8 text-center"><p className="text-[var(--color-text-secondary)]">No contact rules yet. Add a rule to automatically connect with corporations, alliances, or everyone.</p></div>
                 ) : (
                   <Table>
-                    <TableHead>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell>Type</TableCell>
-                        <TableCell>Entity</TableCell>
-                        <TableCell>Permissions</TableCell>
-                        <TableCell>Created</TableCell>
-                        <TableCell align="right">Actions</TableCell>
+                        <TableHead>Type</TableHead><TableHead>Entity</TableHead><TableHead>Permissions</TableHead><TableHead>Created</TableHead><TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
                     <TableBody>
                       {contactRules.map((rule) => (
-                        <TableRow key={rule.id} hover>
+                        <TableRow key={rule.id}>
+                          <TableCell><Badge variant={getRuleTypeVariant(rule.ruleType)}>{getRuleTypeLabel(rule.ruleType)}</Badge></TableCell>
+                          <TableCell className="text-[var(--color-text-primary)]">{rule.ruleType === 'everyone' ? 'All Users' : (rule.entityName || `ID: ${rule.entityId}`)}</TableCell>
                           <TableCell>
-                            <Chip
-                              label={getRuleTypeLabel(rule.ruleType)}
-                              color={getRuleTypeColor(rule.ruleType)}
-                              size="small"
-                            />
+                            <div className="flex gap-1 flex-wrap">
+                              {(rule.permissions || []).map((perm) => {
+                                const label = SERVICE_TYPES.find(s => s.type === perm)?.label || perm;
+                                return <Badge key={perm} variant="outline" className="text-[10px]">{label}</Badge>;
+                              })}
+                            </div>
                           </TableCell>
-                          <TableCell>
-                            {rule.ruleType === 'everyone' ? 'All Users' : (rule.entityName || `ID: ${rule.entityId}`)}
-                          </TableCell>
-                          <TableCell>
-                            {(rule.permissions || []).map((perm) => {
-                              const label = SERVICE_TYPES.find(s => s.type === perm)?.label || perm;
-                              return (
-                                <Chip key={perm} label={label} size="small" variant="outlined" sx={{ mr: 0.5 }} />
-                              );
-                            })}
-                          </TableCell>
-                          <TableCell>
-                            {new Date(rule.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              size="small"
-                              onClick={() => handleDeleteRule(rule.id)}
-                              title="Remove Rule"
-                              color="error"
-                            >
-                              <DeleteIcon />
-                            </IconButton>
+                          <TableCell className="text-[var(--color-text-secondary)]">{new Date(rule.createdAt).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteRule(rule.id)} title="Remove Rule" className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]"><Trash2 className="h-4 w-4" /></Button>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 )}
-              </TableContainer>
-            )}
-          </CardContent>
+              </CardContent>
+            </TabsContent>
+          </Tabs>
         </Card>
-      </Container>
+      </div>
 
       {/* Add Contact Dialog */}
-      <Dialog open={addContactOpen} onClose={() => setAddContactOpen(false)}>
-        <DialogTitle>Add Contact</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Character Name"
-            type="text"
-            fullWidth
-            value={newContactCharacterName}
-            onChange={(e) => setNewContactCharacterName(e.target.value)}
-            helperText="Enter the character name of the person you want to add"
-          />
+      <Dialog open={addContactOpen} onOpenChange={setAddContactOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Add Contact</DialogTitle>
+            <DialogDescription>Send a contact request to another player.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="charName">Character Name</Label>
+              <Input id="charName" value={newContactCharacterName} onChange={(e) => setNewContactCharacterName(e.target.value)} placeholder="Enter character name..." autoFocus />
+              <p className="text-xs text-[var(--color-text-muted)] mt-1">Enter the character name of the person you want to add</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAddContactOpen(false)}>Cancel</Button>
+            <Button onClick={handleAddContact}>Send Request</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddContactOpen(false)}>Cancel</Button>
-          <Button onClick={handleAddContact} variant="contained">
-            Send Request
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Add Rule Dialog */}
-      <Dialog open={addRuleOpen} onClose={() => setAddRuleOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Contact Rule</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Contact rules automatically create connections with all members of a corporation, alliance, or everyone.
-            You will grant them permission to browse your for-sale items.
-          </Typography>
+      <Dialog open={addRuleOpen} onOpenChange={setAddRuleOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Contact Rule</DialogTitle>
+            <DialogDescription>
+              Contact rules automatically create connections with all members of a corporation, alliance, or everyone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label>Rule Type</Label>
+              <Select value={newRuleType} onValueChange={(value) => { setNewRuleType(value); setSelectedEntity(null); setSearchQuery(''); setSearchResults([]); }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="corporation">Corporation</SelectItem>
+                  <SelectItem value="alliance">Alliance</SelectItem>
+                  <SelectItem value="everyone">Everyone</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <FormControl fullWidth sx={{ mb: 2, mt: 1 }}>
-            <InputLabel>Rule Type</InputLabel>
-            <Select
-              value={newRuleType}
-              label="Rule Type"
-              onChange={(e) => {
-                setNewRuleType(e.target.value);
-                setSelectedEntity(null);
-                setSearchQuery('');
-                setSearchResults([]);
-              }}
-            >
-              <MenuItem value="corporation">Corporation</MenuItem>
-              <MenuItem value="alliance">Alliance</MenuItem>
-              <MenuItem value="everyone">Everyone</MenuItem>
-            </Select>
-          </FormControl>
+            {newRuleType !== 'everyone' && (
+              <div>
+                <Label>{newRuleType === 'corporation' ? 'Search Corporations' : 'Search Alliances'}</Label>
+                <Input value={searchQuery} onChange={(e) => handleSearchInputChange(e.target.value)} placeholder={`Search for a ${newRuleType} by name...`} />
+                {searchLoading && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-[var(--color-primary-cyan)]" />
+                    <span className="text-xs text-[var(--color-text-muted)]">Searching...</span>
+                  </div>
+                )}
+                {searchResults.length > 0 && (
+                  <div className="mt-2 border border-[var(--color-border-dim)] rounded-sm max-h-40 overflow-y-auto">
+                    {searchResults.map(result => (
+                      <button key={result.id} onClick={() => { setSelectedEntity(result); setSearchQuery(result.name); setSearchResults([]); }}
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-[var(--color-surface-elevated)] transition-colors cursor-pointer">{result.name}</button>
+                    ))}
+                  </div>
+                )}
+                {selectedEntity && <p className="text-xs text-[var(--color-primary-cyan)] mt-1">Selected: {selectedEntity.name}</p>}
+              </div>
+            )}
 
-          {newRuleType !== 'everyone' && (
-            <Autocomplete
-              options={searchResults}
-              getOptionLabel={(option) => option.name}
-              value={selectedEntity}
-              onChange={(_event, newValue) => setSelectedEntity(newValue)}
-              inputValue={searchQuery}
-              onInputChange={handleSearchInputChange}
-              loading={searchLoading}
-              noOptionsText={searchQuery.length < 2 ? "Type to search..." : "No results found"}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label={newRuleType === 'corporation' ? 'Search Corporations' : 'Search Alliances'}
-                  helperText={`Search for a ${newRuleType} by name`}
-                />
-              )}
-            />
-          )}
+            {newRuleType === 'everyone' && (
+              <Alert><AlertDescription>This will automatically connect you with every user in the system.</AlertDescription></Alert>
+            )}
 
-          {newRuleType === 'everyone' && (
-            <Alert severity="info" sx={{ mb: 2 }}>
-              This will automatically connect you with every user in the system.
-            </Alert>
-          )}
-
-          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-            Permissions to Grant
-          </Typography>
-          {SERVICE_TYPES.map((service) => (
-            <FormControlLabel
-              key={service.type}
-              control={
-                <Checkbox
-                  checked={rulePermissions.includes(service.type)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setRulePermissions([...rulePermissions, service.type]);
-                    } else {
-                      setRulePermissions(rulePermissions.filter(p => p !== service.type));
-                    }
-                  }}
-                />
-              }
-              label={service.label}
-            />
-          ))}
+            <div>
+              <Label className="mb-2 block">Permissions to Grant</Label>
+              {SERVICE_TYPES.map((service) => (
+                <div key={service.type} className="flex items-center gap-2 py-1">
+                  <Checkbox id={`perm-${service.type}`} checked={rulePermissions.includes(service.type)}
+                    onCheckedChange={(checked) => {
+                      if (checked) { setRulePermissions([...rulePermissions, service.type]); }
+                      else { setRulePermissions(rulePermissions.filter(p => p !== service.type)); }
+                    }} />
+                  <Label htmlFor={`perm-${service.type}`} className="cursor-pointer">{service.label}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setAddRuleOpen(false)}>Cancel</Button>
+            <Button onClick={handleCreateRule} disabled={(newRuleType !== 'everyone' && !selectedEntity) || rulePermissions.length === 0}>Create Rule</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddRuleOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleCreateRule}
-            variant="contained"
-            disabled={(newRuleType !== 'everyone' && !selectedEntity) || rulePermissions.length === 0}
-          >
-            Create Rule
-          </Button>
-        </DialogActions>
       </Dialog>
 
-      {/* Permissions Dialog */}
       {selectedContact && (
-        <PermissionsDialog
-          open={permissionsDialogOpen}
-          onClose={handleClosePermissions}
-          contact={selectedContact}
-          currentUserId={currentUserId || 0}
-        />
+        <PermissionsDialog open={permissionsDialogOpen} onClose={handleClosePermissions} contact={selectedContact} currentUserId={currentUserId || 0} />
       )}
-
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </>
   );
 }

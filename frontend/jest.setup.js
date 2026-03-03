@@ -43,3 +43,25 @@ const localStorageMock = {
   clear: jest.fn(),
 }
 global.localStorage = localStorageMock
+
+// Mock ResizeObserver for Radix UI components (Popper positioning)
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}))
+
+// Mock PointerEvent for Radix UI (not available in JSDOM by default)
+global.PointerEvent = class PointerEvent extends Event {
+  constructor(type, props) {
+    super(type, props)
+    this.button = props?.button ?? 0
+    this.ctrlKey = props?.ctrlKey ?? false
+    this.pointerType = props?.pointerType ?? 'mouse'
+  }
+}
+
+// Mock HTMLElement methods used by Radix UI for pointer capture and scroll
+window.HTMLElement.prototype.scrollIntoView = jest.fn()
+window.HTMLElement.prototype.releasePointerCapture = jest.fn()
+window.HTMLElement.prototype.hasPointerCapture = jest.fn()

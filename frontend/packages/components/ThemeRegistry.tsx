@@ -6,7 +6,11 @@ import { CacheProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from '../../theme';
+import { Toaster } from '@/components/ui/sonner';
 
+// ThemeRegistry provides both MUI theming (for legacy components not yet migrated)
+// and the Sonner toast provider for migrated shadcn/ui components.
+// CSS variables in globals.css serve as the primary theme system for Tailwind/shadcn.
 export default function ThemeRegistry({ children }: { children: React.ReactNode }) {
   const [{ cache, flush }] = React.useState(() => {
     const cache = createCache({ key: 'mui' });
@@ -53,6 +57,7 @@ export default function ThemeRegistry({ children }: { children: React.ReactNode 
       <ThemeProvider theme={theme}>
         <CssBaseline />
         {children}
+        <Toaster position="bottom-center" />
       </ThemeProvider>
     </CacheProvider>
   );

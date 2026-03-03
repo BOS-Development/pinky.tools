@@ -8,41 +8,45 @@ exports[`Character List Component should match snapshot for empty character list
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthLg css-1bm2fm6-MuiContainer-root"
+    class="max-w-5xl mx-auto px-4 py-8"
   >
     <div
-      class="MuiBox-root css-txuz9b"
+      class="flex flex-col items-center justify-center min-h-[60vh] text-center"
     >
-      <h4
-        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      <h1
+        class="text-2xl font-display font-semibold mb-2"
       >
         No Characters
-      </h4>
+      </h1>
       <p
-        class="MuiTypography-root MuiTypography-body1 css-199tq25-MuiTypography-root"
+        class="text-[var(--color-text-secondary)] mb-6"
       >
         Get started by adding your first character
       </p>
       <a
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeLarge MuiButton-containedSizeLarge MuiButton-colorPrimary css-79zo2g-MuiButtonBase-root-MuiButton-root"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-10 rounded-sm px-8"
         href="api/characters/add"
-        tabindex="0"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeLarge css-hev6se-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         Add Character
       </a>
     </div>
@@ -58,82 +62,90 @@ exports[`Character List Component should match snapshot for list with mixed char
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthLg css-1kj2szu-MuiContainer-root"
+    class="max-w-5xl mx-auto px-4 py-8"
   >
     <div
-      class="MuiBox-root css-1yjvs5a"
+      class="mb-6"
     >
-      <h4
-        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      <h1
+        class="text-2xl font-display font-semibold mb-3"
       >
         Characters
-      </h4>
+      </h1>
       <a
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
         href="api/characters/add"
-        tabindex="0"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         Add Character
       </a>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation0 MuiAlert-root MuiAlert-colorError MuiAlert-standardError MuiAlert-standard css-6js25r-MuiPaper-root-MuiAlert-root"
+      class="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg~*]:pl-7 text-destructive dark:border-destructive [&>svg]:text-destructive mb-3 border-[var(--color-danger-rose)]/30 bg-[var(--color-danger-rose)]/10"
       role="alert"
-      style="--Paper-shadow: none;"
     >
-      <div
-        class="MuiAlert-icon css-vab54s-MuiAlert-icon"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-triangle-alert h-4 w-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root MuiSvgIcon-fontSizeInherit css-1ckov0h-MuiSvgIcon-root"
-          data-testid="ErrorOutlineIcon"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
-          />
-        </svg>
-      </div>
+        <path
+          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+        />
+        <path
+          d="M12 9v4"
+        />
+        <path
+          d="M12 17h.01"
+        />
+      </svg>
       <div
-        class="MuiAlert-message css-zioonp-MuiAlert-message"
+        class="text-sm [&_p]:leading-relaxed flex items-center justify-between w-full"
       >
-        ESI authorization for 
-        <strong>
-          Revoked Pilot
-        </strong>
-         has been revoked. Re-authorize to resume syncing.
-      </div>
-      <div
-        class="MuiAlert-action css-rgppqo-MuiAlert-action"
-      >
+        <span>
+          ESI authorization for 
+          <strong>
+            Revoked Pilot
+          </strong>
+           has been revoked. Re-authorize to resume syncing.
+        </span>
         <a
-          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-1vvreb9-MuiButtonBase-root-MuiButton-root"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs text-[var(--color-danger-rose)] border-[var(--color-danger-rose)]/30 ml-4"
           href="/api/characters/add"
-          tabindex="0"
         >
           Re-authorize
         </a>
       </div>
     </div>
     <div
-      class="MuiBox-root css-18yqtgc"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
     >
       <div
         data-testid="character-item-12345"
@@ -158,41 +170,45 @@ exports[`Character List Component should match snapshot for list with normal cha
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthLg css-1kj2szu-MuiContainer-root"
+    class="max-w-5xl mx-auto px-4 py-8"
   >
     <div
-      class="MuiBox-root css-1yjvs5a"
+      class="mb-6"
     >
-      <h4
-        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      <h1
+        class="text-2xl font-display font-semibold mb-3"
       >
         Characters
-      </h4>
+      </h1>
       <a
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
         href="api/characters/add"
-        tabindex="0"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         Add Character
       </a>
     </div>
     <div
-      class="MuiBox-root css-18yqtgc"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
     >
       <div
         data-testid="character-item-12345"
@@ -212,82 +228,90 @@ exports[`Character List Component should match snapshot for list with reauth cha
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthLg css-1kj2szu-MuiContainer-root"
+    class="max-w-5xl mx-auto px-4 py-8"
   >
     <div
-      class="MuiBox-root css-1yjvs5a"
+      class="mb-6"
     >
-      <h4
-        class="MuiTypography-root MuiTypography-h4 MuiTypography-gutterBottom css-1it4a80-MuiTypography-root"
+      <h1
+        class="text-2xl font-display font-semibold mb-3"
       >
         Characters
-      </h4>
+      </h1>
       <a
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-74d805-MuiButtonBase-root-MuiButton-root"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
         href="api/characters/add"
-        tabindex="0"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         Add Character
       </a>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation0 MuiAlert-root MuiAlert-colorError MuiAlert-standardError MuiAlert-standard css-6js25r-MuiPaper-root-MuiAlert-root"
+      class="relative w-full rounded-lg border px-4 py-3 text-sm [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg~*]:pl-7 text-destructive dark:border-destructive [&>svg]:text-destructive mb-3 border-[var(--color-danger-rose)]/30 bg-[var(--color-danger-rose)]/10"
       role="alert"
-      style="--Paper-shadow: none;"
     >
-      <div
-        class="MuiAlert-icon css-vab54s-MuiAlert-icon"
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-triangle-alert h-4 w-4"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
       >
-        <svg
-          aria-hidden="true"
-          class="MuiSvgIcon-root MuiSvgIcon-fontSizeInherit css-1ckov0h-MuiSvgIcon-root"
-          data-testid="ErrorOutlineIcon"
-          focusable="false"
-          viewBox="0 0 24 24"
-        >
-          <path
-            d="M11 15h2v2h-2zm0-8h2v6h-2zm.99-5C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
-          />
-        </svg>
-      </div>
+        <path
+          d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+        />
+        <path
+          d="M12 9v4"
+        />
+        <path
+          d="M12 17h.01"
+        />
+      </svg>
       <div
-        class="MuiAlert-message css-zioonp-MuiAlert-message"
+        class="text-sm [&_p]:leading-relaxed flex items-center justify-between w-full"
       >
-        ESI authorization for 
-        <strong>
-          Revoked Pilot
-        </strong>
-         has been revoked. Re-authorize to resume syncing.
-      </div>
-      <div
-        class="MuiAlert-action css-rgppqo-MuiAlert-action"
-      >
+        <span>
+          ESI authorization for 
+          <strong>
+            Revoked Pilot
+          </strong>
+           has been revoked. Re-authorize to resume syncing.
+        </span>
         <a
-          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-1vvreb9-MuiButtonBase-root-MuiButton-root"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs text-[var(--color-danger-rose)] border-[var(--color-danger-rose)]/30 ml-4"
           href="/api/characters/add"
-          tabindex="0"
         >
           Re-authorize
         </a>
       </div>
     </div>
     <div
-      class="MuiBox-root css-18yqtgc"
+      class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
     >
       <div
         data-testid="character-item-22222"
