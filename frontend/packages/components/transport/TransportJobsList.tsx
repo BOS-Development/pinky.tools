@@ -1,22 +1,14 @@
 import React, { useState } from "react";
+import { Plus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Button,
-  Box,
-  Chip,
-  CircularProgress,
-  Typography,
-  Collapse,
-  IconButton,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
-import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+} from "@/components/ui/table";
 import { TransportJob, TransportProfile, JFRoute } from "../../pages/transport";
 import { TransportJobDialog } from "./TransportJobDialog";
 import { formatISK, formatNumber } from "../../utils/formatting";
@@ -100,9 +92,9 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress size={32} />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
@@ -110,173 +102,169 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} size="small">
+      <div className="flex justify-end mb-3">
+        <Button size="sm" onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Create Transport Job
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1219" }}>
-              <TableCell sx={{ width: 40 }} />
-              <TableCell>Status</TableCell>
-              <TableCell>Route</TableCell>
-              <TableCell>Method</TableCell>
-              <TableCell>Fulfillment</TableCell>
-              <TableCell align="right">Volume (m3)</TableCell>
-              <TableCell align="right">Collateral</TableCell>
-              <TableCell align="right">Est. Cost</TableCell>
-              <TableCell align="right">Jumps</TableCell>
-              <TableCell>Profile</TableCell>
-              <TableCell align="center">Actions</TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219] hover:bg-[#0f1219]">
+              <TableHead className="w-10" />
+              <TableHead>Status</TableHead>
+              <TableHead>Route</TableHead>
+              <TableHead>Method</TableHead>
+              <TableHead>Fulfillment</TableHead>
+              <TableHead className="text-right">Volume (m3)</TableHead>
+              <TableHead className="text-right">Collateral</TableHead>
+              <TableHead className="text-right">Est. Cost</TableHead>
+              <TableHead className="text-right">Jumps</TableHead>
+              <TableHead>Profile</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {jobs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={colCount} align="center" sx={{ py: 4, color: "#94a3b8" }}>
-                  <Typography variant="body2">No transport jobs</Typography>
+                <TableCell
+                  colSpan={colCount}
+                  className="text-center py-8 text-[#94a3b8]"
+                >
+                  No transport jobs
                 </TableCell>
               </TableRow>
             ) : (
               jobs.map((job) => (
                 <React.Fragment key={job.id}>
                   <TableRow
-                    sx={{
-                      "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" },
-                      "& > td": expandedJobId === job.id ? { borderBottom: "none" } : {},
-                    }}
+                    className={`hover:bg-[rgba(0,212,255,0.05)] ${expandedJobId === job.id ? "[&>td]:border-b-0" : ""}`}
                   >
-                    <TableCell sx={{ px: 0.5 }}>
-                      <IconButton
-                        size="small"
+                    <TableCell className="px-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-[#94a3b8]"
                         onClick={() => toggleExpand(job.id)}
-                        sx={{ color: "#94a3b8" }}
                       >
                         {expandedJobId === job.id ? (
-                          <KeyboardArrowUpIcon fontSize="small" />
+                          <ChevronUp className="h-4 w-4" />
                         ) : (
-                          <KeyboardArrowDownIcon fontSize="small" />
+                          <ChevronDown className="h-4 w-4" />
                         )}
-                      </IconButton>
+                      </Button>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={getStatusLabel(job.status)}
-                        size="small"
-                        sx={{
+                      <span
+                        className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                        style={{
                           backgroundColor: `${getStatusColor(job.status)}20`,
                           color: getStatusColor(job.status),
-                          fontWeight: 500,
                         }}
-                      />
+                      >
+                        {getStatusLabel(job.status)}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      <p className="text-sm font-medium text-[#e2e8f0]">
                         {job.originSystemName || "?"} → {job.destinationSystemName || "?"}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: "#94a3b8" }}>
+                      </p>
+                      <span className="text-xs text-[#94a3b8]">
                         {job.originStationName || ""} → {job.destinationStationName || ""}
-                      </Typography>
+                      </span>
                     </TableCell>
-                    <TableCell>{getMethodLabel(job.transportMethod)}</TableCell>
-                    <TableCell>{getFulfillmentLabel(job.fulfillmentType)}</TableCell>
-                    <TableCell align="right">{formatNumber(job.totalVolumeM3)}</TableCell>
-                    <TableCell align="right">{formatISK(job.totalCollateral)}</TableCell>
-                    <TableCell align="right" sx={{ color: "#ef4444" }}>
+                    <TableCell className="text-[#94a3b8]">{getMethodLabel(job.transportMethod)}</TableCell>
+                    <TableCell className="text-[#94a3b8]">{getFulfillmentLabel(job.fulfillmentType)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(job.totalVolumeM3)}</TableCell>
+                    <TableCell className="text-right">{formatISK(job.totalCollateral)}</TableCell>
+                    <TableCell className="text-right text-[#ef4444]">
                       {formatISK(job.estimatedCost)}
                     </TableCell>
-                    <TableCell align="right">{job.jumps}</TableCell>
-                    <TableCell>{job.transportProfileName || "—"}</TableCell>
-                    <TableCell align="center">
+                    <TableCell className="text-right">{job.jumps}</TableCell>
+                    <TableCell className="text-[#94a3b8]">{job.transportProfileName || "—"}</TableCell>
+                    <TableCell className="text-center">
                       {job.status === "planned" && (
-                        <Box sx={{ display: "flex", gap: 0.5, justifyContent: "center" }}>
+                        <div className="flex gap-1 justify-center">
                           <Button
-                            size="small"
-                            variant="outlined"
+                            size="sm"
+                            variant="outline"
+                            className="text-[0.65rem] py-0 h-6"
                             onClick={() => handleStatusChange(job.id, "in_transit")}
-                            sx={{ fontSize: "0.65rem", py: 0 }}
                           >
                             Start
                           </Button>
                           <Button
-                            size="small"
-                            variant="outlined"
-                            color="error"
+                            size="sm"
+                            variant="outline"
+                            className="text-[0.65rem] py-0 h-6 border-red-500 text-red-400 hover:bg-red-500/10"
                             onClick={() => handleStatusChange(job.id, "cancelled")}
-                            sx={{ fontSize: "0.65rem", py: 0 }}
                           >
                             Cancel
                           </Button>
-                        </Box>
+                        </div>
                       )}
                       {job.status === "in_transit" && (
                         <Button
-                          size="small"
-                          variant="outlined"
-                          color="success"
+                          size="sm"
+                          variant="outline"
+                          className="text-[0.65rem] py-0 h-6 border-emerald-500 text-emerald-400 hover:bg-emerald-500/10"
                           onClick={() => handleStatusChange(job.id, "delivered")}
-                          sx={{ fontSize: "0.65rem", py: 0 }}
                         >
                           Delivered
                         </Button>
                       )}
                     </TableCell>
                   </TableRow>
-                  <TableRow>
-                    <TableCell sx={{ py: 0, px: 0 }} colSpan={colCount}>
-                      <Collapse in={expandedJobId === job.id} timeout="auto" unmountOnExit>
-                        <Box sx={{ px: 3, py: 1.5 }}>
+                  {expandedJobId === job.id && (
+                    <TableRow>
+                      <TableCell colSpan={colCount} className="py-0 px-0">
+                        <div className="px-6 py-3">
                           {job.items && job.items.length > 0 ? (
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow sx={{ "& th": { color: "#94a3b8", borderColor: "#1e2231", py: 0.5 } }}>
-                                  <TableCell>Item</TableCell>
-                                  <TableCell align="right">Quantity</TableCell>
-                                  <TableCell align="right">Volume (m³)</TableCell>
+                            <Table>
+                              <TableHeader>
+                                <TableRow className="[&>th]:text-[#94a3b8] [&>th]:border-[#1e2231] [&>th]:py-1">
+                                  <TableHead>Item</TableHead>
+                                  <TableHead className="text-right">Quantity</TableHead>
+                                  <TableHead className="text-right">Volume (m³)</TableHead>
                                 </TableRow>
-                              </TableHead>
+                              </TableHeader>
                               <TableBody>
                                 {job.items.map((item) => (
-                                  <TableRow key={item.id} sx={{ "& td": { borderColor: "#1e2231", py: 0.5 } }}>
+                                  <TableRow key={item.id} className="[&>td]:border-[#1e2231] [&>td]:py-1">
                                     <TableCell>
-                                      <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
+                                      <div className="flex gap-2 items-center">
                                         <img
                                           src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`}
                                           alt=""
                                           style={{ width: 20, height: 20 }}
                                         />
                                         {item.typeName || `Type ${item.typeId}`}
-                                      </Box>
+                                      </div>
                                     </TableCell>
-                                    <TableCell align="right">{formatNumber(item.quantity)}</TableCell>
-                                    <TableCell align="right">{formatNumber(item.volumeM3)}</TableCell>
+                                    <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
+                                    <TableCell className="text-right">{formatNumber(item.volumeM3)}</TableCell>
                                   </TableRow>
                                 ))}
                               </TableBody>
                             </Table>
                           ) : (
-                            <Typography variant="body2" sx={{ color: "#64748b" }}>
-                              No items in this transport job.
-                            </Typography>
+                            <p className="text-sm text-[#64748b]">No items in this transport job.</p>
                           )}
                           {job.notes && (
-                            <Typography variant="body2" sx={{ color: "#94a3b8", mt: 1 }}>
-                              Notes: {job.notes}
-                            </Typography>
+                            <p className="text-sm text-[#94a3b8] mt-2">Notes: {job.notes}</p>
                           )}
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </React.Fragment>
               ))
             )}
           </TableBody>
         </Table>
-      </TableContainer>
+      </div>
 
       <TransportJobDialog
         open={dialogOpen}

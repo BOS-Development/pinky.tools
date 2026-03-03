@@ -1,19 +1,21 @@
 import React, { useEffect, useState } from "react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
   Select,
-  MenuItem,
-  Box,
-  FormControlLabel,
-  Checkbox,
-} from "@mui/material";
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TransportProfile } from "../../pages/transport";
 
 interface Props {
@@ -102,146 +104,158 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
   const isJF = transportMethod === "jump_freighter";
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => onClose(false)}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{ sx: { backgroundColor: "#12151f", backgroundImage: "none" } }}
-    >
-      <DialogTitle>{isEdit ? "Edit Transport Profile" : "Add Transport Profile"}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-          <TextField
-            label="Profile Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            size="small"
-          />
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(false); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit Transport Profile" : "Add Transport Profile"}</DialogTitle>
+        </DialogHeader>
 
-          <FormControl fullWidth size="small">
-            <InputLabel>Transport Method</InputLabel>
+        <div className="flex flex-col gap-3 pt-1">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Profile Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Profile name..."
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Transport Method</label>
             <Select
               value={transportMethod}
-              onChange={(e) => setTransportMethod(e.target.value)}
-              label="Transport Method"
+              onValueChange={(v) => setTransportMethod(v)}
             >
-              <MenuItem value="freighter">Freighter</MenuItem>
-              <MenuItem value="jump_freighter">Jump Freighter</MenuItem>
-              <MenuItem value="dst">DST</MenuItem>
-              <MenuItem value="blockade_runner">Blockade Runner</MenuItem>
+              <SelectTrigger>
+                <SelectValue placeholder="Transport Method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="freighter">Freighter</SelectItem>
+                <SelectItem value="jump_freighter">Jump Freighter</SelectItem>
+                <SelectItem value="dst">DST</SelectItem>
+                <SelectItem value="blockade_runner">Blockade Runner</SelectItem>
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
-          <TextField
-            label="Cargo Capacity (m3)"
-            type="number"
-            value={cargoM3}
-            onChange={(e) => setCargoM3(Number(e.target.value))}
-            fullWidth
-            size="small"
-          />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Cargo Capacity (m3)</label>
+            <Input
+              type="number"
+              value={cargoM3}
+              onChange={(e) => setCargoM3(Number(e.target.value))}
+            />
+          </div>
 
           {!isJF && (
-            <TextField
-              label="Rate per m3 per Jump (ISK)"
-              type="number"
-              value={ratePerM3PerJump}
-              onChange={(e) => setRatePerM3PerJump(Number(e.target.value))}
-              fullWidth
-              size="small"
-            />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#94a3b8]">Rate per m3 per Jump (ISK)</label>
+              <Input
+                type="number"
+                value={ratePerM3PerJump}
+                onChange={(e) => setRatePerM3PerJump(Number(e.target.value))}
+              />
+            </div>
           )}
 
-          <TextField
-            label="Collateral Rate"
-            type="number"
-            value={collateralRate}
-            onChange={(e) => setCollateralRate(Number(e.target.value))}
-            fullWidth
-            size="small"
-            inputProps={{ step: 0.001 }}
-            helperText="e.g. 0.01 = 1%"
-          />
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Collateral Rate</label>
+            <Input
+              type="number"
+              value={collateralRate}
+              onChange={(e) => setCollateralRate(Number(e.target.value))}
+              step={0.001}
+            />
+            <span className="text-xs text-[#64748b]">e.g. 0.01 = 1%</span>
+          </div>
 
-          <FormControl fullWidth size="small">
-            <InputLabel>Collateral Price Basis</InputLabel>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Collateral Price Basis</label>
             <Select
               value={collateralPriceBasis}
-              onChange={(e) => setCollateralPriceBasis(e.target.value)}
-              label="Collateral Price Basis"
+              onValueChange={(v) => setCollateralPriceBasis(v)}
             >
-              <MenuItem value="buy">Buy</MenuItem>
-              <MenuItem value="sell">Sell</MenuItem>
-              <MenuItem value="split">Split (avg)</MenuItem>
+              <SelectTrigger>
+                <SelectValue placeholder="Collateral Price Basis" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="buy">Buy</SelectItem>
+                <SelectItem value="sell">Sell</SelectItem>
+                <SelectItem value="split">Split (avg)</SelectItem>
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
           {isJF && (
             <>
-              <TextField
-                label="Fuel per Light Year"
-                type="number"
-                value={fuelPerLy}
-                onChange={(e) => setFuelPerLy(Number(e.target.value))}
-                fullWidth
-                size="small"
-              />
-              <FormControl fullWidth size="small">
-                <InputLabel>Fuel Conservation Level</InputLabel>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-[#94a3b8]">Fuel per Light Year</label>
+                <Input
+                  type="number"
+                  value={fuelPerLy}
+                  onChange={(e) => setFuelPerLy(Number(e.target.value))}
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-[#94a3b8]">Fuel Conservation Level</label>
                 <Select
-                  value={fuelConservationLevel}
-                  onChange={(e) => setFuelConservationLevel(Number(e.target.value))}
-                  label="Fuel Conservation Level"
+                  value={String(fuelConservationLevel)}
+                  onValueChange={(v) => setFuelConservationLevel(Number(v))}
                 >
-                  {[0, 1, 2, 3, 4, 5].map((level) => (
-                    <MenuItem key={level} value={level}>
-                      Level {level} ({level * 10}% reduction)
-                    </MenuItem>
-                  ))}
+                  <SelectTrigger>
+                    <SelectValue placeholder="Fuel Conservation Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[0, 1, 2, 3, 4, 5].map((level) => (
+                      <SelectItem key={level} value={String(level)}>
+                        Level {level} ({level * 10}% reduction)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-              </FormControl>
+              </div>
             </>
           )}
 
-          <FormControl fullWidth size="small">
-            <InputLabel>Route Preference</InputLabel>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Route Preference</label>
             <Select
               value={routePreference}
-              onChange={(e) => setRoutePreference(e.target.value)}
-              label="Route Preference"
+              onValueChange={(v) => setRoutePreference(v)}
             >
-              <MenuItem value="shortest">Shortest</MenuItem>
-              <MenuItem value="secure">Secure</MenuItem>
-              <MenuItem value="insecure">Insecure</MenuItem>
+              <SelectTrigger>
+                <SelectValue placeholder="Route Preference" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="shortest">Shortest</SelectItem>
+                <SelectItem value="secure">Secure</SelectItem>
+                <SelectItem value="insecure">Insecure</SelectItem>
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isDefault}
-                onChange={(e) => setIsDefault(e.target.checked)}
-                sx={{ color: "#94a3b8", "&.Mui-checked": { color: "#00d4ff" } }}
-              />
-            }
-            label="Default profile for this method"
-          />
-        </Box>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="is-default"
+              checked={isDefault}
+              onCheckedChange={(checked) => setIsDefault(checked === true)}
+            />
+            <label htmlFor="is-default" className="text-sm text-[#94a3b8] cursor-pointer">
+              Default profile for this method
+            </label>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onClose(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving || !name}>
+            {saving ? "Saving..." : isEdit ? "Update" : "Create"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => onClose(false)} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button
-          variant="contained"
-          onClick={handleSave}
-          disabled={saving || !name}
-        >
-          {saving ? "Saving..." : isEdit ? "Update" : "Create"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

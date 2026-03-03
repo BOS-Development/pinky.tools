@@ -1,103 +1,57 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { AssetsResponse, Asset, AssetContainer, CorporationHanger, StockpileMarker } from "@industry-tool/client/data/models";
+import { AssetsResponse, Asset, AssetContainer, AssetStructure, CorporationHanger, StockpileMarker } from "@industry-tool/client/data/models";
 import AddStockpileDialog from './AddStockpileDialog';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import { formatISK, formatNumber, formatCompact } from '@industry-tool/utils/formatting';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import CategoryIcon from '@mui/icons-material/Category';
-import RefreshIcon from '@mui/icons-material/Refresh';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import WarningIcon from '@mui/icons-material/Warning';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
-import Collapse from '@mui/material/Collapse';
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import PushPinIcon from '@mui/icons-material/PushPin';
-import PushPinOutlinedIcon from '@mui/icons-material/PushPinOutlined';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import SellIcon from '@mui/icons-material/Sell';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import Badge from '@mui/material/Badge';
-import Tooltip from '@mui/material/Tooltip';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Divider from '@mui/material/Divider';
+import {
+  Search,
+  MapPin,
+  Package,
+  Layers,
+  RefreshCw,
+  DollarSign,
+  AlertTriangle,
+  ChevronUp,
+  ChevronDown,
+  EyeOff,
+  Eye,
+  Pin,
+  Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  Tag,
+  ShoppingCart,
+  RefreshCcw,
+  CheckCircle2,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Separator } from '@/components/ui/separator';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 // Combined sell + sync icon for auto-sell features
-const AutoSellIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' | 'large' }) => (
-  <Badge
-    badgeContent={<AutorenewIcon sx={{ fontSize: '0.6rem' }} />}
-    sx={{
-      '& .MuiBadge-badge': {
-        minWidth: 'unset',
-        height: 'unset',
-        padding: 0,
-        backgroundColor: 'transparent',
-        color: 'inherit',
-        top: 2,
-        right: 2,
-      },
-    }}
-  >
-    <SellIcon fontSize={fontSize} />
-  </Badge>
+const AutoSellIcon = ({ className }: { className?: string }) => (
+  <span className={cn('relative inline-flex items-center', className)}>
+    <Tag className="h-4 w-4" />
+    <RefreshCcw className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5" />
+  </span>
 );
 
 // Combined cart + sync icon for auto-buy features
-const AutoBuyIcon = ({ fontSize }: { fontSize?: 'small' | 'inherit' | 'medium' | 'large' }) => (
-  <Badge
-    badgeContent={<AutorenewIcon sx={{ fontSize: '0.6rem' }} />}
-    sx={{
-      '& .MuiBadge-badge': {
-        minWidth: 'unset',
-        height: 'unset',
-        padding: 0,
-        backgroundColor: 'transparent',
-        color: 'inherit',
-        top: 2,
-        right: 2,
-      },
-    }}
-  >
-    <ShoppingCartIcon fontSize={fontSize} />
-  </Badge>
+const AutoBuyIcon = ({ className }: { className?: string }) => (
+  <span className={cn('relative inline-flex items-center', className)}>
+    <ShoppingCart className="h-4 w-4" />
+    <RefreshCcw className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5" />
+  </span>
 );
 
 type ForSaleListing = {
@@ -597,6 +551,7 @@ export default function AssetsList(props: AssetsListProps) {
     if (!props.assets && session) {
       refetchAssets();
     }
+
     if (session) {
       fetchForSaleListings();
       fetchAssetStatus();
@@ -1293,11 +1248,11 @@ export default function AssetsList(props: AssetsListProps) {
     return (
       <>
         <Navbar />
-        <Container maxWidth={false} sx={{ mt: 2, mb: 2, px: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-            <Typography variant="h6" color="text.secondary">Loading assets...</Typography>
-          </Box>
-        </Container>
+        <div className="mt-2 mb-2 px-6">
+          <div className="flex justify-center items-center min-h-[60vh]">
+            <p className="text-lg text-[#94a3b8]">Loading assets...</p>
+          </div>
+        </div>
       </>
     );
   }
@@ -1306,195 +1261,178 @@ export default function AssetsList(props: AssetsListProps) {
     return (
       <>
         <Navbar />
-        <Container maxWidth="xl" sx={{ mt: 4 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '60vh',
-              textAlign: 'center',
-            }}
-          >
-            <Typography variant="h4" gutterBottom>
-              No Assets Found
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              You don't have any assets yet, or they haven't been synced.
-            </Typography>
-          </Box>
-        </Container>
+        <div className="max-w-screen-xl mx-auto px-4 mt-4">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <h2 className="text-3xl font-semibold text-[#e2e8f0] mb-2">No Assets Found</h2>
+            <p className="text-sm text-[#94a3b8]">
+              You don&apos;t have any assets yet, or they haven&apos;t been synced.
+            </p>
+          </div>
+        </div>
       </>
     );
   }
 
-  const renderAssetsTable = (assets: Asset[], showOwner: boolean, locationId: number, containerId?: number, divisionNumber?: number) => (
-    <Box sx={{ px: 2, pb: 1 }}>
-      <TableContainer component={Paper} variant="outlined">
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Item</TableCell>
-              <TableCell align="right">Quantity</TableCell>
-              <TableCell align="right">Stockpile</TableCell>
-              <TableCell align="right">Volume (m³)</TableCell>
-              <TableCell align="right">Unit Price</TableCell>
-              <TableCell align="right">Total Value</TableCell>
-              <TableCell align="right">Deficit Cost</TableCell>
-              {showOwner && <TableCell>Owner</TableCell>}
-              <TableCell align="center">Actions</TableCell>
+  const renderAssetsTable = (assetsToRender: Asset[], showOwner: boolean, locationId: number, containerId?: number, divisionNumber?: number) => (
+    <div className="px-2 pb-1">
+      <div className="overflow-x-auto rounded border border-[rgba(148,163,184,0.1)]">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219] border-b border-[rgba(148,163,184,0.1)] hover:bg-[#0f1219]">
+              <TableHead className="text-[#94a3b8] font-semibold text-xs">Item</TableHead>
+              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Quantity</TableHead>
+              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Stockpile</TableHead>
+              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Volume (m³)</TableHead>
+              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Unit Price</TableHead>
+              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Total Value</TableHead>
+              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Deficit Cost</TableHead>
+              {showOwner && <TableHead className="text-[#94a3b8] font-semibold text-xs">Owner</TableHead>}
+              <TableHead className="text-center text-[#94a3b8] font-semibold text-xs">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
-            {assets.map((asset, idx) => (
+            {assetsToRender.map((asset, idx) => (
               <TableRow
                 key={idx}
-                hover
-                sx={{
-                  '&:nth-of-type(odd)': {
-                    backgroundColor: 'action.hover',
-                  },
-                  ...(asset.stockpileDelta !== undefined && asset.stockpileDelta < 0 && {
-                    borderLeft: '4px solid #d32f2f',
-                    '& .MuiTableCell-root': {
-                      fontWeight: 600,
-                    }
-                  }),
-                }}
+                className={cn(
+                  'border-b border-[rgba(148,163,184,0.05)] hover:bg-[rgba(148,163,184,0.04)]',
+                  idx % 2 === 0 ? 'bg-[#12151f]' : 'bg-[#0f1219]',
+                  asset.stockpileDelta !== undefined && asset.stockpileDelta < 0 && 'border-l-4 border-l-[#ef4444] font-semibold'
+                )}
               >
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {asset.name}
+                <TableCell className="py-1.5">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm text-[#e2e8f0]">{asset.name}</span>
                     {(() => {
                       const listing = getListingForAsset(asset, locationId, containerId, divisionNumber);
                       if (listing) {
                         return (
-                          <Chip
-                            icon={listing.autoSellContainerId ? <AutoSellIcon /> : <CheckCircleIcon />}
-                            label={`${listing.autoSellContainerId ? 'Auto · ' : ''}${formatNumber(listing.quantityAvailable)} @ ${formatISK(listing.pricePerUnit)}`}
-                            size="medium"
-                            sx={{
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              background: listing.autoSellContainerId ? 'rgba(0, 212, 255, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                              color: listing.autoSellContainerId ? '#00d4ff' : '#10b981',
-                              border: listing.autoSellContainerId ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)',
-                              '& .MuiChip-icon': {
-                                color: listing.autoSellContainerId ? '#00d4ff' : '#10b981',
-                              },
-                            }}
+                          <button
                             onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber, listing)}
-                          />
+                            className={cn(
+                              'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border cursor-pointer',
+                              listing.autoSellContainerId
+                                ? 'bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border-[rgba(0,212,255,0.3)]'
+                                : 'bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)]'
+                            )}
+                          >
+                            {listing.autoSellContainerId ? (
+                              <AutoSellIcon className="text-[#00d4ff]" />
+                            ) : (
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            )}
+                            {listing.autoSellContainerId ? 'Auto · ' : ''}{formatNumber(listing.quantityAvailable)} @ {formatISK(listing.pricePerUnit)}
+                          </button>
                         );
                       }
                       return null;
                     })()}
-                  </Box>
+                  </div>
                 </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2">{formatNumber(asset.quantity)}</Typography>
+                <TableCell className="text-right py-1.5">
+                  <span className="text-sm text-[#e2e8f0]">{formatNumber(asset.quantity)}</span>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell className="text-right py-1.5">
                   {asset.desiredQuantity ? (
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      <Box
-                        component="span"
-                        sx={{
-                          color: asset.stockpileDelta! >= 0 ? '#10b981' : '#ef4444',
-                          fontWeight: 600,
-                          fontSize: '0.875rem'
-                        }}
-                      >
+                    <span className="text-sm font-medium">
+                      <span className={cn('font-semibold text-sm', asset.stockpileDelta! >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]')}>
                         {asset.stockpileDelta! >= 0 ? '+' : ''}{formatNumber(asset.stockpileDelta!)}
-                      </Box>
-                      <Box component="span" sx={{ color: '#64748b', mx: 0.5 }}>/</Box>
-                      <Box component="span" sx={{ color: '#94a3b8' }}>
-                        {formatNumber(asset.desiredQuantity)}
-                      </Box>
-                    </Typography>
+                      </span>
+                      <span className="text-[#64748b] mx-1">/</span>
+                      <span className="text-[#94a3b8]">{formatNumber(asset.desiredQuantity)}</span>
+                    </span>
                   ) : (
-                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
+                    <span className="text-xs text-[#64748b]">-</span>
                   )}
                 </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                    {formatNumber(asset.volume, 2)}
-                  </Typography>
+                <TableCell className="text-right py-1.5">
+                  <span className="text-sm text-[#94a3b8]">{formatNumber(asset.volume, 2)}</span>
                 </TableCell>
-                {/* Unit Price */}
-                <TableCell align="right">
+                <TableCell className="text-right py-1.5">
                   {asset.unitPrice ? (
-                    <Typography variant="body2">
-                      {formatISK(asset.unitPrice)}
-                    </Typography>
+                    <span className="text-sm text-[#e2e8f0]">{formatISK(asset.unitPrice)}</span>
                   ) : (
-                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
+                    <span className="text-xs text-[#64748b]">-</span>
                   )}
                 </TableCell>
-                {/* Total Value */}
-                <TableCell align="right">
+                <TableCell className="text-right py-1.5">
                   {asset.totalValue ? (
-                    <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
-                      {formatISK(asset.totalValue)}
-                    </Typography>
+                    <span className="text-sm font-semibold text-[#10b981]">{formatISK(asset.totalValue)}</span>
                   ) : (
-                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
+                    <span className="text-xs text-[#64748b]">-</span>
                   )}
                 </TableCell>
-                {/* Deficit Cost */}
-                <TableCell align="right">
+                <TableCell className="text-right py-1.5">
                   {asset.deficitValue && asset.deficitValue > 0 ? (
-                    <Typography variant="body2" sx={{ color: '#ef4444', fontWeight: 600 }}>
-                      {formatISK(asset.deficitValue)}
-                    </Typography>
+                    <span className="text-sm font-semibold text-[#ef4444]">{formatISK(asset.deficitValue)}</span>
                   ) : (
-                    <Typography variant="caption" sx={{ color: '#64748b' }}>-</Typography>
+                    <span className="text-xs text-[#64748b]">-</span>
                   )}
                 </TableCell>
                 {showOwner && (
-                  <TableCell>
-                    <Chip
-                      label={asset.ownerName}
-                      size="small"
-                      variant="outlined"
-                      sx={{ height: 20, fontSize: '0.7rem' }}
-                    />
+                  <TableCell className="py-1.5">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[rgba(148,163,184,0.2)] text-[#94a3b8]">
+                      {asset.ownerName}
+                    </span>
                   </TableCell>
                 )}
-                <TableCell align="center">
-                  <IconButton
-                    size="small"
-                    onClick={() => handleOpenStockpileModal(asset, locationId, containerId, divisionNumber)}
-                    title="Set stockpile target"
-                  >
-                    {asset.desiredQuantity ? <EditIcon fontSize="small" /> : <AddIcon fontSize="small" />}
-                  </IconButton>
-                  {asset.desiredQuantity && (
-                    <IconButton
-                      size="small"
-                      onClick={() => handleDeleteStockpile(asset, locationId, containerId, divisionNumber)}
-                      title="Remove stockpile target"
-                    >
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                  <IconButton
-                    size="small"
-                    onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber)}
-                    title="List for sale"
-                    color="primary"
-                  >
-                    <SellIcon fontSize="small" />
-                  </IconButton>
+                <TableCell className="text-center py-1.5">
+                  <div className="flex items-center justify-center gap-0.5">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                            onClick={() => handleOpenStockpileModal(asset, locationId, containerId, divisionNumber)}
+                          >
+                            {asset.desiredQuantity ? <Pencil className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Set stockpile target</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    {asset.desiredQuantity && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-[#94a3b8] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                              onClick={() => handleDeleteStockpile(asset, locationId, containerId, divisionNumber)}
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Remove stockpile target</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-[#3b82f6] hover:text-[#60a5fa] hover:bg-[rgba(59,130,246,0.1)]"
+                            onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber)}
+                          >
+                            <Tag className="h-3.5 w-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>List for sale</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
-    </Box>
+      </div>
+    </div>
   );
 
   const renderContainer = (container: AssetContainer, parentId: string, showOwner: boolean, locationId: number, divisionNumber?: number) => {
@@ -1504,90 +1442,93 @@ export default function AssetsList(props: AssetsListProps) {
     const autoBuyConfig = getAutoBuyForContainer(container.id, container.ownerType, container.ownerId, locationId, divisionNumber);
 
     return (
-      <Box key={container.id}>
-        <ListItemButton onClick={() => toggleNode(nodeId)} sx={{ pl: 3 }}>
-          {isExpanded ? <ExpandLess /> : <ExpandMore />}
-          <ListItemText
-            primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {`📦 ${container.name}`}
-                {autoSellConfig && (
-                  <Chip
-                    icon={<AutoSellIcon />}
-                    label={`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
-                    size="small"
-                    sx={{
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      background: 'rgba(0, 212, 255, 0.15)',
-                      color: '#00d4ff',
-                      border: '1px solid rgba(0, 212, 255, 0.3)',
-                      '& .MuiChip-icon': { color: '#00d4ff', fontSize: '0.9rem' },
+      <div key={container.id}>
+        <button
+          onClick={() => toggleNode(nodeId)}
+          className="w-full flex items-center gap-2 pl-8 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+        >
+          {isExpanded ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+          <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
+            <span className="text-sm font-medium text-[#e2e8f0]">{`📦 ${container.name}`}</span>
+            {autoSellConfig && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]">
+                <AutoSellIcon />
+                {`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
+              </span>
+            )}
+            {autoBuyConfig && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)]">
+                <AutoBuyIcon />
+                {`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
+              </span>
+            )}
+            <span className="text-xs text-[#64748b]">{container.assets.length} items</span>
+          </div>
+          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAddStockpileDialog(locationId, [{ ownerType: container.ownerType, ownerId: container.ownerId, ownerName: container.ownerName }], container.id, divisionNumber);
                     }}
-                  />
-                )}
-                {autoBuyConfig && (
-                  <Chip
-                    icon={<AutoBuyIcon />}
-                    label={`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
-                    size="small"
-                    sx={{
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      background: 'rgba(245, 158, 11, 0.15)',
-                      color: '#f59e0b',
-                      border: '1px solid rgba(245, 158, 11, 0.3)',
-                      '& .MuiChip-icon': { color: '#f59e0b', fontSize: '0.9rem' },
+                  >
+                    <Package className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add Stockpile</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
+                    className={cn('h-7 w-7 hover:bg-[rgba(245,158,11,0.1)]', autoBuyConfig ? 'text-[#f59e0b]' : 'text-[#94a3b8] hover:text-[#f59e0b]')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAutoBuyDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
                     }}
-                  />
-                )}
-              </Box>
-            }
-            secondary={`${container.assets.length} items`}
-            primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-          />
-          <Tooltip title="Add Stockpile">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenAddStockpileDialog(locationId, [{ ownerType: container.ownerType, ownerId: container.ownerId, ownerName: container.ownerName }], container.id, divisionNumber);
-              }}
-            >
-              <InventoryIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}>
-            <IconButton
-              size="small"
-              aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenAutoBuyDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
-              }}
-              sx={{ color: autoBuyConfig ? '#f59e0b' : undefined }}
-            >
-              <AutoBuyIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}>
-            <IconButton
-              size="small"
-              aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenAutoSellDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
-              }}
-              sx={{ color: autoSellConfig ? '#00d4ff' : undefined }}
-            >
-              <AutoSellIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </ListItemButton>
-        <Collapse in={isExpanded} timeout={150} unmountOnExit>
-          {renderAssetsTable(container.assets, showOwner, locationId, container.id, divisionNumber)}
-        </Collapse>
-      </Box>
+                  >
+                    <AutoBuyIcon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
+                    className={cn('h-7 w-7 hover:bg-[rgba(0,212,255,0.1)]', autoSellConfig ? 'text-[#00d4ff]' : 'text-[#94a3b8] hover:text-[#00d4ff]')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAutoSellDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
+                    }}
+                  >
+                    <AutoSellIcon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </button>
+        {isExpanded && (
+          <div>
+            {renderAssetsTable(container.assets, showOwner, locationId, container.id, divisionNumber)}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -1598,118 +1539,275 @@ export default function AssetsList(props: AssetsListProps) {
     const autoBuyConfig = getAutoBuyForContainer(undefined, 'corporation', hanger.corporationId, structureId, hanger.id);
 
     return (
-      <Box key={hanger.id}>
-        <ListItemButton onClick={() => toggleNode(nodeId)} sx={{ pl: 2 }}>
-          {isExpanded ? <ExpandLess /> : <ExpandMore />}
-          <ListItemText
-            primary={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {`${hanger.corporationName} - ${hanger.name}`}
-                {autoSellConfig && (
-                  <Chip
-                    icon={<AutoSellIcon />}
-                    label={`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
-                    size="small"
-                    sx={{
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      background: 'rgba(0, 212, 255, 0.15)',
-                      color: '#00d4ff',
-                      border: '1px solid rgba(0, 212, 255, 0.3)',
-                      '& .MuiChip-icon': { color: '#00d4ff', fontSize: '0.9rem' },
+      <div key={hanger.id}>
+        <button
+          onClick={() => toggleNode(nodeId)}
+          className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+        >
+          {isExpanded ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+          <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
+            <span className="text-sm font-medium text-[#e2e8f0]">{`${hanger.corporationName} - ${hanger.name}`}</span>
+            {autoSellConfig && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]">
+                <AutoSellIcon />
+                {`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
+              </span>
+            )}
+            {autoBuyConfig && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)]">
+                <AutoBuyIcon />
+                {`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
+              </span>
+            )}
+            <span className="text-xs text-[#64748b]">{hanger.assets.length} items, {hanger.hangarContainers?.length || 0} containers</span>
+          </div>
+          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAddStockpileDialog(structureId, [{ ownerType: 'corporation', ownerId: hanger.corporationId, ownerName: hanger.corporationName }], undefined, hanger.id);
                     }}
-                  />
-                )}
-                {autoBuyConfig && (
-                  <Chip
-                    icon={<AutoBuyIcon />}
-                    label={`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
-                    size="small"
-                    sx={{
-                      fontSize: '0.7rem',
-                      fontWeight: 600,
-                      background: 'rgba(245, 158, 11, 0.15)',
-                      color: '#f59e0b',
-                      border: '1px solid rgba(245, 158, 11, 0.3)',
-                      '& .MuiChip-icon': { color: '#f59e0b', fontSize: '0.9rem' },
+                  >
+                    <Package className="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Add Stockpile</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
+                    className={cn('h-7 w-7 hover:bg-[rgba(245,158,11,0.1)]', autoBuyConfig ? 'text-[#f59e0b]' : 'text-[#94a3b8] hover:text-[#f59e0b]')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAutoBuyDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
                     }}
-                  />
-                )}
-              </Box>
-            }
-            secondary={`${hanger.assets.length} items, ${hanger.hangarContainers?.length || 0} containers`}
-            primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
-          />
-          <Tooltip title="Add Stockpile">
-            <IconButton
-              size="small"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenAddStockpileDialog(structureId, [{ ownerType: 'corporation', ownerId: hanger.corporationId, ownerName: hanger.corporationName }], undefined, hanger.id);
-              }}
-            >
-              <InventoryIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}>
-            <IconButton
-              size="small"
-              aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenAutoBuyDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
-              }}
-              sx={{ color: autoBuyConfig ? '#f59e0b' : undefined }}
-            >
-              <AutoBuyIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}>
-            <IconButton
-              size="small"
-              aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenAutoSellDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
-              }}
-              sx={{ color: autoSellConfig ? '#00d4ff' : undefined }}
-            >
-              <AutoSellIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </ListItemButton>
-        <Collapse in={isExpanded} timeout={150} unmountOnExit>
-          <Box>
+                  >
+                    <AutoBuyIcon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
+                    className={cn('h-7 w-7 hover:bg-[rgba(0,212,255,0.1)]', autoSellConfig ? 'text-[#00d4ff]' : 'text-[#94a3b8] hover:text-[#00d4ff]')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenAutoSellDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
+                    }}
+                  >
+                    <AutoSellIcon />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </button>
+        {isExpanded && (
+          <div>
             {hanger.assets.length > 0 && renderAssetsTable(hanger.assets, false, structureId, undefined, hanger.id)}
             {hanger.hangarContainers?.map((container) =>
               renderContainer(container, nodeId, false, structureId, hanger.id)
             )}
-          </Box>
-        </Collapse>
-      </Box>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderStructureTree = (structure: AssetStructure, isHidden: boolean) => {
+    const structureNodeId = `structure-${structure.id}`;
+    const isStructureExpanded = expandedNodes.has(structureNodeId);
+
+    return (
+      <div key={structure.id}>
+        {/* Station/Structure Node */}
+        <button
+          onClick={() => toggleNode(structureNodeId)}
+          className={cn(
+            'w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left',
+            isHidden && 'opacity-60'
+          )}
+        >
+          {isStructureExpanded ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+          <MapPin className="h-4 w-4 text-[#3b82f6] flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-[#e2e8f0] truncate">{structure.name}</p>
+            <p className="text-xs text-[#64748b]">{structure.solarSystem} · {structure.region}</p>
+          </div>
+          <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn('h-7 w-7', pinnedStructures.has(structure.id) ? 'text-[#3b82f6]' : 'text-[#94a3b8] hover:text-[#e2e8f0]')}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePinStructure(structure.id);
+                    }}
+                  >
+                    <Pin className={cn('h-3.5 w-3.5', pinnedStructures.has(structure.id) && 'fill-current')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{pinnedStructures.has(structure.id) ? 'Unpin' : 'Pin to top'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleHideStructure(structure.id);
+                    }}
+                  >
+                    {isHidden ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isHidden ? 'Show' : 'Hide'}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </button>
+
+        {isStructureExpanded && (
+          <div>
+            {/* Personal Hangar */}
+            {structure.hangarAssets && structure.hangarAssets.length > 0 && (
+              <div>
+                <button
+                  onClick={() => toggleNode(`structure-${structure.id}-hangar`)}
+                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+                >
+                  {expandedNodes.has(`structure-${structure.id}-hangar`) ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-[#e2e8f0]">Personal Hangar</span>
+                    <span className="text-xs text-[#64748b] ml-2">{structure.hangarAssets.length} items</span>
+                  </div>
+                  {!isHidden && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const seen = new Map<string, { ownerType: string; ownerId: number; ownerName: string }>();
+                                for (const a of structure.hangarAssets) {
+                                  const key = `${a.ownerType}:${a.ownerId}`;
+                                  if (!seen.has(key)) seen.set(key, { ownerType: a.ownerType, ownerId: a.ownerId, ownerName: a.ownerName });
+                                }
+                                handleOpenAddStockpileDialog(structure.id, Array.from(seen.values()));
+                              }}
+                            >
+                              <Package className="h-3.5 w-3.5" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Add Stockpile</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  )}
+                </button>
+                {expandedNodes.has(`structure-${structure.id}-hangar`) && (
+                  <div>
+                    {renderAssetsTable(structure.hangarAssets, true, structure.id)}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Personal Hangar Containers */}
+            {structure.hangarContainers && structure.hangarContainers.length > 0 &&
+              structure.hangarContainers.map((container) =>
+                renderContainer(container, `structure-${structure.id}`, true, structure.id)
+              )}
+
+            {/* Deliveries */}
+            {structure.deliveries && structure.deliveries.length > 0 && (
+              <div>
+                <button
+                  onClick={() => toggleNode(`structure-${structure.id}-deliveries`)}
+                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+                >
+                  {expandedNodes.has(`structure-${structure.id}-deliveries`) ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-[#e2e8f0]">📬 Deliveries</span>
+                    <span className="text-xs text-[#64748b] ml-2">{structure.deliveries.length} items</span>
+                  </div>
+                </button>
+                {expandedNodes.has(`structure-${structure.id}-deliveries`) && (
+                  <div>{renderAssetsTable(structure.deliveries, true, structure.id)}</div>
+                )}
+              </div>
+            )}
+
+            {/* Asset Safety */}
+            {structure.assetSafety && structure.assetSafety.length > 0 && (
+              <div>
+                <button
+                  onClick={() => toggleNode(`structure-${structure.id}-safety`)}
+                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+                >
+                  {expandedNodes.has(`structure-${structure.id}-safety`) ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+                  <div className="flex-1">
+                    <span className="text-sm font-semibold text-[#e2e8f0]">🛡️ Asset Safety</span>
+                    <span className="text-xs text-[#64748b] ml-2">{structure.assetSafety.length} items</span>
+                  </div>
+                </button>
+                {expandedNodes.has(`structure-${structure.id}-safety`) && (
+                  <div>{renderAssetsTable(structure.assetSafety, true, structure.id)}</div>
+                )}
+              </div>
+            )}
+
+            {/* Corporation Hangars */}
+            {structure.corporationHangers && structure.corporationHangers.length > 0 &&
+              structure.corporationHangers
+                .sort((a, b) => a.id - b.id)
+                .map((hanger) => renderCorporationHanger(hanger, structure.id))}
+          </div>
+        )}
+      </div>
     );
   };
 
   return (
     <>
       <Navbar />
-      <Container maxWidth={false} sx={{ mt: 2, mb: 2, px: 3 }}>
+      <div className="mt-2 mb-2 px-6">
         {/* Sticky Header Section */}
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 64,
-            zIndex: 100,
-            backgroundColor: 'background.default',
-            pb: 1.5,
-            mb: 1.5,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, pt: 0.5 }}>
-            <Box>
-              <Typography variant="h5">Asset Inventory</Typography>
+        <div className="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3">
+          <div className="flex items-center justify-between mb-3 pt-1">
+            <div>
+              <h2 className="text-xl font-semibold text-[#e2e8f0]">Asset Inventory</h2>
               {assetStatus && (
-                <Typography sx={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                <p className="text-[#94a3b8] text-xs mt-0.5">
                   {assetStatus.lastUpdatedAt ? (
                     <>
                       Last updated: {formatRelativeTime(new Date(assetStatus.lastUpdatedAt))}
@@ -1720,413 +1818,128 @@ export default function AssetsList(props: AssetsListProps) {
                   ) : (
                     'Assets have not been updated yet'
                   )}
-                </Typography>
+                </p>
               )}
-            </Box>
+            </div>
 
             {/* Summary Stats */}
-            <Box sx={{ display: 'flex', gap: 2.5, alignItems: 'center', flexWrap: 'wrap' }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1,
-                  borderRadius: 1.5,
-                  background: 'rgba(0, 212, 255, 0.08)',
-                  border: '1px solid rgba(0, 212, 255, 0.2)',
-                }}
-              >
-                <InventoryIcon sx={{ fontSize: 20, color: '#00d4ff' }} />
-                <Box>
-                  <Typography variant="body1" fontWeight={700}>{formatCompact(totalItems)}</Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Items</Typography>
-                </Box>
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1,
-                  borderRadius: 1.5,
-                  background: 'rgba(139, 92, 246, 0.08)',
-                  border: '1px solid rgba(139, 92, 246, 0.2)',
-                }}
-              >
-                <CategoryIcon sx={{ fontSize: 20, color: '#8b5cf6' }} />
-                <Box>
-                  <Typography variant="body1" fontWeight={700}>{formatCompact(uniqueTypes)}</Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Types</Typography>
-                </Box>
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1,
-                  borderRadius: 1.5,
-                  background: 'rgba(245, 158, 11, 0.08)',
-                  border: '1px solid rgba(245, 158, 11, 0.2)',
-                }}
-              >
-                <LocationOnIcon sx={{ fontSize: 20, color: '#f59e0b' }} />
-                <Box>
-                  <Typography variant="body1" fontWeight={700}>
-                    {formatCompact(totalVolume)}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>m³</Typography>
-                </Box>
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 2,
-                  py: 1,
-                  borderRadius: 1.5,
-                  background: 'rgba(16, 185, 129, 0.08)',
-                  border: '1px solid rgba(16, 185, 129, 0.2)',
-                }}
-              >
-                <AttachMoneyIcon sx={{ fontSize: 20, color: '#10b981' }} />
-                <Box>
-                  <Typography variant="body1" fontWeight={700} sx={{ color: '#10b981' }}>
-                    {formatISK(totalValue)}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Total Value</Typography>
-                </Box>
-              </Box>
+            <div className="flex gap-2.5 items-center flex-wrap">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)]">
+                <Package className="h-5 w-5 text-[#00d4ff]" />
+                <div>
+                  <p className="text-sm font-bold text-[#e2e8f0]">{formatCompact(totalItems)}</p>
+                  <p className="text-[0.7rem] text-[#94a3b8]">Items</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]">
+                <Layers className="h-5 w-5 text-[#8b5cf6]" />
+                <div>
+                  <p className="text-sm font-bold text-[#e2e8f0]">{formatCompact(uniqueTypes)}</p>
+                  <p className="text-[0.7rem] text-[#94a3b8]">Types</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]">
+                <MapPin className="h-5 w-5 text-[#f59e0b]" />
+                <div>
+                  <p className="text-sm font-bold text-[#e2e8f0]">{formatCompact(totalVolume)}</p>
+                  <p className="text-[0.7rem] text-[#94a3b8]">m³</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]">
+                <DollarSign className="h-5 w-5 text-[#10b981]" />
+                <div>
+                  <p className="text-sm font-bold text-[#10b981]">{formatISK(totalValue)}</p>
+                  <p className="text-[0.7rem] text-[#94a3b8]">Total Value</p>
+                </div>
+              </div>
               {totalDeficit > 0 && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 2,
-                    py: 1,
-                    borderRadius: 1.5,
-                    background: 'rgba(239, 68, 68, 0.08)',
-                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                  }}
-                >
-                  <WarningIcon sx={{ fontSize: 20, color: '#ef4444' }} />
-                  <Box>
-                    <Typography variant="body1" fontWeight={700} sx={{ color: '#ef4444' }}>
-                      {formatISK(totalDeficit)}
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>Deficit Cost</Typography>
-                  </Box>
-                </Box>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)]">
+                  <AlertTriangle className="h-5 w-5 text-[#ef4444]" />
+                  <div>
+                    <p className="text-sm font-bold text-[#ef4444]">{formatISK(totalDeficit)}</p>
+                    <p className="text-[0.7rem] text-[#94a3b8]">Deficit Cost</p>
+                  </div>
+                </div>
               )}
-              <IconButton onClick={handleRefreshPrices} disabled={refreshingPrices} title="Refresh market prices" size="small">
-                <RefreshIcon />
-              </IconButton>
-            </Box>
-          </Box>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleRefreshPrices}
+                      disabled={refreshingPrices}
+                      className="h-9 w-9 text-[#94a3b8] hover:text-[#e2e8f0]"
+                    >
+                      {refreshingPrices ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Refresh market prices</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </div>
 
           {/* Search Bar and Filter */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder="Search items..."
-            size="small"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showBelowTargetOnly}
-                onChange={(e) => setShowBelowTargetOnly(e.target.checked)}
+          <div className="flex gap-3 items-center">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748b]" />
+              <Input
+                placeholder="Search items..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="pl-9 bg-[#12151f] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] placeholder:text-[#64748b]"
               />
-            }
-            label="Below target only"
-            sx={{ whiteSpace: 'nowrap' }}
-          />
-        </Box>
-        </Box>
+            </div>
+            <div className="flex items-center gap-2 whitespace-nowrap">
+              <Switch
+                id="below-target"
+                checked={showBelowTargetOnly}
+                onCheckedChange={setShowBelowTargetOnly}
+              />
+              <Label htmlFor="below-target" className="text-sm text-[#e2e8f0] cursor-pointer">
+                Below target only
+              </Label>
+            </div>
+          </div>
+        </div>
 
         {/* Tree View - Visible Stations */}
-        <Card>
-          <CardContent>
-            <List dense>
-              {visibleStructures.map((structure) => {
-                const structureNodeId = `structure-${structure.id}`;
-                const isStructureExpanded = expandedNodes.has(structureNodeId);
-
-                return (
-                  <Box key={structure.id}>
-                    {/* Station/Structure Node */}
-                    <ListItemButton onClick={() => toggleNode(structureNodeId)} sx={{ pl: 0 }}>
-                      {isStructureExpanded ? <ExpandLess /> : <ExpandMore />}
-                      <LocationOnIcon sx={{ mr: 1, color: 'primary.main' }} />
-                      <ListItemText
-                        primary={structure.name}
-                        secondary={`${structure.solarSystem} · ${structure.region}`}
-                        primaryTypographyProps={{ fontWeight: 700, variant: 'body1' }}
-                      />
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          togglePinStructure(structure.id);
-                        }}
-                        sx={{ ml: 1 }}
-                      >
-                        {pinnedStructures.has(structure.id) ? (
-                          <PushPinIcon fontSize="small" color="primary" />
-                        ) : (
-                          <PushPinOutlinedIcon fontSize="small" />
-                        )}
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleHideStructure(structure.id);
-                        }}
-                        sx={{ ml: 1 }}
-                      >
-                        <VisibilityOffIcon fontSize="small" />
-                      </IconButton>
-                    </ListItemButton>
-
-                    <Collapse in={isStructureExpanded} timeout={150} unmountOnExit>
-                      <List component="div" disablePadding dense>
-                        {/* Personal Hangar */}
-                        {structure.hangarAssets && structure.hangarAssets.length > 0 && (
-                          <Box>
-                            <ListItemButton onClick={() => toggleNode(`structure-${structure.id}-hangar`)} sx={{ pl: 2 }}>
-                              {expandedNodes.has(`structure-${structure.id}-hangar`) ? <ExpandLess /> : <ExpandMore />}
-                              <ListItemText
-                                primary="Personal Hangar"
-                                secondary={`${structure.hangarAssets.length} items`}
-                                primaryTypographyProps={{ fontWeight: 600 }}
-                              />
-                              <Tooltip title="Add Stockpile">
-                                <IconButton
-                                  size="small"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const seen = new Map<string, { ownerType: string; ownerId: number; ownerName: string }>();
-                                    for (const a of structure.hangarAssets) {
-                                      const key = `${a.ownerType}:${a.ownerId}`;
-                                      if (!seen.has(key)) seen.set(key, { ownerType: a.ownerType, ownerId: a.ownerId, ownerName: a.ownerName });
-                                    }
-                                    handleOpenAddStockpileDialog(structure.id, Array.from(seen.values()));
-                                  }}
-                                >
-                                  <InventoryIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </ListItemButton>
-                            <Collapse in={expandedNodes.has(`structure-${structure.id}-hangar`)} timeout={150} unmountOnExit>
-                              {renderAssetsTable(structure.hangarAssets, true, structure.id)}
-                            </Collapse>
-                          </Box>
-                        )}
-
-                        {/* Personal Hangar Containers */}
-                        {structure.hangarContainers && structure.hangarContainers.length > 0 &&
-                          structure.hangarContainers.map((container) =>
-                            renderContainer(container, `structure-${structure.id}`, true, structure.id)
-                          )}
-
-                        {/* Deliveries */}
-                        {structure.deliveries && structure.deliveries.length > 0 && (
-                          <Box>
-                            <ListItemButton onClick={() => toggleNode(`structure-${structure.id}-deliveries`)} sx={{ pl: 2 }}>
-                              {expandedNodes.has(`structure-${structure.id}-deliveries`) ? <ExpandLess /> : <ExpandMore />}
-                              <ListItemText
-                                primary="📬 Deliveries"
-                                secondary={`${structure.deliveries.length} items`}
-                                primaryTypographyProps={{ fontWeight: 600 }}
-                              />
-                            </ListItemButton>
-                            <Collapse in={expandedNodes.has(`structure-${structure.id}-deliveries`)} timeout={150} unmountOnExit>
-                              {renderAssetsTable(structure.deliveries, true, structure.id)}
-                            </Collapse>
-                          </Box>
-                        )}
-
-                        {/* Asset Safety */}
-                        {structure.assetSafety && structure.assetSafety.length > 0 && (
-                          <Box>
-                            <ListItemButton onClick={() => toggleNode(`structure-${structure.id}-safety`)} sx={{ pl: 2 }}>
-                              {expandedNodes.has(`structure-${structure.id}-safety`) ? <ExpandLess /> : <ExpandMore />}
-                              <ListItemText
-                                primary="🛡️ Asset Safety"
-                                secondary={`${structure.assetSafety.length} items`}
-                                primaryTypographyProps={{ fontWeight: 600 }}
-                              />
-                            </ListItemButton>
-                            <Collapse in={expandedNodes.has(`structure-${structure.id}-safety`)} timeout={150} unmountOnExit>
-                              {renderAssetsTable(structure.assetSafety, true, structure.id)}
-                            </Collapse>
-                          </Box>
-                        )}
-
-                        {/* Corporation Hangars */}
-                        {structure.corporationHangers && structure.corporationHangers.length > 0 &&
-                          structure.corporationHangers
-                            .sort((a, b) => a.id - b.id)
-                            .map((hanger) =>
-                              renderCorporationHanger(hanger, structure.id)
-                            )}
-                      </List>
-                    </Collapse>
-                  </Box>
-                );
-              })}
-            </List>
+        <Card className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <CardContent className="p-0">
+            <div className="divide-y divide-[rgba(148,163,184,0.05)]">
+              {visibleStructures.map((structure) => renderStructureTree(structure, false))}
+            </div>
           </CardContent>
         </Card>
 
         {/* Hidden Stations */}
         {hiddenStructuresList.length > 0 && (
-          <Card sx={{ mt: 2 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <VisibilityOffIcon /> Hidden Stations ({hiddenStructuresList.length})
-              </Typography>
-              <List dense>
-                {hiddenStructuresList.map((structure) => {
-                  const structureNodeId = `structure-${structure.id}`;
-                  const isStructureExpanded = expandedNodes.has(structureNodeId);
-
-                  return (
-                    <Box key={structure.id}>
-                      {/* Hidden Station/Structure Node */}
-                      <ListItemButton onClick={() => toggleNode(structureNodeId)} sx={{ pl: 0, opacity: 0.6 }}>
-                        {isStructureExpanded ? <ExpandLess /> : <ExpandMore />}
-                        <LocationOnIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                        <ListItemText
-                          primary={structure.name}
-                          secondary={`${structure.solarSystem} · ${structure.region}`}
-                          primaryTypographyProps={{ fontWeight: 700, variant: 'body1' }}
-                        />
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            togglePinStructure(structure.id);
-                          }}
-                          sx={{ ml: 1 }}
-                        >
-                          {pinnedStructures.has(structure.id) ? (
-                            <PushPinIcon fontSize="small" color="primary" />
-                          ) : (
-                            <PushPinOutlinedIcon fontSize="small" />
-                          )}
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleHideStructure(structure.id);
-                          }}
-                          sx={{ ml: 1 }}
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                      </ListItemButton>
-
-                      <Collapse in={isStructureExpanded} timeout={150} unmountOnExit>
-                        <List component="div" disablePadding dense>
-                          {/* Personal Hangar */}
-                          {structure.hangarAssets && structure.hangarAssets.length > 0 && (
-                            <Box>
-                              <ListItemButton onClick={() => toggleNode(`structure-${structure.id}-hangar`)} sx={{ pl: 2 }}>
-                                {expandedNodes.has(`structure-${structure.id}-hangar`) ? <ExpandLess /> : <ExpandMore />}
-                                <ListItemText
-                                  primary="Personal Hangar"
-                                  secondary={`${structure.hangarAssets.length} items`}
-                                  primaryTypographyProps={{ fontWeight: 600 }}
-                                />
-                              </ListItemButton>
-                              <Collapse in={expandedNodes.has(`structure-${structure.id}-hangar`)} timeout={150} unmountOnExit>
-                                {renderAssetsTable(structure.hangarAssets, true, structure.id)}
-                              </Collapse>
-                            </Box>
-                          )}
-
-                          {/* Personal Hangar Containers */}
-                          {structure.hangarContainers && structure.hangarContainers.length > 0 &&
-                            structure.hangarContainers.map((container) =>
-                              renderContainer(container, `structure-${structure.id}`, true, structure.id)
-                            )}
-
-                          {/* Deliveries */}
-                          {structure.deliveries && structure.deliveries.length > 0 && (
-                            <Box>
-                              <ListItemButton onClick={() => toggleNode(`structure-${structure.id}-deliveries`)} sx={{ pl: 2 }}>
-                                {expandedNodes.has(`structure-${structure.id}-deliveries`) ? <ExpandLess /> : <ExpandMore />}
-                                <ListItemText
-                                  primary="📬 Deliveries"
-                                  secondary={`${structure.deliveries.length} items`}
-                                  primaryTypographyProps={{ fontWeight: 600 }}
-                                />
-                              </ListItemButton>
-                              <Collapse in={expandedNodes.has(`structure-${structure.id}-deliveries`)} timeout={150} unmountOnExit>
-                                {renderAssetsTable(structure.deliveries, true, structure.id)}
-                              </Collapse>
-                            </Box>
-                          )}
-
-                          {/* Asset Safety */}
-                          {structure.assetSafety && structure.assetSafety.length > 0 && (
-                            <Box>
-                              <ListItemButton onClick={() => toggleNode(`structure-${structure.id}-safety`)} sx={{ pl: 2 }}>
-                                {expandedNodes.has(`structure-${structure.id}-safety`) ? <ExpandLess /> : <ExpandMore />}
-                                <ListItemText
-                                  primary="🛡️ Asset Safety"
-                                  secondary={`${structure.assetSafety.length} items`}
-                                  primaryTypographyProps={{ fontWeight: 600 }}
-                                />
-                              </ListItemButton>
-                              <Collapse in={expandedNodes.has(`structure-${structure.id}-safety`)} timeout={150} unmountOnExit>
-                                {renderAssetsTable(structure.assetSafety, true, structure.id)}
-                              </Collapse>
-                            </Box>
-                          )}
-
-                          {/* Corporation Hangars */}
-                          {structure.corporationHangers && structure.corporationHangers.length > 0 &&
-                            structure.corporationHangers
-                              .sort((a, b) => a.id - b.id)
-                              .map((hanger) =>
-                                renderCorporationHanger(hanger, structure.id)
-                              )}
-                        </List>
-                      </Collapse>
-                    </Box>
-                  );
-                })}
-              </List>
+          <Card className="mt-4 bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+            <CardContent className="p-0">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-[rgba(148,163,184,0.1)]">
+                <EyeOff className="h-4 w-4 text-[#94a3b8]" />
+                <h3 className="text-base font-semibold text-[#e2e8f0]">
+                  Hidden Stations ({hiddenStructuresList.length})
+                </h3>
+              </div>
+              <div className="divide-y divide-[rgba(148,163,184,0.05)]">
+                {hiddenStructuresList.map((structure) => renderStructureTree(structure, true))}
+              </div>
             </CardContent>
           </Card>
         )}
 
         {filteredStructures.length === 0 && searchQuery && (
-          <Card>
-            <CardContent>
-              <Typography variant="body1" color="text.secondary" textAlign="center">
-                No items found matching "{searchQuery}"
-              </Typography>
+          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+            <CardContent className="py-8 text-center">
+              <p className="text-sm text-[#94a3b8]">
+                No items found matching &quot;{searchQuery}&quot;
+              </p>
             </CardContent>
           </Card>
         )}
@@ -2134,358 +1947,396 @@ export default function AssetsList(props: AssetsListProps) {
         {/* Stockpile Modal */}
         <Dialog
           open={stockpileModalOpen}
-          onClose={() => setStockpileModalOpen(false)}
-          maxWidth="sm"
-          fullWidth
-          TransitionProps={{
-            onEntered: () => {
-              desiredQuantityInputRef.current?.focus();
-            }
+          onOpenChange={(o) => {
+            if (!o) setStockpileModalOpen(false);
+            else desiredQuantityInputRef.current?.focus();
           }}
         >
-          <DialogTitle>
-            {selectedAsset?.asset.desiredQuantity ? 'Edit' : 'Set'} Stockpile Marker
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ pt: 1 }}>
-              <Typography variant="body2" gutterBottom>
-                <strong>Item:</strong> {selectedAsset?.asset.name}
-              </Typography>
-              <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
-                <strong>Current Quantity:</strong> {selectedAsset?.asset.quantity.toLocaleString()}
-              </Typography>
-              <TextField
-                fullWidth
-                label="Desired Quantity"
-                type="text"
-                value={desiredQuantity}
-                onChange={(e) => handleQuantityChange(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && desiredQuantity) {
-                    e.preventDefault();
-                    handleSaveStockpile();
-                  }
-                }}
-                sx={{ mb: 2 }}
-                required
-                placeholder="0"
-                inputRef={desiredQuantityInputRef}
-              />
-              <TextField
-                fullWidth
-                label="Notes (optional)"
-                multiline
-                rows={3}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Auto-Production</Typography>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={autoProductionEnabled}
-                    onChange={(e) => setAutoProductionEnabled(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label="Enable Auto-Production"
-              />
+          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+            <DialogHeader>
+              <DialogTitle className="text-[#e2e8f0]">
+                {selectedAsset?.asset.desiredQuantity ? 'Edit' : 'Set'} Stockpile Marker
+              </DialogTitle>
+            </DialogHeader>
+            <div className="pt-1 flex flex-col gap-3">
+              <p className="text-sm text-[#e2e8f0]"><strong>Item:</strong> {selectedAsset?.asset.name}</p>
+              <p className="text-sm text-[#e2e8f0] mb-1"><strong>Current Quantity:</strong> {selectedAsset?.asset.quantity.toLocaleString()}</p>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="stockpile-qty" className="text-xs text-[#94a3b8]">Desired Quantity *</Label>
+                <Input
+                  id="stockpile-qty"
+                  type="text"
+                  value={desiredQuantity}
+                  onChange={(e) => handleQuantityChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && desiredQuantity) {
+                      e.preventDefault();
+                      handleSaveStockpile();
+                    }
+                  }}
+                  placeholder="0"
+                  ref={desiredQuantityInputRef}
+                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="stockpile-notes" className="text-xs text-[#94a3b8]">Notes (optional)</Label>
+                <textarea
+                  id="stockpile-notes"
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full rounded-md border border-[rgba(148,163,184,0.2)] bg-[#0f1219] px-3 py-2 text-sm text-[#e2e8f0] placeholder:text-[#64748b] resize-none focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
+                />
+              </div>
+              <Separator className="bg-[rgba(148,163,184,0.1)]" />
+              <p className="text-xs font-semibold text-[#94a3b8]">Auto-Production</p>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="stockpile-auto-prod"
+                  checked={autoProductionEnabled}
+                  onCheckedChange={setAutoProductionEnabled}
+                />
+                <Label htmlFor="stockpile-auto-prod" className="text-sm text-[#e2e8f0] cursor-pointer">
+                  Enable Auto-Production
+                </Label>
+              </div>
               {autoProductionEnabled && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-                  <FormControl size="small" fullWidth>
-                    <InputLabel>Production Plan</InputLabel>
+                <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <Label className="text-xs text-[#94a3b8]">Production Plan</Label>
                     <Select
-                      value={selectedPlanId ?? ''}
-                      label="Production Plan"
-                      onChange={(e) => setSelectedPlanId(e.target.value ? Number(e.target.value) : null)}
+                      value={selectedPlanId !== null ? String(selectedPlanId) : ''}
+                      onValueChange={(v) => setSelectedPlanId(v ? Number(v) : null)}
                       disabled={plansLoading || availablePlans.length === 0}
                     >
-                      {plansLoading ? (
-                        <MenuItem disabled>Loading plans...</MenuItem>
-                      ) : availablePlans.length === 0 ? (
-                        <MenuItem disabled>No plans for this item</MenuItem>
-                      ) : (
-                        availablePlans.map((plan) => (
-                          <MenuItem key={plan.id} value={plan.id}>
+                      <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                        <SelectValue
+                          placeholder={
+                            plansLoading
+                              ? 'Loading plans...'
+                              : availablePlans.length === 0
+                              ? 'No plans for this item'
+                              : 'Select a plan...'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]">
+                        {availablePlans.map((plan) => (
+                          <SelectItem
+                            key={plan.id}
+                            value={String(plan.id)}
+                            className="text-[#e2e8f0] focus:bg-[rgba(0,212,255,0.08)]"
+                          >
                             {plan.name}
-                          </MenuItem>
-                        ))
-                      )}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
-                  </FormControl>
-                  <TextField
-                    size="small"
-                    label="Max Parallelism"
-                    type="number"
-                    value={parallelism}
-                    onChange={(e) => setParallelism(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                    inputProps={{ min: 0 }}
-                    helperText="0 = no character assignment"
-                    fullWidth
-                  />
-                </Box>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="stockpile-parallelism" className="text-xs text-[#94a3b8]">Max Parallelism</Label>
+                    <Input
+                      id="stockpile-parallelism"
+                      type="number"
+                      min={0}
+                      value={parallelism}
+                      onChange={(e) => setParallelism(Math.max(0, parseInt(e.target.value, 10) || 0))}
+                      className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                    />
+                    <p className="text-xs text-[#64748b]">0 = no character assignment</p>
+                  </div>
+                </div>
               )}
-            </Box>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setStockpileModalOpen(false)}
+                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveStockpile}
+                disabled={!desiredQuantity}
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+              >
+                Save
+              </Button>
+            </DialogFooter>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setStockpileModalOpen(false)}>Cancel</Button>
-            <Button onClick={handleSaveStockpile} variant="contained" disabled={!desiredQuantity}>
-              Save
-            </Button>
-          </DialogActions>
         </Dialog>
 
         {/* List for Sale Dialog */}
-        <Dialog
-          open={listingDialogOpen}
-          onClose={() => setListingDialogOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>{editingListingId ? 'Edit Listing' : 'List Item for Sale'}</DialogTitle>
-          <DialogContent>
-            <Box sx={{ pt: 1 }}>
-              <Typography variant="body2" gutterBottom>
-                <strong>Item:</strong> {listingAsset?.asset.name}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Owner:</strong> {listingAsset?.asset.ownerName}
-              </Typography>
-              <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
-                <strong>Available Quantity:</strong> {listingAsset?.asset.quantity.toLocaleString()}
-              </Typography>
-
-              <TextField
-                fullWidth
-                label="Quantity to List"
-                type="text"
-                inputRef={listingQuantityRef}
-                onBlur={() => handleListingInputChange(listingQuantityRef)}
-                sx={{ mb: 2 }}
-                required
-                placeholder="0"
-                helperText={`Max: ${listingAsset?.asset.quantity.toLocaleString() || 0}`}
-              />
-
-              <TextField
-                fullWidth
-                label="Price Per Unit (ISK)"
-                type="text"
-                inputRef={listingPriceRef}
-                onBlur={() => handleListingInputChange(listingPriceRef, true)}
-                sx={{ mb: 2 }}
-                required
-                placeholder="0"
-                helperText={listingTotalValue ? `Total Value: ${listingTotalValue} ISK` : undefined}
-              />
-
-              <TextField
-                fullWidth
-                label="Notes (optional)"
-                multiline
-                rows={3}
-                inputRef={listingNotesRef}
-                placeholder="Add any notes about this listing..."
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            {editingListingId && (
-              <Button
-                onClick={handleDeleteListing}
-                color="error"
-                disabled={submittingListing}
-                sx={{ mr: 'auto' }}
-              >
-                Delete
+        <Dialog open={listingDialogOpen} onOpenChange={(o) => { if (!o) setListingDialogOpen(false); }}>
+          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+            <DialogHeader>
+              <DialogTitle className="text-[#e2e8f0]">
+                {editingListingId ? 'Edit Listing' : 'List Item for Sale'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="pt-1 flex flex-col gap-3">
+              <p className="text-sm text-[#e2e8f0]"><strong>Item:</strong> {listingAsset?.asset.name}</p>
+              <p className="text-sm text-[#e2e8f0]"><strong>Owner:</strong> {listingAsset?.asset.ownerName}</p>
+              <p className="text-sm text-[#e2e8f0] mb-1"><strong>Available Quantity:</strong> {listingAsset?.asset.quantity.toLocaleString()}</p>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="listing-qty" className="text-xs text-[#94a3b8]">Quantity to List *</Label>
+                <Input
+                  id="listing-qty"
+                  type="text"
+                  ref={listingQuantityRef}
+                  onBlur={() => handleListingInputChange(listingQuantityRef)}
+                  placeholder="0"
+                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                />
+                <p className="text-xs text-[#64748b]">Max: {listingAsset?.asset.quantity.toLocaleString() || 0}</p>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="listing-price" className="text-xs text-[#94a3b8]">Price Per Unit (ISK) *</Label>
+                <Input
+                  id="listing-price"
+                  type="text"
+                  ref={listingPriceRef}
+                  onBlur={() => handleListingInputChange(listingPriceRef, true)}
+                  placeholder="0"
+                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                />
+                {listingTotalValue && (
+                  <p className="text-xs text-[#64748b]">Total Value: {listingTotalValue} ISK</p>
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="listing-notes" className="text-xs text-[#94a3b8]">Notes (optional)</Label>
+                <Input
+                  id="listing-notes"
+                  type="text"
+                  ref={listingNotesRef}
+                  placeholder="Add any notes about this listing..."
+                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              {editingListingId && (
+                <Button
+                  variant="destructive"
+                  onClick={handleDeleteListing}
+                  disabled={submittingListing}
+                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                >
+                  Delete
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setListingDialogOpen(false)}
+                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                Cancel
               </Button>
-            )}
-            <Button onClick={() => setListingDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleCreateListing}
-              variant="contained"
-              disabled={submittingListing}
-            >
-              {submittingListing ? (editingListingId ? 'Updating...' : 'Creating...') : (editingListingId ? 'Update Listing' : 'Create Listing')}
-            </Button>
-          </DialogActions>
+              <Button
+                onClick={handleCreateListing}
+                disabled={submittingListing}
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+              >
+                {submittingListing ? (editingListingId ? 'Updating...' : 'Creating...') : (editingListingId ? 'Update Listing' : 'Create Listing')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
 
         {/* Auto-Sell Configuration Dialog */}
-        <Dialog
-          open={autoSellDialogOpen}
-          onClose={() => setAutoSellDialogOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>
-            {autoSellContainer && getAutoSellForContainer(
-              autoSellContainer.containerId,
-              autoSellContainer.ownerType,
-              autoSellContainer.ownerId,
-              autoSellContainer.locationId,
-              autoSellContainer.divisionNumber
-            ) ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ pt: 1 }}>
-              <Typography variant="body2" gutterBottom>
+        <Dialog open={autoSellDialogOpen} onOpenChange={(o) => { if (!o) setAutoSellDialogOpen(false); }}>
+          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+            <DialogHeader>
+              <DialogTitle className="text-[#e2e8f0]">
+                {autoSellContainer && getAutoSellForContainer(
+                  autoSellContainer.containerId,
+                  autoSellContainer.ownerType,
+                  autoSellContainer.ownerId,
+                  autoSellContainer.locationId,
+                  autoSellContainer.divisionNumber
+                ) ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="pt-1 flex flex-col gap-3">
+              <p className="text-sm text-[#e2e8f0]">
                 <strong>{autoSellContainer?.containerId ? 'Container' : 'Division'}:</strong> {autoSellContainer?.containerName}
-              </Typography>
-              <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
+              </p>
+              <p className="text-sm text-[#94a3b8] mb-1">
                 All items in this {autoSellContainer?.containerId ? 'container' : 'hangar division'} will be automatically listed for sale at the specified percentage of the selected price source. Listings sync on asset refresh and market price updates.
-              </Typography>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel id="price-source-label">Price Source</InputLabel>
-                <Select
-                  labelId="price-source-label"
-                  value={autoSellPriceSource}
-                  label="Price Source"
-                  onChange={(e) => setAutoSellPriceSource(e.target.value)}
-                >
-                  {PRICE_SOURCE_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
+              </p>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-[#94a3b8]">Price Source</Label>
+                <Select value={autoSellPriceSource} onValueChange={setAutoSellPriceSource}>
+                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]">
+                    {PRICE_SOURCE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[#e2e8f0] focus:bg-[rgba(0,212,255,0.08)]">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-              </FormControl>
-              <TextField
-                fullWidth
-                label={`Price Percentage of ${getPriceSourceLabel(autoSellPriceSource)}`}
-                type="number"
-                value={autoSellPercentage}
-                onChange={(e) => setAutoSellPercentage(e.target.value)}
-                InputProps={{
-                  inputProps: { min: 1, max: 200, step: 0.5 },
-                  endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                }}
-                helperText={`Items will be listed at ${autoSellPercentage}% of ${getPriceSourceLabel(autoSellPriceSource).toLowerCase()}`}
-              />
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            {autoSellContainer && getAutoSellForContainer(
-              autoSellContainer.containerId,
-              autoSellContainer.ownerType,
-              autoSellContainer.ownerId,
-              autoSellContainer.locationId,
-              autoSellContainer.divisionNumber
-            ) && (
-              <Button
-                onClick={handleDisableAutoSell}
-                color="error"
-                disabled={submittingAutoSell}
-                sx={{ mr: 'auto' }}
-              >
-                Disable
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="auto-sell-pct" className="text-xs text-[#94a3b8]">
+                  Price Percentage of {getPriceSourceLabel(autoSellPriceSource)}
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="auto-sell-pct"
+                    type="number"
+                    min={1}
+                    max={200}
+                    step={0.5}
+                    value={autoSellPercentage}
+                    onChange={(e) => setAutoSellPercentage(e.target.value)}
+                    className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] pr-8"
+                  />
+                  <span className="absolute right-3 top-2.5 text-sm text-[#64748b]">%</span>
+                </div>
+                <p className="text-xs text-[#64748b]">
+                  Items will be listed at {autoSellPercentage}% of {getPriceSourceLabel(autoSellPriceSource).toLowerCase()}
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              {autoSellContainer && getAutoSellForContainer(
+                autoSellContainer.containerId,
+                autoSellContainer.ownerType,
+                autoSellContainer.ownerId,
+                autoSellContainer.locationId,
+                autoSellContainer.divisionNumber
+              ) && (
+                <Button
+                  variant="destructive"
+                  onClick={handleDisableAutoSell}
+                  disabled={submittingAutoSell}
+                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                >
+                  Disable
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setAutoSellDialogOpen(false)}
+                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                Cancel
               </Button>
-            )}
-            <Button onClick={() => setAutoSellDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleSaveAutoSell}
-              variant="contained"
-              disabled={submittingAutoSell || !autoSellPercentage || parseFloat(autoSellPercentage) <= 0 || parseFloat(autoSellPercentage) > 200}
-            >
-              {submittingAutoSell ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogActions>
+              <Button
+                onClick={handleSaveAutoSell}
+                disabled={submittingAutoSell || !autoSellPercentage || parseFloat(autoSellPercentage) <= 0 || parseFloat(autoSellPercentage) > 200}
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+              >
+                {submittingAutoSell ? 'Saving...' : 'Save'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
 
         {/* Auto-Buy Configuration Dialog */}
-        <Dialog
-          open={autoBuyDialogOpen}
-          onClose={() => setAutoBuyDialogOpen(false)}
-          maxWidth="sm"
-          fullWidth
-        >
-          <DialogTitle>
-            {autoBuyContainer && getAutoBuyForContainer(
-              autoBuyContainer.containerId,
-              autoBuyContainer.ownerType,
-              autoBuyContainer.ownerId,
-              autoBuyContainer.locationId,
-              autoBuyContainer.divisionNumber
-            ) ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
-          </DialogTitle>
-          <DialogContent>
-            <Box sx={{ pt: 1 }}>
-              <Typography variant="body2" gutterBottom>
+        <Dialog open={autoBuyDialogOpen} onOpenChange={(o) => { if (!o) setAutoBuyDialogOpen(false); }}>
+          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+            <DialogHeader>
+              <DialogTitle className="text-[#e2e8f0]">
+                {autoBuyContainer && getAutoBuyForContainer(
+                  autoBuyContainer.containerId,
+                  autoBuyContainer.ownerType,
+                  autoBuyContainer.ownerId,
+                  autoBuyContainer.locationId,
+                  autoBuyContainer.divisionNumber
+                ) ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="pt-1 flex flex-col gap-3">
+              <p className="text-sm text-[#e2e8f0]">
                 <strong>{autoBuyContainer?.containerId ? 'Container' : 'Division'}:</strong> {autoBuyContainer?.containerName}
-              </Typography>
-              <Typography variant="body2" gutterBottom sx={{ mb: 2, color: '#94a3b8' }}>
+              </p>
+              <p className="text-sm text-[#94a3b8] mb-1">
                 Buy orders will be automatically created for understocked stockpile items in this {autoBuyContainer?.containerId ? 'container' : 'hangar division'} at the specified percentage of the selected price source. Orders sync on asset refresh and market price updates.
-              </Typography>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel id="auto-buy-price-source-label">Price Source</InputLabel>
-                <Select
-                  labelId="auto-buy-price-source-label"
-                  value={autoBuyPriceSource}
-                  label="Price Source"
-                  onChange={(e) => setAutoBuyPriceSource(e.target.value)}
-                >
-                  {PRICE_SOURCE_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
+              </p>
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-xs text-[#94a3b8]">Price Source</Label>
+                <Select value={autoBuyPriceSource} onValueChange={setAutoBuyPriceSource}>
+                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]">
+                    {PRICE_SOURCE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value} className="text-[#e2e8f0] focus:bg-[rgba(0,212,255,0.08)]">
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-              </FormControl>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label={`Min % of ${getPriceSourceLabel(autoBuyPriceSource)}`}
-                  type="number"
-                  value={autoBuyMinPercentage}
-                  onChange={(e) => setAutoBuyMinPercentage(e.target.value)}
-                  InputProps={{
-                    inputProps: { min: 0, max: 200, step: 0.5 },
-                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                  }}
-                  helperText="Floor price for auto-fulfill matching"
-                />
-                <TextField
-                  fullWidth
-                  label={`Max % of ${getPriceSourceLabel(autoBuyPriceSource)}`}
-                  type="number"
-                  value={autoBuyMaxPercentage}
-                  onChange={(e) => setAutoBuyMaxPercentage(e.target.value)}
-                  InputProps={{
-                    inputProps: { min: 1, max: 200, step: 0.5 },
-                    endAdornment: <InputAdornment position="end">%</InputAdornment>,
-                  }}
-                  helperText="Ceiling price for buy orders"
-                />
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions>
-            {autoBuyContainer && getAutoBuyForContainer(
-              autoBuyContainer.containerId,
-              autoBuyContainer.ownerType,
-              autoBuyContainer.ownerId,
-              autoBuyContainer.locationId,
-              autoBuyContainer.divisionNumber
-            ) && (
-              <Button
-                onClick={handleDisableAutoBuy}
-                color="error"
-                disabled={submittingAutoBuy}
-                sx={{ mr: 'auto' }}
-              >
-                Disable
+              </div>
+              <div className="flex gap-3">
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <Label htmlFor="auto-buy-min" className="text-xs text-[#94a3b8]">
+                    Min % of {getPriceSourceLabel(autoBuyPriceSource)}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="auto-buy-min"
+                      type="number"
+                      min={0}
+                      max={200}
+                      step={0.5}
+                      value={autoBuyMinPercentage}
+                      onChange={(e) => setAutoBuyMinPercentage(e.target.value)}
+                      className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] pr-8"
+                    />
+                    <span className="absolute right-3 top-2.5 text-sm text-[#64748b]">%</span>
+                  </div>
+                  <p className="text-xs text-[#64748b]">Floor price for auto-fulfill matching</p>
+                </div>
+                <div className="flex flex-col gap-1.5 flex-1">
+                  <Label htmlFor="auto-buy-max" className="text-xs text-[#94a3b8]">
+                    Max % of {getPriceSourceLabel(autoBuyPriceSource)}
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="auto-buy-max"
+                      type="number"
+                      min={1}
+                      max={200}
+                      step={0.5}
+                      value={autoBuyMaxPercentage}
+                      onChange={(e) => setAutoBuyMaxPercentage(e.target.value)}
+                      className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] pr-8"
+                    />
+                    <span className="absolute right-3 top-2.5 text-sm text-[#64748b]">%</span>
+                  </div>
+                  <p className="text-xs text-[#64748b]">Ceiling price for buy orders</p>
+                </div>
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              {autoBuyContainer && getAutoBuyForContainer(
+                autoBuyContainer.containerId,
+                autoBuyContainer.ownerType,
+                autoBuyContainer.ownerId,
+                autoBuyContainer.locationId,
+                autoBuyContainer.divisionNumber
+              ) && (
+                <Button
+                  variant="destructive"
+                  onClick={handleDisableAutoBuy}
+                  disabled={submittingAutoBuy}
+                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                >
+                  Disable
+                </Button>
+              )}
+              <Button variant="outline" onClick={() => setAutoBuyDialogOpen(false)}
+                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                Cancel
               </Button>
-            )}
-            <Button onClick={() => setAutoBuyDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleSaveAutoBuy}
-              variant="contained"
-              disabled={submittingAutoBuy || !autoBuyMaxPercentage || parseFloat(autoBuyMaxPercentage) <= 0 || parseFloat(autoBuyMaxPercentage) > 200 || parseFloat(autoBuyMinPercentage) < 0 || parseFloat(autoBuyMinPercentage) > parseFloat(autoBuyMaxPercentage)}
-            >
-              {submittingAutoBuy ? 'Saving...' : 'Save'}
-            </Button>
-          </DialogActions>
+              <Button
+                onClick={handleSaveAutoBuy}
+                disabled={submittingAutoBuy || !autoBuyMaxPercentage || parseFloat(autoBuyMaxPercentage) <= 0 || parseFloat(autoBuyMaxPercentage) > 200 || parseFloat(autoBuyMinPercentage) < 0 || parseFloat(autoBuyMinPercentage) > parseFloat(autoBuyMaxPercentage)}
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+              >
+                {submittingAutoBuy ? 'Saving...' : 'Save'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
         </Dialog>
 
         {/* Add Stockpile Dialog */}
@@ -2500,7 +2351,7 @@ export default function AssetsList(props: AssetsListProps) {
             owners={addStockpileContext.owners}
           />
         )}
-      </Container>
+      </div>
     </>
   );
 }

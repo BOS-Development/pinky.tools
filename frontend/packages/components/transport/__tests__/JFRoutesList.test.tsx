@@ -99,8 +99,9 @@ describe('JFRoutesList', () => {
       <JFRoutesList routes={mockRoutes} loading={false} onRefresh={jest.fn()} />,
     );
 
-    const editButtons = screen.getAllByTestId('EditIcon');
-    fireEvent.click(editButtons[0].closest('button')!);
+    // Find all icon buttons and click the first one (edit button for first route)
+    const iconButtons = screen.getAllByRole('button', { name: '' });
+    fireEvent.click(iconButtons[0]);
     expect(screen.getByTestId('route-dialog')).toBeInTheDocument();
     expect(screen.getByText('Edit Route Dialog')).toBeInTheDocument();
   });

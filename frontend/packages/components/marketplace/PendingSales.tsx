@@ -1,29 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Accordion from '@mui/material/Accordion';
-import AccordionSummary from '@mui/material/AccordionSummary';
-import AccordionDetails from '@mui/material/AccordionDetails';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import AssignmentIcon from '@mui/icons-material/Assignment';
-import CancelIcon from '@mui/icons-material/Cancel';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PersonIcon from '@mui/icons-material/Person';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Tooltip from '@mui/material/Tooltip';
+import { ClipboardList, XCircle, MapPin, User, Copy, ChevronDown, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from '@/components/ui/sonner';
+import { cn } from '@/lib/utils';
 
 type PendingSale = {
   id: number;
@@ -73,11 +57,7 @@ export default function PendingSales() {
   const { data: session } = useSession();
   const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   const contractKeyCache = useRef<Map<string, string>>(new Map());
 
   useEffect(() => {
@@ -109,7 +89,6 @@ export default function PendingSales() {
       const key = `${sale.buyerUserId}-${sale.locationId}`;
 
       if (!groups.has(key)) {
-        // Use existing key from backend, or a cached key, or generate once and cache
         let contractKey = sale.contractKey;
         if (!contractKey) {
           if (!contractKeyCache.current.has(key)) {
@@ -170,7 +149,6 @@ export default function PendingSales() {
     }
 
     return Array.from(groups.values()).sort((a, b) => {
-      // Sort by location first, then by buyer name
       if (a.locationName !== b.locationName) {
         return a.locationName.localeCompare(b.locationName);
       }
@@ -183,29 +161,7 @@ export default function PendingSales() {
     return `PT-${buyerUserId}-${locationId}-${timestamp}`;
   };
 
-  const handleMarkContractCreated = async (purchaseId: number, contractKey?: string) => {
-    try {
-      const response = await fetch(`/api/purchases/${purchaseId}/mark-contract-created`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contractKey }),
-      });
-
-      if (response.ok) {
-        await fetchPendingSales();
-        setSnackbar({ open: true, message: 'Contract marked as created', severity: 'success' });
-      } else {
-        const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to mark contract created', severity: 'error' });
-      }
-    } catch (error) {
-      console.error('Failed to mark contract created:', error);
-      setSnackbar({ open: true, message: 'Failed to mark contract created', severity: 'error' });
-    }
-  };
-
   const handleMarkGroupContractCreated = async (group: GroupedSale) => {
-    // Use the group's contract key (already generated)
     const contractKey = group.contractKey!;
 
     try {
@@ -220,14 +176,10 @@ export default function PendingSales() {
       );
 
       await fetchPendingSales();
-      setSnackbar({
-        open: true,
-        message: `Marked ${group.items.length} contract${group.items.length !== 1 ? 's' : ''} as created`,
-        severity: 'success'
-      });
+      toast.success(`Marked ${group.items.length} contract${group.items.length !== 1 ? 's' : ''} as created`);
     } catch (error) {
       console.error('Failed to mark contracts created:', error);
-      setSnackbar({ open: true, message: 'Failed to mark contracts created', severity: 'error' });
+      toast.error('Failed to mark contracts created');
     }
   };
 
@@ -250,298 +202,240 @@ export default function PendingSales() {
       const failed = results.filter(r => !r.ok).length;
       await fetchPendingSales();
       if (failed === 0) {
-        setSnackbar({ open: true, message: count === 1 ? 'Sale cancelled successfully' : `${count} sales cancelled successfully`, severity: 'success' });
+        toast.success(count === 1 ? 'Sale cancelled successfully' : `${count} sales cancelled successfully`);
       } else {
-        setSnackbar({ open: true, message: `${failed} of ${count} cancellations failed`, severity: 'error' });
+        toast.error(`${failed} of ${count} cancellations failed`);
       }
     } catch (error) {
       console.error('Failed to cancel sale:', error);
-      setSnackbar({ open: true, message: 'Failed to cancel sale', severity: 'error' });
+      toast.error('Failed to cancel sale');
     }
   };
 
   const handleCopyBuyerName = async (buyerName: string) => {
     try {
       await navigator.clipboard.writeText(buyerName);
-      setSnackbar({ open: true, message: `Copied "${buyerName}" to clipboard`, severity: 'success' });
+      toast.success(`Copied "${buyerName}" to clipboard`);
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
-      setSnackbar({ open: true, message: 'Failed to copy to clipboard', severity: 'error' });
+      toast.error('Failed to copy to clipboard');
     }
   };
 
   const handleCopyContractKey = async (contractKey: string) => {
     try {
       await navigator.clipboard.writeText(contractKey);
-      setSnackbar({ open: true, message: `Copied "${contractKey}" to clipboard`, severity: 'success' });
+      toast.success(`Copied "${contractKey}" to clipboard`);
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
-      setSnackbar({ open: true, message: 'Failed to copy to clipboard', severity: 'error' });
+      toast.error('Failed to copy to clipboard');
     }
   };
 
   const handleCopyTotal = async (totalValue: number) => {
     try {
       await navigator.clipboard.writeText(totalValue.toString());
-      setSnackbar({ open: true, message: `Copied "${totalValue.toLocaleString()} ISK" to clipboard`, severity: 'success' });
+      toast.success(`Copied "${totalValue.toLocaleString()} ISK" to clipboard`);
     } catch (error) {
       console.error('Failed to copy to clipboard:', error);
-      setSnackbar({ open: true, message: 'Failed to copy to clipboard', severity: 'error' });
+      toast.error('Failed to copy to clipboard');
     }
+  };
+
+  const toggleGroup = (key: string) => {
+    setOpenGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   if (pendingSales.length === 0) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h6" color="text.secondary">
-          No pending sales
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+      <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+        <h3 className="text-lg font-semibold text-[#94a3b8]">No pending sales</h3>
+        <p className="text-sm text-[#64748b] mt-1">
           When buyers request to purchase your items, they will appear here.
-        </Typography>
-      </Paper>
+        </p>
+      </div>
     );
   }
 
   const groupedSales = groupSales();
 
   return (
-    <Box>
-      <Typography variant="h6" gutterBottom>
+    <div>
+      <h3 className="text-lg font-semibold text-[#e2e8f0] mb-1">
         Pending Sales ({pendingSales.length} items in {groupedSales.length} groups)
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        Sales are grouped by purchaser and station. Copy the contract key, create the in-game contract with the key in the description, then mark as "Contract Created".
-      </Typography>
+      </h3>
+      <p className="text-sm text-[#94a3b8] mb-4">
+        Sales are grouped by purchaser and station. Copy the contract key, create the in-game contract with the key in the description, then mark as &quot;Contract Created&quot;.
+      </p>
 
-      {groupedSales.map((group, index) => (
-        <Accordion key={`${group.buyerUserId}-${group.locationId}`} defaultExpanded={index === 0}>
-          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, flexWrap: 'wrap' }}>
-                <PersonIcon fontSize="small" color="action" />
-                <Tooltip title="Click to copy buyer name">
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      cursor: 'pointer',
-                      '&:hover .buyer-name': {
-                        color: 'primary.main',
-                        textDecoration: 'underline',
-                      },
-                      '&:hover .copy-icon': {
-                        color: 'primary.main',
-                      },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCopyBuyerName(group.buyerName);
-                    }}
-                  >
-                    <Typography
-                      className="buyer-name"
-                      variant="subtitle1"
-                      sx={{ fontWeight: 600 }}
-                    >
-                      {group.buyerName}
-                    </Typography>
-                    <ContentCopyIcon
-                      className="copy-icon"
-                      fontSize="small"
-                      sx={{ fontSize: '1rem', color: 'action.active' }}
-                    />
-                  </Box>
-                </Tooltip>
-                <Box sx={{ mx: 1 }}>•</Box>
-                <LocationOnIcon fontSize="small" color="action" />
-                <Typography variant="subtitle1">
-                  {group.locationName}
-                </Typography>
-                <Box sx={{ mx: 1 }}>•</Box>
-                <Tooltip title="Click to copy total value">
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      cursor: 'pointer',
-                      '&:hover .total-value': {
-                        color: 'success.dark',
-                        textDecoration: 'underline',
-                      },
-                      '&:hover .copy-icon': {
-                        color: 'success.dark',
-                      },
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCopyTotal(group.totalValue);
-                    }}
-                  >
-                    <Typography
-                      className="total-value"
-                      variant="h6"
-                      sx={{ color: 'success.main', fontWeight: 600 }}
-                    >
-                      {group.totalValue.toLocaleString()} ISK
-                    </Typography>
-                    <ContentCopyIcon
-                      className="copy-icon"
-                      fontSize="small"
-                      sx={{ fontSize: '1rem', color: 'success.main' }}
-                    />
-                  </Box>
-                </Tooltip>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {group.aggregatedItems.length} item{group.aggregatedItems.length !== 1 ? 's' : ''}
-                </Typography>
-              </Box>
-            </Box>
-          </AccordionSummary>
-          <AccordionDetails>
-            <Box sx={{ mb: 2, display: 'flex', gap: 2, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                    Contract Key:
-                  </Typography>
-                  <Tooltip title="Click to copy contract key">
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        cursor: 'pointer',
-                        px: 1.5,
-                        py: 0.75,
-                        borderRadius: 1,
-                        bgcolor: 'primary.main',
-                        color: 'primary.contrastText',
-                        '&:hover': {
-                          bgcolor: 'primary.dark',
-                        },
-                      }}
-                      onClick={() => handleCopyContractKey(group.contractKey!)}
-                    >
-                      <Typography variant="body2" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
-                        {group.contractKey}
-                      </Typography>
-                      <ContentCopyIcon sx={{ fontSize: '1rem' }} />
-                    </Box>
+      {groupedSales.map((group, index) => {
+        const key = `${group.buyerUserId}-${group.locationId}`;
+        const isOpen = openGroups.has(key) || (index === 0 && !openGroups.size);
+        return (
+          <Collapsible
+            key={key}
+            open={isOpen}
+            onOpenChange={() => toggleGroup(key)}
+            className="border border-[rgba(148,163,184,0.1)] rounded-sm mb-2 bg-[#12151f]"
+          >
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-[rgba(0,212,255,0.04)] text-left">
+              <div className="flex items-center gap-3 flex-1 flex-wrap">
+                <User className="h-4 w-4 text-[#64748b] shrink-0" />
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="flex items-center gap-1 group"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyBuyerName(group.buyerName);
+                        }}
+                      >
+                        <span className="font-semibold text-[#e2e8f0] group-hover:text-[#00d4ff] group-hover:underline">
+                          {group.buyerName}
+                        </span>
+                        <Copy className="h-3.5 w-3.5 text-[#64748b] group-hover:text-[#00d4ff]" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Click to copy buyer name</TooltipContent>
                   </Tooltip>
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic', ml: 1 }}>
-                  Copy this and paste into the in-game contract description
-                </Typography>
-              </Box>
-              <Button
-                onClick={() => handleMarkGroupContractCreated(group)}
-                variant="contained"
-                color="success"
-                size="small"
-                startIcon={<AssignmentIcon />}
-                sx={{ mt: 0.5 }}
-              >
-                Mark All as Contract Created
-              </Button>
-            </Box>
+                </TooltipProvider>
+                <span className="text-[#64748b]">•</span>
+                <MapPin className="h-4 w-4 text-[#64748b] shrink-0" />
+                <span className="text-[#e2e8f0]">{group.locationName}</span>
+                <span className="text-[#64748b]">•</span>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        className="flex items-center gap-1 group"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCopyTotal(group.totalValue);
+                        }}
+                      >
+                        <span className="text-lg font-semibold text-[#10b981] group-hover:text-[#34d399] group-hover:underline">
+                          {group.totalValue.toLocaleString()} ISK
+                        </span>
+                        <Copy className="h-3.5 w-3.5 text-[#10b981] group-hover:text-[#34d399]" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>Click to copy total value</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <span className="text-sm text-[#64748b]">
+                  {group.aggregatedItems.length} item{group.aggregatedItems.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+              <ChevronDown className={cn("h-4 w-4 text-[#64748b] transition-transform shrink-0 ml-2", isOpen && "rotate-180")} />
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="px-4 pb-4">
+                <div className="mb-4 flex gap-4 items-start flex-wrap">
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-[#94a3b8]">Contract Key:</span>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-sm bg-[#00d4ff] text-[#0a0e1a] hover:bg-[#00bfdf] font-mono font-bold text-sm"
+                              onClick={() => handleCopyContractKey(group.contractKey!)}
+                            >
+                              {group.contractKey}
+                              <Copy className="h-3.5 w-3.5" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Click to copy contract key</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <span className="text-xs text-[#64748b] italic ml-1">
+                      Copy this and paste into the in-game contract description
+                    </span>
+                  </div>
+                  <Button
+                    onClick={() => handleMarkGroupContractCreated(group)}
+                    className="bg-emerald-600 hover:bg-emerald-700 mt-0.5"
+                    size="sm"
+                  >
+                    <ClipboardList className="h-4 w-4 mr-1" />
+                    Mark All as Contract Created
+                  </Button>
+                </div>
 
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Item</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell align="right">Price/Unit</TableCell>
-                    <TableCell align="right">Total</TableCell>
-                    {group.aggregatedItems.some(a => a.notes.length > 0) && <TableCell>Notes</TableCell>}
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {group.aggregatedItems.map((agg) => (
-                    <TableRow key={agg.typeId}>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          {agg.typeName}
-                          {agg.hasAutoFulfilled && (
-                            <Chip
-                              label="Auto"
-                              size="small"
-                              sx={{
-                                fontSize: '0.65rem',
-                                fontWeight: 600,
-                                height: 20,
-                                background: 'rgba(16, 185, 129, 0.15)',
-                                color: '#10b981',
-                                border: '1px solid rgba(16, 185, 129, 0.3)',
-                              }}
-                            />
+                <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-[#0f1219]">
+                        <TableHead>Item</TableHead>
+                        <TableHead className="text-right">Quantity</TableHead>
+                        <TableHead className="text-right">Price/Unit</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                        {group.aggregatedItems.some(a => a.notes.length > 0) && <TableHead>Notes</TableHead>}
+                        <TableHead className="text-center">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {group.aggregatedItems.map((agg) => (
+                        <TableRow key={agg.typeId} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
+                          <TableCell className="text-[#e2e8f0]">
+                            <div className="flex items-center gap-1.5">
+                              {agg.typeName}
+                              {agg.hasAutoFulfilled && (
+                                <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
+                                  Auto
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right text-[#e2e8f0]">{agg.totalQuantity.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-[#e2e8f0]">{agg.pricePerUnit.toLocaleString()} ISK</TableCell>
+                          <TableCell className="text-right">
+                            <span className="font-semibold text-[#10b981]">
+                              {agg.totalPrice.toLocaleString()} ISK
+                            </span>
+                          </TableCell>
+                          {group.aggregatedItems.some(a => a.notes.length > 0) && (
+                            <TableCell>
+                              {agg.notes.length > 0 && (
+                                <span className="text-xs text-[#64748b]">{agg.notes.join('; ')}</span>
+                              )}
+                            </TableCell>
                           )}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">{agg.totalQuantity.toLocaleString()}</TableCell>
-                      <TableCell align="right">{agg.pricePerUnit.toLocaleString()} ISK</TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
-                          {agg.totalPrice.toLocaleString()} ISK
-                        </Typography>
-                      </TableCell>
-                      {group.aggregatedItems.some(a => a.notes.length > 0) && (
-                        <TableCell>
-                          {agg.notes.length > 0 && (
-                            <Typography variant="caption" color="text.secondary">
-                              {agg.notes.join('; ')}
-                            </Typography>
-                          )}
-                        </TableCell>
-                      )}
-                      <TableCell align="center">
-                        <Button
-                          onClick={() => handleCancel(agg.purchaseIds)}
-                          variant="outlined"
-                          color="error"
-                          size="small"
-                          startIcon={<CancelIcon />}
-                        >
-                          Cancel
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </AccordionDetails>
-        </Accordion>
-      ))}
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity || 'success'}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+                          <TableCell className="text-center">
+                            <Button
+                              onClick={() => handleCancel(agg.purchaseIds)}
+                              variant="outline"
+                              size="sm"
+                              className="border-red-500 text-red-400 hover:bg-red-500/10"
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </div>
   );
 }

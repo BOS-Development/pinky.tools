@@ -117,8 +117,9 @@ describe('TransportProfilesList', () => {
       <TransportProfilesList profiles={mockProfiles} loading={false} onRefresh={jest.fn()} />,
     );
 
-    const editButtons = screen.getAllByTestId('EditIcon');
-    fireEvent.click(editButtons[0].closest('button')!);
+    // Find all ghost/icon buttons and click the first one (edit button for first profile)
+    const iconButtons = screen.getAllByRole('button', { name: '' });
+    fireEvent.click(iconButtons[0]);
     expect(screen.getByTestId('profile-dialog')).toBeInTheDocument();
     expect(screen.getByText('Edit Profile Dialog')).toBeInTheDocument();
   });

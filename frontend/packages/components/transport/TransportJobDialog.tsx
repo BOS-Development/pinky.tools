@@ -1,29 +1,29 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  FormControl,
-  InputLabel,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
   Select,
-  MenuItem,
-  Box,
-  Typography,
-  Autocomplete,
-  CircularProgress,
-  IconButton,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+} from "@/components/ui/table";
 import { TransportProfile, JFRoute } from "../../pages/transport";
 import { formatNumber } from "../../utils/formatting";
 
@@ -59,6 +59,178 @@ const getSecurityColor = (sec: number) => {
   return "#ef4444";
 };
 
+interface AsyncSearchDropdownProps {
+  value: StationOption | null;
+  onSelect: (option: StationOption) => void;
+  placeholder: string;
+  options: StationOption[];
+  loading: boolean;
+  onSearch: (value: string) => void;
+  displayValue: string;
+  setDisplayValue: (v: string) => void;
+}
+
+function StationSearchDropdown({
+  value,
+  onSelect,
+  placeholder,
+  options,
+  loading,
+  onSearch,
+  displayValue,
+  setDisplayValue,
+}: AsyncSearchDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setDisplayValue(v);
+    onSearch(v);
+    setOpen(true);
+  };
+
+  const handleSelect = (opt: StationOption) => {
+    onSelect(opt);
+    setDisplayValue(opt.name);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <div className="relative">
+        <Input
+          value={displayValue}
+          onChange={handleInputChange}
+          onFocus={() => { if (options.length > 0) setOpen(true); }}
+          placeholder={placeholder}
+        />
+        {loading && (
+          <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-[#64748b]" />
+        )}
+      </div>
+      {open && options.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-[rgba(148,163,184,0.15)] rounded-sm shadow-lg max-h-48 overflow-y-auto">
+          {options.map((opt) => (
+            <button
+              key={opt.stationId}
+              type="button"
+              className="w-full text-left px-3 py-2 hover:bg-[rgba(0,212,255,0.08)]"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleSelect(opt)}
+            >
+              <p className="text-sm text-[#e2e8f0]">{opt.name}</p>
+              <p className="text-xs text-[#94a3b8]">
+                {opt.solarSystemName}{" "}
+                <span style={{ color: getSecurityColor(opt.security ?? 0) }}>
+                  ({(opt.security ?? 0).toFixed(1)})
+                </span>
+              </p>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ItemTypeSearchDropdownProps {
+  value: ItemTypeOption | null;
+  onSelect: (option: ItemTypeOption) => void;
+  options: ItemTypeOption[];
+  loading: boolean;
+  onSearch: (value: string) => void;
+  displayValue: string;
+  setDisplayValue: (v: string) => void;
+}
+
+function ItemTypeSearchDropdown({
+  value,
+  onSelect,
+  options,
+  loading,
+  onSearch,
+  displayValue,
+  setDisplayValue,
+}: ItemTypeSearchDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setDisplayValue(v);
+    onSearch(v);
+    setOpen(true);
+  };
+
+  const handleSelect = (opt: ItemTypeOption) => {
+    onSelect(opt);
+    setDisplayValue(opt.TypeName);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative flex-[2]" ref={containerRef}>
+      <div className="relative">
+        <Input
+          value={displayValue}
+          onChange={handleInputChange}
+          onFocus={() => { if (options.length > 0) setOpen(true); }}
+          placeholder="Search for an item..."
+        />
+        {loading && (
+          <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-[#64748b]" />
+        )}
+      </div>
+      {open && options.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-[rgba(148,163,184,0.15)] rounded-sm shadow-lg max-h-48 overflow-y-auto">
+          {options.map((opt) => (
+            <button
+              key={opt.TypeID}
+              type="button"
+              className="w-full text-left px-3 py-2 hover:bg-[rgba(0,212,255,0.08)]"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleSelect(opt)}
+            >
+              <div className="flex items-center gap-2">
+                <img
+                  src={`https://images.evetech.net/types/${opt.TypeID}/icon?size=32`}
+                  alt=""
+                  style={{ width: 24, height: 24 }}
+                />
+                <div>
+                  <p className="text-sm text-[#e2e8f0]">{opt.TypeName}</p>
+                  <p className="text-xs text-[#94a3b8]">{opt.Volume.toLocaleString()} m³</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props) {
   const [saving, setSaving] = useState(false);
   const [originStation, setOriginStation] = useState<StationOption | null>(null);
@@ -75,6 +247,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
   const [itemQuantity, setItemQuantity] = useState("");
   const [itemTypeOptions, setItemTypeOptions] = useState<ItemTypeOption[]>([]);
   const [itemTypeLoading, setItemTypeLoading] = useState(false);
+  const [itemTypeDisplay, setItemTypeDisplay] = useState("");
   const itemTypeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Station search state
@@ -82,6 +255,8 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
   const [destOptions, setDestOptions] = useState<StationOption[]>([]);
   const [originLoading, setOriginLoading] = useState(false);
   const [destLoading, setDestLoading] = useState(false);
+  const [originDisplay, setOriginDisplay] = useState("");
+  const [destDisplay, setDestDisplay] = useState("");
   const originTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const destTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -96,10 +271,13 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
       setNotes("");
       setOriginOptions([]);
       setDestOptions([]);
+      setOriginDisplay("");
+      setDestDisplay("");
       setItems([]);
       setSelectedItemType(null);
       setItemQuantity("");
       setItemTypeOptions([]);
+      setItemTypeDisplay("");
     }
   }, [open]);
 
@@ -167,6 +345,10 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
     }, 300);
   };
 
+  const handleSelectItemType = (opt: ItemTypeOption) => {
+    setSelectedItemType(opt);
+  };
+
   const handleAddItem = () => {
     if (!selectedItemType || !itemQuantity) return;
     const qty = parseInt(itemQuantity.replace(/,/g, ""), 10);
@@ -187,6 +369,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
     setSelectedItemType(null);
     setItemQuantity("");
     setItemTypeOptions([]);
+    setItemTypeDisplay("");
   };
 
   const handleRemoveItem = (typeId: number) => {
@@ -248,346 +431,260 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
   const filteredProfiles = profiles.filter((p) => p.transportMethod === transportMethod);
 
   return (
-    <Dialog
-      open={open}
-      onClose={() => onClose(false)}
-      maxWidth="md"
-      fullWidth
-      PaperProps={{ sx: { backgroundColor: "#12151f", backgroundImage: "none" } }}
-    >
-      <DialogTitle>Create Transport Job</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-          <Autocomplete
-            value={originStation}
-            onChange={(_, newValue) => setOriginStation(newValue)}
-            onInputChange={(_, inputValue) => handleOriginSearch(inputValue)}
-            options={originOptions}
-            getOptionLabel={(option) => option.name}
-            isOptionEqualToValue={(a, b) => a.stationId === b.stationId}
-            loading={originLoading}
-            filterOptions={(x) => x}
-            size="small"
-            renderOption={(props, option) => (
-              <Box component="li" {...props}>
-                <Box>
-                  <Typography variant="body2">{option.name}</Typography>
-                  <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                    {option.solarSystemName}{" "}
-                    <span style={{ color: getSecurityColor(option.security ?? 0) }}>
-                      ({(option.security ?? 0).toFixed(1)})
-                    </span>
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Origin Station"
-                placeholder="Search for a station..."
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {originLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
-          />
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(false); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Create Transport Job</DialogTitle>
+        </DialogHeader>
 
-          {originStation && (
-            <Typography variant="caption" sx={{ color: "#94a3b8", mt: -1 }}>
-              System: {originStation.solarSystemName}
-            </Typography>
-          )}
-
-          <Autocomplete
-            value={destinationStation}
-            onChange={(_, newValue) => setDestinationStation(newValue)}
-            onInputChange={(_, inputValue) => handleDestSearch(inputValue)}
-            options={destOptions}
-            getOptionLabel={(option) => option.name}
-            isOptionEqualToValue={(a, b) => a.stationId === b.stationId}
-            loading={destLoading}
-            filterOptions={(x) => x}
-            size="small"
-            renderOption={(props, option) => (
-              <Box component="li" {...props}>
-                <Box>
-                  <Typography variant="body2">{option.name}</Typography>
-                  <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                    {option.solarSystemName}{" "}
-                    <span style={{ color: getSecurityColor(option.security ?? 0) }}>
-                      ({(option.security ?? 0).toFixed(1)})
-                    </span>
-                  </Typography>
-                </Box>
-              </Box>
+        <div className="flex flex-col gap-3 pt-1 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Origin Station</label>
+            <StationSearchDropdown
+              value={originStation}
+              onSelect={(opt) => setOriginStation(opt)}
+              placeholder="Search for a station..."
+              options={originOptions}
+              loading={originLoading}
+              onSearch={handleOriginSearch}
+              displayValue={originDisplay}
+              setDisplayValue={setOriginDisplay}
+            />
+            {originStation && (
+              <span className="text-xs text-[#94a3b8]">
+                System: {originStation.solarSystemName}
+              </span>
             )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Destination Station"
-                placeholder="Search for a station..."
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      {destLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                      {params.InputProps.endAdornment}
-                    </>
-                  ),
-                }}
-              />
-            )}
-          />
+          </div>
 
-          {destinationStation && (
-            <Typography variant="caption" sx={{ color: "#94a3b8", mt: -1 }}>
-              System: {destinationStation.solarSystemName}
-            </Typography>
-          )}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Destination Station</label>
+            <StationSearchDropdown
+              value={destinationStation}
+              onSelect={(opt) => setDestinationStation(opt)}
+              placeholder="Search for a station..."
+              options={destOptions}
+              loading={destLoading}
+              onSearch={handleDestSearch}
+              displayValue={destDisplay}
+              setDisplayValue={setDestDisplay}
+            />
+            {destinationStation && (
+              <span className="text-xs text-[#94a3b8]">
+                System: {destinationStation.solarSystemName}
+              </span>
+            )}
+          </div>
 
           {/* Items Section */}
-          <Typography variant="subtitle2" sx={{ mt: 1 }}>
-            Items to Transport
-          </Typography>
+          <p className="text-sm font-medium text-[#e2e8f0] mt-1">Items to Transport</p>
 
-          <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-            <Autocomplete
+          <div className="flex gap-2 items-start">
+            <ItemTypeSearchDropdown
               value={selectedItemType}
-              onChange={(_, newValue) => setSelectedItemType(newValue)}
-              onInputChange={(_, inputValue) => handleItemTypeSearch(inputValue)}
+              onSelect={handleSelectItemType}
               options={itemTypeOptions}
-              getOptionLabel={(option) => option.TypeName}
-              isOptionEqualToValue={(a, b) => a.TypeID === b.TypeID}
               loading={itemTypeLoading}
-              filterOptions={(x) => x}
-              size="small"
-              sx={{ flex: 2 }}
-              renderOption={(props, option) => (
-                <Box component="li" {...props}>
-                  <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                    <img
-                      src={`https://images.evetech.net/types/${option.TypeID}/icon?size=32`}
-                      alt=""
-                      style={{ width: 24, height: 24 }}
-                    />
-                    <Box>
-                      <Typography variant="body2">{option.TypeName}</Typography>
-                      <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                        {option.Volume.toLocaleString()} m³
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Item Type"
-                  placeholder="Search for an item..."
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {itemTypeLoading ? (
-                          <CircularProgress color="inherit" size={20} />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
+              onSearch={handleItemTypeSearch}
+              displayValue={itemTypeDisplay}
+              setDisplayValue={setItemTypeDisplay}
             />
-            <TextField
-              label="Quantity"
-              value={itemQuantity}
-              onChange={(e) => {
-                const raw = e.target.value.replace(/[^0-9]/g, "");
-                if (raw === "") {
-                  setItemQuantity("");
-                } else {
-                  setItemQuantity(Number(raw).toLocaleString());
-                }
-              }}
-              size="small"
-              sx={{ flex: 1 }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddItem();
-                }
-              }}
-            />
-            <IconButton
+            <div className="flex-1">
+              <Input
+                placeholder="Quantity"
+                value={itemQuantity}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/[^0-9]/g, "");
+                  if (raw === "") {
+                    setItemQuantity("");
+                  } else {
+                    setItemQuantity(Number(raw).toLocaleString());
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddItem();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#00d4ff] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
               onClick={handleAddItem}
               disabled={!selectedItemType || !itemQuantity}
-              sx={{ color: "#00d4ff", mt: 0.5 }}
             >
-              <AddIcon />
-            </IconButton>
-          </Box>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
           {items.length > 0 && (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ "& th": { color: "#94a3b8", borderColor: "#1e2231" } }}>
-                    <TableCell>Item</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell align="right">Volume (m³)</TableCell>
-                    <TableCell align="right" sx={{ width: 50 }} />
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {items.map((item) => (
-                    <TableRow
-                      key={item.itemType.TypeID}
-                      sx={{ "& td": { borderColor: "#1e2231" } }}
-                    >
-                      <TableCell>
-                        <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-                          <img
-                            src={`https://images.evetech.net/types/${item.itemType.TypeID}/icon?size=32`}
-                            alt=""
-                            style={{ width: 20, height: 20 }}
-                          />
-                          {item.itemType.TypeName}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatNumber(item.quantity)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {formatNumber(item.itemType.Volume * item.quantity)}
-                      </TableCell>
-                      <TableCell align="right">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleRemoveItem(item.itemType.TypeID)}
-                          sx={{ color: "#ef4444" }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  <TableRow sx={{ "& td": { borderColor: "#1e2231", fontWeight: 600 } }}>
-                    <TableCell>Total</TableCell>
-                    <TableCell align="right">
-                      {formatNumber(items.reduce((sum, i) => sum + i.quantity, 0))}
+            <Table>
+              <TableHeader>
+                <TableRow className="[&>th]:text-[#94a3b8] [&>th]:border-[#1e2231]">
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead className="text-right">Volume (m³)</TableHead>
+                  <TableHead className="text-right w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {items.map((item) => (
+                  <TableRow key={item.itemType.TypeID} className="[&>td]:border-[#1e2231]">
+                    <TableCell>
+                      <div className="flex gap-2 items-center">
+                        <img
+                          src={`https://images.evetech.net/types/${item.itemType.TypeID}/icon?size=32`}
+                          alt=""
+                          style={{ width: 20, height: 20 }}
+                        />
+                        {item.itemType.TypeName}
+                      </div>
                     </TableCell>
-                    <TableCell align="right">
-                      {formatNumber(totalVolume)} m³
+                    <TableCell className="text-right">
+                      {formatNumber(item.quantity)}
                     </TableCell>
-                    <TableCell />
+                    <TableCell className="text-right">
+                      {formatNumber(item.itemType.Volume * item.quantity)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                        onClick={() => handleRemoveItem(item.itemType.TypeID)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableBody>
-              </Table>
-            </TableContainer>
+                ))}
+                <TableRow className="[&>td]:border-[#1e2231] font-semibold">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-right">
+                    {formatNumber(items.reduce((sum, i) => sum + i.quantity, 0))}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {formatNumber(totalVolume)} m³
+                  </TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableBody>
+            </Table>
           )}
 
           {items.length === 0 && (
-            <Typography
-              variant="body2"
-              sx={{ color: "#64748b", textAlign: "center", py: 1 }}
-            >
+            <p className="text-sm text-[#64748b] text-center py-2">
               No items added yet. Search for items above and add them to this job.
-            </Typography>
+            </p>
           )}
 
-          <FormControl fullWidth size="small">
-            <InputLabel>Transport Method</InputLabel>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Transport Method</label>
             <Select
               value={transportMethod}
-              onChange={(e) => {
-                setTransportMethod(e.target.value);
+              onValueChange={(v) => {
+                setTransportMethod(v);
                 setTransportProfileId("");
                 setJfRouteId("");
               }}
-              label="Transport Method"
             >
-              <MenuItem value="freighter">Freighter</MenuItem>
-              <MenuItem value="jump_freighter">Jump Freighter</MenuItem>
-              <MenuItem value="dst">DST</MenuItem>
-              <MenuItem value="blockade_runner">Blockade Runner</MenuItem>
+              <SelectTrigger>
+                <SelectValue placeholder="Transport Method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="freighter">Freighter</SelectItem>
+                <SelectItem value="jump_freighter">Jump Freighter</SelectItem>
+                <SelectItem value="dst">DST</SelectItem>
+                <SelectItem value="blockade_runner">Blockade Runner</SelectItem>
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
-          <FormControl fullWidth size="small">
-            <InputLabel>Fulfillment Type</InputLabel>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Fulfillment Type</label>
             <Select
               value={fulfillmentType}
-              onChange={(e) => setFulfillmentType(e.target.value)}
-              label="Fulfillment Type"
+              onValueChange={(v) => setFulfillmentType(v)}
             >
-              <MenuItem value="self_haul">Self Haul</MenuItem>
-              <MenuItem value="courier_contract">Courier Contract</MenuItem>
-              <MenuItem value="contact_haul">Contact Haul</MenuItem>
+              <SelectTrigger>
+                <SelectValue placeholder="Fulfillment Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="self_haul">Self Haul</SelectItem>
+                <SelectItem value="courier_contract">Courier Contract</SelectItem>
+                <SelectItem value="contact_haul">Contact Haul</SelectItem>
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
           {filteredProfiles.length > 0 && (
-            <FormControl fullWidth size="small">
-              <InputLabel>Transport Profile</InputLabel>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#94a3b8]">Transport Profile</label>
               <Select
                 value={transportProfileId}
-                onChange={(e) => setTransportProfileId(e.target.value)}
-                label="Transport Profile"
+                onValueChange={(v) => setTransportProfileId(v)}
               >
-                <MenuItem value="">None</MenuItem>
-                {filteredProfiles.map((p) => (
-                  <MenuItem key={p.id} value={String(p.id)}>
-                    {p.name} {p.isDefault ? "(Default)" : ""}
-                  </MenuItem>
-                ))}
+                <SelectTrigger>
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {filteredProfiles.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name} {p.isDefault ? "(Default)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
           )}
 
           {isJF && jfRoutes.length > 0 && (
-            <FormControl fullWidth size="small">
-              <InputLabel>JF Route</InputLabel>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs text-[#94a3b8]">JF Route</label>
               <Select
                 value={jfRouteId}
-                onChange={(e) => setJfRouteId(e.target.value)}
-                label="JF Route"
+                onValueChange={(v) => setJfRouteId(v)}
               >
-                <MenuItem value="">None</MenuItem>
-                {jfRoutes.map((r) => (
-                  <MenuItem key={r.id} value={String(r.id)}>
-                    {r.name} ({(r.totalDistanceLy ?? 0).toFixed(1)} LY)
-                  </MenuItem>
-                ))}
+                <SelectTrigger>
+                  <SelectValue placeholder="None" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {jfRoutes.map((r) => (
+                    <SelectItem key={r.id} value={String(r.id)}>
+                      {r.name} ({(r.totalDistanceLy ?? 0).toFixed(1)} LY)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
           )}
 
-          <TextField
-            label="Notes"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            fullWidth
-            size="small"
-            multiline
-            rows={2}
-          />
-        </Box>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Notes</label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="w-full px-3 py-2 text-sm bg-transparent border border-[rgba(148,163,184,0.15)] rounded-sm text-[#e2e8f0] placeholder:text-[#64748b] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] resize-none"
+              placeholder="Optional notes..."
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onClose(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving || !canSave}>
+            {saving ? "Creating..." : "Create Job"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => onClose(false)} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button variant="contained" onClick={handleSave} disabled={saving || !canSave}>
-          {saving ? "Creating..." : "Create Job"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

@@ -8,165 +8,141 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
     Navbar
   </div>
   <div
-    class="MuiContainer-root css-a6n79r-MuiContainer-root"
+    class="w-full px-4 mt-8 mb-8"
   >
     <div
-      class="MuiBox-root css-rvh7fc"
+      class="flex items-center gap-4 mb-6"
     >
       <a
         href="/hauling"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left h-4 w-4 mr-1"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="ArrowBackIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"
-            />
-          </svg>
-        </span>
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
         Back
       </a>
-      <h4
-        class="MuiTypography-root MuiTypography-h4 css-1p8gbz7-MuiTypography-root"
+      <h1
+        class="text-2xl font-bold text-[#e2e8f0] flex-1"
       >
         Jita to Amarr Run
-      </h4>
+      </h1>
       <div
-        class="MuiBox-root css-axw7ok"
+        class="flex items-center gap-2"
       >
-        <div
-          class="MuiChip-root MuiChip-filled MuiChip-sizeMedium MuiChip-colorWarning MuiChip-filledWarning css-efbx8r-MuiChip-root"
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+          style="background-color: rgba(245, 158, 11, 0.1); color: rgb(245, 158, 11);"
         >
-          <span
-            class="MuiChip-label MuiChip-labelMedium css-1dybbl5-MuiChip-label"
-          >
-            SELLING
-          </span>
-        </div>
+          SELLING
+        </span>
         <div
-          class="MuiFormControl-root css-1d8kfky-MuiFormControl-root"
+          class="min-w-[160px]"
         >
-          <label
-            class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-sizeSmall MuiInputLabel-outlined MuiFormLabel-colorPrimary MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-sizeSmall MuiInputLabel-outlined css-1kfabtt-MuiFormLabel-root-MuiInputLabel-root"
-            data-shrink="false"
+          <button
+            aria-autocomplete="none"
+            aria-controls="radix-_r_6l_"
+            aria-expanded="false"
+            class="flex w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#94a3b8] text-xs h-8"
+            data-placeholder=""
+            data-state="closed"
+            dir="ltr"
+            role="combobox"
+            type="button"
           >
-            Change Status
-          </label>
-          <div
-            class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-colorPrimary MuiInputBase-formControl MuiInputBase-sizeSmall MuiSelect-root css-sc8y68-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root"
-          >
-            <div
-              aria-expanded="false"
-              aria-haspopup="listbox"
-              class="MuiSelect-select MuiSelect-outlined MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-trm6af-MuiNativeSelect-root-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input"
-              role="combobox"
-              tabindex="0"
+            <span
+              style="pointer-events: none;"
             >
-              <span
-                aria-hidden="true"
-                class="notranslate"
-              >
-                ​
-              </span>
-            </div>
-            <input
-              aria-hidden="true"
-              aria-invalid="false"
-              class="MuiSelect-nativeInput css-j0riat-MuiSelect-nativeInput"
-              tabindex="-1"
-              value=""
-            />
+              Change Status
+            </span>
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiSelect-icon MuiSelect-iconOutlined css-1rfqz7c-MuiSvgIcon-root-MuiNativeSelect-root-MuiSelect-icon"
-              data-testid="ArrowDropDownIcon"
-              focusable="false"
+              class="lucide lucide-chevron-down h-4 w-4 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
               viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M7 10l5 5 5-5z"
+                d="m6 9 6 6 6-6"
               />
             </svg>
-            <fieldset
-              aria-hidden="true"
-              class="MuiOutlinedInput-notchedOutline css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline"
-            >
-              <legend
-                class="css-ex8a5f-MuiNotchedOutlined-root"
-              >
-                <span>
-                  Change Status
-                </span>
-              </legend>
-            </fieldset>
-          </div>
+          </button>
         </div>
       </div>
     </div>
     <div
-      class="MuiBox-root css-1lwwoo2"
+      class="flex gap-4 mb-6 flex-wrap"
     >
       <div
-        class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-ntclbn-MuiPaper-root-MuiCard-root"
-        style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all flex-1 min-w-[200px] bg-[#12151f] border-[rgba(148,163,184,0.1)]"
       >
         <div
-          class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+          class="p-6 pt-4"
         >
           <p
-            class="MuiTypography-root MuiTypography-body2 MuiTypography-gutterBottom css-1bub9p-MuiTypography-root"
+            class="text-sm text-[#94a3b8] mb-1"
           >
             Route
           </p>
-          <h6
-            class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+          <p
+            class="text-lg font-semibold text-[#e2e8f0]"
           >
             The Forge
              → 
             Domain
-          </h6>
+          </p>
         </div>
       </div>
       <div
-        class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-q80lxm-MuiPaper-root-MuiCard-root"
-        style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all flex-[2] min-w-[300px] bg-[#12151f] border-[rgba(148,163,184,0.1)]"
       >
         <div
-          class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+          class="p-6 pt-4"
         >
           <p
-            class="MuiTypography-root MuiTypography-body2 MuiTypography-gutterBottom css-1bub9p-MuiTypography-root"
+            class="text-sm text-[#94a3b8] mb-2"
           >
             Capacity
           </p>
           <div
-            class="MuiBox-root css-j0ozid"
+            class="flex items-center gap-4"
           >
             <div
-              class="MuiBox-root css-1rr4qq7"
+              class="flex-1"
             >
-              <span
-                aria-valuemax="100"
-                aria-valuemin="0"
-                aria-valuenow="0"
-                class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-17cexwg-MuiLinearProgress-root"
-                role="progressbar"
+              <div
+                class="h-3 bg-[#1e2a3a] rounded-full overflow-hidden"
               >
-                <span
-                  class="MuiLinearProgress-bar MuiLinearProgress-bar1 MuiLinearProgress-barColorPrimary MuiLinearProgress-bar1Determinate css-l16vtb-MuiLinearProgress-bar1"
-                  style="transform: translateX(-99.96666666666667%);"
+                <div
+                  class="h-full rounded-full transition-all"
+                  style="width: 0.03333333333333333%; background-color: rgb(245, 158, 11);"
                 />
-              </span>
+              </div>
             </div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-f72b1f-MuiTypography-root"
+              class="text-sm text-[#94a3b8] min-w-[140px] text-right"
             >
               100.0
                / 
@@ -178,30 +154,27 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
       </div>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-8ls9v2-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+        class="p-6 pt-4"
       >
-        <h6
-          class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+        <h2
+          class="text-lg font-semibold text-[#e2e8f0] mb-3"
         >
           Route Safety
-        </h6>
+        </h2>
         <div
-          class="MuiBox-root css-8chvua"
+          class="flex gap-6 flex-wrap items-center"
         >
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Shortest Route
             </p>
             <p
-              class="MuiTypography-root MuiTypography-body1 css-izap9d-MuiTypography-root"
+              class="font-semibold text-[#e2e8f0]"
             >
               1
                jumps (
@@ -211,145 +184,137 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
               )
             </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Source Region Kills (24h)
             </p>
             <p
-              class="MuiTypography-root MuiTypography-body1 css-1gyqezh-MuiTypography-root"
+              class="font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               0
             </p>
           </div>
         </div>
-        <span
-          class="MuiTypography-root MuiTypography-caption css-6s6p8j-MuiTypography-root"
+        <p
+          class="text-xs text-[#64748b] mt-2"
         >
           Data from EVE ESI and zKillboard
-        </span>
+        </p>
       </div>
     </div>
     <div
-      class="MuiBox-root css-mbx0dj"
+      class="flex items-center justify-between mb-3"
     >
-      <h6
-        class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+      <h2
+        class="text-lg font-semibold text-[#e2e8f0]"
       >
         Items
-      </h6>
+      </h2>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary css-tw6tsg-MuiButtonBase-root-MuiButton-root"
-        tabindex="0"
-        type="button"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         Add Item
       </button>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-8ls9v2-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-127evc8-MuiCardContent-root"
+        class="overflow-x-auto"
       >
         <div
-          class="MuiPaper-root MuiPaper-outlined MuiPaper-rounded MuiTableContainer-root css-bt151f-MuiPaper-root-MuiTableContainer-root"
+          class="relative w-full overflow-auto"
         >
           <table
-            class="MuiTable-root MuiTable-stickyHeader css-pvu7mv-MuiTable-root"
+            class="w-full caption-bottom text-sm"
           >
             <thead
-              class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+              class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
             >
               <tr
-                class="MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"
+                class="border-b transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219] border-[rgba(148,163,184,0.1)]"
               >
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-sizeSmall css-1b7sydq-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
                 >
                   Item
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Buy Price
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Sell Price
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Net Profit/unit
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Planned Qty
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Acquired
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-sizeSmall css-1gdet5-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] w-36"
                 >
                   Fill %
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Volume
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-sizeSmall css-1b7sydq-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody
-              class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+              class="[&_tr:last-child]:border-0"
             >
               <tr
-                class="MuiTableRow-root MuiTableRow-hover css-1xtozoh-MuiTableRow-root"
+                class="border-b transition-colors data-[state=selected]:bg-muted border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
               >
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
-                    class="MuiBox-root css-axw7ok"
+                    class="flex items-center gap-2"
                   >
                     <img
                       alt="Tritanium"
@@ -358,66 +323,63 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                       style="border-radius: 2px;"
                       width="24"
                     />
-                    <p
-                      class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                    <span
+                      class="text-sm font-semibold text-[#e2e8f0]"
                     >
                       Tritanium
-                    </p>
+                    </span>
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   5.5 ISK
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   7 ISK
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
                 >
-                  <p
-                    class="MuiTypography-root MuiTypography-body2 css-1k9r45o-MuiTypography-root"
+                  <span
+                    class="text-sm font-semibold"
+                    style="color: rgb(16, 185, 129);"
                   >
                     1.5 ISK
-                  </p>
+                  </span>
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   10,000
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   5,000
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
-                    class="MuiBox-root css-axw7ok"
+                    class="flex items-center gap-2"
                   >
                     <div
-                      class="MuiBox-root css-1rr4qq7"
+                      class="flex-1"
                     >
-                      <span
-                        aria-valuemax="100"
-                        aria-valuemin="0"
-                        aria-valuenow="50"
-                        class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-geq0fb-MuiLinearProgress-root"
-                        role="progressbar"
+                      <div
+                        class="h-1.5 bg-[#1e2a3a] rounded-full overflow-hidden"
                       >
-                        <span
-                          class="MuiLinearProgress-bar MuiLinearProgress-bar1 MuiLinearProgress-barColorPrimary MuiLinearProgress-bar1Determinate css-l16vtb-MuiLinearProgress-bar1"
-                          style="transform: translateX(-50%);"
+                        <div
+                          class="h-full rounded-full transition-all"
+                          style="width: 50%; background-color: rgb(0, 212, 255);"
                         />
-                      </span>
+                      </div>
                     </div>
                     <span
-                      class="MuiTypography-root MuiTypography-caption css-kpuhmr-MuiTypography-root"
+                      class="text-xs text-[#94a3b8] min-w-[36px] text-right"
                     >
                       50
                       %
@@ -425,51 +387,72 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   100.0 m³
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
-                    class="MuiBox-root css-1utx3w7"
+                    class="flex gap-1"
                   >
                     <button
-                      aria-label="Edit acquired qty"
-                      class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
-                      data-mui-internal-clone-element="true"
-                      tabindex="0"
-                      type="button"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      data-state="closed"
                     >
                       <svg
                         aria-hidden="true"
-                        class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                        data-testid="EditIcon"
-                        focusable="false"
+                        class="lucide lucide-pencil h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
                         viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                          d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                        />
+                        <path
+                          d="m15 5 4 4"
                         />
                       </svg>
                     </button>
                     <button
-                      aria-label="Remove item"
-                      class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorError MuiIconButton-sizeSmall css-195ve3w-MuiButtonBase-root-MuiIconButton-root"
-                      data-mui-internal-clone-element="true"
-                      tabindex="0"
-                      type="button"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      data-state="closed"
                     >
                       <svg
                         aria-hidden="true"
-                        class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                        data-testid="DeleteIcon"
-                        focusable="false"
+                        class="lucide lucide-trash2 lucide-trash-2 h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
                         viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+                          d="M10 11v6"
+                        />
+                        <path
+                          d="M14 11v6"
+                        />
+                        <path
+                          d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                        />
+                        <path
+                          d="M3 6h18"
+                        />
+                        <path
+                          d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                         />
                       </svg>
                     </button>
@@ -482,331 +465,326 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
       </div>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-8ls9v2-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+        class="p-6 pt-4"
       >
         <div
-          class="MuiBox-root css-mbx0dj"
+          class="flex items-center justify-between mb-3"
         >
-          <h6
-            class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+          <h2
+            class="text-lg font-semibold text-[#e2e8f0]"
           >
             Profit & Loss
-          </h6>
+          </h2>
           <button
-            class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary css-tw6tsg-MuiButtonBase-root-MuiButton-root"
-            tabindex="0"
-            type="button"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
           >
-            <span
-              class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-plus h-4 w-4 mr-2"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
-              <svg
-                aria-hidden="true"
-                class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-                data-testid="AddIcon"
-                focusable="false"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-                />
-              </svg>
-            </span>
+              <path
+                d="M5 12h14"
+              />
+              <path
+                d="M12 5v14"
+              />
+            </svg>
             Enter P&L
           </button>
         </div>
         <div
-          class="MuiPaper-root MuiPaper-outlined MuiPaper-rounded MuiTableContainer-root css-nslypx-MuiPaper-root-MuiTableContainer-root"
-        >
-          <table
-            class="MuiTable-root css-1xwxv7r-MuiTable-root"
-          >
-            <thead
-              class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
-            >
-              <tr
-                class="MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"
-              >
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-1vsxo4f-MuiTableCell-root"
-                  scope="col"
-                >
-                  Type
-                </th>
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14i1n8j-MuiTableCell-root"
-                  scope="col"
-                >
-                  Qty Sold
-                </th>
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14i1n8j-MuiTableCell-root"
-                  scope="col"
-                >
-                  Avg Sell Price
-                </th>
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14i1n8j-MuiTableCell-root"
-                  scope="col"
-                >
-                  Revenue
-                </th>
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14i1n8j-MuiTableCell-root"
-                  scope="col"
-                >
-                  Cost
-                </th>
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14i1n8j-MuiTableCell-root"
-                  scope="col"
-                >
-                  Net Profit
-                </th>
-                <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-1vsxo4f-MuiTableCell-root"
-                  scope="col"
-                >
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody
-              class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-            >
-              <tr
-                class="MuiTableRow-root MuiTableRow-hover css-1xtozoh-MuiTableRow-root"
-              >
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-                >
-                  Tritanium
-                </td>
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-                >
-                  5,000
-                </td>
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-                >
-                  7.2 ISK
-                </td>
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-1budi3k-MuiTableCell-root"
-                >
-                  36.00K ISK
-                </td>
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-fjh633-MuiTableCell-root"
-                >
-                  27.50K ISK
-                </td>
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-                >
-                  <p
-                    class="MuiTypography-root MuiTypography-body2 css-1k9r45o-MuiTypography-root"
-                  >
-                    8.50K ISK
-                  </p>
-                </td>
-                <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-                >
-                  <button
-                    aria-label="Edit P&L entry"
-                    class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
-                    data-mui-internal-clone-element="true"
-                    tabindex="0"
-                    type="button"
-                  >
-                    <svg
-                      aria-hidden="true"
-                      class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                      data-testid="EditIcon"
-                      focusable="false"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
-                      />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div
-          class="MuiBox-root css-51w1l2"
+          class="overflow-x-auto mb-4"
         >
           <div
-            class="MuiBox-root css-0"
+            class="relative w-full overflow-auto"
           >
+            <table
+              class="w-full caption-bottom text-sm"
+            >
+              <thead
+                class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+              >
+                <tr
+                  class="border-b transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219] border-[rgba(148,163,184,0.1)]"
+                >
+                  <th
+                    class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
+                  >
+                    Type
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  >
+                    Qty Sold
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  >
+                    Avg Sell Price
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  >
+                    Revenue
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  >
+                    Cost
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  >
+                    Net Profit
+                  </th>
+                  <th
+                    class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
+                  >
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="[&_tr:last-child]:border-0"
+              >
+                <tr
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
+                >
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm text-[#e2e8f0]"
+                  >
+                    Tritanium
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
+                  >
+                    5,000
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
+                  >
+                    7.2 ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm"
+                    style="color: rgb(16, 185, 129);"
+                  >
+                    36.00K ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm"
+                    style="color: rgb(239, 68, 68);"
+                  >
+                    27.50K ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+                  >
+                    <span
+                      class="text-sm font-semibold"
+                      style="color: rgb(16, 185, 129);"
+                    >
+                      8.50K ISK
+                    </span>
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                  >
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      data-state="closed"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-pencil h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                        />
+                        <path
+                          d="m15 5 4 4"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div
+          class="flex gap-6 flex-wrap mt-2"
+        >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Total Revenue
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-14x54g5-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               36.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Total Cost
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-111or35-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(239, 68, 68);"
             >
               27.50K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Net Profit
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-14x54g5-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               8.50K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Margin %
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+            <p
+              class="text-lg font-semibold text-[#e2e8f0]"
             >
               23.6
               %
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Items Sold
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+            <p
+              class="text-lg font-semibold text-[#e2e8f0]"
             >
               1
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Items Pending
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+            <p
+              class="text-lg font-semibold text-[#e2e8f0]"
             >
               0
-            </h6>
+            </p>
           </div>
         </div>
       </div>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1j74uew-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+        class="p-6 pt-4"
       >
-        <h6
-          class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+        <h2
+          class="text-lg font-semibold text-[#e2e8f0] mb-2"
         >
           Run Summary
-        </h6>
-        <hr
-          class="MuiDivider-root MuiDivider-fullWidth css-1nih0dr-MuiDivider-root"
+        </h2>
+        <div
+          class="shrink-0 h-[1px] w-full mb-4 bg-[rgba(148,163,184,0.1)]"
+          data-orientation="horizontal"
+          role="none"
         />
         <div
-          class="MuiBox-root css-1kskb09"
+          class="flex gap-6 flex-wrap"
         >
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Total ISK Outlay
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-111or35-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(239, 68, 68);"
             >
               55.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Total ISK Revenue
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-14x54g5-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               70.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Net Profit
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-14x54g5-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               15.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Fill % Overall
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+            <p
+              class="text-lg font-semibold text-[#e2e8f0]"
             >
               50.0
               %
-            </h6>
+            </p>
           </div>
         </div>
       </div>
@@ -823,165 +801,141 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
     Navbar
   </div>
   <div
-    class="MuiContainer-root css-a6n79r-MuiContainer-root"
+    class="w-full px-4 mt-8 mb-8"
   >
     <div
-      class="MuiBox-root css-rvh7fc"
+      class="flex items-center gap-4 mb-6"
     >
       <a
         href="/hauling"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left h-4 w-4 mr-1"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="ArrowBackIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"
-            />
-          </svg>
-        </span>
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
         Back
       </a>
-      <h4
-        class="MuiTypography-root MuiTypography-h4 css-1p8gbz7-MuiTypography-root"
+      <h1
+        class="text-2xl font-bold text-[#e2e8f0] flex-1"
       >
         Jita to Amarr Run
-      </h4>
+      </h1>
       <div
-        class="MuiBox-root css-axw7ok"
+        class="flex items-center gap-2"
       >
-        <div
-          class="MuiChip-root MuiChip-filled MuiChip-sizeMedium MuiChip-colorPrimary MuiChip-filledPrimary css-3o5qgm-MuiChip-root"
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+          style="background-color: rgba(0, 212, 255, 0.1); color: rgb(0, 212, 255);"
         >
-          <span
-            class="MuiChip-label MuiChip-labelMedium css-1dybbl5-MuiChip-label"
-          >
-            PLANNING
-          </span>
-        </div>
+          PLANNING
+        </span>
         <div
-          class="MuiFormControl-root css-1d8kfky-MuiFormControl-root"
+          class="min-w-[160px]"
         >
-          <label
-            class="MuiFormLabel-root MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-sizeSmall MuiInputLabel-outlined MuiFormLabel-colorPrimary MuiInputLabel-root MuiInputLabel-formControl MuiInputLabel-animated MuiInputLabel-sizeSmall MuiInputLabel-outlined css-1kfabtt-MuiFormLabel-root-MuiInputLabel-root"
-            data-shrink="false"
+          <button
+            aria-autocomplete="none"
+            aria-controls="radix-_r_0_"
+            aria-expanded="false"
+            class="flex w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#94a3b8] text-xs h-8"
+            data-placeholder=""
+            data-state="closed"
+            dir="ltr"
+            role="combobox"
+            type="button"
           >
-            Change Status
-          </label>
-          <div
-            class="MuiInputBase-root MuiOutlinedInput-root MuiInputBase-colorPrimary MuiInputBase-formControl MuiInputBase-sizeSmall MuiSelect-root css-sc8y68-MuiInputBase-root-MuiOutlinedInput-root-MuiSelect-root"
-          >
-            <div
-              aria-expanded="false"
-              aria-haspopup="listbox"
-              class="MuiSelect-select MuiSelect-outlined MuiInputBase-input MuiOutlinedInput-input MuiInputBase-inputSizeSmall css-trm6af-MuiNativeSelect-root-MuiSelect-select-MuiInputBase-input-MuiOutlinedInput-input"
-              role="combobox"
-              tabindex="0"
+            <span
+              style="pointer-events: none;"
             >
-              <span
-                aria-hidden="true"
-                class="notranslate"
-              >
-                ​
-              </span>
-            </div>
-            <input
-              aria-hidden="true"
-              aria-invalid="false"
-              class="MuiSelect-nativeInput css-j0riat-MuiSelect-nativeInput"
-              tabindex="-1"
-              value=""
-            />
+              Change Status
+            </span>
             <svg
               aria-hidden="true"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium MuiSelect-icon MuiSelect-iconOutlined css-1rfqz7c-MuiSvgIcon-root-MuiNativeSelect-root-MuiSelect-icon"
-              data-testid="ArrowDropDownIcon"
-              focusable="false"
+              class="lucide lucide-chevron-down h-4 w-4 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
               viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
-                d="M7 10l5 5 5-5z"
+                d="m6 9 6 6 6-6"
               />
             </svg>
-            <fieldset
-              aria-hidden="true"
-              class="MuiOutlinedInput-notchedOutline css-18p5xg2-MuiNotchedOutlined-root-MuiOutlinedInput-notchedOutline"
-            >
-              <legend
-                class="css-ex8a5f-MuiNotchedOutlined-root"
-              >
-                <span>
-                  Change Status
-                </span>
-              </legend>
-            </fieldset>
-          </div>
+          </button>
         </div>
       </div>
     </div>
     <div
-      class="MuiBox-root css-1lwwoo2"
+      class="flex gap-4 mb-6 flex-wrap"
     >
       <div
-        class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-ntclbn-MuiPaper-root-MuiCard-root"
-        style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all flex-1 min-w-[200px] bg-[#12151f] border-[rgba(148,163,184,0.1)]"
       >
         <div
-          class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+          class="p-6 pt-4"
         >
           <p
-            class="MuiTypography-root MuiTypography-body2 MuiTypography-gutterBottom css-1bub9p-MuiTypography-root"
+            class="text-sm text-[#94a3b8] mb-1"
           >
             Route
           </p>
-          <h6
-            class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+          <p
+            class="text-lg font-semibold text-[#e2e8f0]"
           >
             The Forge
              → 
             Domain
-          </h6>
+          </p>
         </div>
       </div>
       <div
-        class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-q80lxm-MuiPaper-root-MuiCard-root"
-        style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all flex-[2] min-w-[300px] bg-[#12151f] border-[rgba(148,163,184,0.1)]"
       >
         <div
-          class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+          class="p-6 pt-4"
         >
           <p
-            class="MuiTypography-root MuiTypography-body2 MuiTypography-gutterBottom css-1bub9p-MuiTypography-root"
+            class="text-sm text-[#94a3b8] mb-2"
           >
             Capacity
           </p>
           <div
-            class="MuiBox-root css-j0ozid"
+            class="flex items-center gap-4"
           >
             <div
-              class="MuiBox-root css-1rr4qq7"
+              class="flex-1"
             >
-              <span
-                aria-valuemax="100"
-                aria-valuemin="0"
-                aria-valuenow="0"
-                class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-17cexwg-MuiLinearProgress-root"
-                role="progressbar"
+              <div
+                class="h-3 bg-[#1e2a3a] rounded-full overflow-hidden"
               >
-                <span
-                  class="MuiLinearProgress-bar MuiLinearProgress-bar1 MuiLinearProgress-barColorPrimary MuiLinearProgress-bar1Determinate css-l16vtb-MuiLinearProgress-bar1"
-                  style="transform: translateX(-99.96666666666667%);"
+                <div
+                  class="h-full rounded-full transition-all"
+                  style="width: 0.03333333333333333%; background-color: rgb(245, 158, 11);"
                 />
-              </span>
+              </div>
             </div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-f72b1f-MuiTypography-root"
+              class="text-sm text-[#94a3b8] min-w-[140px] text-right"
             >
               100.0
                / 
@@ -993,30 +947,27 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
       </div>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-8ls9v2-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+        class="p-6 pt-4"
       >
-        <h6
-          class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+        <h2
+          class="text-lg font-semibold text-[#e2e8f0] mb-3"
         >
           Route Safety
-        </h6>
+        </h2>
         <div
-          class="MuiBox-root css-8chvua"
+          class="flex gap-6 flex-wrap items-center"
         >
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Shortest Route
             </p>
             <p
-              class="MuiTypography-root MuiTypography-body1 css-izap9d-MuiTypography-root"
+              class="font-semibold text-[#e2e8f0]"
             >
               1
                jumps (
@@ -1026,145 +977,137 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
               )
             </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Source Region Kills (24h)
             </p>
             <p
-              class="MuiTypography-root MuiTypography-body1 css-1gyqezh-MuiTypography-root"
+              class="font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               0
             </p>
           </div>
         </div>
-        <span
-          class="MuiTypography-root MuiTypography-caption css-6s6p8j-MuiTypography-root"
+        <p
+          class="text-xs text-[#64748b] mt-2"
         >
           Data from EVE ESI and zKillboard
-        </span>
+        </p>
       </div>
     </div>
     <div
-      class="MuiBox-root css-mbx0dj"
+      class="flex items-center justify-between mb-3"
     >
-      <h6
-        class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+      <h2
+        class="text-lg font-semibold text-[#e2e8f0]"
       >
         Items
-      </h6>
+      </h2>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeSmall MuiButton-containedSizeSmall MuiButton-colorPrimary css-tw6tsg-MuiButtonBase-root-MuiButton-root"
-        tabindex="0"
-        type="button"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeSmall css-d8i980-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-2"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         Add Item
       </button>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-8ls9v2-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-127evc8-MuiCardContent-root"
+        class="overflow-x-auto"
       >
         <div
-          class="MuiPaper-root MuiPaper-outlined MuiPaper-rounded MuiTableContainer-root css-bt151f-MuiPaper-root-MuiTableContainer-root"
+          class="relative w-full overflow-auto"
         >
           <table
-            class="MuiTable-root MuiTable-stickyHeader css-pvu7mv-MuiTable-root"
+            class="w-full caption-bottom text-sm"
           >
             <thead
-              class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+              class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
             >
               <tr
-                class="MuiTableRow-root MuiTableRow-head css-1xtozoh-MuiTableRow-root"
+                class="border-b transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219] border-[rgba(148,163,184,0.1)]"
               >
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-sizeSmall css-1b7sydq-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
                 >
                   Item
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Buy Price
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Sell Price
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Net Profit/unit
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Planned Qty
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Acquired
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-sizeSmall css-1gdet5-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] w-36"
                 >
                   Fill %
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-alignRight MuiTableCell-sizeSmall css-17x124p-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
                 >
                   Volume
                 </th>
                 <th
-                  class="MuiTableCell-root MuiTableCell-head MuiTableCell-stickyHeader MuiTableCell-sizeSmall css-1b7sydq-MuiTableCell-root"
-                  scope="col"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
             <tbody
-              class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
+              class="[&_tr:last-child]:border-0"
             >
               <tr
-                class="MuiTableRow-root MuiTableRow-hover css-1xtozoh-MuiTableRow-root"
+                class="border-b transition-colors data-[state=selected]:bg-muted border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
               >
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
-                    class="MuiBox-root css-axw7ok"
+                    class="flex items-center gap-2"
                   >
                     <img
                       alt="Tritanium"
@@ -1173,66 +1116,63 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
                       style="border-radius: 2px;"
                       width="24"
                     />
-                    <p
-                      class="MuiTypography-root MuiTypography-body2 css-bvuapi-MuiTypography-root"
+                    <span
+                      class="text-sm font-semibold text-[#e2e8f0]"
                     >
                       Tritanium
-                    </p>
+                    </span>
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   5.5 ISK
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   7 ISK
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
                 >
-                  <p
-                    class="MuiTypography-root MuiTypography-body2 css-1k9r45o-MuiTypography-root"
+                  <span
+                    class="text-sm font-semibold"
+                    style="color: rgb(16, 185, 129);"
                   >
                     1.5 ISK
-                  </p>
+                  </span>
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   10,000
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   5,000
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
-                    class="MuiBox-root css-axw7ok"
+                    class="flex items-center gap-2"
                   >
                     <div
-                      class="MuiBox-root css-1rr4qq7"
+                      class="flex-1"
                     >
-                      <span
-                        aria-valuemax="100"
-                        aria-valuemin="0"
-                        aria-valuenow="50"
-                        class="MuiLinearProgress-root MuiLinearProgress-colorPrimary MuiLinearProgress-determinate css-geq0fb-MuiLinearProgress-root"
-                        role="progressbar"
+                      <div
+                        class="h-1.5 bg-[#1e2a3a] rounded-full overflow-hidden"
                       >
-                        <span
-                          class="MuiLinearProgress-bar MuiLinearProgress-bar1 MuiLinearProgress-barColorPrimary MuiLinearProgress-bar1Determinate css-l16vtb-MuiLinearProgress-bar1"
-                          style="transform: translateX(-50%);"
+                        <div
+                          class="h-full rounded-full transition-all"
+                          style="width: 50%; background-color: rgb(0, 212, 255);"
                         />
-                      </span>
+                      </div>
                     </div>
                     <span
-                      class="MuiTypography-root MuiTypography-caption css-kpuhmr-MuiTypography-root"
+                      class="text-xs text-[#94a3b8] min-w-[36px] text-right"
                     >
                       50
                       %
@@ -1240,51 +1180,72 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
                   </div>
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
                 >
                   100.0 m³
                 </td>
                 <td
-                  class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
-                    class="MuiBox-root css-1utx3w7"
+                    class="flex gap-1"
                   >
                     <button
-                      aria-label="Edit acquired qty"
-                      class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-155wbr6-MuiButtonBase-root-MuiIconButton-root"
-                      data-mui-internal-clone-element="true"
-                      tabindex="0"
-                      type="button"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      data-state="closed"
                     >
                       <svg
                         aria-hidden="true"
-                        class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                        data-testid="EditIcon"
-                        focusable="false"
+                        class="lucide lucide-pencil h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
                         viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                          d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                        />
+                        <path
+                          d="m15 5 4 4"
                         />
                       </svg>
                     </button>
                     <button
-                      aria-label="Remove item"
-                      class="MuiButtonBase-root MuiIconButton-root MuiIconButton-colorError MuiIconButton-sizeSmall css-195ve3w-MuiButtonBase-root-MuiIconButton-root"
-                      data-mui-internal-clone-element="true"
-                      tabindex="0"
-                      type="button"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      data-state="closed"
                     >
                       <svg
                         aria-hidden="true"
-                        class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                        data-testid="DeleteIcon"
-                        focusable="false"
+                        class="lucide lucide-trash2 lucide-trash-2 h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
                         viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+                          d="M10 11v6"
+                        />
+                        <path
+                          d="M14 11v6"
+                        />
+                        <path
+                          d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                        />
+                        <path
+                          d="M3 6h18"
+                        />
+                        <path
+                          d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
                         />
                       </svg>
                     </button>
@@ -1297,79 +1258,75 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
       </div>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1j74uew-MuiPaper-root-MuiCard-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-[#12151f] border-[rgba(148,163,184,0.1)]"
     >
       <div
-        class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+        class="p-6 pt-4"
       >
-        <h6
-          class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+        <h2
+          class="text-lg font-semibold text-[#e2e8f0] mb-2"
         >
           Run Summary
-        </h6>
-        <hr
-          class="MuiDivider-root MuiDivider-fullWidth css-1nih0dr-MuiDivider-root"
+        </h2>
+        <div
+          class="shrink-0 h-[1px] w-full mb-4 bg-[rgba(148,163,184,0.1)]"
+          data-orientation="horizontal"
+          role="none"
         />
         <div
-          class="MuiBox-root css-1kskb09"
+          class="flex gap-6 flex-wrap"
         >
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Total ISK Outlay
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-111or35-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(239, 68, 68);"
             >
               55.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Total ISK Revenue
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-14x54g5-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               70.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Net Profit
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-14x54g5-MuiTypography-root"
+            <p
+              class="text-lg font-semibold"
+              style="color: rgb(16, 185, 129);"
             >
               15.00K ISK
-            </h6>
+            </p>
           </div>
-          <div
-            class="MuiBox-root css-0"
-          >
+          <div>
             <p
-              class="MuiTypography-root MuiTypography-body2 css-1wle3ir-MuiTypography-root"
+              class="text-sm text-[#94a3b8]"
             >
               Fill % Overall
             </p>
-            <h6
-              class="MuiTypography-root MuiTypography-h6 css-1miy0lu-MuiTypography-root"
+            <p
+              class="text-lg font-semibold text-[#e2e8f0]"
             >
               50.0
               %
-            </h6>
+            </p>
           </div>
         </div>
       </div>

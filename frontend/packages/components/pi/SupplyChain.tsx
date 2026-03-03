@@ -3,21 +3,19 @@ import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import { SupplyChainResponse, SupplyChainItem, SupplyChainPlanetEntry, StockpileMarker } from '@industry-tool/client/data/models';
 import { formatNumber, formatQuantity } from '@industry-tool/utils/formatting';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
-import Chip from '@mui/material/Chip';
-import IconButton from '@mui/material/IconButton';
-import Popover from '@mui/material/Popover';
-import Button from '@mui/material/Button';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight } from 'lucide-react';
 
 const TIERS = ['All', 'R0', 'P1', 'P2', 'P3', 'P4'];
 const TIER_ORDER: Record<string, number> = { R0: 0, P1: 1, P2: 2, P3: 3, P4: 4 };
@@ -62,16 +60,7 @@ function formatRate(value: number): string {
   return formatNumber(Math.round(value));
 }
 
-const headerCellSx = {
-  color: '#64748b',
-  borderColor: 'rgba(148, 163, 184, 0.1)',
-  bgcolor: '#0f1219',
-  fontSize: '0.7rem',
-  textTransform: 'uppercase' as const,
-  letterSpacing: 0.5,
-  fontWeight: 600,
-  py: 1,
-};
+const headerCellCls = "text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219] text-[0.7rem] uppercase tracking-wide font-semibold py-2";
 
 function SupplyChainRow({ item, expanded, onToggle, onResize }: {
   item: SupplyChainItem;
@@ -85,138 +74,131 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
   const hasMarkers = (item.stockpileMarkers?.length ?? 0) > 0;
   const canResize = hasMarkers && item.consumedPerHour > 0;
 
-  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-
-  const handleStockpileClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (!canResize) return;
-    e.stopPropagation();
-    setAnchorEl(e.currentTarget);
-  };
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   const handlePresetClick = (hours: number) => {
     const newQty = Math.ceil(item.consumedPerHour * hours);
     onResize(item, newQty);
-    setAnchorEl(null);
+    setPopoverOpen(false);
   };
 
   return (
     <>
       <TableRow
-        sx={{
-          cursor: hasChildren ? 'pointer' : 'default',
-          '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.04)' },
-          bgcolor: expanded ? 'rgba(0, 212, 255, 0.03)' : isDeficit ? 'rgba(239, 68, 68, 0.03)' : 'transparent',
-        }}
+        className={cn(
+          hasChildren ? 'cursor-pointer' : 'cursor-default',
+          'hover:bg-[rgba(0,212,255,0.04)]',
+          expanded
+            ? 'bg-[rgba(0,212,255,0.03)]'
+            : isDeficit
+            ? 'bg-[rgba(239,68,68,0.03)]'
+            : ''
+        )}
         onClick={hasChildren ? onToggle : undefined}
       >
-        <TableCell sx={{ color: '#e2e8f0', borderColor: 'rgba(148, 163, 184, 0.08)', width: 36, p: 0.5 }}>
+        <TableCell className="border-[rgba(148,163,184,0.08)] w-9 p-1">
           {hasChildren && (
-            <IconButton size="small" sx={{ color: '#64748b', p: 0.25 }}>
-              {expanded ? <KeyboardArrowDownIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
-            </IconButton>
+            <button className="text-[#64748b] p-0.5 leading-none">
+              {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            </button>
           )}
         </TableCell>
-        <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.08)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TableCell className="border-[rgba(148,163,184,0.08)]">
+          <div className="flex items-center gap-2">
             <img
               src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`}
-              alt="" width={24} height={24} style={{ flexShrink: 0 }}
+              alt="" width={24} height={24} className="flex-shrink-0"
             />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" sx={{ color: '#e2e8f0', fontWeight: 500, lineHeight: 1.2 }} noWrap>
+            <div className="min-w-0">
+              <p className="text-sm text-[#e2e8f0] font-medium leading-tight truncate">
                 {item.name || `Type ${item.typeId}`}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.65rem' }}>
+              </p>
+              <span className="text-[#475569]" style={{ fontSize: '0.65rem' }}>
                 {item.tierName}
-              </Typography>
-            </Box>
-          </Box>
+              </span>
+            </div>
+          </div>
         </TableCell>
-        <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.08)' }}>
-          <Chip
-            label={item.source.charAt(0).toUpperCase() + item.source.slice(1)}
-            size="small"
-            sx={{
-              bgcolor: sourceStyle.bg,
-              color: sourceStyle.text,
-              fontSize: '0.65rem',
-              height: 20,
-              fontWeight: 500,
-            }}
-          />
-        </TableCell>
-        <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.08)', color: item.producedPerHour > 0 ? '#10b981' : '#475569' }}>
-          <Typography variant="caption">{formatRate(item.producedPerHour)}</Typography>
-        </TableCell>
-        <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.08)', color: item.consumedPerHour > 0 ? '#ef4444' : '#475569' }}>
-          <Typography variant="caption">{formatRate(item.consumedPerHour)}</Typography>
-        </TableCell>
-        <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.08)' }}>
-          <Typography variant="caption" sx={{ color: netColor(item.netPerHour), fontWeight: 600 }}>
-            {item.netPerHour > 0.01 ? '+' : ''}{formatRate(item.netPerHour)}
-          </Typography>
+        <TableCell className="border-[rgba(148,163,184,0.08)]">
+          <span
+            className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium"
+            style={{ backgroundColor: sourceStyle.bg, color: sourceStyle.text }}
+          >
+            {item.source.charAt(0).toUpperCase() + item.source.slice(1)}
+          </span>
         </TableCell>
         <TableCell
-          align="right"
-          onClick={canResize ? handleStockpileClick : undefined}
-          sx={{
-            borderColor: 'rgba(148, 163, 184, 0.08)',
-            color: '#94a3b8',
-            cursor: canResize ? 'pointer' : 'default',
-            '&:hover': canResize ? { color: '#00d4ff' } : {},
-          }}
+          className="text-right border-[rgba(148,163,184,0.08)]"
+          style={{ color: item.producedPerHour > 0 ? '#10b981' : '#475569' }}
         >
-          <Typography variant="caption" sx={{ borderBottom: canResize ? '1px dashed currentColor' : 'none' }}>
-            {item.stockpileQty > 0 ? formatQuantity(item.stockpileQty) : '\u2014'}
-          </Typography>
-          <Popover
-            open={Boolean(anchorEl)}
-            anchorEl={anchorEl}
-            onClose={(e: React.SyntheticEvent) => { e.stopPropagation?.(); setAnchorEl(null); }}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-            slotProps={{
-              paper: {
-                sx: { bgcolor: '#1a1f2e', border: '1px solid rgba(148, 163, 184, 0.15)', p: 1.5, minWidth: 200 },
-                onClick: (e: React.MouseEvent) => e.stopPropagation(),
-              },
+          <span className="text-xs">{formatRate(item.producedPerHour)}</span>
+        </TableCell>
+        <TableCell
+          className="text-right border-[rgba(148,163,184,0.08)]"
+          style={{ color: item.consumedPerHour > 0 ? '#ef4444' : '#475569' }}
+        >
+          <span className="text-xs">{formatRate(item.consumedPerHour)}</span>
+        </TableCell>
+        <TableCell className="text-right border-[rgba(148,163,184,0.08)]">
+          <span className="text-xs font-semibold" style={{ color: netColor(item.netPerHour) }}>
+            {item.netPerHour > 0.01 ? '+' : ''}{formatRate(item.netPerHour)}
+          </span>
+        </TableCell>
+        <TableCell
+          className="text-right border-[rgba(148,163,184,0.08)]"
+          onClick={(e) => { if (canResize) e.stopPropagation(); }}
+        >
+          {canResize ? (
+            <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+              <PopoverTrigger asChild>
+                <span
+                  className="text-xs text-[#94a3b8] cursor-pointer border-b border-dashed border-current hover:text-[#00d4ff]"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {item.stockpileQty > 0 ? formatQuantity(item.stockpileQty) : '\u2014'}
+                </span>
+              </PopoverTrigger>
+              <PopoverContent
+                className="p-3 w-48 bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]"
+                align="end"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="block text-[0.6rem] text-[#64748b] font-semibold uppercase tracking-wide mb-2">
+                  Set stockpile for
+                </span>
+                <div className="flex flex-col gap-1">
+                  {RESIZE_PRESETS.map(preset => {
+                    const qty = Math.ceil(item.consumedPerHour * preset.hours);
+                    return (
+                      <button
+                        key={preset.label}
+                        onClick={(e) => { e.stopPropagation(); handlePresetClick(preset.hours); }}
+                        className="flex justify-between items-center text-[#e2e8f0] text-xs py-1 px-2 rounded hover:bg-[rgba(0,212,255,0.1)] w-full text-left"
+                      >
+                        <span>{preset.label}</span>
+                        <span className="text-[#00d4ff] font-semibold ml-4">{formatQuantity(qty)}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <span className="text-xs text-[#94a3b8]">
+              {item.stockpileQty > 0 ? formatQuantity(item.stockpileQty) : '\u2014'}
+            </span>
+          )}
+        </TableCell>
+        <TableCell className="text-right border-[rgba(148,163,184,0.08)]">
+          <span
+            className="text-xs"
+            style={{
+              color: depletionColor(item.depletionHours),
+              fontWeight: item.depletionHours > 0 && item.depletionHours < 72 ? 600 : 400,
             }}
           >
-            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.6rem', mb: 1, display: 'block' }}>
-              Set stockpile for
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-              {RESIZE_PRESETS.map(preset => {
-                const qty = Math.ceil(item.consumedPerHour * preset.hours);
-                return (
-                  <Button
-                    key={preset.label}
-                    size="small"
-                    onClick={(e) => { e.stopPropagation(); handlePresetClick(preset.hours); }}
-                    sx={{
-                      justifyContent: 'space-between',
-                      textTransform: 'none',
-                      color: '#e2e8f0',
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      px: 1,
-                      '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.1)' },
-                    }}
-                  >
-                    <span>{preset.label}</span>
-                    <Typography component="span" sx={{ color: '#00d4ff', fontSize: '0.75rem', fontWeight: 600, ml: 2 }}>
-                      {formatQuantity(qty)}
-                    </Typography>
-                  </Button>
-                );
-              })}
-            </Box>
-          </Popover>
-        </TableCell>
-        <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.08)' }}>
-          <Typography variant="caption" sx={{ color: depletionColor(item.depletionHours), fontWeight: item.depletionHours > 0 && item.depletionHours < 72 ? 600 : 400 }}>
             {formatDepletion(item.depletionHours)}
-          </Typography>
+          </span>
         </TableCell>
       </TableRow>
       {expanded && (
@@ -224,11 +206,11 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
           {item.producers?.length > 0 && (
             <>
               <TableRow>
-                <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.03)', py: 0.5 }} />
-                <TableCell colSpan={7} sx={{ borderColor: 'rgba(148, 163, 184, 0.03)', py: 0.5 }}>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.6rem' }}>
+                <TableCell className="border-[rgba(148,163,184,0.03)] py-1" />
+                <TableCell colSpan={7} className="border-[rgba(148,163,184,0.03)] py-1">
+                  <span className="text-[#64748b] font-semibold uppercase tracking-wide" style={{ fontSize: '0.6rem' }}>
                     Producers
-                  </Typography>
+                  </span>
                 </TableCell>
               </TableRow>
               {item.producers.map((p, i) => (
@@ -239,11 +221,11 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
           {item.consumers?.length > 0 && (
             <>
               <TableRow>
-                <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.03)', py: 0.5 }} />
-                <TableCell colSpan={7} sx={{ borderColor: 'rgba(148, 163, 184, 0.03)', py: 0.5 }}>
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.6rem' }}>
+                <TableCell className="border-[rgba(148,163,184,0.03)] py-1" />
+                <TableCell colSpan={7} className="border-[rgba(148,163,184,0.03)] py-1">
+                  <span className="text-[#64748b] font-semibold uppercase tracking-wide" style={{ fontSize: '0.6rem' }}>
                     Consumers
-                  </Typography>
+                  </span>
                 </TableCell>
               </TableRow>
               {item.consumers.map((c, i) => (
@@ -261,20 +243,18 @@ function PlanetEntryRow({ entry, type }: { entry: SupplyChainPlanetEntry; type: 
   const rateColor = type === 'producer' ? '#10b981' : '#ef4444';
 
   return (
-    <TableRow sx={{ bgcolor: 'rgba(15, 18, 25, 0.4)' }}>
-      <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.03)' }} />
-      <TableCell colSpan={3} sx={{ borderColor: 'rgba(148, 163, 184, 0.03)', pl: 5 }}>
-        <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
-          {entry.solarSystemName}
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#475569', ml: 0.5 }}>
+    <TableRow className="bg-[rgba(15,18,25,0.4)]">
+      <TableCell className="border-[rgba(148,163,184,0.03)]" />
+      <TableCell colSpan={3} className="border-[rgba(148,163,184,0.03)] pl-12">
+        <span className="text-xs text-[#cbd5e1]">{entry.solarSystemName}</span>
+        <span className="text-xs text-[#475569] ml-1">
           {entry.planetType} &middot; {entry.characterName}
-        </Typography>
+        </span>
       </TableCell>
-      <TableCell colSpan={4} align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.03)' }}>
-        <Typography variant="caption" sx={{ color: rateColor }}>
+      <TableCell colSpan={4} className="text-right border-[rgba(148,163,184,0.03)]">
+        <span className="text-xs" style={{ color: rateColor }}>
           {formatNumber(Math.round(entry.ratePerHour))}/hr
-        </Typography>
+        </span>
       </TableCell>
     </TableRow>
   );
@@ -287,7 +267,7 @@ export default function SupplyChain() {
   const [tierFilter, setTierFilter] = useState('All');
   const [search, setSearch] = useState('');
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
-  const [bulkAnchorEl, setBulkAnchorEl] = useState<HTMLElement | null>(null);
+  const [bulkPopoverOpen, setBulkPopoverOpen] = useState(false);
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -405,152 +385,111 @@ export default function SupplyChain() {
     return <Loading />;
   }
 
+  const hasResizableItems = data?.items?.some(
+    item => (item.stockpileMarkers?.length ?? 0) > 0 && item.consumedPerHour > 0
+  );
+
   return (
-    <Box>
+    <div>
       {/* Summary chips */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, flexWrap: 'wrap' }}>
-        <Typography variant="caption" sx={{ color: '#64748b' }}>
-          {summary.total} materials
-        </Typography>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <span className="text-xs text-[#64748b]">{summary.total} materials</span>
         {summary.deficit > 0 && (
-          <Chip
-            label={`${summary.deficit} deficit`}
-            size="small"
-            sx={{ bgcolor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontSize: '0.7rem', height: 22 }}
-          />
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(239,68,68,0.1)] text-[#ef4444]">
+            {summary.deficit} deficit
+          </span>
         )}
         {summary.surplus > 0 && (
-          <Chip
-            label={`${summary.surplus} surplus`}
-            size="small"
-            sx={{ bgcolor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', fontSize: '0.7rem', height: 22 }}
-          />
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(16,185,129,0.1)] text-[#10b981]">
+            {summary.surplus} surplus
+          </span>
         )}
         {summary.balanced > 0 && (
-          <Chip
-            label={`${summary.balanced} balanced`}
-            size="small"
-            sx={{ bgcolor: 'rgba(148, 163, 184, 0.1)', color: '#94a3b8', fontSize: '0.7rem', height: 22 }}
-          />
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(148,163,184,0.1)] text-[#94a3b8]">
+            {summary.balanced} balanced
+          </span>
         )}
-      </Box>
+      </div>
 
       {/* Filters */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <div className="flex gap-1">
           {TIERS.map(tier => (
-            <Chip
+            <button
               key={tier}
-              label={tier}
-              size="small"
               onClick={() => setTierFilter(tier)}
-              sx={{
-                bgcolor: tierFilter === tier ? 'rgba(0, 212, 255, 0.15)' : 'rgba(148, 163, 184, 0.06)',
-                color: tierFilter === tier ? '#00d4ff' : '#64748b',
-                border: tierFilter === tier ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid transparent',
-                fontSize: '0.7rem',
-                fontWeight: 500,
-                height: 26,
-                cursor: 'pointer',
-                '&:hover': { bgcolor: tierFilter === tier ? 'rgba(0, 212, 255, 0.2)' : 'rgba(148, 163, 184, 0.1)' },
-              }}
-            />
+              className={cn(
+                'px-2.5 py-1 rounded text-xs font-medium border transition-colors',
+                tierFilter === tier
+                  ? 'bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border-[rgba(0,212,255,0.3)]'
+                  : 'bg-[rgba(148,163,184,0.06)] text-[#64748b] border-transparent hover:bg-[rgba(148,163,184,0.1)]'
+              )}
+            >
+              {tier}
+            </button>
           ))}
-        </Box>
-        {data?.items?.some(item => (item.stockpileMarkers?.length ?? 0) > 0 && item.consumedPerHour > 0) && (
-          <>
-            <Button
-              size="small"
-              onClick={(e) => setBulkAnchorEl(e.currentTarget)}
-              sx={{
-                textTransform: 'none',
-                color: '#94a3b8',
-                fontSize: '0.75rem',
-                border: '1px solid rgba(148, 163, 184, 0.15)',
-                px: 1.5,
-                '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.08)', borderColor: 'rgba(0, 212, 255, 0.3)', color: '#00d4ff' },
-              }}
+        </div>
+        {hasResizableItems && (
+          <Popover open={bulkPopoverOpen} onOpenChange={setBulkPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs text-[#94a3b8] border-[rgba(148,163,184,0.15)] bg-transparent hover:bg-[rgba(0,212,255,0.08)] hover:border-[rgba(0,212,255,0.3)] hover:text-[#00d4ff]"
+              >
+                Set all stockpiles
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              className="p-3 w-56 bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]"
+              align="start"
             >
-              Set all stockpiles
-            </Button>
-            <Popover
-              open={Boolean(bulkAnchorEl)}
-              anchorEl={bulkAnchorEl}
-              onClose={() => setBulkAnchorEl(null)}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-              transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-              slotProps={{
-                paper: {
-                  sx: { bgcolor: '#1a1f2e', border: '1px solid rgba(148, 163, 184, 0.15)', p: 1.5, minWidth: 220 },
-                },
-              }}
-            >
-              <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, fontSize: '0.6rem', mb: 1, display: 'block' }}>
+              <span className="block text-[0.6rem] text-[#64748b] font-semibold uppercase tracking-wide mb-2">
                 Set all stockpiles to cover
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              </span>
+              <div className="flex flex-col gap-1">
                 {RESIZE_PRESETS.map(preset => (
-                  <Button
+                  <button
                     key={preset.label}
-                    size="small"
-                    onClick={() => { setBulkAnchorEl(null); handleResizeAll(preset.hours); }}
-                    sx={{
-                      justifyContent: 'flex-start',
-                      textTransform: 'none',
-                      color: '#e2e8f0',
-                      fontSize: '0.75rem',
-                      py: 0.5,
-                      px: 1,
-                      '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.1)' },
-                    }}
+                    onClick={() => { setBulkPopoverOpen(false); handleResizeAll(preset.hours); }}
+                    className="flex items-center text-[#e2e8f0] text-xs py-1 px-2 rounded hover:bg-[rgba(0,212,255,0.1)] w-full text-left"
                   >
                     {preset.label}
-                  </Button>
+                  </button>
                 ))}
-              </Box>
-            </Popover>
-          </>
+              </div>
+            </PopoverContent>
+          </Popover>
         )}
-        <TextField
-          placeholder="Search..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          size="small"
-          variant="outlined"
-          sx={{
-            ml: 'auto',
-            width: 180,
-            '& .MuiOutlinedInput-root': {
-              color: '#e2e8f0',
-              fontSize: '0.8rem',
-              '& fieldset': { borderColor: 'rgba(148, 163, 184, 0.15)' },
-              '&:hover fieldset': { borderColor: 'rgba(0, 212, 255, 0.3)' },
-              '&.Mui-focused fieldset': { borderColor: '#00d4ff' },
-            },
-            '& .MuiInputBase-input': { py: 0.75 },
-          }}
-        />
-      </Box>
+        <div className="ml-auto w-44">
+          <Input
+            placeholder="Search..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="h-8 text-[0.8rem] text-[#e2e8f0] bg-transparent border-[rgba(148,163,184,0.15)] focus-visible:ring-0 focus-visible:border-[#00d4ff] hover:border-[rgba(0,212,255,0.3)]"
+          />
+        </div>
+      </div>
 
       {/* Table */}
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell sx={{ ...headerCellSx, width: 36 }} />
-              <TableCell sx={headerCellSx}>Material</TableCell>
-              <TableCell sx={headerCellSx}>Source</TableCell>
-              <TableCell align="right" sx={headerCellSx}>Produced/hr</TableCell>
-              <TableCell align="right" sx={headerCellSx}>Consumed/hr</TableCell>
-              <TableCell align="right" sx={headerCellSx}>Net/hr</TableCell>
-              <TableCell align="right" sx={headerCellSx}>Stockpile</TableCell>
-              <TableCell align="right" sx={headerCellSx}>Depletion</TableCell>
+              <TableHead className={cn(headerCellCls, "w-9")} />
+              <TableHead className={headerCellCls}>Material</TableHead>
+              <TableHead className={headerCellCls}>Source</TableHead>
+              <TableHead className={cn(headerCellCls, "text-right")}>Produced/hr</TableHead>
+              <TableHead className={cn(headerCellCls, "text-right")}>Consumed/hr</TableHead>
+              <TableHead className={cn(headerCellCls, "text-right")}>Net/hr</TableHead>
+              <TableHead className={cn(headerCellCls, "text-right")}>Stockpile</TableHead>
+              <TableHead className={cn(headerCellCls, "text-right")}>Depletion</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {filteredItems.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', py: 4 }}>
+                <TableCell colSpan={8} className="text-center text-[#64748b] border-[rgba(148,163,184,0.1)] py-8">
                   No PI production data found
                 </TableCell>
               </TableRow>
@@ -567,7 +506,7 @@ export default function SupplyChain() {
             )}
           </TableBody>
         </Table>
-      </TableContainer>
-    </Box>
+      </div>
+    </div>
   );
 }

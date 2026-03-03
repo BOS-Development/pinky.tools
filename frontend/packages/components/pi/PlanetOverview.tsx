@@ -5,21 +5,10 @@ import Loading from "@industry-tool/components/loading";
 import LaunchpadDetail from "@industry-tool/components/pi/LaunchpadDetail";
 import { PiPlanet, PiPlanetsResponse } from "@industry-tool/client/data/models";
 import { formatNumber } from "@industry-tool/utils/formatting";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
-import PublicIcon from '@mui/icons-material/Public';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import ErrorIcon from '@mui/icons-material/Error';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
+import { Search, Globe, CheckCircle, XCircle, AlertTriangle, Clock } from 'lucide-react';
 
 const PLANET_TYPE_IDS: Record<string, number> = {
   temperate: 11,
@@ -64,11 +53,12 @@ function getStatusLabel(status: string): string {
 }
 
 function getStatusIcon(status: string) {
+  const cls = "w-3 h-3";
   switch (status) {
-    case 'running': return <CheckCircleIcon sx={{ fontSize: 14 }} />;
-    case 'expired': return <ErrorIcon sx={{ fontSize: 14 }} />;
-    case 'stalled': return <WarningAmberIcon sx={{ fontSize: 14 }} />;
-    case 'stale_data': return <AccessTimeIcon sx={{ fontSize: 14 }} />;
+    case 'running': return <CheckCircle className={cls} />;
+    case 'expired': return <XCircle className={cls} />;
+    case 'stalled': return <AlertTriangle className={cls} />;
+    case 'stale_data': return <Clock className={cls} />;
     default: return null;
   }
 }
@@ -107,92 +97,88 @@ type LaunchpadSelection = {
 };
 
 function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpadClick: (sel: LaunchpadSelection) => void }) {
-  const typeColor = PLANET_TYPE_COLORS[planet.planetType] || '#94a3b8';
   const statusColor = getStatusColor(planet.status);
   const hasIssues = planet.status !== 'running';
 
   return (
     <Card
-      sx={{
-        background: '#12151f',
-        border: `1px solid ${hasIssues ? 'rgba(244, 63, 94, 0.2)' : 'rgba(0, 212, 255, 0.08)'}`,
-        borderRadius: 2,
-        height: '100%',
-      }}
+      className={cn(
+        'h-full',
+        hasIssues
+          ? 'border-[rgba(244,63,94,0.2)]'
+          : 'border-[rgba(0,212,255,0.08)]'
+      )}
+      style={{ background: '#12151f' }}
     >
-      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+      <CardContent className="p-3 pb-3">
         {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+        <div className="flex justify-between items-start mb-3">
+          <div className="flex items-center gap-2 min-w-0">
             <img
               src={`https://images.evetech.net/types/${PLANET_TYPE_IDS[planet.planetType] || 11}/icon?size=64`}
               alt={planet.planetType}
               width={28}
               height={28}
-              style={{ flexShrink: 0, borderRadius: '50%' }}
+              className="flex-shrink-0 rounded-full"
             />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" sx={{ color: '#e2e8f0', fontWeight: 600, lineHeight: 1.2 }} noWrap>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-[#e2e8f0] leading-tight truncate">
                 {planet.solarSystemName}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b' }}>
+              </p>
+              <span className="text-xs text-[#64748b]">
                 {planet.planetType.charAt(0).toUpperCase() + planet.planetType.slice(1)} - {planet.characterName}
-              </Typography>
-            </Box>
-          </Box>
-          <Chip
-            icon={getStatusIcon(planet.status) || undefined}
-            label={getStatusLabel(planet.status)}
-            size="small"
-            sx={{
-              bgcolor: `${statusColor}20`,
+              </span>
+            </div>
+          </div>
+          {/* Status badge */}
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[0.7rem] font-semibold flex-shrink-0"
+            style={{
+              backgroundColor: `${statusColor}20`,
               color: statusColor,
               border: `1px solid ${statusColor}40`,
-              fontWeight: 600,
-              fontSize: '0.7rem',
-              height: 24,
-              flexShrink: 0,
-              '& .MuiChip-icon': { color: statusColor },
             }}
-          />
-        </Box>
+          >
+            {getStatusIcon(planet.status)}
+            {getStatusLabel(planet.status)}
+          </span>
+        </div>
 
         {/* Extractors */}
         {planet.extractors.length > 0 && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div className="mb-2">
+            <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wide">
               Extractors
-            </Typography>
+            </span>
             {planet.extractors.map((ext) => (
-              <Box key={ext.pinId} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.25 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                  <img src={`https://images.evetech.net/types/${ext.productTypeId}/icon?size=32`} alt="" width={16} height={16} style={{ flexShrink: 0 }} />
-                  <Typography variant="caption" sx={{ color: ext.status === 'expired' ? '#ef4444' : '#cbd5e1' }} noWrap>
+              <div key={ext.pinId} className="flex justify-between items-center mt-0.5">
+                <div className="flex items-center gap-1 min-w-0">
+                  <img src={`https://images.evetech.net/types/${ext.productTypeId}/icon?size=32`} alt="" width={16} height={16} className="flex-shrink-0" />
+                  <span className={cn("text-xs truncate", ext.status === 'expired' ? 'text-[#ef4444]' : 'text-[#cbd5e1]')}>
                     {ext.productName || `Type ${ext.productTypeId}`}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-[#94a3b8]">
                     {formatNumber(Math.round(ext.ratePerHour))}/hr
-                  </Typography>
+                  </span>
                   {ext.expiryTime && (
-                    <Typography variant="caption" sx={{ color: ext.status === 'expired' ? '#ef4444' : '#10b981', fontWeight: 500 }}>
+                    <span className={cn("text-xs font-medium", ext.status === 'expired' ? 'text-[#ef4444]' : 'text-[#10b981]')}>
                       {formatTimeUntil(ext.expiryTime)}
-                    </Typography>
+                    </span>
                   )}
-                </Box>
-              </Box>
+                </div>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
 
         {/* Factories */}
         {planet.factories.length > 0 && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div className="mb-2">
+            <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wide">
               Factories ({planet.factories.length})
-            </Typography>
-            {/* Group by schematic */}
+            </span>
             {Object.entries(
               planet.factories.reduce<Record<string, { count: number; ratePerHour: number; status: string; outputTypeId: number }>>((acc, f) => {
                 const key = f.schematicName || `Unknown (${f.schematicId})`;
@@ -203,31 +189,31 @@ function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpa
                 return acc;
               }, {})
             ).map(([name, info]) => (
-              <Box key={name} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.25 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+              <div key={name} className="flex justify-between items-center mt-0.5">
+                <div className="flex items-center gap-1 min-w-0">
                   {info.outputTypeId > 0 && (
-                    <img src={`https://images.evetech.net/types/${info.outputTypeId}/icon?size=32`} alt="" width={16} height={16} style={{ flexShrink: 0 }} />
+                    <img src={`https://images.evetech.net/types/${info.outputTypeId}/icon?size=32`} alt="" width={16} height={16} className="flex-shrink-0" />
                   )}
-                  <Typography variant="caption" sx={{ color: info.status === 'stalled' ? '#f59e0b' : '#cbd5e1' }} noWrap>
+                  <span className={cn("text-xs truncate", info.status === 'stalled' ? 'text-[#f59e0b]' : 'text-[#cbd5e1]')}>
                     {info.count}x {name}
-                  </Typography>
-                </Box>
-                <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                  </span>
+                </div>
+                <span className="text-xs text-[#94a3b8]">
                   {formatNumber(Math.round(info.ratePerHour))}/hr
-                </Typography>
-              </Box>
+                </span>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
 
         {/* Launchpads */}
         {planet.launchpads.length > 0 && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+          <div className="mb-2">
+            <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wide">
               Storage ({planet.launchpads.length})
-            </Typography>
+            </span>
             {planet.launchpads.map((lp) => (
-              <Box
+              <div
                 key={lp.pinId}
                 onClick={() => onLaunchpadClick({
                   characterId: planet.characterId,
@@ -235,57 +221,45 @@ function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpa
                   pinId: lp.pinId,
                   planetName: `${planet.solarSystemName} - ${planet.planetType.charAt(0).toUpperCase() + planet.planetType.slice(1)}`,
                 })}
-                sx={{
-                  mt: 0.5,
-                  px: 0.75,
-                  py: 0.5,
-                  borderRadius: 0.75,
-                  cursor: 'pointer',
-                  border: '1px solid transparent',
-                  '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.06)', borderColor: 'rgba(0, 212, 255, 0.15)' },
-                }}
+                className="mt-1 px-1.5 py-1 rounded cursor-pointer border border-transparent hover:bg-[rgba(0,212,255,0.06)] hover:border-[rgba(0,212,255,0.15)] transition-colors"
               >
-                <Typography variant="caption" sx={{ color: lp.label ? '#94a3b8' : '#475569', fontWeight: lp.label ? 500 : 400, fontStyle: lp.label ? 'normal' : 'italic' }}>
-                  {lp.label || `Launchpad`}
-                </Typography>
+                <span className={cn("text-xs", lp.label ? 'text-[#94a3b8] font-medium' : 'text-[#475569] italic')}>
+                  {lp.label || 'Launchpad'}
+                </span>
                 {lp.contents.length === 0 ? (
-                  <Typography variant="caption" sx={{ color: '#475569', display: 'block', fontSize: '0.65rem' }}>
+                  <span className="text-[#475569] block" style={{ fontSize: '0.65rem' }}>
                     Empty
-                  </Typography>
+                  </span>
                 ) : (
                   lp.contents.sort((a, b) => b.amount - a.amount).slice(0, 3).map((item) => (
-                    <Box key={item.typeId} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                        <img src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`} alt="" width={14} height={14} style={{ flexShrink: 0 }} />
-                        <Typography variant="caption" sx={{ color: '#cbd5e1', fontSize: '0.65rem' }} noWrap>
+                    <div key={item.typeId} className="flex justify-between items-center">
+                      <div className="flex items-center gap-1 min-w-0">
+                        <img src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`} alt="" width={14} height={14} className="flex-shrink-0" />
+                        <span className="text-[#cbd5e1] truncate" style={{ fontSize: '0.65rem' }}>
                           {item.name || `Type ${item.typeId}`}
-                        </Typography>
-                      </Box>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', flexShrink: 0, ml: 1, fontSize: '0.65rem' }}>
+                        </span>
+                      </div>
+                      <span className="text-[#94a3b8] flex-shrink-0 ml-2" style={{ fontSize: '0.65rem' }}>
                         {formatNumber(item.amount)}
-                      </Typography>
-                    </Box>
+                      </span>
+                    </div>
                   ))
                 )}
                 {lp.contents.length > 3 && (
-                  <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.6rem' }}>
+                  <span className="text-[#475569]" style={{ fontSize: '0.6rem' }}>
                     +{lp.contents.length - 3} more
-                  </Typography>
+                  </span>
                 )}
-              </Box>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
 
         {/* Footer */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1, pt: 1, borderTop: '1px solid rgba(148, 163, 184, 0.1)' }}>
-          <Typography variant="caption" sx={{ color: '#475569' }}>
-            CC{planet.upgradeLevel}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#475569' }}>
-            Updated {formatTimeAgo(planet.lastUpdate)}
-          </Typography>
-        </Box>
+        <div className="flex justify-between items-center mt-2 pt-2 border-t border-[rgba(148,163,184,0.1)]">
+          <span className="text-xs text-[#475569]">CC{planet.upgradeLevel}</span>
+          <span className="text-xs text-[#475569]">Updated {formatTimeAgo(planet.lastUpdate)}</span>
+        </div>
       </CardContent>
     </Card>
   );
@@ -354,62 +328,48 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
 
   const content = (
     <>
-        {/* Stats Row */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-          <StatChip label="Planets" value={stats.total} color="#00d4ff" />
-          <StatChip label="Running" value={stats.running} color="#10b981" />
-          {stats.stalled > 0 && <StatChip label="Issues" value={stats.stalled} color="#ef4444" />}
-          {stats.stale > 0 && <StatChip label="Stale" value={stats.stale} color="#94a3b8" />}
-          <StatChip label="Extractors" value={stats.totalExtractors} color="#f59e0b" />
-          <StatChip label="Factories" value={stats.totalFactories} color="#8b5cf6" />
-        </Box>
+      {/* Stats Row */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        <StatChip label="Planets" value={stats.total} color="#00d4ff" />
+        <StatChip label="Running" value={stats.running} color="#10b981" />
+        {stats.stalled > 0 && <StatChip label="Issues" value={stats.stalled} color="#ef4444" />}
+        {stats.stale > 0 && <StatChip label="Stale" value={stats.stale} color="#94a3b8" />}
+        <StatChip label="Extractors" value={stats.totalExtractors} color="#f59e0b" />
+        <StatChip label="Factories" value={stats.totalFactories} color="#8b5cf6" />
+      </div>
 
-        {/* Search */}
-        <TextField
-          size="small"
+      {/* Search */}
+      <div className="relative mb-4 w-[300px]">
+        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b]" />
+        <Input
           placeholder="Search planets..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon sx={{ color: '#64748b', fontSize: 20 }} />
-                </InputAdornment>
-              ),
-            },
-          }}
-          sx={{
-            mb: 2,
-            width: 300,
-            '& .MuiOutlinedInput-root': {
-              bgcolor: '#12151f',
-              '& fieldset': { borderColor: 'rgba(148, 163, 184, 0.15)' },
-              '&:hover fieldset': { borderColor: 'rgba(0, 212, 255, 0.3)' },
-            },
-            '& .MuiInputBase-input': { color: '#e2e8f0', fontSize: '0.875rem' },
-          }}
+          className="pl-8 h-8 text-sm bg-[#12151f] border-[rgba(148,163,184,0.15)] text-[#e2e8f0] focus-visible:ring-0 focus-visible:border-[rgba(0,212,255,0.3)] hover:border-[rgba(0,212,255,0.3)]"
         />
+      </div>
 
-        {/* Planet Grid */}
-        {filteredPlanets.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <PublicIcon sx={{ fontSize: 48, color: '#475569', mb: 1 }} />
-            <Typography variant="body1" sx={{ color: '#64748b' }}>
-              {planets.length === 0
-                ? 'No planets found. Make sure your characters have the PI scope and data has been refreshed.'
-                : 'No planets match your search.'}
-            </Typography>
-          </Box>
-        ) : (
-          <Grid container spacing={2}>
-            {filteredPlanets.map((planet) => (
-              <Grid key={`${planet.characterId}-${planet.planetId}`} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <PlanetCard planet={planet} onLaunchpadClick={setSelectedLaunchpad} />
-              </Grid>
-            ))}
-          </Grid>
-        )}
+      {/* Planet Grid */}
+      {filteredPlanets.length === 0 ? (
+        <div className="text-center py-16">
+          <Globe className="w-12 h-12 text-[#475569] mx-auto mb-2" />
+          <p className="text-[#64748b]">
+            {planets.length === 0
+              ? 'No planets found. Make sure your characters have the PI scope and data has been refreshed.'
+              : 'No planets match your search.'}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredPlanets.map((planet) => (
+            <PlanetCard
+              key={`${planet.characterId}-${planet.planetId}`}
+              planet={planet}
+              onLaunchpadClick={setSelectedLaunchpad}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 
@@ -442,12 +402,12 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
   return (
     <>
       <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-        <Typography variant="h5" sx={{ color: '#e2e8f0', mb: 2, fontWeight: 600 }}>
+      <div className="max-w-screen-xl mx-auto px-4 mt-2 mb-8">
+        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-4">
           Planetary Industry
-        </Typography>
+        </h2>
         {content}
-      </Container>
+      </div>
       {drawer}
     </>
   );
@@ -455,24 +415,15 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
 
 function StatChip({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 0.75,
-        px: 1.5,
-        py: 0.5,
-        borderRadius: 1,
-        bgcolor: `${color}10`,
+    <div
+      className="flex items-center gap-1.5 px-3 py-1 rounded"
+      style={{
+        backgroundColor: `${color}10`,
         border: `1px solid ${color}30`,
       }}
     >
-      <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 500 }}>
-        {label}
-      </Typography>
-      <Typography variant="body2" sx={{ color, fontWeight: 700 }}>
-        {value}
-      </Typography>
-    </Box>
+      <span className="text-xs text-[#94a3b8] font-medium">{label}</span>
+      <span className="text-sm font-bold" style={{ color }}>{value}</span>
+    </div>
   );
 }

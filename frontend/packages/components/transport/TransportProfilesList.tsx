@@ -1,21 +1,14 @@
 import React, { useState } from "react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Button,
-  IconButton,
-  Box,
-  Chip,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+} from "@/components/ui/table";
 import { TransportProfile } from "../../pages/transport";
 import { TransportProfileDialog } from "./TransportProfileDialog";
 import { formatNumber } from "../../utils/formatting";
@@ -77,92 +70,97 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress size={32} />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} size="small">
+      <div className="flex justify-end mb-3">
+        <Button size="sm" onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Add Profile
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1219" }}>
-              <TableCell>Name</TableCell>
-              <TableCell>Method</TableCell>
-              <TableCell>Character</TableCell>
-              <TableCell align="right">Cargo (m3)</TableCell>
-              <TableCell align="right">Rate/m3/Jump</TableCell>
-              <TableCell align="right">Collateral Rate</TableCell>
-              <TableCell>Route Pref</TableCell>
-              <TableCell>Default</TableCell>
-              <TableCell align="center">Actions</TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219] hover:bg-[#0f1219]">
+              <TableHead>Name</TableHead>
+              <TableHead>Method</TableHead>
+              <TableHead>Character</TableHead>
+              <TableHead className="text-right">Cargo (m3)</TableHead>
+              <TableHead className="text-right">Rate/m3/Jump</TableHead>
+              <TableHead className="text-right">Collateral Rate</TableHead>
+              <TableHead>Route Pref</TableHead>
+              <TableHead>Default</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {profiles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 4, color: "#94a3b8" }}>
-                  <Typography variant="body2">No transport profiles configured</Typography>
+                <TableCell
+                  colSpan={9}
+                  className="text-center py-8 text-[#94a3b8]"
+                >
+                  No transport profiles configured
                 </TableCell>
               </TableRow>
             ) : (
               profiles.map((p) => (
-                <TableRow
-                  key={p.id}
-                  sx={{ "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" } }}
-                >
-                  <TableCell sx={{ fontWeight: 500 }}>{p.name}</TableCell>
+                <TableRow key={p.id} className="hover:bg-[rgba(0,212,255,0.05)]">
+                  <TableCell className="font-medium text-[#e2e8f0]">{p.name}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={getMethodLabel(p.transportMethod)}
-                      size="small"
-                      sx={{
+                    <span
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+                      style={{
                         backgroundColor: `${getMethodColor(p.transportMethod)}20`,
                         color: getMethodColor(p.transportMethod),
-                        fontWeight: 500,
                       }}
-                    />
+                    >
+                      {getMethodLabel(p.transportMethod)}
+                    </span>
                   </TableCell>
-                  <TableCell>{p.characterName || "—"}</TableCell>
-                  <TableCell align="right">{formatNumber(p.cargoM3)}</TableCell>
-                  <TableCell align="right">{formatNumber(p.ratePerM3PerJump)}</TableCell>
-                  <TableCell align="right">{(p.collateralRate * 100).toFixed(1)}%</TableCell>
-                  <TableCell>{p.routePreference}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{p.characterName || "—"}</TableCell>
+                  <TableCell className="text-right">{formatNumber(p.cargoM3)}</TableCell>
+                  <TableCell className="text-right">{formatNumber(p.ratePerM3PerJump)}</TableCell>
+                  <TableCell className="text-right">{(p.collateralRate * 100).toFixed(1)}%</TableCell>
+                  <TableCell className="text-[#94a3b8]">{p.routePreference}</TableCell>
                   <TableCell>
                     {p.isDefault && (
-                      <Chip
-                        label="Default"
-                        size="small"
-                        sx={{
-                          backgroundColor: "rgba(16, 185, 129, 0.15)",
-                          color: "#10b981",
-                          fontWeight: 500,
-                        }}
-                      />
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[rgba(16,185,129,0.15)] text-[#10b981]">
+                        Default
+                      </span>
                     )}
                   </TableCell>
-                  <TableCell align="center">
-                    <IconButton size="small" onClick={() => handleEdit(p)} sx={{ color: "#94a3b8" }}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(p)} sx={{ color: "#ef4444" }}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      onClick={() => handleEdit(p)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                      onClick={() => handleDelete(p)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
-      </TableContainer>
+      </div>
 
       <TransportProfileDialog
         open={dialogOpen}

@@ -1,26 +1,12 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Container, Typography, Tabs, Tab, Box } from "@mui/material";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Loading from "@industry-tool/components/loading";
 import Unauthorized from "@industry-tool/components/unauthorized";
 import Navbar from "@industry-tool/components/Navbar";
 import { TransportProfilesList } from "../components/transport/TransportProfilesList";
 import { JFRoutesList } from "../components/transport/JFRoutesList";
 import { TransportJobsList } from "../components/transport/TransportJobsList";
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  value: number;
-  index: number;
-}
-
-function TabPanel({ children, value, index }: TabPanelProps) {
-  return (
-    <div role="tabpanel" hidden={value !== index}>
-      {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
-    </div>
-  );
-}
 
 export interface TransportProfile {
   id: number;
@@ -106,7 +92,6 @@ export interface TransportJob {
 
 export default function TransportPage() {
   const { data: session, status } = useSession();
-  const [tabIndex, setTabIndex] = useState(0);
   const [profiles, setProfiles] = useState<TransportProfile[]>([]);
   const [jfRoutes, setJFRoutes] = useState<JFRoute[]>([]);
   const [jobs, setJobs] = useState<TransportJob[]>([]);
@@ -172,54 +157,59 @@ export default function TransportPage() {
 
   return (
     <>
-    <Navbar />
-    <Container maxWidth="xl" sx={{ mt: 2 }}>
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-        Transport
-      </Typography>
+      <Navbar />
+      <div className="max-w-screen-xl mx-auto px-4 mt-4">
+        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-4">Transport</h2>
 
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs
-          value={tabIndex}
-          onChange={(_, v) => setTabIndex(v)}
-          sx={{
-            "& .MuiTab-root": { color: "#94a3b8" },
-            "& .Mui-selected": { color: "#00d4ff" },
-            "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
-          }}
-        >
-          <Tab label="Transport Jobs" />
-          <Tab label="Transport Profiles" />
-          <Tab label="JF Routes" />
+        <Tabs defaultValue="jobs">
+          <TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-0">
+            <TabsTrigger
+              value="jobs"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+            >
+              Transport Jobs
+            </TabsTrigger>
+            <TabsTrigger
+              value="profiles"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+            >
+              Transport Profiles
+            </TabsTrigger>
+            <TabsTrigger
+              value="routes"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+            >
+              JF Routes
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="jobs" className="mt-4">
+            <TransportJobsList
+              jobs={jobs}
+              loading={loadingJobs}
+              profiles={profiles}
+              jfRoutes={jfRoutes}
+              onRefresh={fetchJobs}
+            />
+          </TabsContent>
+
+          <TabsContent value="profiles" className="mt-4">
+            <TransportProfilesList
+              profiles={profiles}
+              loading={loadingProfiles}
+              onRefresh={fetchProfiles}
+            />
+          </TabsContent>
+
+          <TabsContent value="routes" className="mt-4">
+            <JFRoutesList
+              routes={jfRoutes}
+              loading={loadingRoutes}
+              onRefresh={fetchJFRoutes}
+            />
+          </TabsContent>
         </Tabs>
-      </Box>
-
-      <TabPanel value={tabIndex} index={0}>
-        <TransportJobsList
-          jobs={jobs}
-          loading={loadingJobs}
-          profiles={profiles}
-          jfRoutes={jfRoutes}
-          onRefresh={fetchJobs}
-        />
-      </TabPanel>
-
-      <TabPanel value={tabIndex} index={1}>
-        <TransportProfilesList
-          profiles={profiles}
-          loading={loadingProfiles}
-          onRefresh={fetchProfiles}
-        />
-      </TabPanel>
-
-      <TabPanel value={tabIndex} index={2}>
-        <JFRoutesList
-          routes={jfRoutes}
-          loading={loadingRoutes}
-          onRefresh={fetchJFRoutes}
-        />
-      </TabPanel>
-    </Container>
+      </div>
     </>
   );
 }

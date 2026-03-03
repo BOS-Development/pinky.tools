@@ -1,19 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 import {
   Dialog,
-  DialogTitle,
   DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Box,
-  IconButton,
-  Typography,
-  Autocomplete,
-  CircularProgress,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { JFRoute } from "../../pages/transport";
 
 interface SolarSystemOption {
@@ -39,6 +34,101 @@ const getSecurityColor = (sec: number) => {
   return "#ef4444";
 };
 
+interface SystemSearchDropdownProps {
+  label: string;
+  value: SolarSystemOption | null;
+  onSelect: (option: SolarSystemOption | null) => void;
+  options: SolarSystemOption[];
+  loading: boolean;
+  onSearch: (value: string) => void;
+  displayValue: string;
+  setDisplayValue: (v: string) => void;
+}
+
+function SystemSearchDropdown({
+  label,
+  value,
+  onSelect,
+  options,
+  loading,
+  onSearch,
+  displayValue,
+  setDisplayValue,
+}: SystemSearchDropdownProps) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Sync displayValue when value is cleared externally
+  useEffect(() => {
+    if (!value) {
+      setDisplayValue("");
+    }
+  }, [value, setDisplayValue]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setDisplayValue(v);
+    onSearch(v);
+    setOpen(true);
+  };
+
+  const handleSelect = (opt: SolarSystemOption) => {
+    onSelect(opt);
+    setDisplayValue(opt.name);
+    setOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <div className="flex flex-col gap-1">
+        {label && <label className="text-xs text-[#94a3b8]">{label}</label>}
+        <div className="relative">
+          <Input
+            value={displayValue}
+            onChange={handleInputChange}
+            onFocus={() => { if (options.length > 0) setOpen(true); }}
+            placeholder="Search for a system..."
+          />
+          {loading && (
+            <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-[#64748b]" />
+          )}
+        </div>
+      </div>
+      {open && options.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-[rgba(148,163,184,0.15)] rounded-sm shadow-lg max-h-48 overflow-y-auto">
+          {options.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              className="w-full text-left px-3 py-2 hover:bg-[rgba(0,212,255,0.08)] flex items-center gap-2"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => handleSelect(opt)}
+            >
+              <span className="text-sm text-[#e2e8f0]">{opt.name}</span>
+              <span
+                className="text-xs"
+                style={{ color: getSecurityColor(opt.security ?? 0) }}
+              >
+                ({(opt.security ?? 0).toFixed(1)})
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function JFRouteDialog({ open, onClose, route }: Props) {
   const isEdit = !!route;
   const [saving, setSaving] = useState(false);
@@ -50,12 +140,15 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
   // Search state for origin/destination
   const [originOptions, setOriginOptions] = useState<SolarSystemOption[]>([]);
   const [originLoading, setOriginLoading] = useState(false);
+  const [originDisplay, setOriginDisplay] = useState("");
   const [destOptions, setDestOptions] = useState<SolarSystemOption[]>([]);
   const [destLoading, setDestLoading] = useState(false);
+  const [destDisplay, setDestDisplay] = useState("");
 
   // Per-waypoint search state
   const [waypointOptions, setWaypointOptions] = useState<Record<number, SolarSystemOption[]>>({});
   const [waypointLoading, setWaypointLoading] = useState<Record<number, boolean>>({});
+  const [waypointDisplays, setWaypointDisplays] = useState<Record<number, string>>({});
 
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -65,7 +158,7 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
       const res = await fetch(`/api/transport/systems/search?q=${encodeURIComponent(query)}`);
       if (res.ok) {
         const data = await res.json();
-        return (data || []).map((s: any) => ({
+        return (data || []).map((s: { id: number; name: string; security: number }) => ({
           id: s.id,
           name: s.name,
           security: s.security,
@@ -93,34 +186,47 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
   useEffect(() => {
     if (open && route) {
       setName(route.name);
-      setOriginSystem({
+      const origin: SolarSystemOption = {
         id: route.originSystemId,
         name: route.originSystemName || String(route.originSystemId),
         security: 0,
-      });
-      setDestinationSystem({
+      };
+      const dest: SolarSystemOption = {
         id: route.destinationSystemId,
         name: route.destinationSystemName || String(route.destinationSystemId),
         security: 0,
+      };
+      setOriginSystem(origin);
+      setDestinationSystem(dest);
+      setOriginDisplay(origin.name);
+      setDestDisplay(dest.name);
+
+      const wps = (route.waypoints || []).map((wp) => ({
+        sequence: wp.sequence,
+        system: {
+          id: wp.systemId,
+          name: wp.systemName || String(wp.systemId),
+          security: 0,
+        },
+      }));
+      setWaypoints(wps);
+
+      const displays: Record<number, string> = {};
+      wps.forEach((wp, index) => {
+        if (wp.system) displays[index] = wp.system.name;
       });
-      setWaypoints(
-        (route.waypoints || []).map((wp) => ({
-          sequence: wp.sequence,
-          system: {
-            id: wp.systemId,
-            name: wp.systemName || String(wp.systemId),
-            security: 0,
-          },
-        })),
-      );
+      setWaypointDisplays(displays);
     } else if (open) {
       setName("");
       setOriginSystem(null);
       setDestinationSystem(null);
+      setOriginDisplay("");
+      setDestDisplay("");
       setWaypoints([
         { sequence: 0, system: null },
         { sequence: 1, system: null },
       ]);
+      setWaypointDisplays({});
     }
     setOriginOptions([]);
     setDestOptions([]);
@@ -136,6 +242,12 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
     if (waypoints.length <= 2) return;
     const updated = waypoints.filter((_, i) => i !== index).map((wp, i) => ({ ...wp, sequence: i }));
     setWaypoints(updated);
+    // Reindex waypoint displays
+    const newDisplays: Record<number, string> = {};
+    updated.forEach((wp, i) => {
+      if (wp.system) newDisplays[i] = waypointDisplays[i < index ? i : i + 1] || wp.system.name;
+    });
+    setWaypointDisplays(newDisplays);
   };
 
   const handleWaypointSystemChange = (index: number, system: SolarSystemOption | null) => {
@@ -178,144 +290,103 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
 
   const canSave = name && originSystem && destinationSystem && waypoints.length >= 2 && waypoints.every((wp) => wp.system);
 
-  const renderSystemAutocomplete = (
-    label: string,
-    value: SolarSystemOption | null,
-    onChange: (v: SolarSystemOption | null) => void,
-    options: SolarSystemOption[],
-    loading: boolean,
-    onInputChange: (v: string) => void,
-  ) => (
-    <Autocomplete
-      value={value}
-      onChange={(_, newValue) => onChange(newValue)}
-      onInputChange={(_, inputValue) => onInputChange(inputValue)}
-      options={options}
-      getOptionLabel={(option) => option.name}
-      isOptionEqualToValue={(a, b) => a.id === b.id}
-      loading={loading}
-      filterOptions={(x) => x}
-      size="small"
-      renderOption={(props, option) => (
-        <Box component="li" {...props}>
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <Typography variant="body2">{option.name}</Typography>
-            <Typography
-              variant="caption"
-              sx={{ color: getSecurityColor(option.security ?? 0) }}
-            >
-              ({(option.security ?? 0).toFixed(1)})
-            </Typography>
-          </Box>
-        </Box>
-      )}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          label={label}
-          placeholder="Search for a system..."
-          InputProps={{
-            ...params.InputProps,
-            endAdornment: (
-              <>
-                {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                {params.InputProps.endAdornment}
-              </>
-            ),
-          }}
-        />
-      )}
-    />
-  );
-
   return (
-    <Dialog
-      open={open}
-      onClose={() => onClose(false)}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{ sx: { backgroundColor: "#12151f", backgroundImage: "none" } }}
-    >
-      <DialogTitle>{isEdit ? "Edit JF Route" : "Add JF Route"}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
-          <TextField
-            label="Route Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            fullWidth
-            size="small"
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(false); }}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{isEdit ? "Edit JF Route" : "Add JF Route"}</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3 pt-1 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[#94a3b8]">Route Name</label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Route name..."
+            />
+          </div>
+
+          <SystemSearchDropdown
+            label="Origin System"
+            value={originSystem}
+            onSelect={setOriginSystem}
+            options={originOptions}
+            loading={originLoading}
+            onSearch={(v) => debouncedSearch(v, setOriginOptions, setOriginLoading)}
+            displayValue={originDisplay}
+            setDisplayValue={setOriginDisplay}
           />
 
-          {renderSystemAutocomplete(
-            "Origin System",
-            originSystem,
-            setOriginSystem,
-            originOptions,
-            originLoading,
-            (v) => debouncedSearch(v, setOriginOptions, setOriginLoading),
-          )}
+          <SystemSearchDropdown
+            label="Destination System"
+            value={destinationSystem}
+            onSelect={setDestinationSystem}
+            options={destOptions}
+            loading={destLoading}
+            onSearch={(v) => debouncedSearch(v, setDestOptions, setDestLoading)}
+            displayValue={destDisplay}
+            setDisplayValue={setDestDisplay}
+          />
 
-          {renderSystemAutocomplete(
-            "Destination System",
-            destinationSystem,
-            setDestinationSystem,
-            destOptions,
-            destLoading,
-            (v) => debouncedSearch(v, setDestOptions, setDestLoading),
-          )}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-[#94a3b8]">Waypoints (cyno systems in order)</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-[#00d4ff] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
+                onClick={handleAddWaypoint}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-          <Box>
-            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-              <Typography variant="subtitle2" sx={{ color: "#94a3b8" }}>
-                Waypoints (cyno systems in order)
-              </Typography>
-              <IconButton size="small" onClick={handleAddWaypoint} sx={{ color: "#00d4ff" }}>
-                <AddIcon fontSize="small" />
-              </IconButton>
-            </Box>
             {waypoints.map((wp, index) => (
-              <Box key={index} sx={{ display: "flex", gap: 1, mb: 1, alignItems: "center" }}>
-                <Typography variant="caption" sx={{ color: "#94a3b8", minWidth: 20 }}>
-                  {wp.sequence}
-                </Typography>
-                <Box sx={{ flex: 1 }}>
-                  {renderSystemAutocomplete(
-                    `Waypoint #${wp.sequence}`,
-                    wp.system,
-                    (system) => handleWaypointSystemChange(index, system),
-                    waypointOptions[index] || [],
-                    waypointLoading[index] || false,
-                    (v) =>
+              <div key={index} className="flex gap-2 mb-2 items-end">
+                <span className="text-xs text-[#94a3b8] min-w-5 pb-2">{wp.sequence}</span>
+                <div className="flex-1">
+                  <SystemSearchDropdown
+                    label={`Waypoint #${wp.sequence}`}
+                    value={wp.system}
+                    onSelect={(system) => handleWaypointSystemChange(index, system)}
+                    options={waypointOptions[index] || []}
+                    loading={waypointLoading[index] || false}
+                    onSearch={(v) =>
                       debouncedSearch(
                         v,
                         (opts) => setWaypointOptions((prev) => ({ ...prev, [index]: opts })),
                         (l) => setWaypointLoading((prev) => ({ ...prev, [index]: l })),
-                      ),
-                  )}
-                </Box>
+                      )
+                    }
+                    displayValue={waypointDisplays[index] || ""}
+                    setDisplayValue={(v) => setWaypointDisplays((prev) => ({ ...prev, [index]: v }))}
+                  />
+                </div>
                 {waypoints.length > 2 && (
-                  <IconButton
-                    size="small"
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)] mb-0.5"
                     onClick={() => handleRemoveWaypoint(index)}
-                    sx={{ color: "#ef4444" }}
                   >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 )}
-              </Box>
+              </div>
             ))}
-          </Box>
-        </Box>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onClose(false)} disabled={saving}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving || !canSave}>
+            {saving ? "Saving..." : isEdit ? "Update" : "Create"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => onClose(false)} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button variant="contained" onClick={handleSave} disabled={saving || !canSave}>
-          {saving ? "Saving..." : isEdit ? "Update" : "Create"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

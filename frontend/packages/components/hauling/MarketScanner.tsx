@@ -3,29 +3,14 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Navbar from '@industry-tool/components/Navbar';
 import Loading from '@industry-tool/components/loading';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Skeleton from '@mui/material/Skeleton';
-import Popover from '@mui/material/Popover';
-import TextField from '@mui/material/TextField';
-import ScannerIcon from '@mui/icons-material/Scanner';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+import { ScanSearch, ShoppingCart } from 'lucide-react';
 import { HaulingArbitrageRow, HaulingRun } from '@industry-tool/client/data/models';
 import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
 import { getItemIconUrl } from '@industry-tool/utils/eveImages';
@@ -48,12 +33,12 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
   name,
 }));
 
-function getIndicatorColor(indicator: HaulingArbitrageRow['indicator']): 'warning' | 'info' | 'default' {
+function getIndicatorStyle(indicator: HaulingArbitrageRow['indicator']): { color: string; bg: string } {
   switch (indicator) {
-    case 'gap': return 'warning';
-    case 'markup': return 'info';
-    case 'thin': return 'default';
-    default: return 'default';
+    case 'gap': return { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' };
+    case 'markup': return { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.1)' };
+    case 'thin': return { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
+    default: return { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
   }
 }
 
@@ -68,7 +53,7 @@ function getRowBgColor(indicator: HaulingArbitrageRow['indicator']): string | un
 
 interface AddToRunState {
   row: HaulingArbitrageRow | null;
-  anchorEl: HTMLElement | null;
+  open: boolean;
   selectedRunId: number | '';
   quantity: string;
 }
@@ -91,7 +76,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
 
   const [addToRun, setAddToRun] = useState<AddToRunState>({
     row: null,
-    anchorEl: null,
+    open: false,
     selectedRunId: '',
     quantity: '1',
   });
@@ -183,7 +168,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
         body: JSON.stringify(body),
       });
 
-      setAddToRun({ row: null, anchorEl: null, selectedRunId: '', quantity: '1' });
+      setAddToRun({ row: null, open: false, selectedRunId: '', quantity: '1' });
     } catch (error) {
       console.error('Failed to add item to run:', error);
     }
@@ -203,7 +188,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
       if (row) {
         setAddToRun({
           row,
-          anchorEl: tableRef.current,
+          open: true,
           selectedRunId: runs[0]?.id || '',
           quantity: '1',
         });
@@ -216,263 +201,280 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
   return (
     <>
       <Navbar />
-      <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
+      <div className="w-full px-4 mt-8 mb-8">
         {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
-          <ScannerIcon fontSize="large" sx={{ color: '#00d4ff' }} />
-          <Typography variant="h4" sx={{ fontWeight: 600 }}>
-            Market Scanner
-          </Typography>
-        </Box>
+        <div className="flex items-center gap-2 mb-6">
+          <ScanSearch className="h-7 w-7 text-[#00d4ff]" />
+          <h1 className="text-2xl font-bold text-[#e2e8f0]">Market Scanner</h1>
+        </div>
 
         {/* Controls */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Source Region</InputLabel>
+        <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <CardContent className="pt-4">
+            <div className="flex gap-4 items-center flex-wrap">
+              <div className="min-w-[180px]">
+                <label className="text-xs text-[#94a3b8] mb-1 block">Source Region</label>
                 <Select
-                  value={sourceRegionId}
-                  label="Source Region"
-                  onChange={(e) => setSourceRegionId(Number(e.target.value))}
+                  value={String(sourceRegionId)}
+                  onValueChange={(v) => setSourceRegionId(Number(v))}
                 >
-                  {REGION_OPTIONS.map((r) => (
-                    <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                  ))}
+                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                    {REGION_OPTIONS.map((r) => (
+                      <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-              </FormControl>
-              <FormControl sx={{ minWidth: 180 }}>
-                <InputLabel>Destination Region</InputLabel>
+              </div>
+              <div className="min-w-[180px]">
+                <label className="text-xs text-[#94a3b8] mb-1 block">Destination Region</label>
                 <Select
-                  value={destRegionId}
-                  label="Destination Region"
-                  onChange={(e) => setDestRegionId(Number(e.target.value))}
+                  value={String(destRegionId)}
+                  onValueChange={(v) => setDestRegionId(Number(v))}
                 >
-                  {REGION_OPTIONS.map((r) => (
-                    <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                  ))}
+                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                    {REGION_OPTIONS.map((r) => (
+                      <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-              </FormControl>
-              <Button
-                variant="outlined"
-                onClick={handleFetchResults}
-                disabled={loading}
-              >
-                {loading ? 'Loading...' : 'Load'}
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<ScannerIcon />}
-                onClick={handleScan}
-                disabled={scanning || loading}
-              >
-                {scanning ? 'Scanning...' : 'Scan'}
-              </Button>
+              </div>
+              <div className="flex items-end gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={handleFetchResults}
+                  disabled={loading}
+                >
+                  {loading ? 'Loading...' : 'Load'}
+                </Button>
+                <Button
+                  onClick={handleScan}
+                  disabled={scanning || loading}
+                >
+                  <ScanSearch className="h-4 w-4 mr-2" />
+                  {scanning ? 'Scanning...' : 'Scan'}
+                </Button>
+              </div>
               {lastUpdated && (
-                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                <span className="text-xs text-[#64748b] ml-1">
                   Last updated: {new Date(lastUpdated).toLocaleString()}
-                </Typography>
+                </span>
               )}
-            </Box>
+            </div>
           </CardContent>
         </Card>
 
         {/* Results Table */}
         {loading ? (
-          <Card>
-            <CardContent sx={{ p: 0 }}>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead sx={{ backgroundColor: '#0f1219' }}>
-                    <TableRow>
-                      {['Item', 'Indicator', 'Net Profit/unit', 'm³', 'Days to Sell', 'Buy Price', 'Sell Price', 'Volume Available', 'Add to Run'].map((h) => (
-                        <TableCell key={h} sx={{ fontWeight: 700 }}>{h}</TableCell>
+          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
+                    {['Item', 'Indicator', 'Net Profit/unit', 'm³', 'Days to Sell', 'Buy Price', 'Sell Price', 'Volume Available', 'Add to Run'].map((h) => (
+                      <TableHead key={h} className="font-bold text-[#e2e8f0]">{h}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i} className="border-[rgba(148,163,184,0.07)]">
+                      {Array.from({ length: 9 }).map((__, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-full bg-[#1e2a3a]" />
+                        </TableCell>
                       ))}
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {Array.from({ length: 8 }).map((_, i) => (
-                      <TableRow key={i}>
-                        {Array.from({ length: 9 }).map((__, j) => (
-                          <TableCell key={j}>
-                            <Skeleton variant="text" />
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         ) : results.length === 0 ? (
-          <Card>
-            <CardContent>
-              <Typography variant="h6" align="center" color="text.secondary" sx={{ py: 4 }}>
+          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="py-8">
+              <p className="text-center text-[#94a3b8] text-base">
                 No arbitrage opportunities found. Try scanning to refresh data.
-              </Typography>
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardContent sx={{ p: 0 }}>
-              <TableContainer
-                component={Paper}
-                variant="outlined"
-                ref={tableRef}
-                tabIndex={0}
-                onKeyDown={handleKeyDown}
-                sx={{ outline: 'none' }}
-              >
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Item</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Indicator</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Net Profit/unit</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">m³</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Days to Sell</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Buy Price</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Sell Price</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Volume Available</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Add to Run</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {results.map((row, idx) => {
-                      const rowBg = getRowBgColor(row.indicator);
-                      const isSelected = idx === selectedRowIndex;
+          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <div
+              className="overflow-x-auto outline-none"
+              ref={tableRef}
+              tabIndex={0}
+              onKeyDown={handleKeyDown}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
+                    <TableHead className="font-bold text-[#e2e8f0]">Item</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0]">Indicator</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Net Profit/unit</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">m³</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Days to Sell</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Buy Price</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Sell Price</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Volume Available</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0]">Add to Run</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {results.map((row, idx) => {
+                    const rowBg = getRowBgColor(row.indicator);
+                    const isSelected = idx === selectedRowIndex;
+                    const indicatorStyle = getIndicatorStyle(row.indicator);
 
-                      return (
-                        <TableRow
-                          key={row.typeId}
-                          hover
-                          selected={isSelected}
-                          onClick={() => setSelectedRowIndex(idx)}
-                          sx={{
-                            backgroundColor: rowBg,
-                            cursor: 'pointer',
-                            '&.Mui-selected': { backgroundColor: 'rgba(0, 212, 255, 0.12)' },
-                          }}
-                        >
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Image
-                                src={getItemIconUrl(row.typeId, 32)}
-                                alt={row.typeName}
-                                width={24}
-                                height={24}
-                                style={{ borderRadius: 2 }}
-                              />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {row.typeName}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={row.indicator}
-                              color={getIndicatorColor(row.indicator)}
-                              size="small"
-                              variant="outlined"
+                    return (
+                      <TableRow
+                        key={row.typeId}
+                        className="cursor-pointer border-[rgba(148,163,184,0.07)]"
+                        style={{
+                          backgroundColor: isSelected ? 'rgba(0, 212, 255, 0.12)' : rowBg,
+                        }}
+                        onClick={() => setSelectedRowIndex(idx)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={getItemIconUrl(row.typeId, 32)}
+                              alt={row.typeName}
+                              width={24}
+                              height={24}
+                              style={{ borderRadius: 2 }}
                             />
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.netProfitIsk !== undefined ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: (row.netProfitIsk || 0) >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}
-                              >
-                                {formatISK(row.netProfitIsk || 0)}
-                              </Typography>
-                            ) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.volumeM3 !== undefined ? formatNumber(row.volumeM3, 2) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.daysToSell !== undefined ? formatNumber(row.daysToSell, 1) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.buyPrice !== undefined ? formatISK(row.buyPrice) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.sellPrice !== undefined ? formatISK(row.sellPrice) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {row.volumeAvailable !== undefined ? formatNumber(row.volumeAvailable) : '—'}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              startIcon={<AddShoppingCartIcon fontSize="small" />}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setAddToRun({
-                                  row,
-                                  anchorEl: e.currentTarget,
-                                  selectedRunId: runs[0]?.id || '',
-                                  quantity: '1',
-                                });
-                              }}
-                              disabled={runs.length === 0}
+                            <span className="text-sm font-semibold text-[#e2e8f0]">{row.typeName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border"
+                            style={{
+                              color: indicatorStyle.color,
+                              backgroundColor: indicatorStyle.bg,
+                              borderColor: indicatorStyle.color + '40',
+                            }}
+                          >
+                            {row.indicator}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {row.netProfitIsk !== undefined ? (
+                            <span
+                              className="text-sm font-semibold"
+                              style={{ color: (row.netProfitIsk || 0) >= 0 ? '#10b981' : '#ef4444' }}
                             >
-                              Add
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                              {formatISK(row.netProfitIsk || 0)}
+                            </span>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {row.volumeM3 !== undefined ? formatNumber(row.volumeM3, 2) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {row.daysToSell !== undefined ? formatNumber(row.daysToSell, 1) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {row.buyPrice !== undefined ? formatISK(row.buyPrice) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {row.sellPrice !== undefined ? formatISK(row.sellPrice) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {row.volumeAvailable !== undefined ? formatNumber(row.volumeAvailable) : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAddToRun({
+                                row,
+                                open: true,
+                                selectedRunId: runs[0]?.id || '',
+                                quantity: '1',
+                              });
+                            }}
+                            disabled={runs.length === 0}
+                          >
+                            <ShoppingCart className="h-3.5 w-3.5 mr-1" />
+                            Add
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         )}
 
-        {/* Add to Run Popover */}
-        <Popover
-          open={Boolean(addToRun.anchorEl)}
-          anchorEl={addToRun.anchorEl}
-          onClose={() => setAddToRun({ row: null, anchorEl: null, selectedRunId: '', quantity: '1' })}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        {/* Add to Run Dialog */}
+        <Dialog
+          open={addToRun.open}
+          onOpenChange={(open) => {
+            if (!open) setAddToRun({ row: null, open: false, selectedRunId: '', quantity: '1' });
+          }}
         >
-          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2, minWidth: 240 }}>
-            <Typography variant="subtitle2">
-              {addToRun.row?.typeName}
-            </Typography>
-            <FormControl fullWidth size="small">
-              <InputLabel>Hauling Run</InputLabel>
-              <Select
-                value={addToRun.selectedRunId}
-                label="Hauling Run"
-                onChange={(e) => setAddToRun({ ...addToRun, selectedRunId: e.target.value as number })}
+          <DialogContent className="max-w-xs bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+            <DialogHeader>
+              <DialogTitle className="text-[#e2e8f0]">Add to Run</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4 mt-2">
+              <p className="text-sm font-semibold text-[#e2e8f0]">{addToRun.row?.typeName}</p>
+              <div>
+                <label className="text-xs text-[#94a3b8] mb-1 block">Hauling Run</label>
+                <Select
+                  value={addToRun.selectedRunId !== '' ? String(addToRun.selectedRunId) : ''}
+                  onValueChange={(v) => setAddToRun({ ...addToRun, selectedRunId: Number(v) })}
+                >
+                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                    <SelectValue placeholder="Select run" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                    {runs.map((run) => (
+                      <SelectItem key={run.id} value={String(run.id)} className="text-[#e2e8f0]">
+                        {run.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs text-[#94a3b8] mb-1 block">Quantity</label>
+                <Input
+                  type="number"
+                  value={addToRun.quantity}
+                  onChange={(e) => setAddToRun({ ...addToRun, quantity: e.target.value })}
+                  min={1}
+                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-4">
+              <Button
+                onClick={handleAddToRun}
+                disabled={addToRun.selectedRunId === ''}
+                className="w-full"
               >
-                {runs.map((run) => (
-                  <MenuItem key={run.id} value={run.id}>{run.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <TextField
-              label="Quantity"
-              type="number"
-              size="small"
-              value={addToRun.quantity}
-              onChange={(e) => setAddToRun({ ...addToRun, quantity: e.target.value })}
-              inputProps={{ min: 1 }}
-            />
-            <Button
-              variant="contained"
-              size="small"
-              onClick={handleAddToRun}
-              disabled={addToRun.selectedRunId === ''}
-            >
-              Add to Run
-            </Button>
-          </Box>
-        </Popover>
-      </Container>
+                Add to Run
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </>
   );
 }
