@@ -2,28 +2,14 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import Button from '@mui/material/Button';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { AlertTriangle, DollarSign, Copy, ExternalLink, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from '@/components/ui/table';
+import { toast } from '@/components/ui/sonner';
 
 export type StockpileItem = {
   name: string;
@@ -55,12 +41,9 @@ export default function StockpilesList() {
   const [stockpileItems, setStockpileItems] = useState<StockpileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
   const [creatingAppraisal, setCreatingAppraisal] = useState(false);
   const hasFetchedRef = useRef(false);
 
-  // Fetch stockpile deficits on mount (only once)
   useEffect(() => {
     if (session && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
@@ -84,7 +67,6 @@ export default function StockpilesList() {
     }
   };
 
-  // Filter items based on search
   const filteredItems = useMemo(() => {
     if (!searchQuery) return stockpileItems;
 
@@ -99,290 +81,213 @@ export default function StockpilesList() {
     );
   }, [stockpileItems, searchQuery]);
 
-  // Calculate totals
   const totalDeficit = useMemo(() => {
-    return filteredItems.reduce((sum, item) => {
-      return sum + Math.abs(item.stockpileDelta);
-    }, 0);
+    return filteredItems.reduce((sum, item) => sum + Math.abs(item.stockpileDelta), 0);
   }, [filteredItems]);
 
   const totalVolume = useMemo(() => {
     return filteredItems.reduce((sum, item) => {
       const deficit = Math.abs(item.stockpileDelta);
-      // item.volume is total volume (per-unit × quantity) for existing items, or per-unit volume for orphan markers (quantity=0)
       const perUnitVolume = item.quantity > 0 ? item.volume / item.quantity : item.volume;
       return sum + (deficit * perUnitVolume);
     }, 0);
   }, [filteredItems]);
 
   const totalDeficitISK = useMemo(() => {
-    return filteredItems.reduce((sum, item) => {
-      return sum + item.deficitValue;
-    }, 0);
+    return filteredItems.reduce((sum, item) => sum + item.deficitValue, 0);
   }, [filteredItems]);
 
   const handleCopyForJanice = async () => {
-    // Format items as "ItemName quantity" for Janice
     const janiceText = filteredItems
       .map((item) => `${item.name} ${Math.abs(item.stockpileDelta)}`)
       .join('\n');
 
     try {
       await navigator.clipboard.writeText(janiceText);
-      setSnackbarMessage('Copied to clipboard! Paste into Janice for appraisal.');
-      setSnackbarOpen(true);
-    } catch (err) {
-      setSnackbarMessage('Failed to copy to clipboard');
-      setSnackbarOpen(true);
+      toast.success('Copied to clipboard! Paste into Janice for appraisal.');
+    } catch {
+      toast.error('Failed to copy to clipboard');
     }
   };
 
   const handleOpenJanice = async () => {
     if (!session) return;
 
-    // Format items as "ItemName quantity" for Janice
     const janiceText = filteredItems
       .map((item) => `${item.name} ${Math.abs(item.stockpileDelta)}`)
       .join('\n');
 
     setCreatingAppraisal(true);
     try {
-      // POST to our Next.js API route which proxies to the backend
       const response = await fetch('/api/janice/appraisal', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: janiceText,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: janiceText }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Janice API error response:', response.status, errorText);
         throw new Error(`Failed to create Janice appraisal: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('Janice API response:', data);
 
-      // Open the appraisal in a new tab
       if (data.code) {
         window.open(`https://janice.e-351.com/a/${data.code}`, '_blank');
-        setSnackbarMessage('Janice appraisal created and opened!');
-        setSnackbarOpen(true);
+        toast.success('Janice appraisal created and opened!');
       } else {
         throw new Error('Janice response missing appraisal code');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-      setSnackbarMessage(`Failed: ${errorMessage}`);
-      setSnackbarOpen(true);
-      console.error('Janice API error:', err);
+      toast.error(`Failed: ${errorMessage}`);
     } finally {
       setCreatingAppraisal(false);
     }
   };
 
-  if (!session) {
-    return null;
-  }
-
-  if (loading) {
-    return <Loading />;
-  }
+  if (!session) return null;
+  if (loading) return <Loading />;
 
   return (
     <>
       <Navbar />
-      <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
+      <div className="w-full px-4 py-8">
         {/* Sticky Header Section */}
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 64,
-            zIndex: 100,
-            backgroundColor: 'background.default',
-            pb: 2,
-          }}
-        >
-          <Typography variant="h4" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 0.5 }}>
-            <WarningAmberIcon fontSize="large" color="error" />
+        <div className="sticky top-16 z-40 bg-[var(--color-bg-void)] pb-4">
+          <h1 className="text-2xl font-display font-semibold flex items-center gap-2 mb-4">
+            <AlertTriangle className="h-6 w-6 text-[var(--color-danger-rose)]" />
             Stockpiles Needing Replenishment
-          </Typography>
+          </h1>
 
           {/* Summary Stats */}
-          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Items Below Target
-              </Typography>
-              <Typography variant="h3">{filteredItems.length}</Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Total Deficit
-              </Typography>
-              <Typography variant="h3" color="error.main">
-                {totalDeficit.toLocaleString()}
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Total Volume
-              </Typography>
-              <Typography variant="h3">
-                {totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 })} m³
-              </Typography>
-            </CardContent>
-          </Card>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <AttachMoneyIcon color="success" />
-                Total Cost (ISK)
-              </Typography>
-              <Typography variant="h3" color="error.main">
-                {totalDeficitISK.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Box>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-[var(--color-text-secondary)] mb-1">Items Below Target</p>
+                <p className="text-3xl font-bold text-[var(--color-text-emphasis)]">{filteredItems.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-[var(--color-text-secondary)] mb-1">Total Deficit</p>
+                <p className="text-3xl font-bold text-[var(--color-danger-rose)]">{totalDeficit.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-[var(--color-text-secondary)] mb-1">Total Volume</p>
+                <p className="text-3xl font-bold text-[var(--color-text-emphasis)]">
+                  {totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 })} m&sup3;
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4">
+                <p className="text-sm text-[var(--color-text-secondary)] flex items-center gap-1 mb-1">
+                  <DollarSign className="h-4 w-4 text-[var(--color-success-teal)]" />
+                  Total Cost (ISK)
+                </p>
+                <p className="text-3xl font-bold text-[var(--color-danger-rose)]">
+                  {totalDeficitISK.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Actions */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <Button
-            variant="outlined"
-            startIcon={<ContentCopyIcon />}
-            onClick={handleCopyForJanice}
-            disabled={filteredItems.length === 0}
-          >
-            Copy for Janice
-          </Button>
-          <Button
-            variant="contained"
-            startIcon={<OpenInNewIcon />}
-            onClick={handleOpenJanice}
-            disabled={filteredItems.length === 0 || creatingAppraisal}
-          >
-            {creatingAppraisal ? 'Creating...' : 'Create Janice Appraisal'}
-          </Button>
-        </Box>
+          {/* Actions */}
+          <div className="flex gap-3 mb-3">
+            <Button variant="outline" onClick={handleCopyForJanice} disabled={filteredItems.length === 0}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copy for Janice
+            </Button>
+            <Button onClick={handleOpenJanice} disabled={filteredItems.length === 0 || creatingAppraisal}>
+              <ExternalLink className="h-4 w-4 mr-2" />
+              {creatingAppraisal ? 'Creating...' : 'Create Janice Appraisal'}
+            </Button>
+          </div>
 
-        {/* Search */}
-        <Box sx={{ mb: 2 }}>
-          <TextField
-            fullWidth
-            size="small"
-            placeholder="Search items, structures, or locations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-        </Box>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--color-text-muted)]" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search items, structures, or locations..."
+              className="pl-9"
+            />
+          </div>
+        </div>
 
         {/* Items Table */}
         {filteredItems.length === 0 ? (
           <Card>
-            <CardContent>
-              <Typography variant="h6" align="center" color="text.secondary">
+            <CardContent className="p-8 text-center">
+              <p className="text-lg text-[var(--color-text-secondary)]">
                 {stockpileItems.length === 0
-                  ? 'No stockpiles need replenishment! 🎉'
+                  ? 'No stockpiles need replenishment!'
                   : 'No items match your search.'}
-              </Typography>
+              </p>
             </CardContent>
           </Card>
         ) : (
           <Card>
-            <CardContent sx={{ p: 0 }}>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Item</TableCell>
-                      <TableCell>Structure</TableCell>
-                      <TableCell>Location</TableCell>
-                      <TableCell>Container</TableCell>
-                      <TableCell align="right">Current</TableCell>
-                      <TableCell align="right">Target</TableCell>
-                      <TableCell align="right">Deficit</TableCell>
-                      <TableCell align="right">Cost (ISK)</TableCell>
-                      <TableCell>Auto-Production</TableCell>
-                      <TableCell>Owner</TableCell>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Structure</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead>Container</TableHead>
+                    <TableHead className="text-right">Current</TableHead>
+                    <TableHead className="text-right">Target</TableHead>
+                    <TableHead className="text-right">Deficit</TableHead>
+                    <TableHead className="text-right">Cost (ISK)</TableHead>
+                    <TableHead>Auto-Production</TableHead>
+                    <TableHead>Owner</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.map((item, idx) => (
+                    <TableRow
+                      key={idx}
+                      className="border-l-4 border-l-[var(--color-danger-rose)] odd:bg-[var(--color-surface-elevated)]/30"
+                    >
+                      <TableCell className="font-semibold text-[var(--color-text-emphasis)]">{item.name}</TableCell>
+                      <TableCell className="text-[var(--color-text-secondary)]">{item.structureName}</TableCell>
+                      <TableCell className="text-[var(--color-text-secondary)]">{item.solarSystem}, {item.region}</TableCell>
+                      <TableCell className="text-[var(--color-text-secondary)]">{item.containerName || '-'}</TableCell>
+                      <TableCell className="text-right text-[var(--color-text-secondary)]">{item.quantity.toLocaleString()}</TableCell>
+                      <TableCell className="text-right text-[var(--color-text-secondary)]">{item.desiredQuantity.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-[var(--color-danger-rose)] font-semibold">
+                          {item.stockpileDelta.toLocaleString()}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="text-[var(--color-danger-rose)] font-semibold">
+                          {item.deficitValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        {item.autoProductionEnabled ? (
+                          <span className="text-[var(--color-success-teal)] font-semibold text-sm">
+                            {item.planName || 'Linked'}
+                          </span>
+                        ) : (
+                          <span className="text-[var(--color-text-muted)]">&mdash;</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-[var(--color-text-secondary)]">{item.ownerName}</TableCell>
                     </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredItems.map((item, idx) => (
-                      <TableRow
-                        key={idx}
-                        hover
-                        sx={{
-                          '&:nth-of-type(odd)': {
-                            backgroundColor: 'action.hover',
-                          },
-                          borderLeft: '4px solid #d32f2f',
-                        }}
-                      >
-                        <TableCell sx={{ fontWeight: 600 }}>{item.name}</TableCell>
-                        <TableCell>{item.structureName}</TableCell>
-                        <TableCell>{item.solarSystem}, {item.region}</TableCell>
-                        <TableCell>{item.containerName || '-'}</TableCell>
-                        <TableCell align="right">{item.quantity.toLocaleString()}</TableCell>
-                        <TableCell align="right">{item.desiredQuantity.toLocaleString()}</TableCell>
-                        <TableCell align="right">
-                          <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
-                            {item.stockpileDelta.toLocaleString()}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>
-                            {item.deficitValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          {item.autoProductionEnabled ? (
-                            <Typography variant="body2" sx={{ color: 'success.main', fontWeight: 600 }}>
-                              {item.planName || 'Linked'}
-                            </Typography>
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">—</Typography>
-                          )}
-                        </TableCell>
-                        <TableCell>{item.ownerName}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         )}
-      </Container>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
+      </div>
     </>
   );
 }
