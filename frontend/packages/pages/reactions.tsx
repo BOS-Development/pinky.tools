@@ -4,12 +4,8 @@ import PlanSummary from "@industry-tool/components/reactions/PlanSummary";
 import ReactionPicker from "@industry-tool/components/reactions/ReactionPicker";
 import SettingsToolbar from "@industry-tool/components/reactions/SettingsToolbar";
 import ShoppingList from "@industry-tool/components/reactions/ShoppingList";
-import Box from '@mui/material/Box';
-import CircularProgress from '@mui/material/CircularProgress';
-import Container from '@mui/material/Container';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Typography from '@mui/material/Typography';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Loader2 } from "lucide-react";
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -51,10 +47,11 @@ const DEFAULT_SETTINGS: ReactionSettings = {
     ship_outputs: true,
 };
 
+const TAB_VALUES = ['pick', 'shopping', 'summary'] as const;
 
 export default function Reactions() {
     const { status } = useSession();
-    const [tabIndex, setTabIndex] = useState(0);
+    const [tabValue, setTabValue] = useState<string>('pick');
     const [settings, setSettings] = useState<ReactionSettings>(DEFAULT_SETTINGS);
     const [selections, setSelections] = useState<Record<number, number>>({});
     const [systems, setSystems] = useState<ReactionSystem[]>([]);
@@ -70,7 +67,15 @@ export default function Reactions() {
     useEffect(() => {
         try {
             const savedTab = localStorage.getItem('reactionsTab');
-            if (savedTab) setTabIndex(parseInt(savedTab, 10));
+            if (savedTab) {
+                // Migrate old numeric tab index to new string values
+                const idx = parseInt(savedTab, 10);
+                if (!isNaN(idx) && idx >= 0 && idx < TAB_VALUES.length) {
+                    setTabValue(TAB_VALUES[idx]);
+                } else if (TAB_VALUES.includes(savedTab as typeof TAB_VALUES[number])) {
+                    setTabValue(savedTab);
+                }
+            }
 
             const savedSettings = localStorage.getItem('reactionSettings');
             if (savedSettings) setSettings(prev => ({ ...prev, ...JSON.parse(savedSettings) }));
@@ -87,11 +92,11 @@ export default function Reactions() {
     // Persist state to localStorage (skip initial render to avoid overwriting with defaults)
     useEffect(() => {
         if (!initialized.current) return;
-        localStorage.setItem('reactionsTab', tabIndex.toString());
+        localStorage.setItem('reactionsTab', tabValue);
         localStorage.setItem('reactionSettings', JSON.stringify(settings));
         localStorage.setItem('reactionSelections', JSON.stringify(selections));
         localStorage.setItem('reactionStockpileLocationId', stockpileLocationId.toString());
-    }, [tabIndex, settings, selections, stockpileLocationId]);
+    }, [tabValue, settings, selections, stockpileLocationId]);
 
     // Fetch assets when authenticated
     useEffect(() => {
@@ -205,60 +210,64 @@ export default function Reactions() {
     return (
         <>
             <Navbar />
-            <Container maxWidth={false}>
+            <div className="w-full px-4 py-2 bg-[var(--color-bg-void)] min-h-screen">
                 <SettingsToolbar
                     settings={settings}
                     systems={systems}
                     onSettingChange={updateSetting}
                 />
 
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-                    <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)}>
-                        <Tab label="Pick Reactions" />
-                        <Tab label={`Shopping List${selectedCount > 0 ? ` (${selectedCount})` : ''}`} />
-                        <Tab label="Plan Summary" />
-                    </Tabs>
-                </Box>
+                <Tabs value={tabValue} onValueChange={setTabValue}>
+                    <div className="border-b border-[var(--color-border-active)] mb-4">
+                        <TabsList className="bg-transparent">
+                            <TabsTrigger value="pick">Pick Reactions</TabsTrigger>
+                            <TabsTrigger value="shopping">
+                                Shopping List{selectedCount > 0 ? ` (${selectedCount})` : ''}
+                            </TabsTrigger>
+                            <TabsTrigger value="summary">Plan Summary</TabsTrigger>
+                        </TabsList>
+                    </div>
 
-                {loading ? (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                        <CircularProgress />
-                    </Box>
-                ) : !reactionsData ? (
-                    <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
-                        No reaction data available. Ensure SDE data has been imported.
-                    </Typography>
-                ) : (
-                    <>
-                        {tabIndex === 0 && (
-                            <ReactionPicker
-                                reactions={reactionsData.reactions}
-                                meFactor={reactionsData.me_factor}
-                                selections={selections}
-                                onSelectionChange={updateSelection}
-                            />
-                        )}
-                        {tabIndex === 1 && (
-                            <ShoppingList
-                                planData={planData}
-                                loading={planLoading}
-                                assets={assets}
-                                isAuthenticated={status === 'authenticated'}
-                                stockpileLocationId={stockpileLocationId}
-                                onStockpileLocationChange={setStockpileLocationId}
-                            />
-                        )}
-                        {tabIndex === 2 && (
-                            <PlanSummary
-                                planData={planData}
-                                reactionsData={reactionsData}
-                                selections={selections}
-                                loading={planLoading}
-                            />
-                        )}
-                    </>
-                )}
-            </Container>
+                    {loading ? (
+                        <div className="flex justify-center py-16">
+                            <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+                        </div>
+                    ) : !reactionsData ? (
+                        <p className="py-8 text-center text-[var(--color-text-secondary)]">
+                            No reaction data available. Ensure SDE data has been imported.
+                        </p>
+                    ) : (
+                        <>
+                            <TabsContent value="pick">
+                                <ReactionPicker
+                                    reactions={reactionsData.reactions}
+                                    meFactor={reactionsData.me_factor}
+                                    selections={selections}
+                                    onSelectionChange={updateSelection}
+                                />
+                            </TabsContent>
+                            <TabsContent value="shopping">
+                                <ShoppingList
+                                    planData={planData}
+                                    loading={planLoading}
+                                    assets={assets}
+                                    isAuthenticated={status === 'authenticated'}
+                                    stockpileLocationId={stockpileLocationId}
+                                    onStockpileLocationChange={setStockpileLocationId}
+                                />
+                            </TabsContent>
+                            <TabsContent value="summary">
+                                <PlanSummary
+                                    planData={planData}
+                                    reactionsData={reactionsData}
+                                    selections={selections}
+                                    loading={planLoading}
+                                />
+                            </TabsContent>
+                        </>
+                    )}
+                </Tabs>
+            </div>
         </>
     );
 }

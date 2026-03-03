@@ -1,24 +1,17 @@
 import { useState } from 'react';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Button from '@mui/material/Button';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
+import { Loader2 } from 'lucide-react';
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShoppingItem, StockpileMarker } from "@industry-tool/client/data/models";
 import { formatNumber } from "@industry-tool/utils/formatting";
 import { AssetOwner } from "@industry-tool/utils/assetAggregation";
@@ -105,32 +98,37 @@ export default function StockpileDialog({ open, onClose, shoppingList, locationI
   });
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Set Stockpile Targets</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-          <Typography variant="body2" color="text.secondary">
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Set Stockpile Targets</DialogTitle>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3 pt-1">
+          <p className="text-sm text-[var(--color-text-secondary)]">
             Set desired stockpile quantities at <strong>{locationName}</strong>. Items with quantity 0 will be skipped.
-          </Typography>
+          </p>
 
-          <FormControl size="small" fullWidth>
-            <InputLabel>Owner</InputLabel>
-            <Select
-              value={selectedOwner}
-              label="Owner"
-              onChange={(e) => setSelectedOwner(e.target.value)}
-            >
-              {owners.map(o => (
-                <MenuItem key={ownerKey(o)} value={ownerKey(o)}>
-                  {o.ownerName} ({o.ownerType})
-                </MenuItem>
-              ))}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-[var(--color-text-secondary)]">Owner</label>
+            <Select value={selectedOwner} onValueChange={setSelectedOwner}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select owner..." />
+              </SelectTrigger>
+              <SelectContent>
+                {owners.map(o => (
+                  <SelectItem key={ownerKey(o)} value={ownerKey(o)}>
+                    {o.ownerName} ({o.ownerType})
+                  </SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
 
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <div className="flex gap-2">
             <Button
-              size="small"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 const cleared: Record<number, string> = {};
                 for (const item of shoppingList) cleared[item.type_id] = '0';
@@ -140,7 +138,8 @@ export default function StockpileDialog({ open, onClose, shoppingList, locationI
               Clear All
             </Button>
             <Button
-              size="small"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 const reset: Record<number, string> = {};
                 for (const item of shoppingList) reset[item.type_id] = item.quantity.toString();
@@ -149,67 +148,82 @@ export default function StockpileDialog({ open, onClose, shoppingList, locationI
             >
               Reset All
             </Button>
-          </Box>
+          </div>
 
-          {error && <Alert severity="error">{error}</Alert>}
-          {success && <Alert severity="success">Stockpile targets saved!</Alert>}
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {success && (
+            <Alert>
+              <AlertDescription className="text-[var(--color-success-teal)]">
+                Stockpile targets saved!
+              </AlertDescription>
+            </Alert>
+          )}
 
-          <TableContainer sx={{ maxHeight: 400 }}>
-            <Table size="small" stickyHeader sx={{ '& th': { backgroundColor: '#0f1219', fontWeight: 'bold' } }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Material</TableCell>
-                  <TableCell align="right">Shopping List</TableCell>
-                  <TableCell align="right">Desired Quantity</TableCell>
+          <div className="max-h-[400px] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-[var(--color-bg-panel)] sticky top-0">
+                  <TableHead>Material</TableHead>
+                  <TableHead className="text-right">Shopping List</TableHead>
+                  <TableHead className="text-right">Desired Quantity</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {shoppingList.map((item) => (
                   <TableRow key={item.type_id}>
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <div className="flex items-center gap-2">
                         <img
                           src={`https://images.evetech.net/types/${item.type_id}/icon?size=32`}
                           alt=""
                           width={24}
                           height={24}
-                          style={{ borderRadius: 2 }}
+                          className="rounded-sm"
                         />
                         {item.name}
-                      </Box>
+                      </div>
                     </TableCell>
-                    <TableCell align="right">{formatNumber(item.quantity)}</TableCell>
-                    <TableCell align="right" sx={{ width: 160 }}>
-                      <TextField
-                        size="small"
+                    <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
+                    <TableCell className="text-right w-40">
+                      <Input
                         type="number"
                         value={quantities[item.type_id] || ''}
                         onChange={(e) => handleQuantityChange(item.type_id, e.target.value)}
-                        inputProps={{ min: 0 }}
-                        sx={{ width: 140 }}
+                        min={0}
+                        className="w-36 h-7 text-right"
                       />
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
-        </Box>
+          </div>
+        </div>
+
+        <DialogFooter className="flex items-center">
+          <span className="text-sm text-[var(--color-text-secondary)] mr-auto">
+            {itemsWithQty.length} of {shoppingList.length} items will be set
+          </span>
+          <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving || !selectedOwner}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                Saving...
+              </>
+            ) : (
+              'Set Targets'
+            )}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Typography variant="body2" color="text.secondary" sx={{ mr: 'auto', ml: 1 }}>
-          {itemsWithQty.length} of {shoppingList.length} items will be set
-        </Typography>
-        <Button onClick={onClose} disabled={saving}>Cancel</Button>
-        <Button
-          onClick={handleSave}
-          variant="contained"
-          disabled={saving || !selectedOwner}
-          startIcon={saving ? <CircularProgress size={16} /> : undefined}
-        >
-          {saving ? 'Saving...' : 'Set Targets'}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

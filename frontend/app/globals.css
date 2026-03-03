@@ -4,6 +4,11 @@ body {
   padding: 0;
 }
 
+/* Force dark color scheme for native form elements (prevents white defaults) */
+html {
+  color-scheme: dark;
+}
+
 /* Tailwind CSS v4 — import utilities layer only (skip preflight to avoid conflicting with MUI base reset) */
 @import "tailwindcss/theme" layer(theme);
 @import "tailwindcss/utilities" layer(utilities);
@@ -13,18 +18,23 @@ body {
    ============================================================ */
 
 :root {
-  /* Background palette */
-  --color-bg-void: #080c14;
-  --color-bg-panel: #0f1420;
-  --color-surface-elevated: #1a1f2e;
+  /* Background palette — three-layer depth system */
+  --color-bg-void: #0a0a0f;
+  --color-bg-panel: #12141a;
+  --color-surface-elevated: #1a1d24;
 
   /* Border palette */
-  --color-border-dim: rgba(0, 212, 255, 0.06);
-  --color-border-active: rgba(0, 212, 255, 0.20);
+  --color-border-dim: rgba(0, 212, 255, 0.10);
+  --color-border-active: rgba(0, 212, 255, 0.30);
 
   /* Primary interactive */
   --color-primary-cyan: #00d4ff;
   --color-cyan-muted: #00a8cc;
+
+  /* Glow tokens */
+  --glow-cyan-sm: 0 0 8px rgba(0, 212, 255, 0.25);
+  --glow-cyan-md: 0 0 12px rgba(0, 212, 255, 0.35);
+  --glow-cyan-lg: 0 0 20px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 212, 255, 0.1);
 
   /* Semantic status */
   --color-manufacturing-amber: #fbbf24;
@@ -32,65 +42,84 @@ body {
   --color-success-teal: #2dd4bf;
   --color-danger-rose: #f43f5e;
 
-  /* Text */
-  --color-text-primary: #e2e8f0;
-  --color-text-secondary: #94a3b8;
+  /* Text — Neocom muted hierarchy (no harsh white) */
+  --color-text-primary: #c0c5d0;
+  --color-text-secondary: #808898;
   --color-text-muted: #64748b;
+  --color-text-emphasis: #e0e4eb;
 
   /* ============================================================
      shadcn/ui HSL semantic tokens — Neocom Dark mapping
      ============================================================ */
 
-  /* #080c14 → hsl(220, 43%, 6%)  */
-  --background: 220 43% 6%;
-  /* #e2e8f0 → hsl(214, 32%, 91%) */
-  --foreground: 214 32% 91%;
+  /* #0a0a0f → hsl(240, 20%, 5%) */
+  --background: 240 20% 5%;
+  /* #c0c5d0 → hsl(221, 15%, 78%) — muted gray-blue, not harsh white */
+  --foreground: 221 15% 78%;
 
-  /* Card: #0f1420 → hsl(221, 37%, 9%) */
-  --card: 221 37% 9%;
-  --card-foreground: 214 32% 91%;
+  /* Card: #12141a → hsl(225, 18%, 9%) */
+  --card: 225 18% 9%;
+  --card-foreground: 221 15% 78%;
 
   /* Popover same as card */
-  --popover: 221 37% 9%;
-  --popover-foreground: 214 32% 91%;
+  --popover: 225 18% 9%;
+  --popover-foreground: 221 15% 78%;
 
   /* Primary: #00d4ff → hsl(191, 100%, 50%) */
   --primary: 191 100% 50%;
   /* Dark bg for text on cyan */
-  --primary-foreground: 221 43% 5%;
+  --primary-foreground: 240 20% 5%;
 
-  /* Secondary: #1a1f2e → hsl(220, 28%, 14%) */
-  --secondary: 220 28% 14%;
-  --secondary-foreground: 214 32% 91%;
+  /* Secondary: #1a1d24 → hsl(222, 16%, 12%) */
+  --secondary: 222 16% 12%;
+  --secondary-foreground: 221 15% 78%;
 
   /* Muted */
-  --muted: 215 28% 17%;
-  /* #94a3b8 → hsl(215, 20%, 65%) */
-  --muted-foreground: 215 20% 65%;
+  --muted: 222 16% 15%;
+  /* #808898 → hsl(220, 10%, 55%) */
+  --muted-foreground: 220 10% 55%;
 
   /* Accent = secondary */
-  --accent: 220 28% 14%;
+  --accent: 222 16% 12%;
   --accent-foreground: 191 100% 50%;
 
   /* Destructive: #f43f5e → hsl(350, 90%, 60%) */
   --destructive: 350 90% 60%;
-  --destructive-foreground: 214 32% 91%;
+  --destructive-foreground: 221 15% 78%;
 
-  /* Border: subtle cyan tint */
-  --border: 220 28% 18%;
-  --input: 220 28% 18%;
+  /* Border: cyan tint */
+  --border: 222 16% 18%;
+  --input: 222 16% 18%;
 
   /* Ring: cyan */
   --ring: 191 100% 50%;
 
-  /* Border radius: angular / minimal */
-  --radius: 0.25rem;
+  /* Border radius: angular / industrial (2px max) */
+  --radius: 0.125rem;
 }
 
 /* ============================================================
-   Typography
+   Typography — Neocom hierarchy
    ============================================================ */
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-exo2, var(--font-geist-sans, system-ui, sans-serif));
+  letter-spacing: 0.02em;
+}
+
+h1, h2 {
+  color: var(--color-primary-cyan);
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+}
+
+h3 {
+  color: var(--color-text-emphasis);
+}
+
+h4, h5, h6 {
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
 }

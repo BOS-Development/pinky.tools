@@ -1,13 +1,10 @@
 import { useState } from 'react';
-import Box from '@mui/material/Box';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
-import Autocomplete from '@mui/material/Autocomplete';
-import TuneIcon from '@mui/icons-material/Tune';
+import { Settings2 } from 'lucide-react';
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
 import { ReactionSettings } from "@industry-tool/pages/reactions";
 import { ReactionSystem } from "@industry-tool/client/data/models";
 import SettingsModal from './SettingsModal';
@@ -21,90 +18,78 @@ type Props = {
 export default function SettingsToolbar({ settings, systems, onSettingChange }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
 
-  const selectedSystem = systems.find(s => s.system_id === settings.system_id) || null;
+  const systemOptions: ComboboxOption[] = systems.map(s => ({
+    value: s.system_id.toString(),
+    label: s.name,
+  }));
 
   return (
     <>
-      <Box sx={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: 1.5,
-        alignItems: 'center',
-        py: 2,
-        px: 1,
-      }}>
-        <Autocomplete
-          size="small"
-          options={systems}
-          getOptionLabel={(option) => option.name}
-          value={selectedSystem}
-          onChange={(_, newValue) => onSettingChange('system_id', newValue?.system_id || 0)}
-          renderInput={(params) => (
-            <TextField {...params} label="System" placeholder="Search systems..." />
-          )}
-          sx={{ minWidth: 220 }}
-          isOptionEqualToValue={(option, value) => option.system_id === value.system_id}
+      <div className="flex flex-wrap gap-3 items-center py-3 px-1">
+        <Combobox
+          options={systemOptions}
+          value={settings.system_id ? settings.system_id.toString() : ''}
+          onValueChange={(val) => onSettingChange('system_id', val ? parseInt(val) : 0)}
+          placeholder="System"
+          searchPlaceholder="Search systems..."
+          triggerClassName="w-56"
         />
 
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Structure</InputLabel>
-          <Select
-            value={settings.structure}
-            label="Structure"
-            onChange={(e) => onSettingChange('structure', e.target.value)}
-          >
-            <MenuItem value="tatara">Tatara</MenuItem>
-            <MenuItem value="athanor">Athanor</MenuItem>
-          </Select>
-        </FormControl>
+        <Select value={settings.structure} onValueChange={(val) => onSettingChange('structure', val)}>
+          <SelectTrigger className="w-32 h-9">
+            <SelectValue placeholder="Structure" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="tatara">Tatara</SelectItem>
+            <SelectItem value="athanor">Athanor</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <FormControl size="small" sx={{ minWidth: 90 }}>
-          <InputLabel>Rig</InputLabel>
-          <Select
-            value={settings.rig}
-            label="Rig"
-            onChange={(e) => onSettingChange('rig', e.target.value)}
-          >
-            <MenuItem value="t2">T2</MenuItem>
-            <MenuItem value="t1">T1</MenuItem>
-            <MenuItem value="none">None</MenuItem>
-          </Select>
-        </FormControl>
+        <Select value={settings.rig} onValueChange={(val) => onSettingChange('rig', val)}>
+          <SelectTrigger className="w-24 h-9">
+            <SelectValue placeholder="Rig" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="t2">T2</SelectItem>
+            <SelectItem value="t1">T1</SelectItem>
+            <SelectItem value="none">None</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <FormControl size="small" sx={{ minWidth: 110 }}>
-          <InputLabel>Security</InputLabel>
-          <Select
-            value={settings.security}
-            label="Security"
-            onChange={(e) => onSettingChange('security', e.target.value)}
-          >
-            <MenuItem value="null">Null / WH</MenuItem>
-            <MenuItem value="low">Lowsec</MenuItem>
-            <MenuItem value="high">Highsec</MenuItem>
-          </Select>
-        </FormControl>
+        <Select value={settings.security} onValueChange={(val) => onSettingChange('security', val)}>
+          <SelectTrigger className="w-32 h-9">
+            <SelectValue placeholder="Security" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="null">Null / WH</SelectItem>
+            <SelectItem value="low">Lowsec</SelectItem>
+            <SelectItem value="high">Highsec</SelectItem>
+          </SelectContent>
+        </Select>
 
-        <TextField
-          size="small"
-          label="Cycle Days"
-          type="number"
-          value={settings.cycle_days}
-          onChange={(e) => {
-            const val = parseInt(e.target.value);
-            if (val >= 1 && val <= 30) onSettingChange('cycle_days', val);
-          }}
-          sx={{ width: 100 }}
-          inputProps={{ min: 1, max: 30 }}
-        />
+        <div className="flex items-center gap-1">
+          <label className="text-xs text-[var(--color-text-secondary)]">Cycle</label>
+          <Input
+            type="number"
+            value={settings.cycle_days}
+            onChange={(e) => {
+              const val = parseInt(e.target.value);
+              if (val >= 1 && val <= 30) onSettingChange('cycle_days', val);
+            }}
+            className="w-16 h-9 text-center"
+            min={1}
+            max={30}
+          />
+        </div>
 
-        <IconButton
+        <button
           onClick={() => setModalOpen(true)}
-          sx={{ color: 'primary.main' }}
+          className="p-2 rounded-sm text-[var(--color-primary-cyan)] hover:bg-[var(--color-surface-elevated)] transition-colors"
           title="Advanced Settings"
         >
-          <TuneIcon />
-        </IconButton>
-      </Box>
+          <Settings2 className="h-5 w-5" />
+        </button>
+      </div>
 
       <SettingsModal
         open={modalOpen}

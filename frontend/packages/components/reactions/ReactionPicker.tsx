@@ -1,22 +1,13 @@
 import { useState, useMemo } from 'react';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import TextField from '@mui/material/TextField';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
-import Collapse from '@mui/material/Collapse';
-import Typography from '@mui/material/Typography';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import {
+  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { Reaction } from "@industry-tool/client/data/models";
 import { formatISK, formatNumber, getValueColor } from "@industry-tool/utils/formatting";
 
@@ -30,6 +21,35 @@ type Props = {
   selections: Record<number, number>;
   onSelectionChange: (reactionTypeId: number, instances: number) => void;
 };
+
+function SortHeader({ label, sortKey: key, activeSortKey, sortDir, onSort, align }: {
+  label: string;
+  sortKey: SortKey;
+  activeSortKey: SortKey;
+  sortDir: 'asc' | 'desc';
+  onSort: (key: SortKey) => void;
+  align?: 'left' | 'right';
+}) {
+  const active = activeSortKey === key;
+  return (
+    <TableHead className={align === 'right' ? 'text-right' : ''}>
+      <button
+        className={cn(
+          "inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary-cyan)] transition-colors",
+          active && "text-[var(--color-primary-cyan)]"
+        )}
+        onClick={() => onSort(key)}
+      >
+        {label}
+        {active ? (
+          sortDir === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </button>
+    </TableHead>
+  );
+}
 
 export default function ReactionPicker({ reactions, meFactor, selections, onSelectionChange }: Props) {
   const [search, setSearch] = useState('');
@@ -86,95 +106,66 @@ export default function ReactionPicker({ reactions, meFactor, selections, onSele
   };
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
-        <TextField
-          size="small"
-          label="Search"
+    <div>
+      <div className="flex gap-3 mb-3 flex-wrap items-center">
+        <Input
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ minWidth: 200 }}
+          className="w-52 h-8"
         />
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Group</InputLabel>
-          <Select
-            value={groupFilter}
-            label="Group"
-            onChange={(e) => setGroupFilter(e.target.value)}
-          >
-            <MenuItem value="all">All Groups</MenuItem>
+        <Select value={groupFilter} onValueChange={setGroupFilter}>
+          <SelectTrigger className="w-44 h-8">
+            <SelectValue placeholder="All Groups" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Groups</SelectItem>
             {groups.map(g => (
-              <MenuItem key={g} value={g}>{g}</MenuItem>
+              <SelectItem key={g} value={g}>{g}</SelectItem>
             ))}
-          </Select>
-        </FormControl>
-        <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center' }}>
+          </SelectContent>
+        </Select>
+        <span className="text-sm text-[var(--color-text-secondary)] self-center">
           {filtered.length} reactions | ME: {meFactor}
-        </Typography>
-      </Box>
+        </span>
+      </div>
 
-      <TableContainer>
-        <Table size="small" sx={{ '& th': { backgroundColor: '#0f1219', fontWeight: 'bold' } }}>
-          <TableHead>
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-[var(--color-bg-panel)]">
+            <TableHead className="w-10" />
+            <TableHead className="w-20">Instances</TableHead>
+            <SortHeader label="Product" sortKey="product_name" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Group" sortKey="group_name" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+            <TableHead className="text-right">Produced</TableHead>
+            <TableHead className="text-right">Slots/Inst</TableHead>
+            <SortHeader label="Output/Run" sortKey="output_value_per_run" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            <SortHeader label="Profit/Run" sortKey="profit_per_run" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            <SortHeader label="Profit/Cycle" sortKey="profit_per_cycle" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            <SortHeader label="Margin" sortKey="margin" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filtered.map((r) => (
+            <ReactionRow
+              key={r.reaction_type_id}
+              reaction={r}
+              instances={selections[r.reaction_type_id] || 0}
+              onInstanceChange={(val) => onSelectionChange(r.reaction_type_id, val)}
+              expanded={expandedRow === r.reaction_type_id}
+              onToggle={() => setExpandedRow(prev => prev === r.reaction_type_id ? null : r.reaction_type_id)}
+            />
+          ))}
+          {filtered.length === 0 && (
             <TableRow>
-              <TableCell sx={{ width: 40 }} />
-              <TableCell sx={{ width: 80 }}>Instances</TableCell>
-              <TableCell>
-                <TableSortLabel active={sortKey === 'product_name'} direction={sortDir} onClick={() => handleSort('product_name')}>
-                  Product
-                </TableSortLabel>
-              </TableCell>
-              <TableCell>
-                <TableSortLabel active={sortKey === 'group_name'} direction={sortDir} onClick={() => handleSort('group_name')}>
-                  Group
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">Produced</TableCell>
-              <TableCell align="right">Slots/Inst</TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'output_value_per_run'} direction={sortDir} onClick={() => handleSort('output_value_per_run')}>
-                  Output/Run
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'profit_per_run'} direction={sortDir} onClick={() => handleSort('profit_per_run')}>
-                  Profit/Run
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'profit_per_cycle'} direction={sortDir} onClick={() => handleSort('profit_per_cycle')}>
-                  Profit/Cycle
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'margin'} direction={sortDir} onClick={() => handleSort('margin')}>
-                  Margin
-                </TableSortLabel>
+              <TableCell colSpan={10} className="py-8 text-center text-[var(--color-text-secondary)]">
+                No reactions found
               </TableCell>
             </TableRow>
-          </TableHead>
-          <TableBody>
-            {filtered.map((r) => (
-              <ReactionRow
-                key={r.reaction_type_id}
-                reaction={r}
-                instances={selections[r.reaction_type_id] || 0}
-                onInstanceChange={(val) => onSelectionChange(r.reaction_type_id, val)}
-                expanded={expandedRow === r.reaction_type_id}
-                onToggle={() => setExpandedRow(prev => prev === r.reaction_type_id ? null : r.reaction_type_id)}
-              />
-            ))}
-            {filtered.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={10} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                  No reactions found
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Box>
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
@@ -190,109 +181,111 @@ function ReactionRow({ reaction: r, instances, onInstanceChange, expanded, onTog
   return (
     <>
       <TableRow
-        sx={{
-          '&:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.02)' },
-          backgroundColor: instances > 0 ? 'rgba(0, 212, 255, 0.08)' : undefined,
-        }}
+        className={cn(
+          "odd:bg-[rgba(192,197,208,0.03)]",
+          instances > 0 && "bg-[rgba(0,212,255,0.08)]"
+        )}
       >
         <TableCell>
-          <IconButton size="small" onClick={onToggle}>
-            {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
+          <button
+            className="p-1 rounded-sm hover:bg-[var(--color-surface-elevated)] text-[var(--color-text-secondary)] transition-colors"
+            onClick={onToggle}
+          >
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
         </TableCell>
         <TableCell>
-          <TextField
-            size="small"
+          <Input
             type="number"
             value={instances || ''}
             onChange={(e) => onInstanceChange(parseInt(e.target.value) || 0)}
-            sx={{ width: 60 }}
-            inputProps={{ min: 0, style: { textAlign: 'center' } }}
+            className="w-16 h-7 text-center"
             placeholder="0"
+            min={0}
           />
         </TableCell>
         <TableCell>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <div className="flex items-center gap-2">
             <img
               src={`https://images.evetech.net/types/${r.product_type_id}/icon?size=32`}
               alt=""
               width={24}
               height={24}
-              style={{ borderRadius: 2 }}
+              className="rounded-sm"
             />
             {r.product_name}
-          </Box>
+          </div>
         </TableCell>
         <TableCell>{r.group_name}</TableCell>
-        <TableCell align="right">{formatNumber(instances * r.complex_instances * r.runs_per_cycle * r.product_qty_per_run)}</TableCell>
-        <TableCell align="right">{r.num_intermediates + r.complex_instances}</TableCell>
-        <TableCell align="right">{formatISK(r.output_value_per_run)}</TableCell>
-        <TableCell align="right" sx={{ color: getValueColor(r.profit_per_run) }}>
+        <TableCell className="text-right">{formatNumber(instances * r.complex_instances * r.runs_per_cycle * r.product_qty_per_run)}</TableCell>
+        <TableCell className="text-right">{r.num_intermediates + r.complex_instances}</TableCell>
+        <TableCell className="text-right">{formatISK(r.output_value_per_run)}</TableCell>
+        <TableCell className="text-right" style={{ color: getValueColor(r.profit_per_run) }}>
           {formatISK(r.profit_per_run)}
         </TableCell>
-        <TableCell align="right" sx={{ color: getValueColor(r.profit_per_cycle) }}>
+        <TableCell className="text-right" style={{ color: getValueColor(r.profit_per_cycle) }}>
           {formatISK(r.profit_per_cycle)}
         </TableCell>
-        <TableCell align="right" sx={{ color: getValueColor(r.margin) }}>
+        <TableCell className="text-right" style={{ color: getValueColor(r.margin) }}>
           {r.margin.toFixed(2)}%
         </TableCell>
       </TableRow>
-      <TableRow>
-        <TableCell colSpan={10} sx={{ py: 0, borderBottom: expanded ? undefined : 'none' }}>
-          <Collapse in={expanded} timeout="auto" unmountOnExit>
-            <Box sx={{ py: 1, px: 2 }}>
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>Materials per run</Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Material</TableCell>
-                    <TableCell align="right">Base Qty</TableCell>
-                    <TableCell align="right">Adj Qty</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    <TableCell align="right">Cost</TableCell>
-                    <TableCell>Type</TableCell>
+      {expanded && (
+        <TableRow>
+          <TableCell colSpan={10} className="py-0">
+            <div className="py-2 px-4">
+              <p className="text-sm font-medium mb-2 text-[var(--color-text-primary)]">Materials per run</p>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[var(--color-bg-panel)]">
+                    <TableHead>Material</TableHead>
+                    <TableHead className="text-right">Base Qty</TableHead>
+                    <TableHead className="text-right">Adj Qty</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
+                    <TableHead>Type</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {r.materials.map(m => (
                     <TableRow key={m.type_id}>
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <div className="flex items-center gap-2">
                           <img
                             src={`https://images.evetech.net/types/${m.type_id}/icon?size=32`}
                             alt=""
                             width={20}
                             height={20}
-                            style={{ borderRadius: 2 }}
+                            className="rounded-sm"
                           />
                           {m.name}
-                        </Box>
+                        </div>
                       </TableCell>
-                      <TableCell align="right">{formatNumber(m.base_qty)}</TableCell>
-                      <TableCell align="right">{formatNumber(m.adj_qty)}</TableCell>
-                      <TableCell align="right">{formatISK(m.price)}</TableCell>
-                      <TableCell align="right">{formatISK(m.cost)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(m.base_qty)}</TableCell>
+                      <TableCell className="text-right">{formatNumber(m.adj_qty)}</TableCell>
+                      <TableCell className="text-right">{formatISK(m.price)}</TableCell>
+                      <TableCell className="text-right">{formatISK(m.cost)}</TableCell>
                       <TableCell>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: m.is_intermediate ? '#00d4ff' : '#94a3b8' }}
-                        >
+                        <span className={cn(
+                          "text-xs",
+                          m.is_intermediate ? "text-[var(--color-primary-cyan)]" : "text-[var(--color-text-secondary)]"
+                        )}>
                           {m.is_intermediate ? 'Intermediate' : 'Raw'}
-                        </Typography>
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <Box sx={{ mt: 1, display: 'flex', gap: 3 }}>
-                <Typography variant="caption" color="text.secondary">
+              <div className="mt-2 flex gap-6">
+                <span className="text-xs text-[var(--color-text-secondary)]">
                   Input Cost: {formatISK(r.input_cost_per_run)} | Job Cost: {formatISK(r.job_cost_per_run)} | Output: {formatISK(r.output_value_per_run)}
-                </Typography>
-              </Box>
-            </Box>
-          </Collapse>
-        </TableCell>
-      </TableRow>
+                </span>
+              </div>
+            </div>
+          </TableCell>
+        </TableRow>
+      )}
     </>
   );
 }

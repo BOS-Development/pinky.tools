@@ -40,6 +40,7 @@ const config: Config = {
           primary: "var(--color-text-primary)",
           secondary: "var(--color-text-secondary)",
           muted: "var(--color-text-muted)",
+          emphasis: "var(--color-text-emphasis)",
         },
         // shadcn/ui semantic tokens
         foreground: "hsl(var(--foreground))",

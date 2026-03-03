@@ -1,20 +1,12 @@
 import { useState } from 'react';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
-import Autocomplete from '@mui/material/Autocomplete';
-import TextField from '@mui/material/TextField';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import InventoryIcon from '@mui/icons-material/Inventory';
+import { Loader2, Copy, CheckCircle2, Package } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
+import {
+  Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Combobox, type ComboboxOption } from "@/components/ui/combobox";
+import { cn } from "@/lib/utils";
 import { PlanResponse, AssetsResponse } from "@industry-tool/client/data/models";
 import { formatISK, formatNumber } from "@industry-tool/utils/formatting";
 import { aggregateAssetsByTypeId, getUniqueOwners } from "@industry-tool/utils/assetAggregation";
@@ -32,6 +24,35 @@ type Props = {
 type SortKey = 'name' | 'quantity' | 'inStock' | 'delta' | 'price' | 'cost' | 'volume';
 type SortDir = 'asc' | 'desc';
 
+function SortHeader({ label, sortKey: key, activeSortKey, sortDir, onSort, align }: {
+  label: string;
+  sortKey: SortKey;
+  activeSortKey: SortKey;
+  sortDir: SortDir;
+  onSort: (key: SortKey) => void;
+  align?: 'left' | 'right';
+}) {
+  const active = activeSortKey === key;
+  return (
+    <TableHead className={align === 'right' ? 'text-right' : ''}>
+      <button
+        className={cn(
+          "inline-flex items-center gap-1 text-xs font-medium uppercase tracking-wider cursor-pointer hover:text-[var(--color-primary-cyan)] transition-colors",
+          active && "text-[var(--color-primary-cyan)]"
+        )}
+        onClick={() => onSort(key)}
+      >
+        {label}
+        {active ? (
+          sortDir === 'asc' ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </button>
+    </TableHead>
+  );
+}
+
 export default function ShoppingList({ planData, loading, assets, isAuthenticated, stockpileLocationId, onStockpileLocationChange }: Props) {
   const [stockpileDialogOpen, setStockpileDialogOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>('name');
@@ -48,17 +69,17 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary-cyan)]" />
+      </div>
     );
   }
 
   if (!planData || planData.shopping_list.length === 0) {
     return (
-      <Typography color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+      <p className="py-8 text-center text-[var(--color-text-secondary)]">
         Select reactions in the Pick Reactions tab to generate a shopping list.
-      </Typography>
+      </p>
     );
   }
 
@@ -96,184 +117,157 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
     navigator.clipboard.writeText(lines.join('\n'));
   };
 
+  const locationOptions: ComboboxOption[] = locations.map(s => ({
+    value: s.id.toString(),
+    label: s.name,
+  }));
+
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-          <Typography variant="body2" color="text.secondary">
+    <div>
+      <div className="flex justify-between items-center mb-3 flex-wrap gap-2">
+        <div className="flex flex-col gap-1">
+          <span className="text-sm text-[var(--color-text-secondary)]">
             {planData.shopping_list.length} items | Total: {formatISK(totalCost)} | Volume: {formatNumber(totalVolume, 1)} m3
-          </Typography>
+          </span>
           {deltaCost !== null && (
-            <Typography variant="body2" color="success.main">
+            <span className="text-sm text-[var(--color-success-teal)]">
               Delta Cost: {formatISK(deltaCost)}
-            </Typography>
+            </span>
           )}
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        </div>
+        <div className="flex items-center gap-2">
           {isAuthenticated && (
-            <Autocomplete
-              size="small"
-              sx={{ minWidth: 250 }}
-              options={locations}
-              getOptionLabel={(option) => option.name}
-              value={selectedStructure}
-              onChange={(_e, value) => onStockpileLocationChange(value?.id ?? 0)}
-              renderInput={(params) => <TextField {...params} label="Stockpile Location" />}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
+            <Combobox
+              options={locationOptions}
+              value={stockpileLocationId ? stockpileLocationId.toString() : ''}
+              onValueChange={(val) => onStockpileLocationChange(val ? parseInt(val) : 0)}
+              placeholder="Stockpile Location"
+              searchPlaceholder="Search locations..."
+              triggerClassName="w-64"
             />
           )}
           <Button
-            variant="outlined"
-            size="small"
-            startIcon={<ContentCopyIcon />}
+            variant="outline"
+            size="sm"
             onClick={copyMultibuy}
           >
+            <Copy className="h-4 w-4 mr-1" />
             Copy Multibuy
           </Button>
           {stockpileMap && (
             <Button
-              variant="outlined"
-              size="small"
-              startIcon={<ContentCopyIcon />}
+              variant="outline"
+              size="sm"
               onClick={copyMultibuyDelta}
-              color="success"
+              className="border-[var(--color-success-teal)] text-[var(--color-success-teal)] hover:border-[var(--color-success-teal)]"
             >
+              <Copy className="h-4 w-4 mr-1" />
               Copy Delta
             </Button>
           )}
           {selectedStructure && (
             <Button
-              variant="outlined"
-              size="small"
-              startIcon={<InventoryIcon />}
+              variant="outline"
+              size="sm"
               onClick={() => setStockpileDialogOpen(true)}
-              color="warning"
+              className="border-[var(--color-manufacturing-amber)] text-[var(--color-manufacturing-amber)] hover:border-[var(--color-manufacturing-amber)]"
             >
+              <Package className="h-4 w-4 mr-1" />
               Set Stockpile
             </Button>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <TableContainer>
-        <Table size="small" sx={{ '& th': { backgroundColor: '#0f1219', fontWeight: 'bold' } }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>
-                <TableSortLabel active={sortKey === 'name'} direction={sortKey === 'name' ? sortDir : 'asc'} onClick={() => handleSort('name')}>
-                  Material
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'quantity'} direction={sortKey === 'quantity' ? sortDir : 'desc'} onClick={() => handleSort('quantity')}>
-                  Quantity
-                </TableSortLabel>
-              </TableCell>
-              {stockpileMap && (
-                <TableCell align="right">
-                  <TableSortLabel active={sortKey === 'inStock'} direction={sortKey === 'inStock' ? sortDir : 'desc'} onClick={() => handleSort('inStock')}>
-                    In Stock
-                  </TableSortLabel>
-                </TableCell>
-              )}
-              {stockpileMap && (
-                <TableCell align="right">
-                  <TableSortLabel active={sortKey === 'delta'} direction={sortKey === 'delta' ? sortDir : 'desc'} onClick={() => handleSort('delta')}>
-                    Delta
-                  </TableSortLabel>
-                </TableCell>
-              )}
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'price'} direction={sortKey === 'price' ? sortDir : 'desc'} onClick={() => handleSort('price')}>
-                  Unit Price
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'cost'} direction={sortKey === 'cost' ? sortDir : 'desc'} onClick={() => handleSort('cost')}>
-                  Total Cost
-                </TableSortLabel>
-              </TableCell>
-              <TableCell align="right">
-                <TableSortLabel active={sortKey === 'volume'} direction={sortKey === 'volume' ? sortDir : 'desc'} onClick={() => handleSort('volume')}>
-                  Volume (m3)
-                </TableSortLabel>
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {[...planData.shopping_list]
-              .map((item) => {
-                const have = stockpileMap ? (stockpileMap.get(item.type_id) || 0) : 0;
-                const delta = Math.max(0, item.quantity - have);
-                return { item, have, delta };
-              })
-              .sort((a, b) => {
-                let cmp = 0;
-                switch (sortKey) {
-                  case 'name': cmp = a.item.name.localeCompare(b.item.name); break;
-                  case 'quantity': cmp = a.item.quantity - b.item.quantity; break;
-                  case 'inStock': cmp = a.have - b.have; break;
-                  case 'delta': cmp = a.delta - b.delta; break;
-                  case 'price': cmp = a.item.price - b.item.price; break;
-                  case 'cost': cmp = a.item.cost - b.item.cost; break;
-                  case 'volume': cmp = a.item.volume - b.item.volume; break;
-                }
-                return sortDir === 'asc' ? cmp : -cmp;
-              })
-              .map(({ item, have, delta }) => {
-              const fulfilled = stockpileMap ? delta === 0 : false;
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-[var(--color-bg-panel)]">
+            <SortHeader label="Material" sortKey="name" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Quantity" sortKey="quantity" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            {stockpileMap && (
+              <SortHeader label="In Stock" sortKey="inStock" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            )}
+            {stockpileMap && (
+              <SortHeader label="Delta" sortKey="delta" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            )}
+            <SortHeader label="Unit Price" sortKey="price" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            <SortHeader label="Total Cost" sortKey="cost" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+            <SortHeader label="Volume (m3)" sortKey="volume" activeSortKey={sortKey} sortDir={sortDir} onSort={handleSort} align="right" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {[...planData.shopping_list]
+            .map((item) => {
+              const have = stockpileMap ? (stockpileMap.get(item.type_id) || 0) : 0;
+              const delta = Math.max(0, item.quantity - have);
+              return { item, have, delta };
+            })
+            .sort((a, b) => {
+              let cmp = 0;
+              switch (sortKey) {
+                case 'name': cmp = a.item.name.localeCompare(b.item.name); break;
+                case 'quantity': cmp = a.item.quantity - b.item.quantity; break;
+                case 'inStock': cmp = a.have - b.have; break;
+                case 'delta': cmp = a.delta - b.delta; break;
+                case 'price': cmp = a.item.price - b.item.price; break;
+                case 'cost': cmp = a.item.cost - b.item.cost; break;
+                case 'volume': cmp = a.item.volume - b.item.volume; break;
+              }
+              return sortDir === 'asc' ? cmp : -cmp;
+            })
+            .map(({ item, have, delta }) => {
+            const fulfilled = stockpileMap ? delta === 0 : false;
 
-              return (
-                <TableRow
-                  key={item.type_id}
-                  sx={{ '&:nth-of-type(odd)': { backgroundColor: 'rgba(255,255,255,0.02)' } }}
-                >
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <img
-                        src={`https://images.evetech.net/types/${item.type_id}/icon?size=32`}
-                        alt=""
-                        width={24}
-                        height={24}
-                        style={{ borderRadius: 2 }}
-                      />
-                      {item.name}
-                    </Box>
+            return (
+              <TableRow
+                key={item.type_id}
+                className="odd:bg-[rgba(192,197,208,0.03)]"
+              >
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={`https://images.evetech.net/types/${item.type_id}/icon?size=32`}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="rounded-sm"
+                    />
+                    {item.name}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right">{formatNumber(item.quantity)}</TableCell>
+                {stockpileMap && (
+                  <TableCell className="text-right">{formatNumber(have)}</TableCell>
+                )}
+                {stockpileMap && (
+                  <TableCell className={cn("text-right", fulfilled && "text-[var(--color-success-teal)]")}>
+                    {fulfilled ? (
+                      <span className="inline-flex items-center justify-end gap-1">
+                        <CheckCircle2 className="h-4 w-4" />
+                        0
+                      </span>
+                    ) : (
+                      formatNumber(delta)
+                    )}
                   </TableCell>
-                  <TableCell align="right">{formatNumber(item.quantity)}</TableCell>
-                  {stockpileMap && (
-                    <TableCell align="right">{formatNumber(have)}</TableCell>
-                  )}
-                  {stockpileMap && (
-                    <TableCell align="right" sx={fulfilled ? { color: '#10b981' } : undefined}>
-                      {fulfilled ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 0.5 }}>
-                          <CheckCircleIcon sx={{ fontSize: 16 }} />
-                          0
-                        </Box>
-                      ) : (
-                        formatNumber(delta)
-                      )}
-                    </TableCell>
-                  )}
-                  <TableCell align="right">{formatISK(item.price)}</TableCell>
-                  <TableCell align="right">{formatISK(item.cost)}</TableCell>
-                  <TableCell align="right">{formatNumber(item.volume, 1)}</TableCell>
-                </TableRow>
-              );
-            })}
-            <TableRow sx={{ '& td': { fontWeight: 'bold', borderTop: '2px solid rgba(255,255,255,0.1)' } }}>
-              <TableCell>Total</TableCell>
-              <TableCell />
-              {stockpileMap && <TableCell />}
-              {stockpileMap && <TableCell />}
-              <TableCell />
-              <TableCell align="right">{formatISK(totalCost)}</TableCell>
-              <TableCell align="right">{formatNumber(totalVolume, 1)}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-      </TableContainer>
+                )}
+                <TableCell className="text-right">{formatISK(item.price)}</TableCell>
+                <TableCell className="text-right">{formatISK(item.cost)}</TableCell>
+                <TableCell className="text-right">{formatNumber(item.volume, 1)}</TableCell>
+              </TableRow>
+            );
+          })}
+          <TableRow className="[&_td]:font-bold [&_td]:text-[var(--color-text-emphasis)] [&_td]:border-t-2 [&_td]:border-[var(--color-border-dim)]">
+            <TableCell>Total</TableCell>
+            <TableCell />
+            {stockpileMap && <TableCell />}
+            {stockpileMap && <TableCell />}
+            <TableCell />
+            <TableCell className="text-right">{formatISK(totalCost)}</TableCell>
+            <TableCell className="text-right">{formatNumber(totalVolume, 1)}</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
 
       {selectedStructure && (
         <StockpileDialog
@@ -285,6 +279,6 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
           owners={getUniqueOwners(selectedStructure)}
         />
       )}
-    </Box>
+    </div>
   );
 }

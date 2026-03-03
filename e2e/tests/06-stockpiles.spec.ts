@@ -85,13 +85,15 @@ test.describe('Stockpiles', () => {
     await expect(page.getByText(/Stargazer Industries - Main Hangar/).first()).toBeVisible({ timeout: 5000 });
     await page.getByText(/Stargazer Industries - Main Hangar/).first().click();
 
+    // Wait for corp hangar items to render before interacting
     // Find the Tritanium row in the corp hangar and set a stockpile marker
     // Use last() since the personal hangar Tritanium row may also be in the DOM
     const corpTritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).last();
+    await expect(corpTritaniumRow).toBeVisible({ timeout: 5000 });
     await corpTritaniumRow.getByRole('button').first().click();
 
     // Dialog should appear
-    await expect(page.getByText('Set Stockpile Marker')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText('Set Stockpile Marker')).toBeVisible({ timeout: 10000 });
 
     // Should show corp Tritanium's current quantity (100,000) - scope to dialog
     const dialog = page.getByRole('dialog');
