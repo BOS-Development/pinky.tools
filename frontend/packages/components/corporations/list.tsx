@@ -1,11 +1,8 @@
 import { Corporation } from "@industry-tool/client/data/models";
 import Item from "./item";
 import Navbar from "@industry-tool/components/Navbar";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
+import { Plus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export type CorporationListProps = {
   corporations: Corporation[];
@@ -16,33 +13,20 @@ export default function List(props: CorporationListProps) {
     return (
       <>
         <Navbar />
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '60vh',
-              textAlign: 'center',
-            }}
-          >
-            <Typography variant="h4" gutterBottom>
-              No Corporations
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+        <div className="max-w-5xl mx-auto px-4 py-8">
+          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <h1 className="text-2xl font-display font-semibold mb-2">No Corporations</h1>
+            <p className="text-[var(--color-text-secondary)] mb-6">
               Get started by adding your first corporation
-            </Typography>
-            <Button
-              variant="contained"
-              size="large"
-              startIcon={<AddIcon />}
-              href="api/corporations/add"
-            >
-              Add Corporation
+            </p>
+            <Button size="lg" asChild>
+              <a href="api/corporations/add">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Corporation
+              </a>
             </Button>
-          </Box>
-        </Container>
+          </div>
+        </div>
       </>
     );
   }
@@ -50,35 +34,22 @@ export default function List(props: CorporationListProps) {
   return (
     <>
       <Navbar />
-      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-        <Box sx={{ mb: 4 }}>
-          <Typography variant="h4" gutterBottom>
-            Corporations
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            href="api/corporations/add"
-          >
-            Add Corporation
+      <div className="max-w-5xl mx-auto px-4 py-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-display font-semibold mb-3">Corporations</h1>
+          <Button asChild>
+            <a href="api/corporations/add">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Corporation
+            </a>
           </Button>
-        </Box>
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)',
-            },
-            gap: 3,
-          }}
-        >
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {props.corporations.map((corp) => {
             return <Item corporation={corp} key={corp.id} />;
           })}
-        </Box>
-      </Container>
+        </div>
+      </div>
     </>
   );
 }
