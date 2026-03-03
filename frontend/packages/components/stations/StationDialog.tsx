@@ -271,6 +271,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
                 {stationOptions.map(opt => (
                   <button
                     key={opt.stationId}
+                    role="option"
                     onClick={() => {
                       setSelectedStation(opt);
                       setStationSearchQuery(opt.name);
