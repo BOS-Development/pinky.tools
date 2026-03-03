@@ -1,1 +1,194 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Navbar Component should match snapshot when not authenticated 1`] = `
+<div>
+  <nav
+    class="fixed top-0 left-0 right-0 z-50 h-16 border-b border-[var(--color-border-dim)] bg-[var(--color-bg-panel)]/95 backdrop-blur-sm"
+  >
+    <div
+      class="flex h-full items-center px-4 gap-1"
+    >
+      <a
+        class="flex items-center gap-2 mr-4 text-[var(--color-primary-cyan)] hover:text-[var(--color-primary-cyan)] transition-colors"
+        href="/"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-rocket h-5 w-5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"
+          />
+          <path
+            d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"
+          />
+          <path
+            d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"
+          />
+          <path
+            d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"
+          />
+        </svg>
+        <span
+          class="font-display font-semibold text-lg hidden sm:inline"
+        >
+          EVE Industry Tool
+        </span>
+      </a>
+      <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 px-4 py-2 gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]"
+        data-state="closed"
+        id="radix-_r_0_"
+        type="button"
+      >
+        Account
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chevron-down h-4 w-4 opacity-60"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+          />
+        </svg>
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 px-4 py-2 gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]"
+        data-state="closed"
+        id="radix-_r_2_"
+        type="button"
+      >
+        Assets
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chevron-down h-4 w-4 opacity-60"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+          />
+        </svg>
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 px-4 py-2 gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]"
+        data-state="closed"
+        id="radix-_r_4_"
+        type="button"
+      >
+        Trading
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chevron-down h-4 w-4 opacity-60"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+          />
+        </svg>
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 px-4 py-2 gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]"
+        data-state="closed"
+        id="radix-_r_6_"
+        type="button"
+      >
+        Industry
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chevron-down h-4 w-4 opacity-60"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+          />
+        </svg>
+      </button>
+      <button
+        aria-expanded="false"
+        aria-haspopup="menu"
+        class="inline-flex items-center justify-center whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 px-4 py-2 gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]"
+        data-state="closed"
+        id="radix-_r_8_"
+        type="button"
+      >
+        Logistics
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-chevron-down h-4 w-4 opacity-60"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m6 9 6 6 6-6"
+          />
+        </svg>
+      </button>
+      <a
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-9 px-4 py-2 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]"
+        href="/settings"
+      >
+        Settings
+      </a>
+    </div>
+  </nav>
+  <div
+    class="h-16"
+  />
+</div>
+`;

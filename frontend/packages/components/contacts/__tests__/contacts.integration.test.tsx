@@ -3,6 +3,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import ContactsList from '../ContactsList';
 
+const mockToastError = jest.fn();
+const mockToastSuccess = jest.fn();
+jest.mock('@/components/ui/sonner', () => ({
+  toast: {
+    error: (...args: unknown[]) => mockToastError(...args),
+    success: (...args: unknown[]) => mockToastSuccess(...args),
+  },
+}));
+
 jest.mock('next-auth/react');
 jest.mock('../../Navbar', () => {
   return function MockNavbar() {
@@ -14,13 +23,30 @@ jest.mock('../../loading', () => {
     return <div data-testid="loading">Loading...</div>;
   };
 });
+jest.mock('../PermissionsDialog', () => {
+  return function MockPermissionsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+    return open ? (
+      <div data-testid="permissions-dialog">
+        <button onClick={onClose}>Close</button>
+      </div>
+    ) : null;
+  };
+});
 
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
+
+// Helper to click Radix UI tabs (requires mouseDown event)
+const clickTab = (tabText: string) => {
+  const tab = screen.getByText(tabText);
+  fireEvent.mouseDown(tab);
+};
 
 describe('Contacts Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
+    mockToastError.mockClear();
+    mockToastSuccess.mockClear();
   });
 
   const mockSession = {
@@ -32,11 +58,16 @@ describe('Contacts Integration Tests', () => {
   it('should complete full contact request workflow', async () => {
     mockUseSession.mockReturnValue(mockSession);
 
-    // Initial state: no contacts
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    });
+    // Initial state: no contacts (contacts + contact-rules)
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
@@ -54,7 +85,7 @@ describe('Contacts Integration Tests', () => {
     const input = screen.getByLabelText(/character name/i);
     fireEvent.change(input, { target: { value: 'Test Character' } });
 
-    // Mock successful contact creation
+    // Mock successful contact creation + refetch
     (global.fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
@@ -87,17 +118,17 @@ describe('Contacts Integration Tests', () => {
     const sendButton = screen.getByRole('button', { name: /send request/i });
     fireEvent.click(sendButton);
 
-    // Should show success message
+    // Should show success via toast
     await waitFor(() => {
-      expect(screen.getByText('Contact request sent!')).toBeInTheDocument();
+      expect(mockToastSuccess).toHaveBeenCalledWith('Contact request sent!');
     });
 
-    // Should now show in Sent Requests tab
+    // Should now show in Sent tab
     await waitFor(() => {
-      expect(screen.getByText('Sent Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Sent (1)')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Sent Requests (1)'));
+    clickTab('Sent (1)');
 
     await waitFor(() => {
       expect(screen.getByText('Test Character')).toBeInTheDocument();
@@ -117,20 +148,25 @@ describe('Contacts Integration Tests', () => {
       requestedAt: '2024-01-01T00:00:00Z',
     };
 
-    // Initial fetch with pending contact
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [pendingContact],
-    });
+    // Initial fetch with pending contact (contacts + contact-rules)
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [pendingContact],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
     });
 
     // Go to pending requests
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    clickTab('Pending (1)');
 
     await waitFor(() => {
       expect(screen.getByText('Requester User')).toBeInTheDocument();
@@ -156,9 +192,9 @@ describe('Contacts Integration Tests', () => {
     const acceptButton = screen.getByTitle('Accept');
     fireEvent.click(acceptButton);
 
-    // Should show success message
+    // Should show success via toast
     await waitFor(() => {
-      expect(screen.getByText('Contact accepted!')).toBeInTheDocument();
+      expect(mockToastSuccess).toHaveBeenCalledWith('Contact accepted!');
     });
 
     // Should now appear in My Contacts
@@ -166,7 +202,7 @@ describe('Contacts Integration Tests', () => {
       expect(screen.getByText('My Contacts (1)')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('My Contacts (1)'));
+    clickTab('My Contacts (1)');
 
     await waitFor(() => {
       expect(screen.getByText('Requester User')).toBeInTheDocument();
@@ -187,18 +223,23 @@ describe('Contacts Integration Tests', () => {
       requestedAt: '2024-01-01T00:00:00Z',
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [pendingContact],
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [pendingContact],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    clickTab('Pending (1)');
 
     await waitFor(() => {
       expect(screen.getByText('Unwanted User')).toBeInTheDocument();
@@ -219,12 +260,12 @@ describe('Contacts Integration Tests', () => {
     fireEvent.click(rejectButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Contact rejected')).toBeInTheDocument();
+      expect(mockToastSuccess).toHaveBeenCalledWith('Contact rejected');
     });
 
     // Should no longer show pending requests
     await waitFor(() => {
-      expect(screen.getByText('Pending Requests (0)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (0)')).toBeInTheDocument();
     });
   });
 
@@ -242,10 +283,15 @@ describe('Contacts Integration Tests', () => {
       respondedAt: '2024-01-02T00:00:00Z',
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [acceptedContact],
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [acceptedContact],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
@@ -268,7 +314,7 @@ describe('Contacts Integration Tests', () => {
     fireEvent.click(deleteButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Contact removed')).toBeInTheDocument();
+      expect(mockToastSuccess).toHaveBeenCalledWith('Contact removed');
     });
 
     // Should show empty state
@@ -282,10 +328,15 @@ describe('Contacts Integration Tests', () => {
   it('should handle error when adding duplicate contact', async () => {
     mockUseSession.mockReturnValue(mockSession);
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
@@ -310,17 +361,22 @@ describe('Contacts Integration Tests', () => {
     fireEvent.click(sendButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Contact already exists')).toBeInTheDocument();
+      expect(mockToastError).toHaveBeenCalledWith('Contact already exists');
     });
   });
 
   it('should handle self-contact error', async () => {
     mockUseSession.mockReturnValue(mockSession);
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [],
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
@@ -345,9 +401,7 @@ describe('Contacts Integration Tests', () => {
     fireEvent.click(sendButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText('cannot add yourself as a contact')
-      ).toBeInTheDocument();
+      expect(mockToastError).toHaveBeenCalledWith('cannot add yourself as a contact');
     });
   });
 
@@ -364,18 +418,23 @@ describe('Contacts Integration Tests', () => {
       requestedAt: '2024-01-01T00:00:00Z',
     };
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => [sentRequest],
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [sentRequest],  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Sent Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Sent (1)')).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Sent Requests (1)'));
+    clickTab('Sent (1)');
 
     await waitFor(() => {
       expect(screen.getByText('Pending User')).toBeInTheDocument();
@@ -396,11 +455,11 @@ describe('Contacts Integration Tests', () => {
     fireEvent.click(cancelButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Contact removed')).toBeInTheDocument();
+      expect(mockToastSuccess).toHaveBeenCalledWith('Contact removed');
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Sent Requests (0)')).toBeInTheDocument();
+      expect(screen.getByText('Sent (0)')).toBeInTheDocument();
     });
   });
 
@@ -448,18 +507,23 @@ describe('Contacts Integration Tests', () => {
       },
     ];
 
-    (global.fetch as jest.Mock).mockResolvedValueOnce({
-      ok: true,
-      json: async () => contacts,
-    });
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => contacts,  // /api/contacts
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => [],  // /api/contact-rules
+      });
 
     render(<ContactsList />);
 
-    // Check counts in tabs
+    // Check counts in tabs (correct tab labels)
     await waitFor(() => {
       expect(screen.getByText('My Contacts (2)')).toBeInTheDocument();
-      expect(screen.getByText('Pending Requests (1)')).toBeInTheDocument();
-      expect(screen.getByText('Sent Requests (1)')).toBeInTheDocument();
+      expect(screen.getByText('Pending (1)')).toBeInTheDocument();
+      expect(screen.getByText('Sent (1)')).toBeInTheDocument();
     });
 
     // Check My Contacts tab
@@ -468,14 +532,14 @@ describe('Contacts Integration Tests', () => {
       expect(screen.getByText('Friend 2')).toBeInTheDocument();
     });
 
-    // Check Pending Requests tab
-    fireEvent.click(screen.getByText('Pending Requests (1)'));
+    // Check Pending tab
+    clickTab('Pending (1)');
     await waitFor(() => {
       expect(screen.getByText('Requester 1')).toBeInTheDocument();
     });
 
-    // Check Sent Requests tab
-    fireEvent.click(screen.getByText('Sent Requests (1)'));
+    // Check Sent tab
+    clickTab('Sent (1)');
     await waitFor(() => {
       expect(screen.getByText('Sent To 1')).toBeInTheDocument();
     });

@@ -3,59 +3,98 @@
 exports[`Character Item Component should match snapshot for character needing reauth 1`] = `
 <div>
   <div
-    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-1i1l0ei-MuiPaper-root-MuiCard-root"
-    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    class="rounded-sm bg-[var(--color-bg-panel)] text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] max-w-[345px] transition-transform hover:-translate-y-1 border-2 border-[var(--color-danger-rose)]"
   >
     <div
-      class="MuiBox-root css-79elbk"
+      class="relative"
     >
       <img
         alt="Revoked Pilot"
-        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        class="w-full max-w-[192px] aspect-square object-contain bg-[var(--color-bg-void)] mx-auto"
         src="https://image.eveonline.com/Character/22222_128.jpg"
       />
-      <svg
-        aria-hidden="true"
-        aria-label="Authorization revoked — re-authorize required"
-        class="MuiSvgIcon-root MuiSvgIcon-colorError MuiSvgIcon-fontSizeMedium css-mkba7d-MuiSvgIcon-root"
-        data-mui-internal-clone-element="true"
-        data-testid="ErrorIcon"
-        focusable="false"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
-        />
-      </svg>
-    </div>
-    <div
-      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
-    >
       <div
-        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
-      >
-        Revoked Pilot
-      </div>
-      <div
-        class="MuiBox-root css-1mpg011"
+        class="absolute top-2 right-2"
+        title="Authorization revoked — re-authorize required"
       >
         <svg
           aria-hidden="true"
-          aria-label="This character's ESI authorization has been revoked and requires re-authorization"
-          class="MuiSvgIcon-root MuiSvgIcon-colorError MuiSvgIcon-fontSizeMedium css-n4bcw2-MuiSvgIcon-root"
-          data-mui-internal-clone-element="true"
-          data-testid="ErrorIcon"
-          focusable="false"
+          class="lucide lucide-circle-alert h-7 w-7 text-[var(--color-danger-rose)] drop-shadow-lg"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
           viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <path
-            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m1 15h-2v-2h2zm0-4h-2V7h2z"
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+          <line
+            x1="12"
+            x2="12"
+            y1="8"
+            y2="12"
+          />
+          <line
+            x1="12"
+            x2="12.01"
+            y1="16"
+            y2="16"
+          />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="p-4"
+    >
+      <h3
+        class="text-lg font-semibold text-[var(--color-text-emphasis)]"
+      >
+        Revoked Pilot
+      </h3>
+      <div
+        class="flex items-center gap-2 mt-2"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-circle-alert h-4 w-4 text-[var(--color-danger-rose)]"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+          />
+          <line
+            x1="12"
+            x2="12"
+            y1="8"
+            y2="12"
+          />
+          <line
+            x1="12"
+            x2="12.01"
+            y1="16"
+            y2="16"
           />
         </svg>
         <a
-          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError MuiButton-root MuiButton-outlined MuiButton-outlinedError MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorError css-1vvreb9-MuiButtonBase-root-MuiButton-root"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs text-[var(--color-danger-rose)] border-[var(--color-danger-rose)]/30"
           href="/api/characters/add"
-          tabindex="0"
         >
           Re-authorize
         </a>
@@ -68,65 +107,82 @@ exports[`Character Item Component should match snapshot for character needing re
 exports[`Character Item Component should match snapshot for character with no scopes 1`] = `
 <div>
   <div
-    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-emrazf-MuiPaper-root-MuiCard-root"
-    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    class="rounded-sm bg-[var(--color-bg-panel)] text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] max-w-[345px] transition-transform hover:-translate-y-1 border-2 border-[var(--color-manufacturing-amber)]"
   >
     <div
-      class="MuiBox-root css-79elbk"
+      class="relative"
     >
       <img
         alt="No Scopes Pilot"
-        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        class="w-full max-w-[192px] aspect-square object-contain bg-[var(--color-bg-void)] mx-auto"
         src="https://image.eveonline.com/Character/11111_128.jpg"
       />
-      <svg
-        aria-hidden="true"
-        aria-label="Scopes need updating"
-        class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-163k00c-MuiSvgIcon-root"
-        data-mui-internal-clone-element="true"
-        data-testid="WarningAmberIcon"
-        focusable="false"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
-        />
-        <path
-          d="M13 16h-2v2h2zm0-6h-2v5h2z"
-        />
-      </svg>
-    </div>
-    <div
-      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
-    >
       <div
-        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
-      >
-        No Scopes Pilot
-      </div>
-      <div
-        class="MuiBox-root css-1mpg011"
+        class="absolute top-2 right-2"
+        title="Scopes need updating"
       >
         <svg
           aria-hidden="true"
-          aria-label="This character needs to be re-authorized to grant new permissions"
-          class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-pr4iv3-MuiSvgIcon-root"
-          data-mui-internal-clone-element="true"
-          data-testid="WarningAmberIcon"
-          focusable="false"
+          class="lucide lucide-triangle-alert h-7 w-7 text-[var(--color-manufacturing-amber)] drop-shadow-lg"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
           viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
           />
           <path
-            d="M13 16h-2v2h2zm0-6h-2v5h2z"
+            d="M12 9v4"
+          />
+          <path
+            d="M12 17h.01"
+          />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="p-4"
+    >
+      <h3
+        class="text-lg font-semibold text-[var(--color-text-emphasis)]"
+      >
+        No Scopes Pilot
+      </h3>
+      <div
+        class="flex items-center gap-2 mt-2"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-triangle-alert h-4 w-4 text-[var(--color-manufacturing-amber)]"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+          />
+          <path
+            d="M12 9v4"
+          />
+          <path
+            d="M12 17h.01"
           />
         </svg>
         <a
-          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning css-r30sdl-MuiButtonBase-root-MuiButton-root"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs text-[var(--color-manufacturing-amber)] border-[var(--color-manufacturing-amber)]/30"
           href="/api/characters/add"
-          tabindex="0"
         >
           Re-authorize
         </a>
@@ -139,65 +195,82 @@ exports[`Character Item Component should match snapshot for character with no sc
 exports[`Character Item Component should match snapshot for outdated character 1`] = `
 <div>
   <div
-    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-emrazf-MuiPaper-root-MuiCard-root"
-    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    class="rounded-sm bg-[var(--color-bg-panel)] text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] max-w-[345px] transition-transform hover:-translate-y-1 border-2 border-[var(--color-manufacturing-amber)]"
   >
     <div
-      class="MuiBox-root css-79elbk"
+      class="relative"
     >
       <img
         alt="Outdated Pilot"
-        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        class="w-full max-w-[192px] aspect-square object-contain bg-[var(--color-bg-void)] mx-auto"
         src="https://image.eveonline.com/Character/67890_128.jpg"
       />
-      <svg
-        aria-hidden="true"
-        aria-label="Scopes need updating"
-        class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-163k00c-MuiSvgIcon-root"
-        data-mui-internal-clone-element="true"
-        data-testid="WarningAmberIcon"
-        focusable="false"
-        viewBox="0 0 24 24"
-      >
-        <path
-          d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
-        />
-        <path
-          d="M13 16h-2v2h2zm0-6h-2v5h2z"
-        />
-      </svg>
-    </div>
-    <div
-      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
-    >
       <div
-        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
-      >
-        Outdated Pilot
-      </div>
-      <div
-        class="MuiBox-root css-1mpg011"
+        class="absolute top-2 right-2"
+        title="Scopes need updating"
       >
         <svg
           aria-hidden="true"
-          aria-label="This character needs to be re-authorized to grant new permissions"
-          class="MuiSvgIcon-root MuiSvgIcon-colorWarning MuiSvgIcon-fontSizeMedium css-pr4iv3-MuiSvgIcon-root"
-          data-mui-internal-clone-element="true"
-          data-testid="WarningAmberIcon"
-          focusable="false"
+          class="lucide lucide-triangle-alert h-7 w-7 text-[var(--color-manufacturing-amber)] drop-shadow-lg"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
           viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
           <path
-            d="M12 5.99 19.53 19H4.47zM12 2 1 21h22z"
+            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
           />
           <path
-            d="M13 16h-2v2h2zm0-6h-2v5h2z"
+            d="M12 9v4"
+          />
+          <path
+            d="M12 17h.01"
+          />
+        </svg>
+      </div>
+    </div>
+    <div
+      class="p-4"
+    >
+      <h3
+        class="text-lg font-semibold text-[var(--color-text-emphasis)]"
+      >
+        Outdated Pilot
+      </h3>
+      <div
+        class="flex items-center gap-2 mt-2"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-triangle-alert h-4 w-4 text-[var(--color-manufacturing-amber)]"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"
+          />
+          <path
+            d="M12 9v4"
+          />
+          <path
+            d="M12 17h.01"
           />
         </svg>
         <a
-          class="MuiButtonBase-root MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning MuiButton-root MuiButton-outlined MuiButton-outlinedWarning MuiButton-sizeSmall MuiButton-outlinedSizeSmall MuiButton-colorWarning css-r30sdl-MuiButtonBase-root-MuiButton-root"
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs text-[var(--color-manufacturing-amber)] border-[var(--color-manufacturing-amber)]/30"
           href="/api/characters/add"
-          tabindex="0"
         >
           Re-authorize
         </a>
@@ -210,26 +283,25 @@ exports[`Character Item Component should match snapshot for outdated character 1
 exports[`Character Item Component should match snapshot for up-to-date character 1`] = `
 <div>
   <div
-    class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiCard-root css-byyo48-MuiPaper-root-MuiCard-root"
-    style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+    class="rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-panel)] text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] max-w-[345px] transition-transform hover:-translate-y-1"
   >
     <div
-      class="MuiBox-root css-79elbk"
+      class="relative"
     >
       <img
         alt="Test Pilot"
-        class="MuiCardMedia-root MuiCardMedia-media MuiCardMedia-img css-170aqd1-MuiCardMedia-root"
+        class="w-full max-w-[192px] aspect-square object-contain bg-[var(--color-bg-void)] mx-auto"
         src="https://image.eveonline.com/Character/12345_128.jpg"
       />
     </div>
     <div
-      class="MuiCardContent-root css-1lt5qva-MuiCardContent-root"
+      class="p-4"
     >
-      <div
-        class="MuiTypography-root MuiTypography-h6 MuiTypography-gutterBottom css-1wmifpn-MuiTypography-root"
+      <h3
+        class="text-lg font-semibold text-[var(--color-text-emphasis)]"
       >
         Test Pilot
-      </div>
+      </h3>
     </div>
   </div>
 </div>

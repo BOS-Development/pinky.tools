@@ -290,8 +290,9 @@ export default function StationDialog({ open, station, onClose }: Props) {
 
           {/* Scan Input */}
           <div>
-            <Label>Structure Fitting Scan</Label>
+            <Label htmlFor="structure-fitting-scan">Structure Fitting Scan</Label>
             <textarea
+              id="structure-fitting-scan"
               value={scanText}
               onChange={(e) => setScanText(e.target.value)}
               placeholder="Paste structure fitting scan here..."

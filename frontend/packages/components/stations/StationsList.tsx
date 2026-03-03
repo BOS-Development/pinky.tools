@@ -152,10 +152,10 @@ export default function StationsList({ stations, loading, onRefresh }: Props) {
                   {station.facilityTax}%
                 </TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(station)} className="text-[var(--color-primary-cyan)]">
+                  <Button variant="ghost" size="icon" onClick={() => handleEdit(station)} className="text-[var(--color-primary-cyan)]" title="Edit Station">
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(station)} className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]">
+                  <Button variant="ghost" size="icon" onClick={() => handleDelete(station)} className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)]" title="Delete Station">
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </TableCell>
