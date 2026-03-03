@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Rocket, ChevronDown, AlertTriangle } from 'lucide-react';
@@ -29,30 +30,50 @@ type NavItem = { label: string; href: string; badge?: number };
 type NavDropdownProps = {
   label: React.ReactNode;
   items: NavItem[];
+  pathname?: string | null;
 };
 
-function NavDropdown({ label, items }: NavDropdownProps) {
+function NavDropdown({ label, items, pathname }: NavDropdownProps) {
+  const isActive = items.some(
+    (item) => item.href !== '/' && pathname?.startsWith(item.href)
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="gap-1 text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]">
+        <Button
+          variant="ghost"
+          className={`gap-1 hover:text-[var(--color-primary-cyan)] ${
+            isActive
+              ? 'text-[var(--color-primary-cyan)]'
+              : 'text-[var(--color-text-primary)]'
+          }`}
+        >
           {label}
           <ChevronDown className="h-4 w-4 opacity-60" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
-        {items.map((item) => (
-          <DropdownMenuItem key={item.href} asChild>
-            <a href={item.href} className="flex items-center gap-2">
-              {item.label}
-              {item.badge ? (
-                <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0">
-                  {item.badge}
-                </Badge>
-              ) : null}
-            </a>
-          </DropdownMenuItem>
-        ))}
+        {items.map((item) => {
+          const itemActive = item.href !== '/' && pathname?.startsWith(item.href);
+          return (
+            <DropdownMenuItem key={item.href} asChild>
+              <a
+                href={item.href}
+                className={`flex items-center gap-2 ${
+                  itemActive ? 'text-[var(--color-primary-cyan)] font-medium' : ''
+                }`}
+              >
+                {item.label}
+                {item.badge ? (
+                  <Badge variant="destructive" className="ml-auto text-[10px] px-1.5 py-0">
+                    {item.badge}
+                  </Badge>
+                ) : null}
+              </a>
+            </DropdownMenuItem>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -60,6 +81,7 @@ function NavDropdown({ label, items }: NavDropdownProps) {
 
 export default function Navbar() {
   const { data: session } = useSession();
+  const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
   const [scopeWarning, setScopeWarning] = useState(false);
 
@@ -135,6 +157,7 @@ export default function Navbar() {
               { label: 'Characters', href: '/characters' },
               { label: 'Corporations', href: '/corporations' },
             ]}
+            pathname={pathname}
           />
 
           <NavDropdown
@@ -143,6 +166,7 @@ export default function Navbar() {
               { label: 'Inventory', href: '/inventory' },
               { label: 'Stockpiles', href: '/stockpiles' },
             ]}
+            pathname={pathname}
           />
 
           <NavDropdown
@@ -162,6 +186,7 @@ export default function Navbar() {
               { label: 'Contacts', href: '/contacts', badge: pendingCount },
               { label: 'Marketplace', href: '/marketplace' },
             ]}
+            pathname={pathname}
           />
 
           <NavDropdown
@@ -174,6 +199,7 @@ export default function Navbar() {
               { label: 'Planets', href: '/pi' },
               { label: 'Job Slots', href: '/job-slots' },
             ]}
+            pathname={pathname}
           />
 
           <NavDropdown
@@ -184,9 +210,18 @@ export default function Navbar() {
               { label: 'Hauling Runs', href: '/hauling' },
               { label: 'Market Scanner', href: '/hauling/scanner' },
             ]}
+            pathname={pathname}
           />
 
-          <Button variant="ghost" asChild className="text-[var(--color-text-primary)] hover:text-[var(--color-primary-cyan)]">
+          <Button
+            variant="ghost"
+            asChild
+            className={`hover:text-[var(--color-primary-cyan)] ${
+              pathname === '/settings'
+                ? 'text-[var(--color-primary-cyan)]'
+                : 'text-[var(--color-text-primary)]'
+            }`}
+          >
             <Link href="/settings">Settings</Link>
           </Button>
         </div>

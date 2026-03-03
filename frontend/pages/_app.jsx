@@ -1,3 +1,4 @@
+import '../app/globals.css';
 import { SessionProvider } from "next-auth/react";
 import ThemeRegistry from "@industry-tool/components/ThemeRegistry";
 
