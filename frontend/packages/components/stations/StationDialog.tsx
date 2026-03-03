@@ -253,8 +253,9 @@ export default function StationDialog({ open, station, onClose }: Props) {
         <div className="space-y-4">
           {/* Station Search */}
           <div>
-            <Label>Station</Label>
+            <Label htmlFor="station-search">Station</Label>
             <Input
+              id="station-search"
               value={stationSearchQuery}
               onChange={(e) => handleStationSearch(e.target.value)}
               placeholder="Search for a station..."
@@ -332,8 +333,9 @@ export default function StationDialog({ open, station, onClose }: Props) {
 
           {/* Facility Tax */}
           <div>
-            <Label>Facility Tax %</Label>
+            <Label htmlFor="facility-tax">Facility Tax %</Label>
             <Input
+              id="facility-tax"
               type="number"
               value={facilityTax}
               onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
