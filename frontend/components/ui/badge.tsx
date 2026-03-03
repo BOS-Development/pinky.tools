@@ -20,6 +20,8 @@ const badgeVariants = cva(
           "border border-[var(--color-success-teal)]/30 bg-[var(--color-success-teal)]/10 text-[var(--color-success-teal)] shadow hover:bg-[var(--color-success-teal)]/20",
         warning:
           "border border-[var(--color-manufacturing-amber)]/30 bg-[var(--color-manufacturing-amber)]/10 text-[var(--color-manufacturing-amber)] shadow hover:bg-[var(--color-manufacturing-amber)]/20",
+        info:
+          "border border-[var(--color-science-blue)]/30 bg-[var(--color-science-blue)]/10 text-[var(--color-science-blue)] shadow hover:bg-[var(--color-science-blue)]/20",
       },
     },
     defaultVariants: {
