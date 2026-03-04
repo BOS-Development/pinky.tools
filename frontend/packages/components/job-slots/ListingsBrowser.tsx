@@ -1,28 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Chip from '@mui/material/Chip';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { toast } from '@/components/ui/sonner';
 import { formatISK } from '@industry-tool/utils/formatting';
 
 type JobSlotRentalListing = {
@@ -74,11 +60,6 @@ export default function ListingsBrowser() {
     durationDays: null,
     message: '',
   });
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
 
   useEffect(() => {
     if (session) {
@@ -103,17 +84,13 @@ export default function ListingsBrowser() {
 
   const handleExpressInterest = (listing: JobSlotRentalListing) => {
     setSelectedListing(listing);
-    setInterestData({
-      slotsRequested: 1,
-      durationDays: null,
-      message: '',
-    });
+    setInterestData({ slotsRequested: 1, durationDays: null, message: '' });
     setDialogOpen(true);
   };
 
   const handleSubmitInterest = async () => {
     if (!selectedListing || interestData.slotsRequested <= 0 || interestData.slotsRequested > selectedListing.slotsListed) {
-      setSnackbar({ open: true, message: 'Invalid slots requested', severity: 'error' });
+      toast.error('Invalid slots requested');
       return;
     }
 
@@ -131,14 +108,14 @@ export default function ListingsBrowser() {
 
       if (response.ok) {
         setDialogOpen(false);
-        setSnackbar({ open: true, message: 'Interest submitted successfully', severity: 'success' });
+        toast.success('Interest submitted successfully');
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to submit interest', severity: 'error' });
+        toast.error(error.error || 'Failed to submit interest');
       }
     } catch (error) {
       console.error('Submit interest failed:', error);
-      setSnackbar({ open: true, message: 'Failed to submit interest', severity: 'error' });
+      toast.error('Failed to submit interest');
     }
   };
 
@@ -150,103 +127,81 @@ export default function ListingsBrowser() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">Browse Listings</Typography>
-        <FormControl sx={{ minWidth: 200 }}>
-          <InputLabel>Filter by Activity</InputLabel>
-          <Select
-            value={activityFilter}
-            onChange={(e) => setActivityFilter(e.target.value)}
-            label="Filter by Activity"
-          >
-            <MenuItem value="all">All Activities</MenuItem>
-            {uniqueActivities.map((activity) => (
-              <MenuItem key={activity} value={activity}>
-                {ACTIVITY_LABELS[activity] || activity}
-              </MenuItem>
-            ))}
+    <div>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-xl font-semibold text-[#e2e8f0]">Browse Listings</h2>
+        <div className="min-w-[200px]">
+          <Select value={activityFilter} onValueChange={setActivityFilter}>
+            <SelectTrigger><SelectValue placeholder="Filter by Activity" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Activities</SelectItem>
+              {uniqueActivities.map((activity) => (
+                <SelectItem key={activity} value={activity}>
+                  {ACTIVITY_LABELS[activity] || activity}
+                </SelectItem>
+              ))}
+            </SelectContent>
           </Select>
-        </FormControl>
-      </Box>
+        </div>
+      </div>
 
       {filteredListings.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
-            No listings available
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+          <h3 className="text-lg font-semibold text-[#94a3b8]">No listings available</h3>
+          <p className="text-sm text-[#64748b] mt-1">
             {listings.length === 0
               ? "Your contacts haven't listed any slots for rent, or they haven't granted you browse permission."
               : "No listings match your selected filter."}
-          </Typography>
-        </Paper>
+          </p>
+        </div>
       ) : (
-        <TableContainer component={Paper}>
+        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Owner</TableCell>
-                <TableCell>Character</TableCell>
-                <TableCell>Activity</TableCell>
-                <TableCell align="right">Slots Available</TableCell>
-                <TableCell align="right">Price</TableCell>
-                <TableCell>Pricing Unit</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Notes</TableCell>
-                <TableCell align="center">Action</TableCell>
+            <TableHeader>
+              <TableRow className="bg-[#0f1219]">
+                <TableHead>Owner</TableHead>
+                <TableHead>Character</TableHead>
+                <TableHead>Activity</TableHead>
+                <TableHead className="text-right">Slots Available</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead>Pricing Unit</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-center">Action</TableHead>
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {filteredListings.map((listing) => (
-                <TableRow key={listing.id} hover>
+                <TableRow key={listing.id} className="hover:bg-[rgba(0,212,255,0.04)]">
                   <TableCell>
-                    <Chip
-                      label={listing.ownerName}
-                      size="small"
-                      sx={{
-                        background: 'rgba(0, 212, 255, 0.1)',
-                        borderColor: 'rgba(0, 212, 255, 0.3)',
-                        color: '#60a5fa',
-                      }}
-                    />
+                    <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                      {listing.ownerName}
+                    </Badge>
                   </TableCell>
-                  <TableCell>{listing.characterName}</TableCell>
+                  <TableCell className="text-[#e2e8f0]">{listing.characterName}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={ACTIVITY_LABELS[listing.activityType] || listing.activityType}
-                      size="small"
-                      sx={{
-                        background: 'rgba(16, 185, 129, 0.1)',
-                        borderColor: 'rgba(16, 185, 129, 0.3)',
-                        color: '#10b981',
-                      }}
-                    />
+                    <Badge className="bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] text-[#10b981] hover:bg-[rgba(16,185,129,0.15)] cursor-default">
+                      {ACTIVITY_LABELS[listing.activityType] || listing.activityType}
+                    </Badge>
                   </TableCell>
-                  <TableCell align="right">{listing.slotsListed}</TableCell>
-                  <TableCell align="right">{formatISK(listing.priceAmount)}</TableCell>
-                  <TableCell>{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
-                  <TableCell>{listing.locationName || '-'}</TableCell>
+                  <TableCell className="text-right text-[#e2e8f0]">{listing.slotsListed}</TableCell>
+                  <TableCell className="text-right text-[#e2e8f0]">{formatISK(listing.priceAmount)}</TableCell>
+                  <TableCell className="text-[#cbd5e1]">{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{listing.locationName || '-'}</TableCell>
                   <TableCell>
                     {listing.notes ? (
-                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                        {listing.notes}
-                      </Typography>
+                      <span className="text-xs text-[#94a3b8]">{listing.notes}</span>
                     ) : '-'}
                   </TableCell>
-                  <TableCell align="center">
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => handleExpressInterest(listing)}
-                    >
+                  <TableCell className="text-center">
+                    <Button size="sm" onClick={() => handleExpressInterest(listing)}>
                       Express Interest
                     </Button>
                   </TableCell>
@@ -254,85 +209,63 @@ export default function ListingsBrowser() {
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
+        </div>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Express Interest</DialogTitle>
-        <DialogContent>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">Express Interest</DialogTitle>
+          </DialogHeader>
           {selectedListing && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-              <Typography variant="body2" gutterBottom>
-                <strong>Owner:</strong> {selectedListing.ownerName}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Character:</strong> {selectedListing.characterName}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Activity:</strong> {ACTIVITY_LABELS[selectedListing.activityType] || selectedListing.activityType}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
-                <strong>Price:</strong> {formatISK(selectedListing.priceAmount)} {PRICING_UNIT_LABELS[selectedListing.pricingUnit]}
-              </Typography>
-              <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
-                <strong>Slots Available:</strong> {selectedListing.slotsListed}
-              </Typography>
+            <div className="flex flex-col gap-2 pt-1">
+              <p className="text-sm text-[#e2e8f0]"><strong>Owner:</strong> {selectedListing.ownerName}</p>
+              <p className="text-sm text-[#e2e8f0]"><strong>Character:</strong> {selectedListing.characterName}</p>
+              <p className="text-sm text-[#e2e8f0]"><strong>Activity:</strong> {ACTIVITY_LABELS[selectedListing.activityType] || selectedListing.activityType}</p>
+              <p className="text-sm text-[#e2e8f0]"><strong>Price:</strong> {formatISK(selectedListing.priceAmount)} {PRICING_UNIT_LABELS[selectedListing.pricingUnit]}</p>
+              <p className="text-sm text-[#e2e8f0] mb-2"><strong>Slots Available:</strong> {selectedListing.slotsListed}</p>
 
-              <TextField
-                label="Slots Requested"
-                type="number"
-                fullWidth
-                required
-                value={interestData.slotsRequested}
-                onChange={(e) => setInterestData({ ...interestData, slotsRequested: parseInt(e.target.value) || 0 })}
-                InputProps={{ inputProps: { min: 1, max: selectedListing.slotsListed } }}
-                helperText={`Max: ${selectedListing.slotsListed}`}
-              />
+              <div>
+                <Label className="text-sm text-[#94a3b8] mb-1 block">Slots Requested</Label>
+                <Input
+                  type="number"
+                  value={interestData.slotsRequested}
+                  onChange={(e) => setInterestData({ ...interestData, slotsRequested: parseInt(e.target.value) || 0 })}
+                  min={1}
+                  max={selectedListing.slotsListed}
+                />
+                <span className="text-xs text-[#64748b] mt-0.5 block">Max: {selectedListing.slotsListed}</span>
+              </div>
 
-              <TextField
-                label="Duration (days) - optional"
-                type="number"
-                fullWidth
-                value={interestData.durationDays || ''}
-                onChange={(e) => setInterestData({ ...interestData, durationDays: e.target.value ? parseInt(e.target.value) : null })}
-                InputProps={{ inputProps: { min: 1 } }}
-                helperText="Leave empty if flexible"
-              />
+              <div>
+                <Label className="text-sm text-[#94a3b8] mb-1 block">Duration (days) - optional</Label>
+                <Input
+                  type="number"
+                  value={interestData.durationDays || ''}
+                  onChange={(e) => setInterestData({ ...interestData, durationDays: e.target.value ? parseInt(e.target.value) : null })}
+                  min={1}
+                />
+                <span className="text-xs text-[#64748b] mt-0.5 block">Leave empty if flexible</span>
+              </div>
 
-              <TextField
-                label="Message (optional)"
-                multiline
-                rows={3}
-                fullWidth
-                value={interestData.message}
-                onChange={(e) => setInterestData({ ...interestData, message: e.target.value })}
-                placeholder="Additional information for the owner..."
-              />
-            </Box>
+              <div>
+                <Label className="text-sm text-[#94a3b8] mb-1 block">Message (optional)</Label>
+                <textarea
+                  className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)]"
+                  rows={3}
+                  value={interestData.message}
+                  onChange={(e) => setInterestData({ ...interestData, message: e.target.value })}
+                  placeholder="Additional information for the owner..."
+                />
+              </div>
+            </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmitInterest}>Submit Interest</Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSubmitInterest} variant="contained">
-            Submit Interest
-          </Button>
-        </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity || 'success'}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </div>
   );
 }

@@ -24,8 +24,8 @@ test.describe('Production Plans', () => {
     await expect(dialog).toBeVisible({ timeout: 5000 });
     await expect(dialog.getByText('Create Production Plan')).toBeVisible();
 
-    // Blueprint search input should be present
-    await expect(dialog.getByLabel('Search for a product')).toBeVisible();
+    // Blueprint search trigger should be present (shadcn Popover trigger button)
+    await expect(dialog.getByRole('button', { name: /Search for a product/i })).toBeVisible();
 
     // Optional station fields should be present
     await expect(dialog.getByLabel('Default Manufacturing Station')).toBeVisible();
@@ -44,18 +44,20 @@ test.describe('Production Plans', () => {
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Type "Ri" first then extend — autocomplete fires after 300ms debounce with 2+ chars
-    const searchInput = dialog.getByLabel('Search for a product');
-    await searchInput.fill('Ri');
+    // Click the product search trigger to open the Popover
+    await dialog.getByRole('button', { name: /Search for a product/i }).click();
+
+    // Fill the actual search input inside the popover (autofocus)
+    const searchInput = page.getByPlaceholder('e.g. Rifter, Damage Control II...');
+    await expect(searchInput).toBeVisible({ timeout: 5000 });
     await searchInput.fill('Rifter');
 
-    // Dropdown should show Rifter manufacturing option (may have multiple variants — use first)
+    // Dropdown should show Rifter manufacturing option (buttons, not role="option" in shadcn)
     await expect(
-      page.getByRole('option', { name: /Rifter.*manufacturing/i }).first()
+      page.getByRole('button', { name: /Rifter/i }).first()
     ).toBeVisible({ timeout: 10000 });
 
-    // Press Escape to close the autocomplete dropdown before clicking Cancel
-    // (the open dropdown intercepts pointer events on the Cancel button)
+    // Press Escape to close the popover before clicking Cancel
     await searchInput.press('Escape');
     await dialog.getByRole('button', { name: /Cancel/i }).click();
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
@@ -69,12 +71,16 @@ test.describe('Production Plans', () => {
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Search for Rifter blueprint
-    const searchInput = dialog.getByLabel('Search for a product');
+    // Click the product search trigger to open the Popover
+    await dialog.getByRole('button', { name: /Search for a product/i }).click();
+
+    // Fill the search input inside the popover
+    const searchInput = page.getByPlaceholder('e.g. Rifter, Damage Control II...');
+    await expect(searchInput).toBeVisible({ timeout: 5000 });
     await searchInput.fill('Rifter');
 
-    // Wait for the autocomplete option and select the first match (may have variants)
-    const option = page.getByRole('option', { name: /Rifter.*manufacturing/i }).first();
+    // Wait for the autocomplete option and select the first match (buttons in shadcn)
+    const option = page.getByRole('button', { name: /Rifter/i }).first();
     await expect(option).toBeVisible({ timeout: 10000 });
     await option.click();
 

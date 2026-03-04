@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   BlueprintSearchResult,
   BlueprintLevel,
@@ -6,26 +6,14 @@ import {
   ReactionSystem,
 } from "@industry-tool/client/data/models";
 import { formatISK, formatNumber, formatDuration } from "@industry-tool/utils/formatting";
-import Autocomplete from "@mui/material/Autocomplete";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
-import Paper from "@mui/material/Paper";
-import AddIcon from "@mui/icons-material/Add";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import Chip from "@mui/material/Chip";
+import { Loader2, Plus, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type Props = {
   onJobAdded: () => void;
@@ -36,6 +24,7 @@ export default function AddJob({ onJobAdded }: Props) {
   const [blueprintOptions, setBlueprintOptions] = useState<BlueprintSearchResult[]>([]);
   const [selectedBlueprint, setSelectedBlueprint] = useState<BlueprintSearchResult | null>(null);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const [activity, setActivity] = useState("manufacturing");
   const [runs, setRuns] = useState(1);
@@ -54,11 +43,14 @@ export default function AddJob({ onJobAdded }: Props) {
   const [detectedForBlueprintId, setDetectedForBlueprintId] = useState<number | null>(null);
 
   const [systems, setSystems] = useState<ReactionSystem[]>([]);
+  const [systemQuery, setSystemQuery] = useState("");
+  const [systemSearchOpen, setSystemSearchOpen] = useState(false);
   const [calcResult, setCalcResult] = useState<ManufacturingCalcResult | null>(null);
   const [calcLoading, setCalcLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch systems
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     fetch("/api/industry/systems")
       .then((res) => res.json())
@@ -66,14 +58,14 @@ export default function AddJob({ onJobAdded }: Props) {
       .catch((err) => console.error("Failed to fetch systems:", err));
   }, []);
 
-  // Search blueprints
   useEffect(() => {
     if (blueprintQuery.length < 2) {
       setBlueprintOptions([]);
       return;
     }
 
-    const timeout = setTimeout(async () => {
+    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    searchTimeoutRef.current = setTimeout(async () => {
       setSearchLoading(true);
       try {
         const params = new URLSearchParams({ q: blueprintQuery, activity, limit: "20" });
@@ -87,10 +79,11 @@ export default function AddJob({ onJobAdded }: Props) {
       }
     }, 300);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+    };
   }, [blueprintQuery, activity]);
 
-  // Calculate cost
   const calculate = useCallback(async () => {
     if (!selectedBlueprint || runs <= 0) {
       setCalcResult(null);
@@ -136,6 +129,32 @@ export default function AddJob({ onJobAdded }: Props) {
     calculate();
   }, [calculate]);
 
+  const handleSelectBlueprint = (bp: BlueprintSearchResult) => {
+    setSelectedBlueprint(bp);
+    setBlueprintQuery(bp.ProductName || bp.BlueprintName);
+    setSearchOpen(false);
+
+    fetch("/api/industry/blueprint-levels", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type_ids: [bp.BlueprintTypeID] }),
+    })
+      .then((res) => res.json())
+      .then((data: Record<string, BlueprintLevel | null>) => {
+        const level = data[String(bp.BlueprintTypeID)] ?? null;
+        setDetectedLevel(level);
+        setDetectedForBlueprintId(bp.BlueprintTypeID);
+        if (level) {
+          setMeLevel(level.materialEfficiency);
+          setTeLevel(level.timeEfficiency);
+        } else {
+          setMeLevel(10);
+          setTeLevel(20);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch blueprint levels:", err));
+  };
+
   const handleSubmit = async () => {
     if (!selectedBlueprint || runs <= 0) return;
 
@@ -176,302 +195,335 @@ export default function AddJob({ onJobAdded }: Props) {
     }
   };
 
+  const filteredSystems = systems.filter((s) =>
+    systemQuery.length < 1 ? true : s.name.toLowerCase().includes(systemQuery.toLowerCase())
+  );
+
+  const selectedSystem = systems.find((s) => s.system_id === systemId);
+
   return (
-    <Box>
+    <div>
       {/* Settings Row */}
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
-        <Autocomplete
-          sx={{ minWidth: 300, flexGrow: 1 }}
-          options={blueprintOptions}
-          getOptionLabel={(opt) => opt.ProductName || opt.BlueprintName}
-          value={selectedBlueprint}
-          onChange={(_, value) => {
-            setSelectedBlueprint(value);
-            if (value) {
-              // Fetch blueprint level for the selected blueprint
-              fetch("/api/industry/blueprint-levels", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ type_ids: [value.BlueprintTypeID] }),
-              })
-                .then((res) => res.json())
-                .then((data: Record<string, BlueprintLevel | null>) => {
-                  const level = data[String(value.BlueprintTypeID)] ?? null;
-                  setDetectedLevel(level);
-                  setDetectedForBlueprintId(value.BlueprintTypeID);
-                  if (level) {
-                    setMeLevel(level.materialEfficiency);
-                    setTeLevel(level.timeEfficiency);
-                  } else {
-                    setMeLevel(10);
-                    setTeLevel(20);
+      <div className="flex gap-2 flex-wrap mb-3">
+        <div className="min-w-[300px] flex-grow relative">
+          <Label htmlFor="search-blueprint" className="text-xs text-[#94a3b8] mb-1 block">Search Blueprint</Label>
+          <Popover open={searchOpen && blueprintOptions.length > 0} onOpenChange={setSearchOpen}>
+            <PopoverTrigger asChild>
+              <Input
+                id="search-blueprint"
+                placeholder="Search Blueprint"
+                value={blueprintQuery}
+                onChange={(e) => {
+                  setBlueprintQuery(e.target.value);
+                  setSearchOpen(true);
+                  if (selectedBlueprint && e.target.value !== (selectedBlueprint.ProductName || selectedBlueprint.BlueprintName)) {
+                    setSelectedBlueprint(null);
+                    setDetectedLevel(null);
+                    setDetectedForBlueprintId(null);
                   }
-                })
-                .catch((err) => console.error("Failed to fetch blueprint levels:", err));
-            } else {
-              setDetectedLevel(null);
-              setDetectedForBlueprintId(null);
-              setMeLevel(10);
-              setTeLevel(20);
-            }
-          }}
-          inputValue={blueprintQuery}
-          onInputChange={(_, value) => setBlueprintQuery(value)}
-          loading={searchLoading}
-          renderInput={(params) => (
-            <TextField {...params} label="Search Blueprint" size="small" />
-          )}
-          renderOption={(props, option) => (
-            <li {...props} key={option.BlueprintTypeID}>
-              <Box>
-                <Typography variant="body2">{option.ProductName}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {option.BlueprintName} - {option.Activity}
-                </Typography>
-              </Box>
-            </li>
-          )}
-          isOptionEqualToValue={(opt, val) => opt.BlueprintTypeID === val.BlueprintTypeID}
-        />
+                }}
+                onFocus={() => blueprintOptions.length > 0 && setSearchOpen(true)}
+              />
+            </PopoverTrigger>
+            <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
+              <div className="max-h-60 overflow-y-auto">
+                {searchLoading && (
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-[#94a3b8]">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Searching...
+                  </div>
+                )}
+                {blueprintOptions.map((opt) => (
+                  <button
+                    key={opt.BlueprintTypeID}
+                    className="flex flex-col w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--color-surface-elevated)] cursor-pointer"
+                    onClick={() => handleSelectBlueprint(opt)}
+                  >
+                    <span className="text-[#e2e8f0]">{opt.ProductName}</span>
+                    <span className="text-xs text-[#64748b]">{opt.BlueprintName} - {opt.Activity}</span>
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-        <FormControl size="small" sx={{ minWidth: 150 }}>
-          <InputLabel>Activity</InputLabel>
-          <Select value={activity} onChange={(e) => setActivity(e.target.value)} label="Activity">
-            <MenuItem value="manufacturing">Manufacturing</MenuItem>
-            <MenuItem value="reaction">Reaction</MenuItem>
-            <MenuItem value="invention">Invention</MenuItem>
-            <MenuItem value="copying">Copying</MenuItem>
+        <div className="min-w-[150px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Activity</Label>
+          <Select value={activity} onValueChange={setActivity}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="manufacturing">Manufacturing</SelectItem>
+              <SelectItem value="reaction">Reaction</SelectItem>
+              <SelectItem value="invention">Invention</SelectItem>
+              <SelectItem value="copying">Copying</SelectItem>
+            </SelectContent>
           </Select>
-        </FormControl>
+        </div>
 
-        <TextField
-          label="Runs"
-          type="number"
-          size="small"
-          value={runs}
-          onChange={(e) => setRuns(Math.max(1, parseInt(e.target.value) || 1))}
-          sx={{ width: 100 }}
-        />
-      </Box>
+        <div className="w-[100px]">
+          <Label htmlFor="runs" className="text-xs text-[#94a3b8] mb-1 block">Runs</Label>
+          <Input
+            id="runs"
+            type="number"
+            value={runs}
+            onChange={(e) => setRuns(Math.max(1, parseInt(e.target.value) || 1))}
+            min={1}
+          />
+        </div>
+      </div>
 
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3 }}>
-        <TextField
-          label="ME Level"
-          type="number"
-          size="small"
-          value={meLevel}
-          onChange={(e) => setMeLevel(Math.max(0, Math.min(10, parseInt(e.target.value) || 0)))}
-          sx={{ width: 90 }}
-          inputProps={{ min: 0, max: 10 }}
-        />
-        <TextField
-          label="TE Level"
-          type="number"
-          size="small"
-          value={teLevel}
-          onChange={(e) => setTeLevel(Math.max(0, Math.min(20, parseInt(e.target.value) || 0)))}
-          sx={{ width: 90 }}
-          inputProps={{ min: 0, max: 20 }}
-        />
+      <div className="flex gap-2 flex-wrap mb-3">
+        <div className="w-[90px]">
+          <Label htmlFor="me-level" className="text-xs text-[#94a3b8] mb-1 block">ME Level</Label>
+          <Input
+            id="me-level"
+            type="number"
+            value={meLevel}
+            onChange={(e) => setMeLevel(Math.max(0, Math.min(10, parseInt(e.target.value) || 0)))}
+            min={0}
+            max={10}
+          />
+        </div>
+        <div className="w-[90px]">
+          <Label htmlFor="te-level" className="text-xs text-[#94a3b8] mb-1 block">TE Level</Label>
+          <Input
+            id="te-level"
+            type="number"
+            value={teLevel}
+            onChange={(e) => setTeLevel(Math.max(0, Math.min(20, parseInt(e.target.value) || 0)))}
+            min={0}
+            max={20}
+          />
+        </div>
         {selectedBlueprint && detectedForBlueprintId === selectedBlueprint.BlueprintTypeID ? (
           detectedLevel ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-              <Chip
-                label={`Detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ fontSize: 11 }}
-              />
+            <div className="flex items-center gap-1 self-end pb-1">
+              <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] cursor-default text-[11px]">
+                Detected: ME {detectedLevel.materialEfficiency} / TE {detectedLevel.timeEfficiency} from {detectedLevel.ownerName}{detectedLevel.isCopy ? " (BPC)" : ""}
+              </Badge>
               {(meLevel !== detectedLevel.materialEfficiency || teLevel !== detectedLevel.timeEfficiency) && (
-                <Chip
-                  label="Overridden"
-                  size="small"
-                  color="warning"
-                  variant="outlined"
-                  sx={{ fontSize: 11 }}
-                />
+                <Badge className="bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.3)] text-[#f59e0b] hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
+                  Overridden
+                </Badge>
               )}
-            </Box>
+            </div>
           ) : (
-            <Chip
-              icon={<WarningAmberIcon />}
-              label="No blueprint detected — using manual values"
-              size="small"
-              color="warning"
-              variant="outlined"
-              sx={{ fontSize: 11 }}
-            />
+            <div className="flex items-center gap-1 self-end pb-1">
+              <Badge className="bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.3)] text-[#f59e0b] hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
+                <AlertTriangle className="h-3 w-3 mr-1" />
+                No blueprint detected — using manual values
+              </Badge>
+            </div>
           )
         ) : null}
-        <TextField
-          label="Industry Skill"
-          type="number"
-          size="small"
-          value={industrySkill}
-          onChange={(e) => setIndustrySkill(Math.max(0, Math.min(5, parseInt(e.target.value) || 0)))}
-          sx={{ width: 120 }}
-          inputProps={{ min: 0, max: 5 }}
-        />
-        <TextField
-          label="Adv Industry"
-          type="number"
-          size="small"
-          value={advIndustrySkill}
-          onChange={(e) => setAdvIndustrySkill(Math.max(0, Math.min(5, parseInt(e.target.value) || 0)))}
-          sx={{ width: 120 }}
-          inputProps={{ min: 0, max: 5 }}
-        />
+        <div className="w-[120px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Industry Skill</Label>
+          <Input
+            type="number"
+            value={industrySkill}
+            onChange={(e) => setIndustrySkill(Math.max(0, Math.min(5, parseInt(e.target.value) || 0)))}
+            min={0}
+            max={5}
+          />
+        </div>
+        <div className="w-[120px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Adv Industry</Label>
+          <Input
+            type="number"
+            value={advIndustrySkill}
+            onChange={(e) => setAdvIndustrySkill(Math.max(0, Math.min(5, parseInt(e.target.value) || 0)))}
+            min={0}
+            max={5}
+          />
+        </div>
 
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Structure</InputLabel>
-          <Select value={structure} onChange={(e) => setStructure(e.target.value)} label="Structure">
-            <MenuItem value="station">NPC Station</MenuItem>
-            <MenuItem value="raitaru">Raitaru</MenuItem>
-            <MenuItem value="azbel">Azbel</MenuItem>
-            <MenuItem value="sotiyo">Sotiyo</MenuItem>
+        <div className="min-w-[120px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Structure</Label>
+          <Select value={structure} onValueChange={setStructure}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="station">NPC Station</SelectItem>
+              <SelectItem value="raitaru">Raitaru</SelectItem>
+              <SelectItem value="azbel">Azbel</SelectItem>
+              <SelectItem value="sotiyo">Sotiyo</SelectItem>
+            </SelectContent>
           </Select>
-        </FormControl>
+        </div>
 
-        <FormControl size="small" sx={{ minWidth: 90 }}>
-          <InputLabel>Rig</InputLabel>
-          <Select value={rig} onChange={(e) => setRig(e.target.value)} label="Rig">
-            <MenuItem value="none">None</MenuItem>
-            <MenuItem value="t1">T1</MenuItem>
-            <MenuItem value="t2">T2</MenuItem>
+        <div className="min-w-[90px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Rig</Label>
+          <Select value={rig} onValueChange={setRig}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="t1">T1</SelectItem>
+              <SelectItem value="t2">T2</SelectItem>
+            </SelectContent>
           </Select>
-        </FormControl>
+        </div>
 
-        <FormControl size="small" sx={{ minWidth: 100 }}>
-          <InputLabel>Security</InputLabel>
-          <Select value={security} onChange={(e) => setSecurity(e.target.value)} label="Security">
-            <MenuItem value="high">Highsec</MenuItem>
-            <MenuItem value="low">Lowsec</MenuItem>
-            <MenuItem value="null">Nullsec</MenuItem>
+        <div className="min-w-[100px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Security</Label>
+          <Select value={security} onValueChange={setSecurity}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="high">Highsec</SelectItem>
+              <SelectItem value="low">Lowsec</SelectItem>
+              <SelectItem value="null">Nullsec</SelectItem>
+            </SelectContent>
           </Select>
-        </FormControl>
+        </div>
 
-        <TextField
-          label="Facility Tax %"
-          type="number"
-          size="small"
-          value={facilityTax}
-          onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
-          sx={{ width: 120 }}
-        />
-      </Box>
+        <div className="w-[120px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Facility Tax %</Label>
+          <Input
+            type="number"
+            value={facilityTax}
+            onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
+          />
+        </div>
+      </div>
 
-      <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 3, alignItems: "center" }}>
-        <Autocomplete
-          sx={{ minWidth: 250 }}
-          options={systems}
-          getOptionLabel={(opt) => `${opt.name} (${(opt.cost_index * 100).toFixed(2)}%)`}
-          value={systems.find((s) => s.system_id === systemId) || null}
-          onChange={(_, value) => setSystemId(value?.system_id || 0)}
-          renderInput={(params) => (
-            <TextField {...params} label="System (optional)" size="small" />
-          )}
-          isOptionEqualToValue={(opt, val) => opt.system_id === val.system_id}
-        />
+      <div className="flex gap-2 flex-wrap mb-3 items-end">
+        <div className="min-w-[250px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">System (optional)</Label>
+          <Popover open={systemSearchOpen} onOpenChange={setSystemSearchOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className="flex h-9 w-full items-center justify-between rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm text-left"
+                onClick={() => setSystemSearchOpen(true)}
+              >
+                <span className={selectedSystem ? "text-[var(--color-text-primary)]" : "text-[var(--color-text-muted)]"}>
+                  {selectedSystem ? `${selectedSystem.name} (${(selectedSystem.cost_index * 100).toFixed(2)}%)` : "Select system..."}
+                </span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="p-0 w-[300px]" align="start">
+              <div className="p-2">
+                <Input
+                  placeholder="Search systems..."
+                  value={systemQuery}
+                  onChange={(e) => setSystemQuery(e.target.value)}
+                  className="h-8"
+                  autoFocus
+                />
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                {filteredSystems.slice(0, 50).map((sys) => (
+                  <button
+                    key={sys.system_id}
+                    className="flex w-full px-3 py-1.5 text-sm hover:bg-[var(--color-surface-elevated)] cursor-pointer text-left"
+                    onClick={() => {
+                      setSystemId(sys.system_id);
+                      setSystemSearchOpen(false);
+                      setSystemQuery("");
+                    }}
+                  >
+                    {sys.name} ({(sys.cost_index * 100).toFixed(2)}%)
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
 
-        <TextField
-          label="Notes"
-          size="small"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          sx={{ flexGrow: 1, minWidth: 200 }}
-        />
+        <div className="flex-grow min-w-[200px]">
+          <Label className="text-xs text-[#94a3b8] mb-1 block">Notes</Label>
+          <Input
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
 
         <Button
-          variant="contained"
           onClick={handleSubmit}
           disabled={!selectedBlueprint || runs <= 0 || submitting}
-          startIcon={submitting ? <CircularProgress size={16} /> : <AddIcon />}
-          sx={{ height: 40 }}
+          className="h-9"
         >
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Plus className="h-4 w-4 mr-1" />}
           Add to Queue
         </Button>
-      </Box>
+      </div>
 
       {/* Calculation Result */}
       {calcLoading && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-          <CircularProgress size={24} />
-        </Box>
+        <div className="flex justify-center py-4">
+          <Loader2 className="h-6 w-6 animate-spin text-[#00d4ff]" />
+        </div>
       )}
 
       {calcResult && !calcLoading && (
-        <Paper sx={{ backgroundColor: "#12151f", p: 2 }}>
-          <Typography variant="subtitle2" sx={{ color: "#00d4ff", mb: 1 }}>
+        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-4">
+          <h3 className="text-sm font-semibold text-[#00d4ff] mb-2">
             Cost Estimate: {calcResult.productName} x{formatNumber(calcResult.totalProducts)}
-          </Typography>
-          <Box sx={{ display: "flex", gap: 4, flexWrap: "wrap", mb: 2 }}>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Input Cost</Typography>
-              <Typography variant="body2" sx={{ color: "#e2e8f0" }}>{formatISK(calcResult.inputCost)}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Job Cost</Typography>
-              <Typography variant="body2" sx={{ color: "#e2e8f0" }}>{formatISK(calcResult.jobCost)}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Total Cost</Typography>
-              <Typography variant="body2" sx={{ color: "#e2e8f0", fontWeight: 600 }}>{formatISK(calcResult.totalCost)}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Output Value</Typography>
-              <Typography variant="body2" sx={{ color: "#e2e8f0" }}>{formatISK(calcResult.outputValue)}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Profit</Typography>
-              <Typography variant="body2" sx={{ color: calcResult.profit >= 0 ? "#10b981" : "#ef4444" }}>
+          </h3>
+          <div className="flex gap-6 flex-wrap mb-3">
+            <div>
+              <span className="text-xs text-[#64748b] block">Input Cost</span>
+              <span className="text-sm text-[#e2e8f0]">{formatISK(calcResult.inputCost)}</span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Job Cost</span>
+              <span className="text-sm text-[#e2e8f0]">{formatISK(calcResult.jobCost)}</span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Total Cost</span>
+              <span className="text-sm text-[#e2e8f0] font-semibold">{formatISK(calcResult.totalCost)}</span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Output Value</span>
+              <span className="text-sm text-[#e2e8f0]">{formatISK(calcResult.outputValue)}</span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Profit</span>
+              <span className={`text-sm ${calcResult.profit >= 0 ? "text-[#10b981]" : "text-[#ef4444]"}`}>
                 {formatISK(calcResult.profit)}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Margin</Typography>
-              <Typography variant="body2" sx={{ color: calcResult.margin >= 0 ? "#10b981" : "#ef4444" }}>
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Margin</span>
+              <span className={`text-sm ${calcResult.margin >= 0 ? "text-[#10b981]" : "text-[#ef4444]"}`}>
                 {calcResult.margin.toFixed(1)}%
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Per Run</Typography>
-              <Typography variant="body2" sx={{ color: "#e2e8f0" }}>{formatDuration(calcResult.secsPerRun)}</Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: "#64748b" }}>Total Time</Typography>
-              <Typography variant="body2" sx={{ color: "#e2e8f0" }}>{formatDuration(calcResult.totalDuration)}</Typography>
-            </Box>
-          </Box>
+              </span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Per Run</span>
+              <span className="text-sm text-[#e2e8f0]">{formatDuration(calcResult.secsPerRun)}</span>
+            </div>
+            <div>
+              <span className="text-xs text-[#64748b] block">Total Time</span>
+              <span className="text-sm text-[#e2e8f0]">{formatDuration(calcResult.totalDuration)}</span>
+            </div>
+          </div>
 
           {calcResult.materials.length > 0 && (
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow sx={{ backgroundColor: "#0f1219" }}>
-                    <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Material</TableCell>
-                    <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Base Qty</TableCell>
-                    <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Required</TableCell>
-                    <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Price</TableCell>
-                    <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Cost</TableCell>
+            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219]">
+                    <TableHead>Material</TableHead>
+                    <TableHead className="text-right">Base Qty</TableHead>
+                    <TableHead className="text-right">Required</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {calcResult.materials.map((mat) => (
                     <TableRow key={mat.typeId}>
-                      <TableCell sx={{ color: "#e2e8f0" }}>{mat.name}</TableCell>
-                      <TableCell align="right" sx={{ color: "#94a3b8" }}>{formatNumber(mat.baseQty)}</TableCell>
-                      <TableCell align="right" sx={{ color: "#e2e8f0" }}>{formatNumber(mat.batchQty)}</TableCell>
-                      <TableCell align="right" sx={{ color: "#94a3b8" }}>{formatISK(mat.price)}</TableCell>
-                      <TableCell align="right" sx={{ color: "#cbd5e1" }}>{formatISK(mat.cost)}</TableCell>
+                      <TableCell className="text-[#e2e8f0]">{mat.name}</TableCell>
+                      <TableCell className="text-right text-[#94a3b8]">{formatNumber(mat.baseQty)}</TableCell>
+                      <TableCell className="text-right text-[#e2e8f0]">{formatNumber(mat.batchQty)}</TableCell>
+                      <TableCell className="text-right text-[#94a3b8]">{formatISK(mat.price)}</TableCell>
+                      <TableCell className="text-right text-[#cbd5e1]">{formatISK(mat.cost)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           )}
-        </Paper>
+        </div>
       )}
-    </Box>
+    </div>
   );
 }

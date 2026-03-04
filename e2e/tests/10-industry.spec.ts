@@ -87,18 +87,19 @@ test.describe('Industry', () => {
     await page.getByRole('tab', { name: 'Add Job' }).click();
 
     // Wait for the search input to appear
-    const searchInput = page.getByLabel('Search Blueprint');
+    // shadcn PopoverTrigger sets type="button" on the Input, preventing fill/pressSequentially.
+    // Use evaluate to set the value and dispatch an input event for React's onChange.
+    const searchInput = page.getByPlaceholder('Search Blueprint');
     await expect(searchInput).toBeVisible({ timeout: 5000 });
 
-    // Type "Rifter" — the search fires after a 300ms debounce and requires at least 2 chars
-    await searchInput.fill('Ri');
+    await searchInput.evaluate((el: HTMLInputElement) => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!;
+      setter.call(el, 'Rifter');
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
 
-    // Wait a moment for debounce then continue typing
-    await searchInput.fill('Rifter');
-
-    // The autocomplete dropdown should show Rifter as a result
-    // Multiple Rifter variants may appear — pick the first match
-    await expect(page.getByRole('option', { name: /Rifter/i }).first()).toBeVisible({ timeout: 10000 });
+    // The autocomplete dropdown shows options as <button> elements (not role="option" in shadcn)
+    await expect(page.getByRole('button', { name: /Rifter/i }).first()).toBeVisible({ timeout: 10000 });
   });
 
   test('mock ESI: inject second active job appears after re-sync', async ({ page }) => {

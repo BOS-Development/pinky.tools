@@ -10,52 +10,58 @@ import {
   BlueprintLevel,
 } from "@industry-tool/client/data/models";
 import { formatISK } from "@industry-tool/utils/formatting";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-import Chip from "@mui/material/Chip";
-import TextField from "@mui/material/TextField";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Autocomplete from "@mui/material/Autocomplete";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-import Divider from "@mui/material/Divider";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import BuildIcon from "@mui/icons-material/Build";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import CheckIcon from "@mui/icons-material/Check";
-import CloseIcon from "@mui/icons-material/Close";
-import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
-import InfoIcon from "@mui/icons-material/Info";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import Tooltip from "@mui/material/Tooltip";
-import Radio from "@mui/material/Radio";
-import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import CircularProgress from "@mui/material/CircularProgress";
+import {
+  ChevronDown,
+  ChevronRight,
+  Wrench,
+  Trash2,
+  Pencil,
+  ShoppingCart,
+  Play,
+  Check,
+  X,
+  ArrowLeftRight,
+  Info,
+  AlertTriangle,
+  CheckCircle,
+  Truck,
+  Loader2,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/sonner";
 import BatchConfigureTab from "./BatchConfigureTab";
 import { formatNumber, formatCompact } from "@industry-tool/utils/formatting";
 
@@ -85,14 +91,9 @@ export default function ProductionPlanEditor({ planId }: Props) {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [selectedParallelism, setSelectedParallelism] = useState<number>(0);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({ open: false, message: "", severity: "success" });
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState("step-tree");
   const [transportProfiles, setTransportProfiles] = useState<{ id: number; name: string; transportMethod: string }[]>([]);
   const [detectedLevels, setDetectedLevels] = useState<Record<number, BlueprintLevel>>({});
 
@@ -131,11 +132,9 @@ export default function ProductionPlanEditor({ planId }: Props) {
       if (res.ok) {
         const data = await res.json();
         setPlan(data);
-        // Fetch blueprint levels for all steps
         if (data.steps?.length > 0) {
           fetchBlueprintLevels(data.steps);
         }
-        // Only auto-expand root step on initial load
         if (initialLoadRef.current && data.steps?.length > 0) {
           initialLoadRef.current = false;
           const rootStep = data.steps.find(
@@ -182,7 +181,6 @@ export default function ProductionPlanEditor({ planId }: Props) {
       if (res.ok) {
         const data: PlanMaterial[] = await res.json() || [];
         setStepMaterials((prev) => ({ ...prev, [stepId]: data }));
-        // Fetch blueprint levels for materials that have a blueprint
         const materialBlueprintTypeIds = data
           .filter((m) => m.hasBlueprint && m.blueprintTypeId != null)
           .map((m) => m.blueprintTypeId as number);
@@ -223,7 +221,6 @@ export default function ProductionPlanEditor({ planId }: Props) {
     material: PlanMaterial,
   ) => {
     if (material.isProduced) {
-      // Find the child step and delete it
       const childStep = plan?.steps?.find(
         (s) =>
           s.parentStepId === parentStepId &&
@@ -236,20 +233,17 @@ export default function ProductionPlanEditor({ planId }: Props) {
             { method: "DELETE" },
           );
           await fetchPlan();
-          // Refresh materials for parent
           fetchMaterials(parentStepId);
         } catch (err) {
           console.error("Failed to remove step:", err);
         }
       }
     } else {
-      // Create a new step for this material
       try {
         const body: Record<string, unknown> = {
           parent_step_id: parentStepId,
           product_type_id: material.typeId,
         };
-        // If blueprint has a detected level, pass it to the create step request
         if (material.blueprintTypeId) {
           const detected = detectedLevels[material.blueprintTypeId];
           if (detected) {
@@ -266,11 +260,9 @@ export default function ProductionPlanEditor({ planId }: Props) {
           const newStep = await res.json();
           await fetchPlan();
           fetchMaterials(parentStepId);
-          // Auto-expand the new child step and load its materials
           if (newStep?.id) {
             setExpandedSteps((prev) => new Set([...prev, newStep.id]));
             fetchMaterials(newStep.id);
-            // Fetch blueprint levels for the new step if not already detected
             if (material.blueprintTypeId && !detectedLevels[material.blueprintTypeId]) {
               fetchBlueprintLevels([{ blueprintTypeId: material.blueprintTypeId } as ProductionPlanStep]);
             }
@@ -298,11 +290,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
       if (res.ok) {
         setEditStepId(null);
         fetchPlan();
-        setSnackbar({
-          open: true,
-          message: "Step updated",
-          severity: "success",
-        });
+        toast.success("Step updated");
       }
     } catch (err) {
       console.error("Failed to update step:", err);
@@ -350,19 +338,11 @@ export default function ProductionPlanEditor({ planId }: Props) {
       if (res.ok) {
         const result: GenerateJobsResult = await res.json();
         setGenerateResult(result);
-        setSnackbar({
-          open: true,
-          message: `Created ${result.created.length} job(s), skipped ${result.skipped.length}`,
-          severity: "success",
-        });
+        toast.success(`Created ${result.created.length} job(s), skipped ${result.skipped.length}`);
       }
     } catch (err) {
       console.error("Failed to generate jobs:", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to generate jobs",
-        severity: "error",
-      });
+      toast.error("Failed to generate jobs");
     } finally {
       setGenerating(false);
     }
@@ -407,19 +387,19 @@ export default function ProductionPlanEditor({ planId }: Props) {
       });
       if (res.ok) {
         fetchPlan();
-        setSnackbar({ open: true, message: "Transport settings saved", severity: "success" });
+        toast.success("Transport settings saved");
       }
     } catch (err) {
       console.error("Failed to save transport settings:", err);
-      setSnackbar({ open: true, message: "Failed to save transport settings", severity: "error" });
+      toast.error("Failed to save transport settings");
     }
   };
 
   if (loading || !plan) {
     return (
-      <Box sx={{ textAlign: "center", py: 4 }}>
-        <Typography sx={{ color: "#64748b" }}>Loading plan...</Typography>
-      </Box>
+      <div className="text-center py-4">
+        <p className="text-[#64748b]">Loading plan...</p>
+      </div>
     );
   }
 
@@ -443,14 +423,11 @@ export default function ProductionPlanEditor({ planId }: Props) {
 
   const renderDepthIndicators = (colorPath: number[]) =>
     colorPath.map((colorIndex, i) => (
-      <Box
+      <div
         key={`depth-bar-${i}`}
-        sx={{
-          position: "absolute",
+        className="absolute top-0 bottom-0 w-[3px]"
+        style={{
           left: `${i * 32 + 8}px`,
-          top: 0,
-          bottom: 0,
-          width: 3,
           backgroundColor: depthColors[colorIndex % depthColors.length],
         }}
       />
@@ -468,117 +445,131 @@ export default function ProductionPlanEditor({ planId }: Props) {
     rows.push(
       <TableRow
         key={`step-${step.id}`}
-        sx={{
-          backgroundColor: depth === 0 ? "#1a1d2e" : "#12151f",
-          "&:hover": { backgroundColor: "#1e2235" },
-        }}
+        className={`${depth === 0 ? "bg-[#1a1d2e]" : "bg-[#12151f]"} hover:bg-[#1e2235]`}
       >
-        <TableCell sx={{ position: "relative", pl: 0 }}>
+        <TableCell className="relative pl-0">
           {renderDepthIndicators(colorPath)}
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, pl: `${depth * 32 + 20}px` }}>
-            <IconButton
-              size="small"
+          <div className="flex items-center gap-1" style={{ paddingLeft: `${depth * 32 + 20}px` }}>
+            <button
+              className="p-0.5 rounded text-[#94a3b8] hover:bg-[rgba(148,163,184,0.1)]"
               onClick={() => toggleExpand(step.id)}
-              sx={{ color: "#94a3b8" }}
             >
               {isExpanded ? (
-                <ExpandMoreIcon fontSize="small" />
+                <ChevronDown className="h-4 w-4" />
               ) : (
-                <ChevronRightIcon fontSize="small" />
+                <ChevronRight className="h-4 w-4" />
               )}
-            </IconButton>
+            </button>
             <img
               src={`https://images.evetech.net/types/${step.productTypeId}/icon?size=32`}
               alt=""
               width={20}
               height={20}
-              style={{ borderRadius: 2 }}
+              className="rounded-sm"
             />
-            <Typography sx={{ color: "#e2e8f0", fontSize: 14, fontWeight: depth === 0 ? 600 : 400 }}>
+            <span className={`text-[#e2e8f0] text-sm ${depth === 0 ? "font-semibold" : ""}`}>
               {step.productName || `Type ${step.productTypeId}`}
-            </Typography>
-            <Chip
-              label={step.activity}
-              size="small"
-              sx={{
-                ml: 1,
-                height: 20,
-                fontSize: 11,
-                backgroundColor:
-                  step.activity === "manufacturing" ? "#1e3a5f" : "#3a1e5f",
-                color:
-                  step.activity === "manufacturing" ? "#60a5fa" : "#a78bfa",
-              }}
-            />
-          </Box>
+            </span>
+            <Badge
+              className={`ml-1 h-5 text-[11px] cursor-default ${
+                step.activity === "manufacturing"
+                  ? "bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f]"
+                  : "bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
+              }`}
+            >
+              {step.activity}
+            </Badge>
+          </div>
         </TableCell>
-        <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
-          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-            ME {step.meLevel} / TE {step.teLevel}
-            {detectedLevels[step.blueprintTypeId] ? (
-              (step.activity !== "reaction" &&
-               (detectedLevels[step.blueprintTypeId].materialEfficiency !== step.meLevel ||
-                detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
-                <Tooltip title={`Detected: ME ${detectedLevels[step.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[step.blueprintTypeId].timeEfficiency} from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
-                  <InfoIcon sx={{ fontSize: 14, color: "#00d4ff" }} />
+        <TableCell className="text-[#94a3b8] text-[13px]">
+          <TooltipProvider>
+            <div className="flex items-center gap-1">
+              ME {step.meLevel} / TE {step.teLevel}
+              {detectedLevels[step.blueprintTypeId] ? (
+                (step.activity !== "reaction" &&
+                 (detectedLevels[step.blueprintTypeId].materialEfficiency !== step.meLevel ||
+                  detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Info className="h-3.5 w-3.5 text-[#00d4ff]" data-testid="InfoIcon" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Detected: ME {detectedLevels[step.blueprintTypeId].materialEfficiency} / TE {detectedLevels[step.blueprintTypeId].timeEfficiency} from {detectedLevels[step.blueprintTypeId].ownerName}
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <CheckCircle className="h-3.5 w-3.5 text-[#10b981]" data-testid="CheckCircleOutlineIcon" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      Blueprint detected from {detectedLevels[step.blueprintTypeId].ownerName}
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              ) : Object.keys(detectedLevels).length > 0 && (
+                <Tooltip>
+                  <TooltipTrigger>
+                    <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" data-testid="WarningAmberIcon" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    No blueprint detected — ME/TE values are manual
+                  </TooltipContent>
                 </Tooltip>
-              ) : (
-                <Tooltip title={`Blueprint detected from ${detectedLevels[step.blueprintTypeId].ownerName}`}>
-                  <CheckCircleOutlineIcon sx={{ fontSize: 14, color: "#10b981" }} />
-                </Tooltip>
-              )
-            ) : Object.keys(detectedLevels).length > 0 && (
-              <Tooltip title="No blueprint detected — ME/TE values are manual">
-                <WarningAmberIcon sx={{ fontSize: 14, color: "#f59e0b" }} />
-              </Tooltip>
-            )}
-          </Box>
+              )}
+            </div>
+          </TooltipProvider>
         </TableCell>
-        <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
+        <TableCell className="text-[#94a3b8] text-[13px]">
           {step.structure} / {step.rig} / {step.security}
         </TableCell>
-        <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
-          {step.stationName || "—"}
+        <TableCell className="text-[#94a3b8] text-[13px]">
+          {step.stationName || "\u2014"}
           {step.sourceOwnerName && (
-            <Typography sx={{ color: "#64748b", fontSize: 11 }}>
+            <span className="block text-[#64748b] text-[11px]">
               In: {step.sourceOwnerName}
               {step.sourceDivisionName ? ` / ${step.sourceDivisionName}` : ""}
               {step.sourceContainerName ? ` / ${step.sourceContainerName}` : ""}
-            </Typography>
+            </span>
           )}
           {step.outputOwnerName ? (
-            <Typography sx={{ color: "#64748b", fontSize: 11 }}>
+            <span className="block text-[#64748b] text-[11px]">
               Out: {step.outputOwnerName}
               {step.outputDivisionName ? ` / ${step.outputDivisionName}` : ""}
               {step.outputContainerName ? ` / ${step.outputContainerName}` : ""}
-            </Typography>
+            </span>
           ) : !step.parentStepId ? (
-            <Typography sx={{ color: "#475569", fontSize: 11, fontStyle: "italic" }}>
+            <span className="block text-[#475569] text-[11px] italic">
               Out: set at build time
-            </Typography>
+            </span>
           ) : null}
           {step.parentStepId && parentStep &&
            step.userStationId && parentStep.userStationId &&
            step.userStationId !== parentStep.userStationId && (
-            <Tooltip title="Items must be moved between stations">
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
-                <SwapHorizIcon sx={{ fontSize: 14, color: "#f59e0b" }} />
-                <Typography sx={{ color: "#f59e0b", fontSize: 11 }}>Transfer</Typography>
-              </Box>
-            </Tooltip>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <ArrowLeftRight className="h-3.5 w-3.5 text-[#f59e0b]" />
+                    <span className="text-[#f59e0b] text-[11px]">Transfer</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>Items must be moved between stations</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </TableCell>
-        <TableCell align="center">
-          <IconButton
-            size="small"
+        <TableCell className="text-center">
+          <button
+            className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
             onClick={() => setEditStepId(step.id)}
-            sx={{ color: "#00d4ff" }}
+            aria-label="Edit"
           >
-            <EditIcon fontSize="small" />
-          </IconButton>
+            <Pencil className="h-4 w-4" data-testid="EditIcon" />
+          </button>
           {depth > 0 && (
-            <IconButton
-              size="small"
+            <button
+              className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
               onClick={async () => {
                 await fetch(
                   `/api/industry/plans/${planId}/steps/${step.id}`,
@@ -587,10 +578,10 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 fetchPlan();
                 if (step.parentStepId) fetchMaterials(step.parentStepId);
               }}
-              sx={{ color: "#ef4444" }}
+              aria-label="Delete"
             >
-              <DeleteIcon fontSize="small" />
-            </IconButton>
+              <Trash2 className="h-4 w-4" />
+            </button>
           )}
         </TableCell>
       </TableRow>,
@@ -603,10 +594,10 @@ export default function ProductionPlanEditor({ planId }: Props) {
           <TableRow key={`loading-${step.id}`}>
             <TableCell
               colSpan={5}
-              sx={{ position: "relative", pl: 0, color: "#64748b", fontSize: 13 }}
+              className="relative pl-0 text-[#64748b] text-[13px]"
             >
               {renderDepthIndicators(colorPath)}
-              <Box sx={{ pl: `${(depth + 1) * 32 + 20}px` }}>Loading materials...</Box>
+              <div style={{ paddingLeft: `${(depth + 1) * 32 + 20}px` }}>Loading materials...</div>
             </TableCell>
           </TableRow>,
         );
@@ -618,119 +609,89 @@ export default function ProductionPlanEditor({ planId }: Props) {
         });
         let childIndex = 0;
         for (const mat of sortedMaterials) {
-          // Check if this material has a child step (is produced)
           const childStep = children.find(
             (c) => c.productTypeId === mat.typeId,
           );
 
           if (childStep) {
-            // Render the child step recursively
             rows.push(...renderStepRow(childStep, depth + 1, [...colorPath, childIndex], step));
             childIndex++;
           } else {
-            // Render as a buy material
             rows.push(
               <TableRow
                 key={`mat-${step.id}-${mat.typeId}`}
-                sx={{
-                  backgroundColor: "#0f1219",
-                  "&:hover": { backgroundColor: "#151825" },
-                }}
+                className="bg-[#0f1219] hover:bg-[#151825]"
               >
-                <TableCell sx={{ position: "relative", pl: 0 }}>
+                <TableCell className="relative pl-0">
                   {renderDepthIndicators(colorPath)}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                      pl: `${(depth + 1) * 32 + 20}px`,
-                    }}
+                  <div
+                    className="flex items-center gap-1"
+                    style={{ paddingLeft: `${(depth + 1) * 32 + 20}px` }}
                   >
                     <img
                       src={`https://images.evetech.net/types/${mat.typeId}/icon?size=32`}
                       alt=""
                       width={18}
                       height={18}
-                      style={{ borderRadius: 2 }}
+                      className="rounded-sm"
                     />
-                    <Typography
-                      sx={{ color: "#cbd5e1", fontSize: 13 }}
-                    >
+                    <span className="text-[#cbd5e1] text-[13px]">
                       {mat.typeName}
-                    </Typography>
-                    <Typography
-                      sx={{ color: "#64748b", fontSize: 12, ml: 1 }}
-                    >
+                    </span>
+                    <span className="text-[#64748b] text-xs ml-1">
                       x{mat.quantity}
-                    </Typography>
+                    </span>
                     {mat.isProduced ? (
-                      <Chip
-                        label="Produce"
-                        size="small"
-                        sx={{
-                          ml: 1,
-                          height: 18,
-                          fontSize: 10,
-                          backgroundColor: "#1e3a5f",
-                          color: "#60a5fa",
-                        }}
-                      />
+                      <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f] cursor-default">
+                        Produce
+                      </Badge>
                     ) : (
-                      <Chip
-                        label="Buy"
-                        size="small"
-                        variant="outlined"
-                        sx={{
-                          ml: 1,
-                          height: 18,
-                          fontSize: 10,
-                          borderColor: "#334155",
-                          color: "#64748b",
-                        }}
-                      />
+                      <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-[#64748b] cursor-default">
+                        Buy
+                      </Badge>
                     )}
-                  </Box>
+                  </div>
                 </TableCell>
-                <TableCell sx={{ color: "#64748b", fontSize: 12 }}>
-                  {mat.hasBlueprint && mat.blueprintTypeId && (
-                    detectedLevels[mat.blueprintTypeId] ? (
-                      <Tooltip title={`Blueprint detected: ME ${detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[mat.blueprintTypeId].timeEfficiency} from ${detectedLevels[mat.blueprintTypeId].ownerName}`}>
-                        <Chip
-                          label={`ME ${detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE ${detectedLevels[mat.blueprintTypeId].timeEfficiency}`}
-                          size="small"
-                          sx={{ height: 18, fontSize: 10, backgroundColor: "#1a3a2a", color: "#10b981" }}
-                        />
-                      </Tooltip>
-                    ) : Object.keys(detectedLevels).length > 0 ? (
-                      <Tooltip title="No blueprint detected">
-                        <WarningAmberIcon sx={{ fontSize: 14, color: "#f59e0b" }} />
-                      </Tooltip>
-                    ) : null
-                  )}
+                <TableCell className="text-[#64748b] text-xs">
+                  <TooltipProvider>
+                    {mat.hasBlueprint && mat.blueprintTypeId && (
+                      detectedLevels[mat.blueprintTypeId] ? (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Badge className="h-[18px] text-[10px] bg-[#1a3a2a] text-[#10b981] hover:bg-[#1a3a2a] cursor-default">
+                              ME {detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE {detectedLevels[mat.blueprintTypeId].timeEfficiency}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Blueprint detected: ME {detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE {detectedLevels[mat.blueprintTypeId].timeEfficiency} from {detectedLevels[mat.blueprintTypeId].ownerName}
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : Object.keys(detectedLevels).length > 0 ? (
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" data-testid="WarningAmberIcon" />
+                          </TooltipTrigger>
+                          <TooltipContent>No blueprint detected</TooltipContent>
+                        </Tooltip>
+                      ) : null
+                    )}
+                  </TooltipProvider>
                 </TableCell>
                 <TableCell />
                 <TableCell />
-                <TableCell align="center">
+                <TableCell className="text-center">
                   {mat.hasBlueprint && (
-                    <IconButton
-                      size="small"
+                    <button
+                      className={`p-1 rounded hover:bg-[rgba(148,163,184,0.1)] ${mat.isProduced ? "text-[#ef4444]" : "text-[#10b981]"}`}
                       onClick={() => handleToggleProduce(step.id, mat)}
-                      sx={{
-                        color: mat.isProduced ? "#ef4444" : "#10b981",
-                      }}
-                      title={
-                        mat.isProduced
-                          ? "Switch to Buy"
-                          : "Switch to Produce"
-                      }
+                      title={mat.isProduced ? "Switch to Buy" : "Switch to Produce"}
                     >
                       {mat.isProduced ? (
-                        <ShoppingCartIcon fontSize="small" />
+                        <ShoppingCart className="h-4 w-4" />
                       ) : (
-                        <BuildIcon fontSize="small" />
+                        <Wrench className="h-4 w-4" />
                       )}
-                    </IconButton>
+                    </button>
                   )}
                 </TableCell>
               </TableRow>,
@@ -744,28 +705,20 @@ export default function ProductionPlanEditor({ planId }: Props) {
   };
 
   return (
-    <Box>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          mb: 2,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+    <div>
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
           <img
             src={`https://images.evetech.net/types/${plan.productTypeId}/icon?size=64`}
             alt=""
             width={40}
             height={40}
-            style={{ borderRadius: 4 }}
+            className="rounded"
           />
-          <Box>
+          <div>
             {editingName ? (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <TextField
-                  size="small"
+              <div className="flex items-center gap-1">
+                <Input
                   value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
                   onKeyDown={(e) => {
@@ -773,122 +726,94 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     if (e.key === "Escape") setEditingName(false);
                   }}
                   autoFocus
-                  sx={{ minWidth: 250 }}
+                  className="min-w-[250px]"
                 />
-                <IconButton size="small" onClick={handleSaveName} sx={{ color: "#10b981" }}>
-                  <CheckIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={() => setEditingName(false)} sx={{ color: "#94a3b8" }}>
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                <button className="p-1 rounded text-[#10b981] hover:bg-[rgba(16,185,129,0.1)]" onClick={handleSaveName}>
+                  <Check className="h-4 w-4" />
+                </button>
+                <button className="p-1 rounded text-[#94a3b8] hover:bg-[rgba(148,163,184,0.1)]" onClick={() => setEditingName(false)}>
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             ) : (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <Typography
-                  variant="h5"
-                  sx={{ color: "#e2e8f0", fontWeight: 600 }}
-                >
+              <div className="flex items-center gap-1">
+                <h2 className="text-xl font-semibold text-[#e2e8f0]">
                   {plan.name}
-                </Typography>
-                <IconButton
-                  size="small"
+                </h2>
+                <button
+                  className="p-1 rounded text-[#64748b] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
                   onClick={() => {
                     setNameValue(plan.name);
                     setEditingName(true);
                   }}
-                  sx={{ color: "#64748b", "&:hover": { color: "#00d4ff" } }}
                 >
-                  <EditIcon fontSize="small" />
-                </IconButton>
-              </Box>
+                  <Pencil className="h-4 w-4" data-testid="EditIcon" />
+                </button>
+              </div>
             )}
-            <Typography sx={{ color: "#64748b", fontSize: 13 }}>
+            <p className="text-[#64748b] text-[13px]">
               {plan.steps?.length || 0} production step(s)
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
         <Button
-          variant="contained"
-          startIcon={<PlayArrowIcon />}
+          className="bg-[#10b981] hover:bg-[#059669]"
           onClick={() => setGenerateDialogOpen(true)}
-          sx={{
-            backgroundColor: "#10b981",
-            "&:hover": { backgroundColor: "#059669" },
-          }}
         >
+          <Play className="h-4 w-4 mr-1" />
           Generate Jobs
         </Button>
-      </Box>
+      </div>
 
-      <Box sx={{ borderBottom: 1, borderColor: "rgba(148, 163, 184, 0.15)", mb: 2 }}>
-        <Tabs
-          value={tab}
-          onChange={(_, newValue) => setTab(newValue)}
-          sx={{
-            "& .MuiTab-root": { color: "#64748b", textTransform: "none", fontWeight: 500 },
-            "& .Mui-selected": { color: "#00d4ff" },
-            "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
-          }}
-        >
-          <Tab label="Step Tree" />
-          <Tab label="Batch Configure" />
-          <Tab label="Transport" icon={<LocalShippingIcon sx={{ fontSize: 16 }} />} iconPosition="start" />
-        </Tabs>
-      </Box>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="mb-2">
+          <TabsTrigger value="step-tree">Step Tree</TabsTrigger>
+          <TabsTrigger value="batch-configure">Batch Configure</TabsTrigger>
+          <TabsTrigger value="transport" className="flex items-center gap-1">
+            <Truck className="h-4 w-4" />
+            Transport
+          </TabsTrigger>
+        </TabsList>
 
-      {tab === 0 && (
-        <TableContainer component={Paper} sx={{ backgroundColor: "#12151f" }}>
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#0f1219" }}>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                  Item / Material
-                </TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                  ME / TE
-                </TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                  Structure / Rig / Sec
-                </TableCell>
-                <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                  Station
-                </TableCell>
-                <TableCell
-                  sx={{ color: "#94a3b8", fontWeight: 600 }}
-                  align="center"
-                >
-                  Actions
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rootStep ? (
-                renderStepRow(rootStep, 0, [0])
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} sx={{ textAlign: "center" }}>
-                    <Typography sx={{ color: "#64748b" }}>
-                      No steps in this plan
-                    </Typography>
-                  </TableCell>
+        <TabsContent value="step-tree">
+          <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-[#0f1219]">
+                  <TableHead>Item / Material</TableHead>
+                  <TableHead>ME / TE</TableHead>
+                  <TableHead>Structure / Rig / Sec</TableHead>
+                  <TableHead>Station</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      )}
+              </TableHeader>
+              <TableBody>
+                {rootStep ? (
+                  renderStepRow(rootStep, 0, [0])
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center">
+                      <p className="text-[#64748b]">No steps in this plan</p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
 
-      {tab === 1 && (
-        <BatchConfigureTab plan={plan} planId={planId} onUpdate={fetchPlan} detectedLevels={detectedLevels} />
-      )}
+        <TabsContent value="batch-configure">
+          <BatchConfigureTab plan={plan} planId={planId} onUpdate={fetchPlan} detectedLevels={detectedLevels} />
+        </TabsContent>
 
-      {tab === 2 && (
-        <TransportSettingsTab
-          plan={plan}
-          profiles={transportProfiles}
-          onSave={handleSaveTransportSettings}
-        />
-      )}
+        <TabsContent value="transport">
+          <TransportSettingsTab
+            plan={plan}
+            profiles={transportProfiles}
+            onSave={handleSaveTransportSettings}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Step Dialog */}
       {editStepId && (
@@ -911,30 +836,29 @@ export default function ProductionPlanEditor({ planId }: Props) {
       {/* Generate Jobs Dialog */}
       <Dialog
         open={generateDialogOpen}
-        onClose={() => {
-          setGenerateDialogOpen(false);
-          setGenerateResult(null);
-          setPreviewResult(null);
-          setPreviewError(null);
-          setSelectedParallelism(0);
-        }}
-        maxWidth="md"
-        fullWidth
-        PaperProps={{
-          sx: { backgroundColor: "#12151f", color: "#e2e8f0" },
+        onOpenChange={(v) => {
+          if (!v) {
+            setGenerateDialogOpen(false);
+            setGenerateResult(null);
+            setPreviewResult(null);
+            setPreviewError(null);
+            setSelectedParallelism(0);
+          }
         }}
       >
-        <DialogTitle>Generate Production Jobs</DialogTitle>
-        <DialogContent>
+        <DialogContent className="max-w-2xl bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">Generate Production Jobs</DialogTitle>
+          </DialogHeader>
           {generateResult ? (
-            <Box>
-              <Typography sx={{ color: "#10b981", mb: 1 }}>
+            <div>
+              <p className="text-[#10b981] mb-1">
                 Created {generateResult.created.length} job(s)
-              </Typography>
+              </p>
               {generateResult.created.map((job) => (
-                <Typography
+                <p
                   key={job.id}
-                  sx={{ color: "#cbd5e1", fontSize: 13, ml: 2 }}
+                  className="text-[#cbd5e1] text-[13px] ml-4"
                 >
                   {job.blueprintName || `BP ${job.blueprintTypeId}`} &mdash;{" "}
                   {job.runs} runs
@@ -942,254 +866,210 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     ? ` (${formatISK(job.estimatedCost)})`
                     : ""}
                   {generateResult.characterAssignments?.[job.id] && (
-                    <Chip
-                      label={generateResult.characterAssignments[job.id]}
-                      size="small"
-                      sx={{ ml: 1, height: 18, fontSize: 11, backgroundColor: "#1e3a5f", color: "#93c5fd" }}
-                    />
+                    <Badge className="ml-1 h-[18px] text-[11px] bg-[#1e3a5f] text-[#93c5fd] hover:bg-[#1e3a5f] cursor-default">
+                      {generateResult.characterAssignments[job.id]}
+                    </Badge>
                   )}
-                </Typography>
+                </p>
               ))}
               {generateResult.unassignedCount != null && generateResult.unassignedCount > 0 && (
-                <Alert
-                  severity="warning"
-                  sx={{ mt: 2, backgroundColor: "#2d2000", color: "#fbbf24", "& .MuiAlert-icon": { color: "#fbbf24" } }}
-                >
+                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-[#fbbf24] text-sm flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
                   {generateResult.unassignedCount} job(s) could not be assigned to a character
-                </Alert>
+                </div>
               )}
               {generateResult.transportJobs?.length > 0 && (
                 <>
-                  <Typography sx={{ color: "#00d4ff", mt: 2, mb: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <LocalShippingIcon fontSize="small" />
+                  <p className="text-[#00d4ff] mt-2 mb-1 flex items-center gap-1">
+                    <Truck className="h-4 w-4" />
                     Created {generateResult.transportJobs.length} transport job(s)
-                  </Typography>
+                  </p>
                   {generateResult.transportJobs.map((tj) => (
-                    <Typography
+                    <p
                       key={tj.id}
-                      sx={{ color: "#cbd5e1", fontSize: 13, ml: 2 }}
+                      className="text-[#cbd5e1] text-[13px] ml-4"
                     >
                       {tj.originStationName} &rarr; {tj.destinationStationName}
                       {" "}&mdash; {tj.items.length} item type(s), {formatNumber(tj.totalVolumeM3)} m&sup3;
                       {tj.estimatedCost ? ` (${formatISK(tj.estimatedCost)})` : ""}
-                    </Typography>
+                    </p>
                   ))}
                 </>
               )}
               {generateResult.skipped.length > 0 && (
                 <>
-                  <Typography sx={{ color: "#f59e0b", mt: 2, mb: 1 }}>
+                  <p className="text-[#f59e0b] mt-2 mb-1">
                     Skipped {generateResult.skipped.length} item(s)
-                  </Typography>
+                  </p>
                   {generateResult.skipped.map((skip, i) => (
-                    <Typography
+                    <p
                       key={i}
-                      sx={{ color: "#94a3b8", fontSize: 13, ml: 2 }}
+                      className="text-[#94a3b8] text-[13px] ml-4"
                     >
                       {skip.typeName} &mdash; {skip.reason}
-                    </Typography>
+                    </p>
                   ))}
                 </>
               )}
-            </Box>
+            </div>
           ) : (
-            <Box sx={{ mt: 1 }}>
-              <Typography sx={{ color: "#94a3b8", mb: 2 }}>
+            <div className="mt-1">
+              <p className="text-[#94a3b8] mb-2">
                 How many {plan.productName || "units"} do you want to produce?
                 Job queue entries will be created for each step in the
                 production chain.
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2 }}>
-                <TextField
+              </p>
+              <div className="flex items-start gap-2">
+                <Input
                   type="number"
-                  label="Quantity"
                   value={generateQuantity}
                   onChange={(e) =>
                     setGenerateQuantity(Math.max(1, parseInt(e.target.value) || 1))
                   }
-                  inputProps={{ min: 1 }}
-                  sx={{ width: 160 }}
+                  min={1}
+                  className="w-40"
                 />
                 <Button
-                  variant="outlined"
+                  variant="outline"
                   onClick={() => handlePreview(generateQuantity)}
                   disabled={previewLoading}
-                  sx={{
-                    color: "#00d4ff",
-                    borderColor: "#00d4ff",
-                    mt: 0.5,
-                    "&:hover": { borderColor: "#2563eb", color: "#2563eb" },
-                  }}
+                  className="text-[#00d4ff] border-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
                 >
                   {previewLoading ? (
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <CircularProgress size={16} sx={{ color: "#00d4ff" }} />
+                    <span className="flex items-center gap-1">
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Previewing...
-                    </Box>
+                    </span>
                   ) : (
                     "Preview"
                   )}
                 </Button>
-              </Box>
+              </div>
 
               {previewError && (
-                <Alert
-                  severity="warning"
-                  sx={{ mt: 2, backgroundColor: "#2d2000", color: "#fbbf24", "& .MuiAlert-icon": { color: "#fbbf24" } }}
-                >
+                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-[#fbbf24] text-sm flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
                   {previewError} — you can still generate without parallelism.
-                </Alert>
+                </div>
               )}
 
               {previewResult && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography sx={{ color: "#94a3b8", fontSize: 13, mb: 1 }}>
+                <div className="mt-2">
+                  <p className="text-[#94a3b8] text-[13px] mb-1">
                     Select how many characters to spread jobs across ({previewResult.eligibleCharacters} eligible character{previewResult.eligibleCharacters !== 1 ? "s" : ""}, {previewResult.totalJobs} total job{previewResult.totalJobs !== 1 ? "s" : ""})
-                  </Typography>
-                  <RadioGroup
-                    value={String(selectedParallelism)}
-                    onChange={(e) => setSelectedParallelism(Number(e.target.value))}
-                  >
-                    <TableContainer component={Paper} sx={{ backgroundColor: "#0f1219" }}>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell sx={{ color: "#64748b", width: 40, borderColor: "#1e293b" }} />
-                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Characters</TableCell>
-                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Est. Time</TableCell>
-                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Jobs</TableCell>
-                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b" }}>Details</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {/* No-assignment row */}
-                          <TableRow
-                            hover
-                            onClick={() => setSelectedParallelism(0)}
-                            selected={selectedParallelism === 0}
-                            sx={{
-                              cursor: "pointer",
-                              "&.Mui-selected": { backgroundColor: "#1e293b" },
-                              "&.Mui-selected:hover": { backgroundColor: "#263548" },
-                              "&:hover": { backgroundColor: "#161c2c" },
-                            }}
-                          >
-                            <TableCell sx={{ borderColor: "#1e293b" }}>
-                              <Radio
-                                value="0"
-                                size="small"
-                                sx={{ color: "#475569", "&.Mui-checked": { color: "#00d4ff" }, p: 0 }}
-                              />
-                            </TableCell>
-                            <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b" }}>No assignment</TableCell>
-                            <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b" }}>—</TableCell>
-                            <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b", textAlign: "right" }}>{previewResult.totalJobs}</TableCell>
-                            <TableCell sx={{ color: "#64748b", borderColor: "#1e293b", fontSize: 12 }}>Jobs created without character assignment</TableCell>
-                          </TableRow>
-                          {/* Parallelism options */}
-                          {previewResult.options.map((option) => {
-                            const isSelected = selectedParallelism === option.parallelism;
-                            const detailsText = option.characters
-                              .map((c) => {
-                                const slots: string[] = [];
-                                if (c.mfgSlotsMax > 0) slots.push(`${c.mfgSlotsUsed}/${c.mfgSlotsMax} mfg`);
-                                if (c.reactSlotsMax > 0) slots.push(`${c.reactSlotsUsed}/${c.reactSlotsMax} react`);
-                                return `${c.name} (${c.jobCount} job${c.jobCount !== 1 ? "s" : ""}${slots.length ? ", " + slots.join(", ") : ""})`;
-                              })
-                              .join("; ");
-                            return (
-                              <TableRow
-                                key={option.parallelism}
-                                hover
-                                onClick={() => setSelectedParallelism(option.parallelism)}
-                                selected={isSelected}
-                                sx={{
-                                  cursor: "pointer",
-                                  "&.Mui-selected": { backgroundColor: "#1e293b" },
-                                  "&.Mui-selected:hover": { backgroundColor: "#263548" },
-                                  "&:hover": { backgroundColor: "#161c2c" },
-                                }}
-                              >
-                                <TableCell sx={{ borderColor: "#1e293b" }}>
-                                  <Radio
-                                    value={String(option.parallelism)}
-                                    size="small"
-                                    sx={{ color: "#475569", "&.Mui-checked": { color: "#00d4ff" }, p: 0 }}
-                                  />
-                                </TableCell>
-                                <TableCell sx={{ color: "#e2e8f0", borderColor: "#1e293b" }}>{option.parallelism}</TableCell>
-                                <TableCell sx={{ color: "#10b981", borderColor: "#1e293b" }}>{option.estimatedDurationLabel}</TableCell>
-                                <TableCell sx={{ color: "#e2e8f0", borderColor: "#1e293b", textAlign: "right" }}>{previewResult.totalJobs}</TableCell>
-                                <TableCell sx={{ color: "#94a3b8", borderColor: "#1e293b", fontSize: 12 }}>{detailsText}</TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </RadioGroup>
-                </Box>
+                  </p>
+                  <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-[#0f1219]">
+                          <TableHead className="w-10" />
+                          <TableHead>Characters</TableHead>
+                          <TableHead>Est. Time</TableHead>
+                          <TableHead>Jobs</TableHead>
+                          <TableHead>Details</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {/* No-assignment row */}
+                        <TableRow
+                          className={`cursor-pointer hover:bg-[#161c2c] ${selectedParallelism === 0 ? "bg-[#1e293b]" : ""}`}
+                          onClick={() => setSelectedParallelism(0)}
+                        >
+                          <TableCell>
+                            <input
+                              type="radio"
+                              name="parallelism"
+                              value="0"
+                              checked={selectedParallelism === 0}
+                              onChange={() => setSelectedParallelism(0)}
+                              className="accent-[#00d4ff]"
+                            />
+                          </TableCell>
+                          <TableCell className="text-[#94a3b8]">No assignment</TableCell>
+                          <TableCell className="text-[#94a3b8]">&mdash;</TableCell>
+                          <TableCell className="text-[#94a3b8] text-right">{previewResult.totalJobs}</TableCell>
+                          <TableCell className="text-[#64748b] text-xs">Jobs created without character assignment</TableCell>
+                        </TableRow>
+                        {/* Parallelism options */}
+                        {previewResult.options.map((option) => {
+                          const isSelected = selectedParallelism === option.parallelism;
+                          const detailsText = option.characters
+                            .map((c) => {
+                              const slots: string[] = [];
+                              if (c.mfgSlotsMax > 0) slots.push(`${c.mfgSlotsUsed}/${c.mfgSlotsMax} mfg`);
+                              if (c.reactSlotsMax > 0) slots.push(`${c.reactSlotsUsed}/${c.reactSlotsMax} react`);
+                              return `${c.name} (${c.jobCount} job${c.jobCount !== 1 ? "s" : ""}${slots.length ? ", " + slots.join(", ") : ""})`;
+                            })
+                            .join("; ");
+                          return (
+                            <TableRow
+                              key={option.parallelism}
+                              className={`cursor-pointer hover:bg-[#161c2c] ${isSelected ? "bg-[#1e293b]" : ""}`}
+                              onClick={() => setSelectedParallelism(option.parallelism)}
+                            >
+                              <TableCell>
+                                <input
+                                  type="radio"
+                                  name="parallelism"
+                                  value={String(option.parallelism)}
+                                  checked={isSelected}
+                                  onChange={() => setSelectedParallelism(option.parallelism)}
+                                  className="accent-[#00d4ff]"
+                                />
+                              </TableCell>
+                              <TableCell className="text-[#e2e8f0]">{option.parallelism}</TableCell>
+                              <TableCell className="text-[#10b981]">{option.estimatedDurationLabel}</TableCell>
+                              <TableCell className="text-[#e2e8f0] text-right">{previewResult.totalJobs}</TableCell>
+                              <TableCell className="text-[#94a3b8] text-xs">{detailsText}</TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
               )}
-            </Box>
+            </div>
           )}
-        </DialogContent>
-        <DialogActions>
-          {generateResult ? (
-            <Button
-              onClick={() => {
-                setGenerateDialogOpen(false);
-                setGenerateResult(null);
-                setPreviewResult(null);
-                setPreviewError(null);
-                setSelectedParallelism(0);
-              }}
-              variant="contained"
-              sx={{
-                backgroundColor: "#00d4ff",
-                "&:hover": { backgroundColor: "#2563eb" },
-              }}
-            >
-              Done
-            </Button>
-          ) : (
-            <>
+          <DialogFooter>
+            {generateResult ? (
               <Button
                 onClick={() => {
                   setGenerateDialogOpen(false);
+                  setGenerateResult(null);
                   setPreviewResult(null);
                   setPreviewError(null);
                   setSelectedParallelism(0);
                 }}
-                sx={{ color: "#94a3b8" }}
               >
-                Cancel
+                Done
               </Button>
-              <Button
-                onClick={handleGenerate}
-                disabled={generating}
-                variant="contained"
-                sx={{
-                  backgroundColor: "#10b981",
-                  "&:hover": { backgroundColor: "#059669" },
-                }}
-              >
-                {generating ? "Generating..." : "Generate Jobs"}
-              </Button>
-            </>
-          )}
-        </DialogActions>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setGenerateDialogOpen(false);
+                    setPreviewResult(null);
+                    setPreviewError(null);
+                    setSelectedParallelism(0);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleGenerate}
+                  disabled={generating}
+                  className="bg-[#10b981] hover:bg-[#059669]"
+                >
+                  {generating ? "Generating..." : "Generate Jobs"}
+                </Button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </div>
   );
 }
 
@@ -1242,14 +1122,12 @@ function EditStepDialog({
   const [selectedUserStation, setSelectedUserStation] = useState<UserStation | null>(null);
   const [stationsLoaded, setStationsLoaded] = useState(false);
 
-  // Input location state
   const [hangarsData, setHangarsData] = useState<HangarsResponse | null>(null);
   const [hangarsLoaded, setHangarsLoaded] = useState(false);
   const [selectedOwner, setSelectedOwner] = useState<OwnerOption | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<DivisionOption | null>(null);
   const [selectedContainer, setSelectedContainer] = useState<ContainerOption | null>(null);
 
-  // Output location state
   const [selectedOutputOwner, setSelectedOutputOwner] = useState<OwnerOption | null>(null);
   const [selectedOutputDivision, setSelectedOutputDivision] = useState<DivisionOption | null>(null);
   const [selectedOutputContainer, setSelectedOutputContainer] = useState<ContainerOption | null>(null);
@@ -1276,7 +1154,6 @@ function EditStepDialog({
         if (res.ok) {
           const data: UserStation[] = await res.json();
           setUserStations(data || []);
-          // Pre-select if step already references a station
           if (step?.userStationId) {
             const match = (data || []).find((s) => s.id === step.userStationId);
             if (match) setSelectedUserStation(match);
@@ -1291,7 +1168,6 @@ function EditStepDialog({
     fetchStations();
   }, [open, stationsLoaded, step]);
 
-  // Fetch hangars when station is selected
   const stationIdForHangars = selectedUserStation?.id;
   useEffect(() => {
     if (!open || !stationIdForHangars) {
@@ -1308,7 +1184,6 @@ function EditStepDialog({
           const data: HangarsResponse = await res.json();
           setHangarsData(data);
 
-          // Pre-populate from step's existing source fields
           if (step?.sourceOwnerType && step?.sourceOwnerId) {
             const ownerMatch = step.sourceOwnerType === "character"
               ? data.characters.find((c) => c.id === step.sourceOwnerId)
@@ -1320,7 +1195,6 @@ function EditStepDialog({
                 type: step.sourceOwnerType as "character" | "corporation",
               });
 
-              // Pre-populate division for corporation
               if (step.sourceOwnerType === "corporation" && step.sourceDivisionNumber != null) {
                 const corp = data.corporations.find((c) => c.id === step.sourceOwnerId);
                 if (corp) {
@@ -1329,7 +1203,6 @@ function EditStepDialog({
                 }
               }
 
-              // Pre-populate container
               if (step.sourceContainerId) {
                 const container = data.containers.find((c) => c.id === step.sourceContainerId);
                 if (container) {
@@ -1339,7 +1212,6 @@ function EditStepDialog({
             }
           }
 
-          // Pre-populate output location
           if (step?.outputOwnerType && step?.outputOwnerId) {
             const outOwnerMatch = step.outputOwnerType === "character"
               ? data.characters.find((c) => c.id === step.outputOwnerId)
@@ -1377,7 +1249,6 @@ function EditStepDialog({
     fetchHangars();
   }, [open, stationIdForHangars, step]);
 
-  // Reset loaded state when dialog closes
   useEffect(() => {
     if (!open) {
       setStationsLoaded(false);
@@ -1393,9 +1264,19 @@ function EditStepDialog({
     }
   }, [open]);
 
-  const handleStationSelect = (station: UserStation | null) => {
+  const handleStationSelect = (stationId: string) => {
+    if (stationId === "none") {
+      setSelectedUserStation(null);
+      setSelectedOwner(null);
+      setSelectedDivision(null);
+      setSelectedContainer(null);
+      setSelectedOutputOwner(null);
+      setSelectedOutputDivision(null);
+      setSelectedOutputContainer(null);
+      return;
+    }
+    const station = userStations.find((s) => String(s.id) === stationId) || null;
     setSelectedUserStation(station);
-    // Reset input/output location when station changes
     setSelectedOwner(null);
     setSelectedDivision(null);
     setSelectedContainer(null);
@@ -1407,7 +1288,6 @@ function EditStepDialog({
       setFacilityTax(station.facilityTax);
       setSecurity(station.security || "high");
       setStationName(station.stationName || "");
-      // Auto-select rig based on rigCategory
       if (step?.rigCategory) {
         const matchingRig = station.rigs.find(
           (r) => r.category === step.rigCategory,
@@ -1419,7 +1299,6 @@ function EditStepDialog({
     }
   };
 
-  // Build owner options from hangars data
   const ownerOptions: OwnerOption[] = [];
   if (hangarsData) {
     for (const char of hangarsData.characters) {
@@ -1430,7 +1309,6 @@ function EditStepDialog({
     }
   }
 
-  // Build division options for selected corporation
   const divisionOptions: DivisionOption[] = [];
   if (selectedOwner?.type === "corporation" && hangarsData) {
     const corp = hangarsData.corporations.find((c) => c.id === selectedOwner.id);
@@ -1442,7 +1320,6 @@ function EditStepDialog({
     }
   }
 
-  // Build container options filtered by selected owner/division
   const containerOptions: ContainerOption[] = [];
   if (selectedOwner && hangarsData) {
     for (const c of hangarsData.containers) {
@@ -1454,18 +1331,30 @@ function EditStepDialog({
     }
   }
 
-  const handleOwnerSelect = (owner: OwnerOption | null) => {
+  const handleOwnerSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedOwner(null);
+      setSelectedDivision(null);
+      setSelectedContainer(null);
+      return;
+    }
+    const owner = ownerOptions.find((o) => `${o.type}-${o.id}` === val) || null;
     setSelectedOwner(owner);
     setSelectedDivision(null);
     setSelectedContainer(null);
   };
 
-  const handleDivisionSelect = (division: DivisionOption | null) => {
+  const handleDivisionSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedDivision(null);
+      setSelectedContainer(null);
+      return;
+    }
+    const division = divisionOptions.find((d) => String(d.number) === val) || null;
     setSelectedDivision(division);
     setSelectedContainer(null);
   };
 
-  // Build output division options for selected output corporation
   const outputDivisionOptions: DivisionOption[] = [];
   if (selectedOutputOwner?.type === "corporation" && hangarsData) {
     const corp = hangarsData.corporations.find((c) => c.id === selectedOutputOwner.id);
@@ -1477,7 +1366,6 @@ function EditStepDialog({
     }
   }
 
-  // Build output container options filtered by selected output owner/division
   const outputContainerOptions: ContainerOption[] = [];
   if (selectedOutputOwner && hangarsData) {
     for (const c of hangarsData.containers) {
@@ -1489,25 +1377,36 @@ function EditStepDialog({
     }
   }
 
-  const handleOutputOwnerSelect = (owner: OwnerOption | null) => {
+  const handleOutputOwnerSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedOutputOwner(null);
+      setSelectedOutputDivision(null);
+      setSelectedOutputContainer(null);
+      return;
+    }
+    const owner = ownerOptions.find((o) => `${o.type}-${o.id}` === val) || null;
     setSelectedOutputOwner(owner);
     setSelectedOutputDivision(null);
     setSelectedOutputContainer(null);
   };
 
-  const handleOutputDivisionSelect = (division: DivisionOption | null) => {
+  const handleOutputDivisionSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedOutputDivision(null);
+      setSelectedOutputContainer(null);
+      return;
+    }
+    const division = outputDivisionOptions.find((d) => String(d.number) === val) || null;
     setSelectedOutputDivision(division);
     setSelectedOutputContainer(null);
   };
 
-  // Filter stations to only show those with matching activity
   const filteredStations = userStations.filter((s) =>
     step?.activity ? s.activities.includes(step.activity) : true,
   );
 
   const hasStation = !!selectedUserStation;
 
-  // Resolve source_location_id from selected station
   const resolvedSourceLocationId = selectedUserStation
     ? selectedUserStation.stationId
     : null;
@@ -1515,164 +1414,149 @@ function EditStepDialog({
   if (!step) return null;
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: { backgroundColor: "#12151f", color: "#e2e8f0" },
-      }}
-    >
-      <DialogTitle>
-        Edit Step: {step.productName || `Type ${step.productTypeId}`}
-      </DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-[#e2e8f0]">
+            Edit Step: {step.productName || `Type ${step.productTypeId}`}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3 pt-1">
           {/* Preferred Station Selection */}
-          <Autocomplete
-            value={selectedUserStation}
-            onChange={(_, newValue) => handleStationSelect(newValue)}
-            options={filteredStations}
-            getOptionLabel={(option) =>
-              `${option.stationName || "Unknown"} (${option.solarSystemName || ""})`
-            }
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option) => (
-              <Box component="li" {...props}>
-                <Box>
-                  <Typography variant="body2">
-                    {option.stationName || "Unknown"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {option.solarSystemName} &middot; {option.structure} &middot;{" "}
-                    {option.activities.join(", ")}
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Preferred Station"
-                placeholder="Select a saved station or leave empty for manual config"
-              />
-            )}
-          />
+          <div>
+            <Label className="text-sm text-[#94a3b8] mb-1 block">Preferred Station</Label>
+            <Select
+              value={selectedUserStation ? String(selectedUserStation.id) : "none"}
+              onValueChange={handleStationSelect}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a saved station or leave empty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (manual config)</SelectItem>
+                {filteredStations.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.stationName || "Unknown"} ({s.solarSystemName})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 2,
-            }}
-          >
-            <TextField
-              type="number"
-              label="ME Level"
-              value={meLevel}
-              onChange={(e) => setMeLevel(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 10 }}
-            />
-            <TextField
-              type="number"
-              label="TE Level"
-              value={teLevel}
-              onChange={(e) => setTeLevel(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 20 }}
-            />
-            <TextField
-              type="number"
-              label="Industry Skill"
-              value={industrySkill}
-              onChange={(e) => setIndustrySkill(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 5 }}
-            />
-            <TextField
-              type="number"
-              label="Adv. Industry Skill"
-              value={advIndustrySkill}
-              onChange={(e) =>
-                setAdvIndustrySkill(parseInt(e.target.value) || 0)
-              }
-              inputProps={{ min: 0, max: 5 }}
-            />
-            <FormControl fullWidth disabled={hasStation}>
-              <InputLabel>Structure</InputLabel>
-              <Select
-                value={structure}
-                label="Structure"
-                onChange={(e) => setStructure(e.target.value)}
-              >
-                <MenuItem value="station">Station</MenuItem>
-                <MenuItem value="raitaru">Raitaru</MenuItem>
-                <MenuItem value="azbel">Azbel</MenuItem>
-                <MenuItem value="sotiyo">Sotiyo</MenuItem>
-                <MenuItem value="athanor">Athanor</MenuItem>
-                <MenuItem value="tatara">Tatara</MenuItem>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="edit-me-level" className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
+              <Input
+                id="edit-me-level"
+                type="number"
+                value={meLevel}
+                onChange={(e) => setMeLevel(parseInt(e.target.value) || 0)}
+                min={0}
+                max={10}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-te-level" className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
+              <Input
+                id="edit-te-level"
+                type="number"
+                value={teLevel}
+                onChange={(e) => setTeLevel(parseInt(e.target.value) || 0)}
+                min={0}
+                max={20}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Industry Skill</Label>
+              <Input
+                type="number"
+                value={industrySkill}
+                onChange={(e) => setIndustrySkill(parseInt(e.target.value) || 0)}
+                min={0}
+                max={5}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Adv. Industry Skill</Label>
+              <Input
+                type="number"
+                value={advIndustrySkill}
+                onChange={(e) => setAdvIndustrySkill(parseInt(e.target.value) || 0)}
+                min={0}
+                max={5}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Structure</Label>
+              <Select value={structure} onValueChange={setStructure} disabled={hasStation}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="station">Station</SelectItem>
+                  <SelectItem value="raitaru">Raitaru</SelectItem>
+                  <SelectItem value="azbel">Azbel</SelectItem>
+                  <SelectItem value="sotiyo">Sotiyo</SelectItem>
+                  <SelectItem value="athanor">Athanor</SelectItem>
+                  <SelectItem value="tatara">Tatara</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-            <FormControl fullWidth disabled={hasStation}>
-              <InputLabel>Rig</InputLabel>
-              <Select
-                value={rig}
-                label="Rig"
-                onChange={(e) => setRig(e.target.value)}
-              >
-                <MenuItem value="none">None</MenuItem>
-                <MenuItem value="t1">T1</MenuItem>
-                <MenuItem value="t2">T2</MenuItem>
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Rig</Label>
+              <Select value={rig} onValueChange={setRig} disabled={hasStation}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="t1">T1</SelectItem>
+                  <SelectItem value="t2">T2</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-            <FormControl fullWidth disabled={hasStation}>
-              <InputLabel>Security</InputLabel>
-              <Select
-                value={security}
-                label="Security"
-                onChange={(e) => setSecurity(e.target.value)}
-              >
-                <MenuItem value="high">Highsec</MenuItem>
-                <MenuItem value="low">Lowsec</MenuItem>
-                <MenuItem value="null">Nullsec / WH</MenuItem>
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Security</Label>
+              <Select value={security} onValueChange={setSecurity} disabled={hasStation}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">Highsec</SelectItem>
+                  <SelectItem value="low">Lowsec</SelectItem>
+                  <SelectItem value="null">Nullsec / WH</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-            <TextField
-              type="number"
-              label="Facility Tax %"
-              value={facilityTax}
-              onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, step: 0.1 }}
-              disabled={hasStation}
-            />
-            <TextField
-              label="Station Name"
-              value={stationName}
-              onChange={(e) => setStationName(e.target.value)}
-              placeholder="e.g. Jita 4-4 or player structure name"
-              sx={{ gridColumn: "1 / -1" }}
-              disabled={hasStation}
-            />
-          </Box>
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Facility Tax %</Label>
+              <Input
+                type="number"
+                value={facilityTax}
+                onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
+                min={0}
+                step={0.1}
+                disabled={hasStation}
+              />
+            </div>
+            <div className="col-span-2">
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Station Name</Label>
+              <Input
+                value={stationName}
+                onChange={(e) => setStationName(e.target.value)}
+                placeholder="e.g. Jita 4-4 or player structure name"
+                disabled={hasStation}
+              />
+            </div>
+          </div>
 
           {/* Detected Blueprint Info */}
           {detectedLevel ? (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-              <Chip
-                label={
-                  step?.activity === "reaction"
-                    ? `Blueprint detected from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`
-                    : `Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`
-                }
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ fontSize: 11 }}
-              />
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-[11px] border-[#0ea5e9] text-[#38bdf8]">
+                {step?.activity === "reaction"
+                  ? `Blueprint detected from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`
+                  : `Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`}
+              </Badge>
               {step?.activity !== "reaction" && (
                 <Button
-                  size="small"
-                  variant="outlined"
-                  sx={{ fontSize: 11, py: 0.25, px: 1, color: "#00d4ff", borderColor: "#00d4ff", minWidth: 0 }}
+                  size="sm"
+                  variant="outline"
+                  className="text-[11px] py-0.5 px-2 h-auto text-[#00d4ff] border-[#00d4ff]"
                   onClick={() => {
                     setMeLevel(detectedLevel.materialEfficiency);
                     setTeLevel(detectedLevel.timeEfficiency);
@@ -1681,227 +1565,208 @@ function EditStepDialog({
                   Apply
                 </Button>
               )}
-            </Box>
+            </div>
           ) : (
-            <Chip
-              icon={<WarningAmberIcon />}
-              label="No blueprint detected — using manual values"
-              size="small"
-              color="warning"
-              variant="outlined"
-              sx={{ fontSize: 11 }}
-            />
+            <div className="flex items-center gap-1">
+              <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" />
+              <span className="text-[11px] text-[#f59e0b]">No blueprint detected — using manual values</span>
+            </div>
           )}
 
           {/* Input Location Section */}
           {hasStation && (
             <>
-              <Divider sx={{ borderColor: "#1e293b", mt: 1 }} />
-              <Typography sx={{ color: "#94a3b8", fontSize: 14, fontWeight: 600 }}>
-                Input Location
-              </Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 12 }}>
+              <Separator className="border-[#1e293b] mt-1" />
+              <p className="text-[#94a3b8] text-sm font-semibold">Input Location</p>
+              <p className="text-[#64748b] text-xs">
                 Where should materials for this step be pulled from?
-              </Typography>
+              </p>
 
               {!hangarsLoaded ? (
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                  Loading hangars...
-                </Typography>
+                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
               ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {/* Owner Selection */}
-                  <Autocomplete
-                    value={selectedOwner}
-                    onChange={(_, newValue) => handleOwnerSelect(newValue)}
-                    options={ownerOptions}
-                    getOptionLabel={(option) =>
-                      `${option.name} (${option.type === "character" ? "Character" : "Corporation"})`
-                    }
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value.id && option.type === value.type
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Owner"
-                        placeholder="Select character or corporation"
-                        size="small"
-                      />
-                    )}
-                  />
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Select
+                      value={selectedOwner ? `${selectedOwner.type}-${selectedOwner.id}` : "none"}
+                      onValueChange={handleOwnerSelect}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select character or corporation" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {ownerOptions.map((o) => (
+                          <SelectItem key={`${o.type}-${o.id}`} value={`${o.type}-${o.id}`}>
+                            {o.name} ({o.type === "character" ? "Character" : "Corporation"})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  {/* Division Selection (corporation only) */}
                   {selectedOwner?.type === "corporation" && divisionOptions.length > 0 && (
-                    <Autocomplete
-                      value={selectedDivision}
-                      onChange={(_, newValue) => handleDivisionSelect(newValue)}
-                      options={divisionOptions}
-                      getOptionLabel={(option) => `${option.number}. ${option.name}`}
-                      isOptionEqualToValue={(option, value) =>
-                        option.number === value.number
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Hangar Division"
-                          placeholder="Select division"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Select
+                        value={selectedDivision ? String(selectedDivision.number) : "none"}
+                        onValueChange={handleDivisionSelect}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select division" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {divisionOptions.map((d) => (
+                            <SelectItem key={d.number} value={String(d.number)}>
+                              {d.number}. {d.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
 
-                  {/* Container Selection (optional) */}
                   {selectedOwner && (
-                    <Autocomplete
-                      value={selectedContainer}
-                      onChange={(_, newValue) => setSelectedContainer(newValue)}
-                      options={containerOptions}
-                      getOptionLabel={(option) => option.name}
-                      isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                      }
-                      noOptionsText="No containers at this station"
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Container (optional)"
-                          placeholder="Select container or leave empty for hangar"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Select
+                        value={selectedContainer ? String(selectedContainer.id) : "none"}
+                        onValueChange={(val) => {
+                          if (val === "none") {
+                            setSelectedContainer(null);
+                          } else {
+                            const c = containerOptions.find((c) => String(c.id) === val);
+                            setSelectedContainer(c || null);
+                          }
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select container or leave empty" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None (hangar)</SelectItem>
+                          {containerOptions.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                </Box>
+                </div>
               )}
 
-              <Divider sx={{ borderColor: "#1e293b", mt: 1 }} />
-              <Typography sx={{ color: "#94a3b8", fontSize: 14, fontWeight: 600 }}>
-                Output Location
-              </Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 12 }}>
+              <Separator className="border-[#1e293b] mt-1" />
+              <p className="text-[#94a3b8] text-sm font-semibold">Output Location</p>
+              <p className="text-[#64748b] text-xs">
                 Where should completed items from this job be delivered?
-              </Typography>
+              </p>
 
               {!hangarsLoaded ? (
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                  Loading hangars...
-                </Typography>
+                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
               ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {/* Output Owner Selection */}
-                  <Autocomplete
-                    value={selectedOutputOwner}
-                    onChange={(_, newValue) => handleOutputOwnerSelect(newValue)}
-                    options={ownerOptions}
-                    getOptionLabel={(option) =>
-                      `${option.name} (${option.type === "character" ? "Character" : "Corporation"})`
-                    }
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value.id && option.type === value.type
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Owner"
-                        placeholder="Select character or corporation"
-                        size="small"
-                      />
-                    )}
-                  />
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Select
+                      value={selectedOutputOwner ? `${selectedOutputOwner.type}-${selectedOutputOwner.id}` : "none"}
+                      onValueChange={handleOutputOwnerSelect}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select character or corporation" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {ownerOptions.map((o) => (
+                          <SelectItem key={`out-${o.type}-${o.id}`} value={`${o.type}-${o.id}`}>
+                            {o.name} ({o.type === "character" ? "Character" : "Corporation"})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                  {/* Output Division Selection (corporation only) */}
                   {selectedOutputOwner?.type === "corporation" && outputDivisionOptions.length > 0 && (
-                    <Autocomplete
-                      value={selectedOutputDivision}
-                      onChange={(_, newValue) => handleOutputDivisionSelect(newValue)}
-                      options={outputDivisionOptions}
-                      getOptionLabel={(option) => `${option.number}. ${option.name}`}
-                      isOptionEqualToValue={(option, value) =>
-                        option.number === value.number
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Hangar Division"
-                          placeholder="Select division"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Select
+                        value={selectedOutputDivision ? String(selectedOutputDivision.number) : "none"}
+                        onValueChange={handleOutputDivisionSelect}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select division" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {outputDivisionOptions.map((d) => (
+                            <SelectItem key={d.number} value={String(d.number)}>
+                              {d.number}. {d.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
 
-                  {/* Output Container Selection (optional) */}
                   {selectedOutputOwner && (
-                    <Autocomplete
-                      value={selectedOutputContainer}
-                      onChange={(_, newValue) => setSelectedOutputContainer(newValue)}
-                      options={outputContainerOptions}
-                      getOptionLabel={(option) => option.name}
-                      isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                      }
-                      noOptionsText="No containers at this station"
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Container (optional)"
-                          placeholder="Select container or leave empty for hangar"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Select
+                        value={selectedOutputContainer ? String(selectedOutputContainer.id) : "none"}
+                        onValueChange={(val) => {
+                          if (val === "none") {
+                            setSelectedOutputContainer(null);
+                          } else {
+                            const c = outputContainerOptions.find((c) => String(c.id) === val);
+                            setSelectedOutputContainer(c || null);
+                          }
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select container or leave empty" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None (hangar)</SelectItem>
+                          {outputContainerOptions.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                </Box>
+                </div>
               )}
             </>
           )}
-        </Box>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() =>
+              onSave({
+                me_level: meLevel,
+                te_level: teLevel,
+                industry_skill: industrySkill,
+                adv_industry_skill: advIndustrySkill,
+                structure,
+                rig,
+                security,
+                facility_tax: facilityTax,
+                station_name: stationName || null,
+                user_station_id: selectedUserStation?.id || null,
+                source_owner_type: selectedOwner?.type || null,
+                source_owner_id: selectedOwner?.id || null,
+                source_division_number:
+                  selectedOwner?.type === "corporation"
+                    ? selectedDivision?.number ?? null
+                    : null,
+                source_container_id: selectedContainer?.id || null,
+                source_location_id: resolvedSourceLocationId,
+                output_owner_type: selectedOutputOwner?.type || null,
+                output_owner_id: selectedOutputOwner?.id || null,
+                output_division_number:
+                  selectedOutputOwner?.type === "corporation"
+                    ? selectedOutputDivision?.number ?? null
+                    : null,
+                output_container_id: selectedOutputContainer?.id || null,
+              } as unknown as Partial<ProductionPlanStep>)
+            }
+          >
+            Save
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={() =>
-            onSave({
-              me_level: meLevel,
-              te_level: teLevel,
-              industry_skill: industrySkill,
-              adv_industry_skill: advIndustrySkill,
-              structure,
-              rig,
-              security,
-              facility_tax: facilityTax,
-              station_name: stationName || null,
-              user_station_id: selectedUserStation?.id || null,
-              source_owner_type: selectedOwner?.type || null,
-              source_owner_id: selectedOwner?.id || null,
-              source_division_number:
-                selectedOwner?.type === "corporation"
-                  ? selectedDivision?.number ?? null
-                  : null,
-              source_container_id: selectedContainer?.id || null,
-              source_location_id: resolvedSourceLocationId,
-              output_owner_type: selectedOutputOwner?.type || null,
-              output_owner_id: selectedOutputOwner?.id || null,
-              output_division_number:
-                selectedOutputOwner?.type === "corporation"
-                  ? selectedOutputDivision?.number ?? null
-                  : null,
-              output_container_id: selectedOutputContainer?.id || null,
-            } as unknown as Partial<ProductionPlanStep>)
-          }
-          variant="contained"
-          sx={{
-            backgroundColor: "#00d4ff",
-            "&:hover": { backgroundColor: "#2563eb" },
-          }}
-        >
-          Save
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
@@ -1921,129 +1786,131 @@ function TransportSettingsTab({
     courier_collateral_rate: number;
   }) => void;
 }) {
-  const [fulfillment, setFulfillment] = useState<string>(plan.transportFulfillment || "");
-  const [method, setMethod] = useState<string>(plan.transportMethod || "");
-  const [profileId, setProfileId] = useState<number | "">(plan.transportProfileId || "");
+  const [fulfillment, setFulfillment] = useState<string>(plan.transportFulfillment || "none");
+  const [method, setMethod] = useState<string>(plan.transportMethod || "none");
+  const [profileId, setProfileId] = useState<string>(plan.transportProfileId ? String(plan.transportProfileId) : "none");
   const [courierRate, setCourierRate] = useState(plan.courierRatePerM3 || 0);
   const [collateralRate, setCollateralRate] = useState(plan.courierCollateralRate || 0);
 
   const filteredProfiles = profiles.filter(
-    (p) => !method || p.transportMethod === method
+    (p) => method === "none" || !method || p.transportMethod === method
   );
 
   const handleSave = () => {
     onSave({
-      transport_fulfillment: fulfillment || undefined,
-      transport_method: fulfillment === "self_haul" ? method || undefined : undefined,
-      transport_profile_id: fulfillment === "self_haul" && profileId ? Number(profileId) : undefined,
+      transport_fulfillment: fulfillment !== "none" ? fulfillment : undefined,
+      transport_method: fulfillment === "self_haul" && method !== "none" ? method : undefined,
+      transport_profile_id: fulfillment === "self_haul" && profileId !== "none" ? Number(profileId) : undefined,
       courier_rate_per_m3: courierRate,
       courier_collateral_rate: collateralRate,
     });
   };
 
   return (
-    <Paper sx={{ backgroundColor: "#12151f", p: 3 }}>
-      <Typography variant="h6" sx={{ color: "#e2e8f0", mb: 2, display: "flex", alignItems: "center", gap: 1 }}>
-        <LocalShippingIcon />
+    <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-4">
+      <h3 className="text-lg font-semibold text-[#e2e8f0] mb-2 flex items-center gap-2">
+        <Truck className="h-5 w-5" />
         Transport Settings
-      </Typography>
-      <Typography sx={{ color: "#64748b", fontSize: 13, mb: 3 }}>
+      </h3>
+      <p className="text-[#64748b] text-[13px] mb-3">
         Configure how items should be transported between stations when generating jobs.
         Leave fulfillment type as &ldquo;None&rdquo; to skip transport job generation.
-      </Typography>
+      </p>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5, maxWidth: 500 }}>
-        <FormControl fullWidth size="small">
-          <InputLabel sx={{ color: "#94a3b8" }}>Fulfillment Type</InputLabel>
+      <div className="flex flex-col gap-3 max-w-[500px]">
+        <div>
+          <Label className="text-sm text-[#94a3b8] mb-1 block">Fulfillment Type</Label>
           <Select
             value={fulfillment}
-            label="Fulfillment Type"
-            onChange={(e) => {
-              setFulfillment(e.target.value);
-              if (e.target.value !== "self_haul") {
-                setMethod("");
-                setProfileId("");
+            onValueChange={(val) => {
+              setFulfillment(val);
+              if (val !== "self_haul") {
+                setMethod("none");
+                setProfileId("none");
               }
             }}
           >
-            <MenuItem value="">None</MenuItem>
-            <MenuItem value="self_haul">Self Haul</MenuItem>
-            <MenuItem value="courier_contract">Courier Contract</MenuItem>
-            <MenuItem value="contact_haul">Contact Haul</MenuItem>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">None</SelectItem>
+              <SelectItem value="self_haul">Self Haul</SelectItem>
+              <SelectItem value="courier_contract">Courier Contract</SelectItem>
+              <SelectItem value="contact_haul">Contact Haul</SelectItem>
+            </SelectContent>
           </Select>
-        </FormControl>
+        </div>
 
         {fulfillment === "self_haul" && (
           <>
-            <FormControl fullWidth size="small">
-              <InputLabel sx={{ color: "#94a3b8" }}>Transport Method</InputLabel>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Transport Method</Label>
               <Select
                 value={method}
-                label="Transport Method"
-                onChange={(e) => {
-                  setMethod(e.target.value);
-                  setProfileId("");
+                onValueChange={(val) => {
+                  setMethod(val);
+                  setProfileId("none");
                 }}
               >
-                <MenuItem value="">Select method...</MenuItem>
-                <MenuItem value="freighter">Freighter</MenuItem>
-                <MenuItem value="jump_freighter">Jump Freighter</MenuItem>
-                <MenuItem value="dst">DST</MenuItem>
-                <MenuItem value="blockade_runner">Blockade Runner</MenuItem>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Select method...</SelectItem>
+                  <SelectItem value="freighter">Freighter</SelectItem>
+                  <SelectItem value="jump_freighter">Jump Freighter</SelectItem>
+                  <SelectItem value="dst">DST</SelectItem>
+                  <SelectItem value="blockade_runner">Blockade Runner</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
 
-            <FormControl fullWidth size="small">
-              <InputLabel sx={{ color: "#94a3b8" }}>Transport Profile</InputLabel>
-              <Select
-                value={profileId}
-                label="Transport Profile"
-                onChange={(e) => setProfileId(e.target.value as number)}
-              >
-                <MenuItem value="">Select profile...</MenuItem>
-                {filteredProfiles.map((p) => (
-                  <MenuItem key={p.id} value={p.id}>
-                    {p.name}
-                  </MenuItem>
-                ))}
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Transport Profile</Label>
+              <Select value={profileId} onValueChange={setProfileId}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Select profile...</SelectItem>
+                  {filteredProfiles.map((p) => (
+                    <SelectItem key={p.id} value={String(p.id)}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
           </>
         )}
 
         {(fulfillment === "courier_contract" || fulfillment === "contact_haul") && (
           <>
-            <TextField
-              label="Rate per m³ (ISK)"
-              type="number"
-              size="small"
-              value={courierRate}
-              onChange={(e) => setCourierRate(parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, step: 0.01 }}
-            />
-            <TextField
-              label="Collateral Rate (%)"
-              type="number"
-              size="small"
-              value={collateralRate * 100}
-              onChange={(e) => setCollateralRate((parseFloat(e.target.value) || 0) / 100)}
-              inputProps={{ min: 0, step: 0.1 }}
-            />
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Rate per m3 (ISK)</Label>
+              <Input
+                type="number"
+                value={courierRate}
+                onChange={(e) => setCourierRate(parseFloat(e.target.value) || 0)}
+                min={0}
+                step={0.01}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Collateral Rate (%)</Label>
+              <Input
+                type="number"
+                value={collateralRate * 100}
+                onChange={(e) => setCollateralRate((parseFloat(e.target.value) || 0) / 100)}
+                min={0}
+                step={0.1}
+              />
+            </div>
           </>
         )}
 
         <Button
-          variant="contained"
           onClick={handleSave}
-          sx={{
-            backgroundColor: "#00d4ff",
-            "&:hover": { backgroundColor: "#2563eb" },
-            alignSelf: "flex-start",
-          }}
+          className="self-start"
         >
           Save Transport Settings
         </Button>
-      </Box>
-    </Paper>
+      </div>
+    </div>
   );
 }

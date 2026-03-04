@@ -7,19 +7,15 @@ import Navbar from "@industry-tool/components/Navbar";
 import ActiveJobs from "@industry-tool/components/industry/ActiveJobs";
 import JobQueue from "@industry-tool/components/industry/JobQueue";
 import AddJob from "@industry-tool/components/industry/AddJob";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Box from "@mui/material/Box";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function Industry() {
   const { status } = useSession();
   const [tab, setTab] = useState(() => {
     if (typeof window !== "undefined") {
-      return parseInt(localStorage.getItem("industry-tab") || "0", 10);
+      return localStorage.getItem("industry-tab") || "active";
     }
-    return 0;
+    return "active";
   });
 
   const [jobs, setJobs] = useState<IndustryJob[]>([]);
@@ -87,9 +83,9 @@ export default function Industry() {
     return <Unauthorized />;
   }
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTab(newValue);
-    localStorage.setItem("industry-tab", String(newValue));
+  const handleTabChange = (value: string) => {
+    setTab(value);
+    localStorage.setItem("industry-tab", value);
   };
 
   const plannedCount = queue.filter((e) => e.status === "planned").length;
@@ -97,29 +93,27 @@ export default function Industry() {
   return (
     <>
       <Navbar />
-      <Container maxWidth={false} sx={{ mt: 2, mb: 4 }}>
-        <Typography variant="h5" sx={{ color: "#e2e8f0", mb: 2, fontWeight: 600 }}>
+      <div className="px-4 mt-2 mb-4">
+        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-2">
           Industry Jobs
-        </Typography>
-        <Box sx={{ borderBottom: 1, borderColor: "rgba(148, 163, 184, 0.15)", mb: 2 }}>
-          <Tabs
-            value={tab}
-            onChange={handleTabChange}
-            sx={{
-              "& .MuiTab-root": { color: "#64748b", textTransform: "none", fontWeight: 500 },
-              "& .Mui-selected": { color: "#00d4ff" },
-              "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
-            }}
-          >
-            <Tab label={`Active Jobs (${jobs.length})`} />
-            <Tab label={`Queue${plannedCount > 0 ? ` (${plannedCount})` : ""}`} />
-            <Tab label="Add Job" />
-          </Tabs>
-        </Box>
-        {tab === 0 && <ActiveJobs jobs={jobs} loading={jobsLoading} />}
-        {tab === 1 && <JobQueue entries={queue} loading={queueLoading} onCancel={handleCancelEntry} onRefresh={fetchQueue} />}
-        {tab === 2 && <AddJob onJobAdded={handleJobAdded} />}
-      </Container>
+        </h2>
+        <Tabs value={tab} onValueChange={handleTabChange}>
+          <TabsList>
+            <TabsTrigger value="active">{`Active Jobs (${jobs.length})`}</TabsTrigger>
+            <TabsTrigger value="queue">{`Queue${plannedCount > 0 ? ` (${plannedCount})` : ""}`}</TabsTrigger>
+            <TabsTrigger value="add">Add Job</TabsTrigger>
+          </TabsList>
+          <TabsContent value="active">
+            <ActiveJobs jobs={jobs} loading={jobsLoading} />
+          </TabsContent>
+          <TabsContent value="queue">
+            <JobQueue entries={queue} loading={queueLoading} onCancel={handleCancelEntry} onRefresh={fetchQueue} />
+          </TabsContent>
+          <TabsContent value="add">
+            <AddJob onJobAdded={handleJobAdded} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </>
   );
 }

@@ -42,38 +42,26 @@ test.describe('Job Slot Rental Exchange', () => {
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Select character (Alice Alpha)
-    const characterControl = dialog.locator('.MuiFormControl-root').filter({
-      has: alicePage.locator('label').filter({ hasText: 'Character' }),
-    });
-    await characterControl.getByRole('combobox').click();
+    // Select character (Alice Alpha) — shadcn Select: navigate from label to combobox
+    await dialog.locator('label').filter({ hasText: 'Character' }).locator('..').getByRole('combobox').click();
     await alicePage.getByRole('option', { name: /Alice Alpha/i }).click();
 
     // Select activity type (Manufacturing)
-    const activityControl = dialog.locator('.MuiFormControl-root').filter({
-      has: alicePage.locator('label').filter({ hasText: 'Activity Type' }),
-    });
-    await activityControl.getByRole('combobox').click();
+    await dialog.locator('label').filter({ hasText: 'Activity Type' }).locator('..').getByRole('combobox').click();
     await alicePage.getByRole('option', { name: /Manufacturing/i }).click();
 
-    // Enter slots to list
-    const slotsInput = dialog.getByLabel(/Slots to List/i);
-    await slotsInput.fill('3');
+    // Enter slots to list — Label lacks htmlFor, navigate from label to sibling input
+    await dialog.locator('label').filter({ hasText: /Slots to List/i }).locator('..').locator('input').fill('3');
 
     // Enter price amount
-    const priceInput = dialog.getByLabel(/Price Amount/i);
-    await priceInput.fill('100000');
+    await dialog.locator('label').filter({ hasText: /Price Amount/i }).locator('..').locator('input').fill('100000');
 
     // Select pricing unit (per_slot_day)
-    const pricingControl = dialog.locator('.MuiFormControl-root').filter({
-      has: alicePage.locator('label').filter({ hasText: 'Pricing Unit' }),
-    });
-    await pricingControl.getByRole('combobox').click();
+    await dialog.locator('label').filter({ hasText: 'Pricing Unit' }).locator('..').getByRole('combobox').click();
     await alicePage.getByRole('option', { name: /per.*slot.*day/i }).click();
 
-    // Enter notes
-    const notesInput = dialog.getByLabel(/Notes/i);
-    await notesInput.fill('Manufacturing slots available in Jita');
+    // Enter notes — textarea, not input
+    await dialog.locator('label').filter({ hasText: /Notes/i }).locator('..').locator('textarea').fill('Manufacturing slots available in Jita');
 
     // Save listing
     await dialog.getByRole('button', { name: /Create|Save/i }).click();
@@ -137,35 +125,26 @@ test.describe('Job Slot Rental Exchange', () => {
     const dialog = bobPage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Select character (Bob Bravo)
-    const characterControl = dialog.locator('.MuiFormControl-root').filter({
-      has: bobPage.locator('label').filter({ hasText: 'Character' }),
-    });
-    await characterControl.getByRole('combobox').click();
+    // Select character (Bob Bravo) — shadcn Select
+    await dialog.locator('label').filter({ hasText: 'Character' }).locator('..').getByRole('combobox').click();
     await bobPage.getByRole('option', { name: /Bob Bravo/i }).click();
 
     // Select activity type (Manufacturing)
-    const activityControl = dialog.locator('.MuiFormControl-root').filter({
-      has: bobPage.locator('label').filter({ hasText: 'Activity Type' }),
-    });
-    await activityControl.getByRole('combobox').click();
+    await dialog.locator('label').filter({ hasText: 'Activity Type' }).locator('..').getByRole('combobox').click();
     await bobPage.getByRole('option', { name: /Manufacturing/i }).click();
 
     // Enter slots to list (Bob has 4 total slots: 1 + Mass Production 3)
-    await dialog.getByLabel(/Slots to List/i).fill('3');
+    await dialog.locator('label').filter({ hasText: /Slots to List/i }).locator('..').locator('input').fill('3');
 
     // Enter price amount
-    await dialog.getByLabel(/Price Amount/i).fill('75000');
+    await dialog.locator('label').filter({ hasText: /Price Amount/i }).locator('..').locator('input').fill('75000');
 
     // Select pricing unit
-    const pricingControl = dialog.locator('.MuiFormControl-root').filter({
-      has: bobPage.locator('label').filter({ hasText: 'Pricing Unit' }),
-    });
-    await pricingControl.getByRole('combobox').click();
+    await dialog.locator('label').filter({ hasText: 'Pricing Unit' }).locator('..').getByRole('combobox').click();
     await bobPage.getByRole('option', { name: /per.*slot.*day/i }).click();
 
     // Enter notes
-    await dialog.getByLabel(/Notes/i).fill('Manufacturing slots in Jita, fast turnaround');
+    await dialog.locator('label').filter({ hasText: /Notes/i }).locator('..').locator('textarea').fill('Manufacturing slots in Jita, fast turnaround');
 
     // Save listing
     await dialog.getByRole('button', { name: /Create|Save/i }).click();
@@ -209,14 +188,14 @@ test.describe('Job Slot Rental Exchange', () => {
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Enter slots requested
-    await dialog.getByLabel(/Slots Requested/i).fill('2');
+    // Enter slots requested — Label lacks htmlFor, navigate from label to sibling input
+    await dialog.locator('label').filter({ hasText: /Slots Requested/i }).locator('..').locator('input').fill('2');
 
     // Enter duration (optional, but let's test it)
-    await dialog.getByLabel(/Duration.*Days/i).fill('30');
+    await dialog.locator('label').filter({ hasText: /Duration/i }).locator('..').locator('input').fill('30');
 
-    // Enter message
-    await dialog.getByLabel(/Message/i).fill('Looking to use 2 slots for Rifter manufacturing, 30 day contract');
+    // Enter message — textarea, not input
+    await dialog.locator('label').filter({ hasText: /Message/i }).locator('..').locator('textarea').fill('Looking to use 2 slots for Rifter manufacturing, 30 day contract');
 
     // Submit interest request
     await dialog.getByRole('button', { name: /Submit|Send/i }).click();
@@ -302,8 +281,8 @@ test.describe('Job Slot Rental Exchange', () => {
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
     // Enter minimal data for decline test
-    await dialog.getByLabel(/Slots Requested/i).fill('1');
-    await dialog.getByLabel(/Message/i).fill('Test request for decline');
+    await dialog.locator('label').filter({ hasText: /Slots Requested/i }).locator('..').locator('input').fill('1');
+    await dialog.locator('label').filter({ hasText: /Message/i }).locator('..').locator('textarea').fill('Test request for decline');
 
     // Submit
     await dialog.getByRole('button', { name: /Submit|Send/i }).click();
@@ -354,8 +333,8 @@ test.describe('Job Slot Rental Exchange', () => {
 
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
-    await dialog.getByLabel(/Slots Requested/i).fill('3');
-    await dialog.getByLabel(/Message/i).fill('Request for withdrawal test');
+    await dialog.locator('label').filter({ hasText: /Slots Requested/i }).locator('..').locator('input').fill('3');
+    await dialog.locator('label').filter({ hasText: /Message/i }).locator('..').locator('textarea').fill('Request for withdrawal test');
     await dialog.getByRole('button', { name: /Submit|Send/i }).click();
     await expect(dialog).not.toBeVisible({ timeout: 5000 });
 
@@ -396,8 +375,8 @@ test.describe('Job Slot Rental Exchange', () => {
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Change price amount
-    const priceInput = dialog.getByLabel(/Price Amount/i);
+    // Change price amount — Label lacks htmlFor, navigate from label to sibling input
+    const priceInput = dialog.locator('label').filter({ hasText: /Price Amount/i }).locator('..').locator('input');
     await priceInput.clear();
     await priceInput.fill('125000');
 
@@ -427,28 +406,19 @@ test.describe('Job Slot Rental Exchange', () => {
       const createDialog = alicePage.getByRole('dialog');
       await expect(createDialog).toBeVisible({ timeout: 5000 });
 
-      const characterControl = createDialog.locator('.MuiFormControl-root').filter({
-        has: alicePage.locator('label').filter({ hasText: 'Character' }),
-      });
-      await characterControl.getByRole('combobox').click();
+      await createDialog.locator('label').filter({ hasText: 'Character' }).locator('..').getByRole('combobox').click();
       await alicePage.getByRole('option', { name: /Alice Alpha/i }).click();
 
-      const activityControl = createDialog.locator('.MuiFormControl-root').filter({
-        has: alicePage.locator('label').filter({ hasText: 'Activity Type' }),
-      });
-      await activityControl.getByRole('combobox').click();
+      await createDialog.locator('label').filter({ hasText: 'Activity Type' }).locator('..').getByRole('combobox').click();
       await alicePage.getByRole('option', { name: /Reaction/i }).click();
 
-      await createDialog.getByLabel(/Slots to List/i).fill('2');
-      await createDialog.getByLabel(/Price Amount/i).fill('50000');
+      await createDialog.locator('label').filter({ hasText: /Slots to List/i }).locator('..').locator('input').fill('2');
+      await createDialog.locator('label').filter({ hasText: /Price Amount/i }).locator('..').locator('input').fill('50000');
 
-      const pricingControl = createDialog.locator('.MuiFormControl-root').filter({
-        has: alicePage.locator('label').filter({ hasText: 'Pricing Unit' }),
-      });
-      await pricingControl.getByRole('combobox').click();
+      await createDialog.locator('label').filter({ hasText: 'Pricing Unit' }).locator('..').getByRole('combobox').click();
       await alicePage.getByRole('option', { name: /per.*job/i }).click();
 
-      await createDialog.getByLabel(/Notes/i).fill('Listing to be deleted');
+      await createDialog.locator('label').filter({ hasText: /Notes/i }).locator('..').locator('textarea').fill('Listing to be deleted');
       await createDialog.getByRole('button', { name: /Create|Save/i }).click();
       await expect(createDialog).not.toBeVisible({ timeout: 5000 });
     }

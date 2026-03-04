@@ -226,6 +226,59 @@ jest.mock('next/image', () => ({ src, alt }: { src: string; alt: string }) => <i
 - Not using fake timers → timestamps/durations differ between runs
 - Adding a new prop to a component but not updating existing test renders → TypeScript error
 
+### MUI → shadcn test migration patterns
+
+When migrating components from MUI to shadcn/ui, tests break in predictable ways. Fix these patterns:
+
+**1. Label/Input accessibility:**
+shadcn `Label` + `Input` need explicit `htmlFor`/`id` pairs. MUI `TextField` auto-created these.
+```tsx
+// Always pair Label with Input
+<Label htmlFor="my-field">Field Name</Label>
+<Input id="my-field" value={value} onChange={...} />
+```
+
+**2. Icon data-testid attributes:**
+MUI icons auto-generated `data-testid` (e.g., `DeleteIcon`). Lucide-react icons don't — add manually to preserve test compatibility:
+```tsx
+<Trash2 className="h-4 w-4" data-testid="DeleteIcon" />
+<Pencil className="h-4 w-4" data-testid="EditIcon" />
+```
+
+**3. Radix DropdownMenu in JSDOM:**
+Radix uses `onPointerDown`, not `onClick`. `fireEvent.click` won't open the menu. Mock the components:
+```tsx
+jest.mock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: any) => children,
+  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, onClick, disabled }: any) => (
+    <div role="menuitem" onClick={disabled ? undefined : onClick}>{children}</div>
+  ),
+  DropdownMenuSeparator: () => <hr />,
+}));
+```
+
+**4. Sonner toast (replaces MUI Snackbar):**
+Toast renders via portal, not in component DOM. Mock the module and assert on calls:
+```tsx
+jest.mock('@/components/ui/sonner', () => ({
+  toast: { success: jest.fn(), error: jest.fn() },
+}));
+import { toast } from '@/components/ui/sonner';
+
+// In tests:
+expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/success message/));
+```
+**Important:** `jest.mock()` is hoisted before variable declarations. Use inline `jest.fn()` in the mock factory — do NOT reference external variables.
+
+**5. MUI class selectors:**
+Replace `.MuiChip-root`, `.MuiIconButton-root` with element selectors:
+```tsx
+// Old: element.closest('.MuiChip-root')
+// New: element.closest('button')
+```
+
 **NEVER add workaround DOM elements to keep old tests passing.** If a component restructure breaks existing tests (e.g., links moved into dropdowns that tests query with `getByRole('link')`), update the tests to match the new structure — do NOT add hidden/clipped elements to satisfy old queries. When told "do not modify tests", flag the incompatibility rather than adding workaround markup.
 
 ### TypeScript strict mode — CRITICAL

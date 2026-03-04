@@ -7,39 +7,50 @@ import {
   HangarsResponse,
   BlueprintLevel,
 } from "@industry-tool/client/data/models";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-import Chip from "@mui/material/Chip";
-import TextField from "@mui/material/TextField";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import Autocomplete from "@mui/material/Autocomplete";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
-import Divider from "@mui/material/Divider";
-import Tooltip from "@mui/material/Tooltip";
-import CircularProgress from "@mui/material/CircularProgress";
-import EditIcon from "@mui/icons-material/Edit";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import BuildIcon from "@mui/icons-material/Build";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
-import AutoFixHighIcon from "@mui/icons-material/AutoFixHigh";
+import {
+  ChevronDown,
+  ChevronRight,
+  Wrench,
+  Pencil,
+  ShoppingCart,
+  Sparkles,
+  Loader2,
+  AlertTriangle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { toast } from "@/components/ui/sonner";
 
 type Props = {
   plan: ProductionPlan;
@@ -124,6 +135,12 @@ type GroupMaterial = PlanMaterial & {
   produceStatus: MaterialStatus;
 };
 
+const MixedBadge = () => (
+  <Badge className="h-[18px] text-[10px] bg-[#422006] text-[#f59e0b] hover:bg-[#422006] cursor-default">
+    Mixed
+  </Badge>
+);
+
 export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLevels = {} }: Props) {
   const [editGroup, setEditGroup] = useState<StepGroup | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -131,11 +148,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
   const [loadingMaterials, setLoadingMaterials] = useState<Set<string>>(new Set());
   const [togglingMaterial, setTogglingMaterial] = useState<string | null>(null);
   const [togglingAllGroup, setTogglingAllGroup] = useState<string | null>(null);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({ open: false, message: "", severity: "success" });
   const [applyingBlueprintGroup, setApplyingBlueprintGroup] = useState<string | null>(null);
 
   const steps = plan.steps || [];
@@ -143,7 +155,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
 
   const groupKey = (g: StepGroup) => `${g.productTypeId}:${g.activity}`;
 
-  // Compute produce status for a material across all steps in a group
   const computeProduceStatus = (group: StepGroup, materialTypeId: number): MaterialStatus => {
     let hasProduced = false;
     let hasMissing = false;
@@ -202,12 +213,10 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
     });
   };
 
-  // Eagerly fetch materials for all groups, and refresh statuses when plan data changes
   useEffect(() => {
     for (const group of groups) {
       const key = groupKey(group);
       if (groupMaterials[key]) {
-        // Refresh produce statuses for already-loaded materials
         setGroupMaterials((prev) => ({
           ...prev,
           [key]: prev[key].map((mat) => ({
@@ -216,7 +225,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
           })),
         }));
       } else if (!loadingMaterials.has(key)) {
-        // Eagerly fetch materials for groups that haven't been loaded yet
         fetchMaterialsForGroup(group);
       }
     }
@@ -230,7 +238,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
 
     try {
       if (status === "all" || status === "mixed") {
-        // Remove: delete child steps for all steps in the group that have one
         const childSteps = steps.filter(
           (s) => group.stepIds.includes(s.parentStepId!) && s.productTypeId === material.typeId,
         );
@@ -239,13 +246,8 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
             method: "DELETE",
           });
         }
-        setSnackbar({
-          open: true,
-          message: `Set ${material.typeName} to Buy across ${group.stepIds.length} step(s)`,
-          severity: "success",
-        });
+        toast.success(`Set ${material.typeName} to Buy across ${group.stepIds.length} step(s)`);
       } else {
-        // Create: add child steps for all steps in the group that don't have one
         for (const step of group.steps) {
           const hasChild = steps.some(
             (s) => s.parentStepId === step.id && s.productTypeId === material.typeId,
@@ -261,20 +263,12 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
             });
           }
         }
-        setSnackbar({
-          open: true,
-          message: `Set ${material.typeName} to Produce across ${group.stepIds.length} step(s)`,
-          severity: "success",
-        });
+        toast.success(`Set ${material.typeName} to Produce across ${group.stepIds.length} step(s)`);
       }
       onUpdate();
     } catch (err) {
       console.error("Failed to toggle produce:", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to toggle produce/buy",
-        severity: "error",
-      });
+      toast.error("Failed to toggle produce/buy");
     } finally {
       setTogglingMaterial(null);
     }
@@ -284,7 +278,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
     const key = groupKey(group);
     setTogglingAllGroup(key);
     try {
-      // Ensure materials are loaded
       let mats = groupMaterials[key];
       if (!mats) {
         const firstStep = group.steps[0];
@@ -300,7 +293,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
         setGroupMaterials((prev) => ({ ...prev, [key]: mats! }));
       }
 
-      // For each material with a blueprint, create child steps where missing
       const buildableMats = mats.filter((m) => m.hasBlueprint);
       let created = 0;
       for (const mat of buildableMats) {
@@ -321,15 +313,11 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
           }
         }
       }
-      setSnackbar({
-        open: true,
-        message: `Set all to Build: created ${created} step(s) across ${group.stepIds.length} ${group.productName} step(s)`,
-        severity: "success",
-      });
+      toast.success(`Set all to Build: created ${created} step(s) across ${group.stepIds.length} ${group.productName} step(s)`);
       onUpdate();
     } catch (err) {
       console.error("Failed to set all to build:", err);
-      setSnackbar({ open: true, message: "Failed to set all to build", severity: "error" });
+      toast.error("Failed to set all to build");
     } finally {
       setTogglingAllGroup(null);
     }
@@ -339,7 +327,6 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
     const key = groupKey(group);
     setTogglingAllGroup(key);
     try {
-      // Find all child steps belonging to this group's steps
       const childSteps = steps.filter(
         (s) => s.parentStepId && group.stepIds.includes(s.parentStepId),
       );
@@ -348,15 +335,11 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
           method: "DELETE",
         });
       }
-      setSnackbar({
-        open: true,
-        message: `Set all to Buy: removed ${childSteps.length} step(s) from ${group.stepIds.length} ${group.productName} step(s)`,
-        severity: "success",
-      });
+      toast.success(`Set all to Buy: removed ${childSteps.length} step(s) from ${group.stepIds.length} ${group.productName} step(s)`);
       onUpdate();
     } catch (err) {
       console.error("Failed to set all to buy:", err);
-      setSnackbar({ open: true, message: "Failed to set all to buy", severity: "error" });
+      toast.error("Failed to set all to buy");
     } finally {
       setTogglingAllGroup(null);
     }
@@ -366,16 +349,13 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
     const key = groupKey(group);
     setApplyingBlueprintGroup(key);
     try {
-      // Collect unique blueprint type IDs for this group's steps
       const blueprintTypeIds = [...new Set(group.steps.map((s) => s.blueprintTypeId))];
 
-      // Find which ones have detected levels
       let updatedCount = 0;
       for (const blueprintTypeId of blueprintTypeIds) {
         const detected = detectedLevels[blueprintTypeId];
         if (!detected) continue;
 
-        // Find steps with this blueprint type id
         const matchingStepIds = group.steps
           .filter((s) => s.blueprintTypeId === blueprintTypeId)
           .map((s) => s.id);
@@ -398,25 +378,13 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
 
       if (updatedCount > 0) {
         onUpdate();
-        setSnackbar({
-          open: true,
-          message: `Applied detected ME/TE to ${updatedCount} step(s)`,
-          severity: "success",
-        });
+        toast.success(`Applied detected ME/TE to ${updatedCount} step(s)`);
       } else {
-        setSnackbar({
-          open: true,
-          message: "No detected blueprint levels found for this group",
-          severity: "error",
-        });
+        toast.error("No detected blueprint levels found for this group");
       }
     } catch (err) {
       console.error("Failed to apply blueprint levels:", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to apply blueprint levels",
-        severity: "error",
-      });
+      toast.error("Failed to apply blueprint levels");
     } finally {
       setApplyingBlueprintGroup(null);
     }
@@ -435,447 +403,315 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
       if (res.ok) {
         setEditGroup(null);
         onUpdate();
-        setSnackbar({
-          open: true,
-          message: `Updated ${group.stepIds.length} ${group.productName} step(s)`,
-          severity: "success",
-        });
+        toast.success(`Updated ${group.stepIds.length} ${group.productName} step(s)`);
       } else {
-        setSnackbar({
-          open: true,
-          message: "Failed to update steps",
-          severity: "error",
-        });
+        toast.error("Failed to update steps");
       }
     } catch (err) {
       console.error("Failed to batch update steps:", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to update steps",
-        severity: "error",
-      });
+      toast.error("Failed to update steps");
     }
   };
 
   if (steps.length === 0) {
     return (
-      <Box sx={{ textAlign: "center", py: 4 }}>
-        <Typography sx={{ color: "#64748b" }}>No steps in this plan</Typography>
-      </Box>
+      <div className="text-center py-4">
+        <p className="text-[#64748b]">No steps in this plan</p>
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Typography sx={{ color: "#94a3b8", fontSize: 13, mb: 2 }}>
-        Steps producing the same item are grouped together. Edit a group to configure all instances at once. Expand a group to toggle materials between buy and produce.
-      </Typography>
+    <TooltipProvider>
+      <div>
+        <p className="text-[#94a3b8] text-[13px] mb-2">
+          Steps producing the same item are grouped together. Edit a group to configure all instances at once. Expand a group to toggle materials between buy and produce.
+        </p>
 
-      <TableContainer component={Paper} sx={{ backgroundColor: "#12151f" }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1219" }}>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                Product
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                Activity
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="center">
-                Count
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="center">
-                Build / Buy
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                ME / TE
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                Structure / Rig / Sec
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                Station
-              </TableCell>
-              <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="center">
-                Actions
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {groups.map((group) => {
-              const key = groupKey(group);
-              const isExpanded = expandedGroups.has(key);
-              const materials = groupMaterials[key] || [];
-              const isLoadingMats = loadingMaterials.has(key);
+        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[#0f1219]">
+                <TableHead>Product</TableHead>
+                <TableHead>Activity</TableHead>
+                <TableHead className="text-center">Count</TableHead>
+                <TableHead className="text-center">Build / Buy</TableHead>
+                <TableHead>ME / TE</TableHead>
+                <TableHead>Structure / Rig / Sec</TableHead>
+                <TableHead>Station</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {groups.map((group) => {
+                const key = groupKey(group);
+                const isExpanded = expandedGroups.has(key);
+                const materials = groupMaterials[key] || [];
+                const isLoadingMats = loadingMaterials.has(key);
 
-              // Count distinct produced material types across all steps in this group
-              const childTypeIds = new Set<number>();
-              for (const step of group.steps) {
-                for (const s of steps) {
-                  if (s.parentStepId === step.id) {
-                    childTypeIds.add(s.productTypeId);
+                const childTypeIds = new Set<number>();
+                for (const step of group.steps) {
+                  for (const s of steps) {
+                    if (s.parentStepId === step.id) {
+                      childTypeIds.add(s.productTypeId);
+                    }
                   }
                 }
-              }
-              const buildCount = childTypeIds.size;
+                const buildCount = childTypeIds.size;
 
-              // Buy count: from loaded materials, count buildable materials not being produced
-              const loadedMats = groupMaterials[key];
-              const buyCount = loadedMats
-                ? loadedMats.filter((m) => m.hasBlueprint && !childTypeIds.has(m.typeId)).length
-                : null; // null means materials not yet loaded
+                const loadedMats = groupMaterials[key];
+                const buyCount = loadedMats
+                  ? loadedMats.filter((m) => m.hasBlueprint && !childTypeIds.has(m.typeId)).length
+                  : null;
 
-              return [
-                <TableRow
-                  key={key}
-                  sx={{
-                    backgroundColor: "#12151f",
-                    "&:hover": { backgroundColor: "#1e2235" },
-                  }}
-                >
-                  <TableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                      <IconButton
-                        size="small"
-                        onClick={() => toggleExpand(group)}
-                        sx={{ color: "#94a3b8" }}
+                return [
+                  <TableRow
+                    key={key}
+                    className="bg-[#12151f] hover:bg-[#1e2235]"
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-1">
+                        <button
+                          className="p-0.5 rounded text-[#94a3b8] hover:bg-[rgba(148,163,184,0.1)]"
+                          onClick={() => toggleExpand(group)}
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" data-testid="ExpandMoreIcon" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" data-testid="ChevronRightIcon" />
+                          )}
+                        </button>
+                        <img
+                          src={`https://images.evetech.net/types/${group.productTypeId}/icon?size=32`}
+                          alt=""
+                          width={24}
+                          height={24}
+                          className="rounded-sm"
+                        />
+                        <span className="text-[#e2e8f0] text-sm">
+                          {group.productName}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        className={`h-5 text-[11px] cursor-default ${
+                          group.activity === "manufacturing"
+                            ? "bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f]"
+                            : "bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
+                        }`}
                       >
-                        {isExpanded ? (
-                          <ExpandMoreIcon fontSize="small" />
-                        ) : (
-                          <ChevronRightIcon fontSize="small" />
-                        )}
-                      </IconButton>
-                      <img
-                        src={`https://images.evetech.net/types/${group.productTypeId}/icon?size=32`}
-                        alt=""
-                        width={24}
-                        height={24}
-                        style={{ borderRadius: 2 }}
-                      />
-                      <Typography sx={{ color: "#e2e8f0", fontSize: 14 }}>
-                        {group.productName}
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={group.activity}
-                      size="small"
-                      sx={{
-                        height: 20,
-                        fontSize: 11,
-                        backgroundColor:
-                          group.activity === "manufacturing" ? "#1e3a5f" : "#3a1e5f",
-                        color:
-                          group.activity === "manufacturing" ? "#60a5fa" : "#a78bfa",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Chip
-                      label={group.stepIds.length}
-                      size="small"
-                      sx={{
-                        height: 20,
-                        fontSize: 11,
-                        backgroundColor: "#1e293b",
-                        color: "#94a3b8",
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    {togglingAllGroup === key ? (
-                      <CircularProgress size={16} sx={{ color: "#64748b" }} />
-                    ) : (
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0.5, flexWrap: "wrap" }}>
-                        <Chip
-                          icon={<BuildIcon sx={{ fontSize: "14px !important" }} />}
-                          label={buildCount}
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: 11,
-                            backgroundColor: buildCount > 0 ? "#1e3a5f" : "#1e293b",
-                            color: buildCount > 0 ? "#60a5fa" : "#475569",
-                            "& .MuiChip-icon": { color: buildCount > 0 ? "#60a5fa" : "#475569" },
-                          }}
-                        />
-                        <Chip
-                          icon={<ShoppingCartIcon sx={{ fontSize: "14px !important" }} />}
-                          label={buyCount ?? "?"}
-                          size="small"
-                          sx={{
-                            height: 20,
-                            fontSize: 11,
-                            backgroundColor: buyCount && buyCount > 0 ? "#1e293b" : "#1e293b",
-                            color: buyCount && buyCount > 0 ? "#94a3b8" : "#475569",
-                            "& .MuiChip-icon": { color: buyCount && buyCount > 0 ? "#94a3b8" : "#475569" },
-                          }}
-                        />
-                        <Tooltip title="Set all materials to Build">
-                          <span>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSetAllBuild(group)}
-                              disabled={buyCount === 0}
-                              sx={{ color: buyCount && buyCount > 0 ? "#10b981" : "#334155", p: 0.25 }}
-                            >
-                              <BuildIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                        <Tooltip title="Set all materials to Buy">
-                          <span>
-                            <IconButton
-                              size="small"
-                              onClick={() => handleSetAllBuy(group)}
-                              disabled={buildCount === 0}
-                              sx={{ color: buildCount > 0 ? "#ef4444" : "#334155", p: 0.25 }}
-                            >
-                              <ShoppingCartIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
-                    {group.meLevel === "mixed" ? (
-                      <Chip label="Mixed" size="small" sx={{ height: 18, fontSize: 10, backgroundColor: "#422006", color: "#f59e0b" }} />
-                    ) : (
-                      `ME ${group.meLevel}`
-                    )}
-                    {" / "}
-                    {group.teLevel === "mixed" ? (
-                      <Chip label="Mixed" size="small" sx={{ height: 18, fontSize: 10, backgroundColor: "#422006", color: "#f59e0b" }} />
-                    ) : (
-                      `TE ${group.teLevel}`
-                    )}
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
-                    {group.structure === "mixed" ? (
-                      <Chip label="Mixed" size="small" sx={{ height: 18, fontSize: 10, backgroundColor: "#422006", color: "#f59e0b" }} />
-                    ) : (
-                      group.structure
-                    )}
-                    {" / "}
-                    {group.rig === "mixed" ? (
-                      <Chip label="Mixed" size="small" sx={{ height: 18, fontSize: 10, backgroundColor: "#422006", color: "#f59e0b" }} />
-                    ) : (
-                      group.rig
-                    )}
-                    {" / "}
-                    {group.security === "mixed" ? (
-                      <Chip label="Mixed" size="small" sx={{ height: 18, fontSize: 10, backgroundColor: "#422006", color: "#f59e0b" }} />
-                    ) : (
-                      group.security
-                    )}
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
-                    {group.stationName === "mixed" ? (
-                      <Chip label="Mixed" size="small" sx={{ height: 18, fontSize: 10, backgroundColor: "#422006", color: "#f59e0b" }} />
-                    ) : (
-                      group.stationName || "—"
-                    )}
-                    {group.inputLocation === "mixed" ? (
-                      <Typography component="span" sx={{ color: "#64748b", fontSize: 11, display: "block" }}>
-                        In: <Chip label="Mixed" size="small" sx={{ height: 16, fontSize: 9, backgroundColor: "#422006", color: "#f59e0b" }} />
-                      </Typography>
-                    ) : group.inputLocation ? (
-                      <Typography sx={{ color: "#64748b", fontSize: 11 }}>
-                        In: {group.inputLocation}
-                      </Typography>
-                    ) : null}
-                    {group.outputLocation === "mixed" ? (
-                      <Typography component="span" sx={{ color: "#64748b", fontSize: 11, display: "block" }}>
-                        Out: <Chip label="Mixed" size="small" sx={{ height: 16, fontSize: 9, backgroundColor: "#422006", color: "#f59e0b" }} />
-                      </Typography>
-                    ) : group.outputLocation ? (
-                      <Typography sx={{ color: "#64748b", fontSize: 11 }}>
-                        Out: {group.outputLocation}
-                      </Typography>
-                    ) : null}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
-                      {(() => {
-                        const hasDetected = group.steps.some((s) => !!detectedLevels[s.blueprintTypeId]);
-                        return (
-                          <Tooltip title="Apply detected ME/TE from blueprints">
-                            <span>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleApplyBlueprintLevels(group)}
-                                disabled={!hasDetected || applyingBlueprintGroup === groupKey(group)}
-                                sx={{ color: hasDetected ? "#10b981" : "#334155" }}
+                        {group.activity}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge className="h-5 text-[11px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b] cursor-default">
+                        {group.stepIds.length}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {togglingAllGroup === key ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-[#64748b] mx-auto" />
+                      ) : (
+                        <div className="flex items-center justify-center gap-1 flex-wrap">
+                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 ${buildCount > 0 ? "bg-[#1e3a5f] text-[#60a5fa]" : "bg-[#1e293b] text-[#475569]"} hover:bg-[#1e3a5f]`}>
+                            <Wrench className="h-3 w-3" data-testid="BuildIcon" />
+                            {buildCount}
+                          </Badge>
+                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] ${buyCount && buyCount > 0 ? "text-[#94a3b8]" : "text-[#475569]"} hover:bg-[#1e293b]`}>
+                            <ShoppingCart className="h-3 w-3" data-testid="ShoppingCartIcon" />
+                            {buyCount ?? "?"}
+                          </Badge>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                className={`p-0.5 rounded ${buyCount && buyCount > 0 ? "text-[#10b981] hover:bg-[rgba(16,185,129,0.1)]" : "text-[#334155]"}`}
+                                onClick={() => handleSetAllBuild(group)}
+                                disabled={buyCount === 0}
                               >
-                                <AutoFixHighIcon fontSize="small" />
-                              </IconButton>
-                            </span>
+                                <Wrench className="h-4 w-4" data-testid="BuildIcon" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Set all materials to Build</TooltipContent>
                           </Tooltip>
-                        );
-                      })()}
-                      <IconButton
-                        size="small"
-                        onClick={() => setEditGroup(group)}
-                        sx={{ color: "#00d4ff" }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
-                </TableRow>,
-                // Material rows when expanded
-                ...(isExpanded
-                  ? isLoadingMats
-                    ? [
-                        <TableRow key={`${key}-loading`}>
-                          <TableCell
-                            colSpan={8}
-                            sx={{ color: "#64748b", fontSize: 13, pl: 6 }}
-                          >
-                            Loading materials...
-                          </TableCell>
-                        </TableRow>,
-                      ]
-                    : materials.map((mat) => {
-                        const matToggleKey = `${key}:${mat.typeId}`;
-                        const isToggling = togglingMaterial === matToggleKey;
-                        return (
-                          <TableRow
-                            key={`${key}-mat-${mat.typeId}`}
-                            sx={{
-                              backgroundColor: "#0f1219",
-                              "&:hover": { backgroundColor: "#151825" },
-                            }}
-                          >
-                            <TableCell>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 0.5,
-                                  pl: 5,
-                                }}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                className={`p-0.5 rounded ${buildCount > 0 ? "text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]" : "text-[#334155]"}`}
+                                onClick={() => handleSetAllBuy(group)}
+                                disabled={buildCount === 0}
                               >
-                                <img
-                                  src={`https://images.evetech.net/types/${mat.typeId}/icon?size=32`}
-                                  alt=""
-                                  width={18}
-                                  height={18}
-                                  style={{ borderRadius: 2 }}
-                                />
-                                <Typography sx={{ color: "#cbd5e1", fontSize: 13 }}>
-                                  {mat.typeName}
-                                </Typography>
-                                <Typography
-                                  sx={{ color: "#64748b", fontSize: 12, ml: 1 }}
+                                <ShoppingCart className="h-4 w-4" data-testid="ShoppingCartIcon" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>Set all materials to Buy</TooltipContent>
+                          </Tooltip>
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-[#94a3b8] text-[13px]">
+                      {group.meLevel === "mixed" ? <MixedBadge /> : `ME ${group.meLevel}`}
+                      {" / "}
+                      {group.teLevel === "mixed" ? <MixedBadge /> : `TE ${group.teLevel}`}
+                    </TableCell>
+                    <TableCell className="text-[#94a3b8] text-[13px]">
+                      {group.structure === "mixed" ? <MixedBadge /> : group.structure}
+                      {" / "}
+                      {group.rig === "mixed" ? <MixedBadge /> : group.rig}
+                      {" / "}
+                      {group.security === "mixed" ? <MixedBadge /> : group.security}
+                    </TableCell>
+                    <TableCell className="text-[#94a3b8] text-[13px]">
+                      {group.stationName === "mixed" ? <MixedBadge /> : (group.stationName || "\u2014")}
+                      {group.inputLocation === "mixed" ? (
+                        <span className="block text-[#64748b] text-[11px]">
+                          In: <MixedBadge />
+                        </span>
+                      ) : group.inputLocation ? (
+                        <span className="block text-[#64748b] text-[11px]">
+                          In: {group.inputLocation}
+                        </span>
+                      ) : null}
+                      {group.outputLocation === "mixed" ? (
+                        <span className="block text-[#64748b] text-[11px]">
+                          Out: <MixedBadge />
+                        </span>
+                      ) : group.outputLocation ? (
+                        <span className="block text-[#64748b] text-[11px]">
+                          Out: {group.outputLocation}
+                        </span>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex justify-center gap-1">
+                        {(() => {
+                          const hasDetected = group.steps.some((s) => !!detectedLevels[s.blueprintTypeId]);
+                          return (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  className={`p-1 rounded ${hasDetected ? "text-[#10b981] hover:bg-[rgba(16,185,129,0.1)]" : "text-[#334155]"}`}
+                                  onClick={() => handleApplyBlueprintLevels(group)}
+                                  disabled={!hasDetected || applyingBlueprintGroup === groupKey(group)}
                                 >
-                                  x{mat.quantity}
-                                </Typography>
-                                {mat.produceStatus === "all" ? (
-                                  <Chip
-                                    label="Produce"
-                                    size="small"
-                                    sx={{
-                                      ml: 1,
-                                      height: 18,
-                                      fontSize: 10,
-                                      backgroundColor: "#1e3a5f",
-                                      color: "#60a5fa",
-                                    }}
-                                  />
-                                ) : mat.produceStatus === "mixed" ? (
-                                  <Chip
-                                    label="Mixed"
-                                    size="small"
-                                    sx={{
-                                      ml: 1,
-                                      height: 18,
-                                      fontSize: 10,
-                                      backgroundColor: "#422006",
-                                      color: "#f59e0b",
-                                    }}
-                                  />
-                                ) : (
-                                  <Chip
-                                    label="Buy"
-                                    size="small"
-                                    variant="outlined"
-                                    sx={{
-                                      ml: 1,
-                                      height: 18,
-                                      fontSize: 10,
-                                      borderColor: "#334155",
-                                      color: "#64748b",
-                                    }}
-                                  />
-                                )}
-                              </Box>
+                                  <Sparkles className="h-4 w-4" data-testid="AutoFixHighIcon" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>Apply detected ME/TE from blueprints</TooltipContent>
+                            </Tooltip>
+                          );
+                        })()}
+                        <button
+                          className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+                          onClick={() => setEditGroup(group)}
+                        >
+                          <Pencil className="h-4 w-4" data-testid="EditIcon" />
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>,
+                  // Material rows when expanded
+                  ...(isExpanded
+                    ? isLoadingMats
+                      ? [
+                          <TableRow key={`${key}-loading`}>
+                            <TableCell
+                              colSpan={8}
+                              className="text-[#64748b] text-[13px] pl-10"
+                            >
+                              Loading materials...
                             </TableCell>
-                            <TableCell />
-                            <TableCell />
-                            <TableCell />
-                            <TableCell />
-                            <TableCell />
-                            <TableCell />
-                            <TableCell align="center">
-                              {mat.hasBlueprint && (
-                                <IconButton
-                                  size="small"
-                                  disabled={isToggling}
-                                  onClick={() => handleToggleProduce(group, mat)}
-                                  sx={{
-                                    color:
-                                      mat.produceStatus === "none"
-                                        ? "#10b981"
-                                        : "#ef4444",
-                                  }}
-                                  title={
-                                    mat.produceStatus === "none"
-                                      ? "Switch all to Produce"
-                                      : "Switch all to Buy"
-                                  }
-                                >
-                                  {mat.produceStatus === "none" ? (
-                                    <BuildIcon fontSize="small" />
+                          </TableRow>,
+                        ]
+                      : materials.map((mat) => {
+                          const matToggleKey = `${key}:${mat.typeId}`;
+                          const isToggling = togglingMaterial === matToggleKey;
+                          return (
+                            <TableRow
+                              key={`${key}-mat-${mat.typeId}`}
+                              className="bg-[#0f1219] hover:bg-[#151825]"
+                            >
+                              <TableCell>
+                                <div className="flex items-center gap-1 pl-10">
+                                  <img
+                                    src={`https://images.evetech.net/types/${mat.typeId}/icon?size=32`}
+                                    alt=""
+                                    width={18}
+                                    height={18}
+                                    className="rounded-sm"
+                                  />
+                                  <span className="text-[#cbd5e1] text-[13px]">
+                                    {mat.typeName}
+                                  </span>
+                                  <span className="text-[#64748b] text-xs ml-1">
+                                    x{mat.quantity}
+                                  </span>
+                                  {mat.produceStatus === "all" ? (
+                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f] cursor-default">
+                                      Produce
+                                    </Badge>
+                                  ) : mat.produceStatus === "mixed" ? (
+                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#422006] text-[#f59e0b] hover:bg-[#422006] cursor-default">
+                                      Mixed
+                                    </Badge>
                                   ) : (
-                                    <ShoppingCartIcon fontSize="small" />
+                                    <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-[#64748b] cursor-default">
+                                      Buy
+                                    </Badge>
                                   )}
-                                </IconButton>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                  : []),
-              ];
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+                                </div>
+                              </TableCell>
+                              <TableCell />
+                              <TableCell />
+                              <TableCell />
+                              <TableCell />
+                              <TableCell />
+                              <TableCell />
+                              <TableCell className="text-center">
+                                {mat.hasBlueprint && (
+                                  <button
+                                    className={`p-1 rounded hover:bg-[rgba(148,163,184,0.1)] ${
+                                      mat.produceStatus === "none"
+                                        ? "text-[#10b981]"
+                                        : "text-[#ef4444]"
+                                    }`}
+                                    disabled={isToggling}
+                                    onClick={() => handleToggleProduce(group, mat)}
+                                    title={
+                                      mat.produceStatus === "none"
+                                        ? "Switch all to Produce"
+                                        : "Switch all to Buy"
+                                    }
+                                  >
+                                    {mat.produceStatus === "none" ? (
+                                      <Wrench className="h-4 w-4" data-testid="BuildIcon" />
+                                    ) : (
+                                      <ShoppingCart className="h-4 w-4" data-testid="ShoppingCartIcon" />
+                                    )}
+                                  </button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                    : []),
+                ];
+              })}
+            </TableBody>
+          </Table>
+        </div>
 
-      {editGroup && (
-        <BatchEditStepDialog
-          group={editGroup}
-          open={!!editGroup}
-          onClose={() => setEditGroup(null)}
-          onSave={(updates) => handleSave(editGroup, updates)}
-          detectedLevel={detectedLevels[editGroup.steps[0]?.blueprintTypeId] ?? null}
-        />
-      )}
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-      >
-        <Alert severity={snackbar.severity} sx={{ width: "100%" }}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        {editGroup && (
+          <BatchEditStepDialog
+            group={editGroup}
+            open={!!editGroup}
+            onClose={() => setEditGroup(null)}
+            onSave={(updates) => handleSave(editGroup, updates)}
+            detectedLevel={detectedLevels[editGroup.steps[0]?.blueprintTypeId] ?? null}
+          />
+        )}
+      </div>
+    </TooltipProvider>
   );
 }
 
@@ -936,14 +772,12 @@ function BatchEditStepDialog({
   const [selectedUserStation, setSelectedUserStation] = useState<UserStation | null>(null);
   const [stationsLoaded, setStationsLoaded] = useState(false);
 
-  // Input location state
   const [hangarsData, setHangarsData] = useState<HangarsResponse | null>(null);
   const [hangarsLoaded, setHangarsLoaded] = useState(false);
   const [selectedOwner, setSelectedOwner] = useState<OwnerOption | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<DivisionOption | null>(null);
   const [selectedContainer, setSelectedContainer] = useState<ContainerOption | null>(null);
 
-  // Output location state
   const [selectedOutputOwner, setSelectedOutputOwner] = useState<OwnerOption | null>(null);
   const [selectedOutputDivision, setSelectedOutputDivision] = useState<DivisionOption | null>(null);
   const [selectedOutputContainer, setSelectedOutputContainer] = useState<ContainerOption | null>(null);
@@ -956,7 +790,6 @@ function BatchEditStepDialog({
         if (res.ok) {
           const data: UserStation[] = await res.json();
           setUserStations(data || []);
-          // Pre-select if first step references a station and all steps share the same one
           if (group.userStationId !== "mixed" && group.userStationId) {
             const match = (data || []).find((s) => s.id === group.userStationId);
             if (match) setSelectedUserStation(match);
@@ -971,7 +804,6 @@ function BatchEditStepDialog({
     fetchStations();
   }, [open, stationsLoaded, group]);
 
-  // Fetch hangars when station is selected
   const stationIdForHangars = selectedUserStation?.id;
   useEffect(() => {
     if (!open || !stationIdForHangars) {
@@ -997,7 +829,6 @@ function BatchEditStepDialog({
     fetchHangars();
   }, [open, stationIdForHangars]);
 
-  // Reset loaded state when dialog closes
   useEffect(() => {
     if (!open) {
       setStationsLoaded(false);
@@ -1013,7 +844,18 @@ function BatchEditStepDialog({
     }
   }, [open]);
 
-  const handleStationSelect = (station: UserStation | null) => {
+  const handleStationSelect = (stationId: string) => {
+    if (stationId === "none") {
+      setSelectedUserStation(null);
+      setSelectedOwner(null);
+      setSelectedDivision(null);
+      setSelectedContainer(null);
+      setSelectedOutputOwner(null);
+      setSelectedOutputDivision(null);
+      setSelectedOutputContainer(null);
+      return;
+    }
+    const station = userStations.find((s) => String(s.id) === stationId) || null;
     setSelectedUserStation(station);
     setSelectedOwner(null);
     setSelectedDivision(null);
@@ -1037,7 +879,6 @@ function BatchEditStepDialog({
     }
   };
 
-  // Build owner options from hangars data
   const ownerOptions: OwnerOption[] = [];
   if (hangarsData) {
     for (const char of hangarsData.characters) {
@@ -1048,7 +889,6 @@ function BatchEditStepDialog({
     }
   }
 
-  // Build division options for selected corporation
   const divisionOptions: DivisionOption[] = [];
   if (selectedOwner?.type === "corporation" && hangarsData) {
     const corp = hangarsData.corporations.find((c) => c.id === selectedOwner.id);
@@ -1060,7 +900,6 @@ function BatchEditStepDialog({
     }
   }
 
-  // Build container options filtered by selected owner/division
   const containerOptions: ContainerOption[] = [];
   if (selectedOwner && hangarsData) {
     for (const c of hangarsData.containers) {
@@ -1072,18 +911,30 @@ function BatchEditStepDialog({
     }
   }
 
-  const handleOwnerSelect = (owner: OwnerOption | null) => {
+  const handleOwnerSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedOwner(null);
+      setSelectedDivision(null);
+      setSelectedContainer(null);
+      return;
+    }
+    const owner = ownerOptions.find((o) => `${o.type}-${o.id}` === val) || null;
     setSelectedOwner(owner);
     setSelectedDivision(null);
     setSelectedContainer(null);
   };
 
-  const handleDivisionSelect = (division: DivisionOption | null) => {
+  const handleDivisionSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedDivision(null);
+      setSelectedContainer(null);
+      return;
+    }
+    const division = divisionOptions.find((d) => String(d.number) === val) || null;
     setSelectedDivision(division);
     setSelectedContainer(null);
   };
 
-  // Build output division options
   const outputDivisionOptions: DivisionOption[] = [];
   if (selectedOutputOwner?.type === "corporation" && hangarsData) {
     const corp = hangarsData.corporations.find((c) => c.id === selectedOutputOwner.id);
@@ -1095,7 +946,6 @@ function BatchEditStepDialog({
     }
   }
 
-  // Build output container options
   const outputContainerOptions: ContainerOption[] = [];
   if (selectedOutputOwner && hangarsData) {
     for (const c of hangarsData.containers) {
@@ -1107,18 +957,30 @@ function BatchEditStepDialog({
     }
   }
 
-  const handleOutputOwnerSelect = (owner: OwnerOption | null) => {
+  const handleOutputOwnerSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedOutputOwner(null);
+      setSelectedOutputDivision(null);
+      setSelectedOutputContainer(null);
+      return;
+    }
+    const owner = ownerOptions.find((o) => `${o.type}-${o.id}` === val) || null;
     setSelectedOutputOwner(owner);
     setSelectedOutputDivision(null);
     setSelectedOutputContainer(null);
   };
 
-  const handleOutputDivisionSelect = (division: DivisionOption | null) => {
+  const handleOutputDivisionSelect = (val: string) => {
+    if (val === "none") {
+      setSelectedOutputDivision(null);
+      setSelectedOutputContainer(null);
+      return;
+    }
+    const division = outputDivisionOptions.find((d) => String(d.number) === val) || null;
     setSelectedOutputDivision(division);
     setSelectedOutputContainer(null);
   };
 
-  // Filter stations to show those with matching activity
   const filteredStations = userStations.filter((s) =>
     firstStep.activity ? s.activities.includes(firstStep.activity) : true,
   );
@@ -1130,172 +992,157 @@ function BatchEditStepDialog({
     : null;
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{
-        sx: { backgroundColor: "#12151f", color: "#e2e8f0" },
-      }}
-    >
-      <DialogTitle>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <img
-            src={`https://images.evetech.net/types/${group.productTypeId}/icon?size=32`}
-            alt=""
-            width={24}
-            height={24}
-            style={{ borderRadius: 2 }}
-          />
-          Batch Edit: {group.productName}
-        </Box>
-      </DialogTitle>
-      <DialogContent>
-        <Alert severity="info" sx={{ mb: 2, mt: 1 }}>
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)] max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-[#e2e8f0] flex items-center gap-2">
+            <img
+              src={`https://images.evetech.net/types/${group.productTypeId}/icon?size=32`}
+              alt=""
+              width={24}
+              height={24}
+              className="rounded-sm"
+            />
+            Batch Edit: {group.productName}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="p-3 rounded bg-[rgba(0,140,255,0.08)] border border-[rgba(59,130,246,0.3)] text-[#93c5fd] text-sm mb-2">
           Changes will apply to all {group.stepIds.length} {group.productName} ({group.activity}) step(s).
-        </Alert>
+        </div>
 
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <div className="flex flex-col gap-3">
           {/* Preferred Station Selection */}
-          <Autocomplete
-            value={selectedUserStation}
-            onChange={(_, newValue) => handleStationSelect(newValue)}
-            options={filteredStations}
-            getOptionLabel={(option) =>
-              `${option.stationName || "Unknown"} (${option.solarSystemName || ""})`
-            }
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            renderOption={(props, option) => (
-              <Box component="li" {...props}>
-                <Box>
-                  <Typography variant="body2">
-                    {option.stationName || "Unknown"}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {option.solarSystemName} &middot; {option.structure} &middot;{" "}
-                    {option.activities.join(", ")}
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Preferred Station"
-                placeholder="Select a saved station or leave empty for manual config"
-              />
-            )}
-          />
+          <div>
+            <Label className="text-sm text-[#94a3b8] mb-1 block">Preferred Station</Label>
+            <Select
+              value={selectedUserStation ? String(selectedUserStation.id) : "none"}
+              onValueChange={handleStationSelect}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a saved station or leave empty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None (manual config)</SelectItem>
+                {filteredStations.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.stationName || "Unknown"} ({s.solarSystemName})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 2,
-            }}
-          >
-            <TextField
-              type="number"
-              label="ME Level"
-              value={meLevel}
-              onChange={(e) => setMeLevel(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 10 }}
-            />
-            <TextField
-              type="number"
-              label="TE Level"
-              value={teLevel}
-              onChange={(e) => setTeLevel(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 20 }}
-            />
-            <TextField
-              type="number"
-              label="Industry Skill"
-              value={industrySkill}
-              onChange={(e) => setIndustrySkill(parseInt(e.target.value) || 0)}
-              inputProps={{ min: 0, max: 5 }}
-            />
-            <TextField
-              type="number"
-              label="Adv. Industry Skill"
-              value={advIndustrySkill}
-              onChange={(e) =>
-                setAdvIndustrySkill(parseInt(e.target.value) || 0)
-              }
-              inputProps={{ min: 0, max: 5 }}
-            />
-            <FormControl fullWidth disabled={hasStation}>
-              <InputLabel>Structure</InputLabel>
-              <Select
-                value={structure}
-                label="Structure"
-                onChange={(e) => setStructure(e.target.value)}
-              >
-                <MenuItem value="station">Station</MenuItem>
-                <MenuItem value="raitaru">Raitaru</MenuItem>
-                <MenuItem value="azbel">Azbel</MenuItem>
-                <MenuItem value="sotiyo">Sotiyo</MenuItem>
-                <MenuItem value="athanor">Athanor</MenuItem>
-                <MenuItem value="tatara">Tatara</MenuItem>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="batch-me-level" className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
+              <Input
+                id="batch-me-level"
+                type="number"
+                value={meLevel}
+                onChange={(e) => setMeLevel(parseInt(e.target.value) || 0)}
+                min={0}
+                max={10}
+              />
+            </div>
+            <div>
+              <Label htmlFor="batch-te-level" className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
+              <Input
+                id="batch-te-level"
+                type="number"
+                value={teLevel}
+                onChange={(e) => setTeLevel(parseInt(e.target.value) || 0)}
+                min={0}
+                max={20}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Industry Skill</Label>
+              <Input
+                type="number"
+                value={industrySkill}
+                onChange={(e) => setIndustrySkill(parseInt(e.target.value) || 0)}
+                min={0}
+                max={5}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Adv. Industry Skill</Label>
+              <Input
+                type="number"
+                value={advIndustrySkill}
+                onChange={(e) => setAdvIndustrySkill(parseInt(e.target.value) || 0)}
+                min={0}
+                max={5}
+              />
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Structure</Label>
+              <Select value={structure} onValueChange={setStructure} disabled={hasStation}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="station">Station</SelectItem>
+                  <SelectItem value="raitaru">Raitaru</SelectItem>
+                  <SelectItem value="azbel">Azbel</SelectItem>
+                  <SelectItem value="sotiyo">Sotiyo</SelectItem>
+                  <SelectItem value="athanor">Athanor</SelectItem>
+                  <SelectItem value="tatara">Tatara</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-            <FormControl fullWidth disabled={hasStation}>
-              <InputLabel>Rig</InputLabel>
-              <Select
-                value={rig}
-                label="Rig"
-                onChange={(e) => setRig(e.target.value)}
-              >
-                <MenuItem value="none">None</MenuItem>
-                <MenuItem value="t1">T1</MenuItem>
-                <MenuItem value="t2">T2</MenuItem>
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Rig</Label>
+              <Select value={rig} onValueChange={setRig} disabled={hasStation}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="t1">T1</SelectItem>
+                  <SelectItem value="t2">T2</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-            <FormControl fullWidth disabled={hasStation}>
-              <InputLabel>Security</InputLabel>
-              <Select
-                value={security}
-                label="Security"
-                onChange={(e) => setSecurity(e.target.value)}
-              >
-                <MenuItem value="high">Highsec</MenuItem>
-                <MenuItem value="low">Lowsec</MenuItem>
-                <MenuItem value="null">Nullsec / WH</MenuItem>
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Security</Label>
+              <Select value={security} onValueChange={setSecurity} disabled={hasStation}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">Highsec</SelectItem>
+                  <SelectItem value="low">Lowsec</SelectItem>
+                  <SelectItem value="null">Nullsec / WH</SelectItem>
+                </SelectContent>
               </Select>
-            </FormControl>
-            <TextField
-              type="number"
-              label="Facility Tax %"
-              value={facilityTax}
-              onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
-              inputProps={{ min: 0, step: 0.1 }}
-              disabled={hasStation}
-            />
-            <TextField
-              label="Station Name"
-              value={stationName}
-              onChange={(e) => setStationName(e.target.value)}
-              placeholder="e.g. Jita 4-4 or player structure name"
-              sx={{ gridColumn: "1 / -1" }}
-              disabled={hasStation}
-            />
-          </Box>
+            </div>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Facility Tax %</Label>
+              <Input
+                type="number"
+                value={facilityTax}
+                onChange={(e) => setFacilityTax(parseFloat(e.target.value) || 0)}
+                min={0}
+                step={0.1}
+                disabled={hasStation}
+              />
+            </div>
+            <div className="col-span-2">
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Station Name</Label>
+              <Input
+                value={stationName}
+                onChange={(e) => setStationName(e.target.value)}
+                placeholder="e.g. Jita 4-4 or player structure name"
+                disabled={hasStation}
+              />
+            </div>
+          </div>
 
           {/* Detected Blueprint Info */}
           {detectedLevel && (
-            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-              <Chip
-                label={`Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`}
-                size="small"
-                color="info"
-                variant="outlined"
-                sx={{ fontSize: 11 }}
-              />
+            <div className="flex items-center gap-2 flex-wrap">
+              <Badge variant="outline" className="text-[11px] border-[#0ea5e9] text-[#38bdf8]">
+                Blueprint detected: ME {detectedLevel.materialEfficiency} / TE {detectedLevel.timeEfficiency} ({detectedLevel.ownerName}{detectedLevel.isCopy ? ", BPC" : ""})
+              </Badge>
               <Button
-                size="small"
-                variant="outlined"
-                sx={{ fontSize: 11, py: 0.25, px: 1, color: "#00d4ff", borderColor: "#00d4ff", minWidth: 0 }}
+                size="sm"
+                variant="outline"
+                className="text-[11px] py-0.5 px-2 h-auto text-[#00d4ff] border-[#00d4ff]"
                 onClick={() => {
                   setMeLevel(detectedLevel.materialEfficiency);
                   setTeLevel(detectedLevel.timeEfficiency);
@@ -1303,212 +1150,203 @@ function BatchEditStepDialog({
               >
                 Apply
               </Button>
-            </Box>
+            </div>
           )}
 
           {/* Input Location Section */}
           {hasStation && (
             <>
-              <Divider sx={{ borderColor: "#1e293b", mt: 1 }} />
-              <Typography sx={{ color: "#94a3b8", fontSize: 14, fontWeight: 600 }}>
-                Input Location
-              </Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 12 }}>
+              <Separator className="border-[#1e293b] mt-1" />
+              <p className="text-[#94a3b8] text-sm font-semibold">Input Location</p>
+              <p className="text-[#64748b] text-xs">
                 Where should materials for these steps be pulled from?
-              </Typography>
+              </p>
 
               {!hangarsLoaded ? (
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                  Loading hangars...
-                </Typography>
+                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
               ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Autocomplete
-                    value={selectedOwner}
-                    onChange={(_, newValue) => handleOwnerSelect(newValue)}
-                    options={ownerOptions}
-                    getOptionLabel={(option) =>
-                      `${option.name} (${option.type === "character" ? "Character" : "Corporation"})`
-                    }
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value.id && option.type === value.type
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Owner"
-                        placeholder="Select character or corporation"
-                        size="small"
-                      />
-                    )}
-                  />
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Select
+                      value={selectedOwner ? `${selectedOwner.type}-${selectedOwner.id}` : "none"}
+                      onValueChange={handleOwnerSelect}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select character or corporation" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {ownerOptions.map((o) => (
+                          <SelectItem key={`${o.type}-${o.id}`} value={`${o.type}-${o.id}`}>
+                            {o.name} ({o.type === "character" ? "Character" : "Corporation"})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {selectedOwner?.type === "corporation" && divisionOptions.length > 0 && (
-                    <Autocomplete
-                      value={selectedDivision}
-                      onChange={(_, newValue) => handleDivisionSelect(newValue)}
-                      options={divisionOptions}
-                      getOptionLabel={(option) => `${option.number}. ${option.name}`}
-                      isOptionEqualToValue={(option, value) =>
-                        option.number === value.number
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Hangar Division"
-                          placeholder="Select division"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Select
+                        value={selectedDivision ? String(selectedDivision.number) : "none"}
+                        onValueChange={handleDivisionSelect}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select division" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {divisionOptions.map((d) => (
+                            <SelectItem key={d.number} value={String(d.number)}>
+                              {d.number}. {d.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
 
                   {selectedOwner && (
-                    <Autocomplete
-                      value={selectedContainer}
-                      onChange={(_, newValue) => setSelectedContainer(newValue)}
-                      options={containerOptions}
-                      getOptionLabel={(option) => option.name}
-                      isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                      }
-                      noOptionsText="No containers at this station"
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Container (optional)"
-                          placeholder="Select container or leave empty for hangar"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Select
+                        value={selectedContainer ? String(selectedContainer.id) : "none"}
+                        onValueChange={(val) => {
+                          if (val === "none") {
+                            setSelectedContainer(null);
+                          } else {
+                            const c = containerOptions.find((c) => String(c.id) === val);
+                            setSelectedContainer(c || null);
+                          }
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select container or leave empty" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None (hangar)</SelectItem>
+                          {containerOptions.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                </Box>
+                </div>
               )}
 
-              <Divider sx={{ borderColor: "#1e293b", mt: 1 }} />
-              <Typography sx={{ color: "#94a3b8", fontSize: 14, fontWeight: 600 }}>
-                Output Location
-              </Typography>
-              <Typography sx={{ color: "#64748b", fontSize: 12 }}>
+              <Separator className="border-[#1e293b] mt-1" />
+              <p className="text-[#94a3b8] text-sm font-semibold">Output Location</p>
+              <p className="text-[#64748b] text-xs">
                 Where should completed items from these jobs be delivered?
-              </Typography>
+              </p>
 
               {!hangarsLoaded ? (
-                <Typography sx={{ color: "#64748b", fontSize: 13 }}>
-                  Loading hangars...
-                </Typography>
+                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
               ) : (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <Autocomplete
-                    value={selectedOutputOwner}
-                    onChange={(_, newValue) => handleOutputOwnerSelect(newValue)}
-                    options={ownerOptions}
-                    getOptionLabel={(option) =>
-                      `${option.name} (${option.type === "character" ? "Character" : "Corporation"})`
-                    }
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value.id && option.type === value.type
-                    }
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Owner"
-                        placeholder="Select character or corporation"
-                        size="small"
-                      />
-                    )}
-                  />
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Select
+                      value={selectedOutputOwner ? `${selectedOutputOwner.type}-${selectedOutputOwner.id}` : "none"}
+                      onValueChange={handleOutputOwnerSelect}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Select character or corporation" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {ownerOptions.map((o) => (
+                          <SelectItem key={`out-${o.type}-${o.id}`} value={`${o.type}-${o.id}`}>
+                            {o.name} ({o.type === "character" ? "Character" : "Corporation"})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                   {selectedOutputOwner?.type === "corporation" && outputDivisionOptions.length > 0 && (
-                    <Autocomplete
-                      value={selectedOutputDivision}
-                      onChange={(_, newValue) => handleOutputDivisionSelect(newValue)}
-                      options={outputDivisionOptions}
-                      getOptionLabel={(option) => `${option.number}. ${option.name}`}
-                      isOptionEqualToValue={(option, value) =>
-                        option.number === value.number
-                      }
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Hangar Division"
-                          placeholder="Select division"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Select
+                        value={selectedOutputDivision ? String(selectedOutputDivision.number) : "none"}
+                        onValueChange={handleOutputDivisionSelect}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select division" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          {outputDivisionOptions.map((d) => (
+                            <SelectItem key={d.number} value={String(d.number)}>
+                              {d.number}. {d.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
 
                   {selectedOutputOwner && (
-                    <Autocomplete
-                      value={selectedOutputContainer}
-                      onChange={(_, newValue) => setSelectedOutputContainer(newValue)}
-                      options={outputContainerOptions}
-                      getOptionLabel={(option) => option.name}
-                      isOptionEqualToValue={(option, value) =>
-                        option.id === value.id
-                      }
-                      noOptionsText="No containers at this station"
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          label="Container (optional)"
-                          placeholder="Select container or leave empty for hangar"
-                          size="small"
-                        />
-                      )}
-                    />
+                    <div>
+                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Select
+                        value={selectedOutputContainer ? String(selectedOutputContainer.id) : "none"}
+                        onValueChange={(val) => {
+                          if (val === "none") {
+                            setSelectedOutputContainer(null);
+                          } else {
+                            const c = outputContainerOptions.find((c) => String(c.id) === val);
+                            setSelectedOutputContainer(c || null);
+                          }
+                        }}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select container or leave empty" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None (hangar)</SelectItem>
+                          {outputContainerOptions.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   )}
-                </Box>
+                </div>
               )}
             </>
           )}
-        </Box>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() =>
+              onSave({
+                me_level: meLevel,
+                te_level: teLevel,
+                industry_skill: industrySkill,
+                adv_industry_skill: advIndustrySkill,
+                structure,
+                rig,
+                security,
+                facility_tax: facilityTax,
+                station_name: stationName || null,
+                user_station_id: selectedUserStation?.id || null,
+                source_owner_type: selectedOwner?.type || null,
+                source_owner_id: selectedOwner?.id || null,
+                source_division_number:
+                  selectedOwner?.type === "corporation"
+                    ? selectedDivision?.number ?? null
+                    : null,
+                source_container_id: selectedContainer?.id || null,
+                source_location_id: resolvedSourceLocationId,
+                output_owner_type: selectedOutputOwner?.type || null,
+                output_owner_id: selectedOutputOwner?.id || null,
+                output_division_number:
+                  selectedOutputOwner?.type === "corporation"
+                    ? selectedOutputDivision?.number ?? null
+                    : null,
+                output_container_id: selectedOutputContainer?.id || null,
+              })
+            }
+          >
+            Save ({group.stepIds.length} steps)
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={() =>
-            onSave({
-              me_level: meLevel,
-              te_level: teLevel,
-              industry_skill: industrySkill,
-              adv_industry_skill: advIndustrySkill,
-              structure,
-              rig,
-              security,
-              facility_tax: facilityTax,
-              station_name: stationName || null,
-              user_station_id: selectedUserStation?.id || null,
-              source_owner_type: selectedOwner?.type || null,
-              source_owner_id: selectedOwner?.id || null,
-              source_division_number:
-                selectedOwner?.type === "corporation"
-                  ? selectedDivision?.number ?? null
-                  : null,
-              source_container_id: selectedContainer?.id || null,
-              source_location_id: resolvedSourceLocationId,
-              output_owner_type: selectedOutputOwner?.type || null,
-              output_owner_id: selectedOutputOwner?.id || null,
-              output_division_number:
-                selectedOutputOwner?.type === "corporation"
-                  ? selectedOutputDivision?.number ?? null
-                  : null,
-              output_container_id: selectedOutputContainer?.id || null,
-            })
-          }
-          variant="contained"
-          sx={{
-            backgroundColor: "#00d4ff",
-            "&:hover": { backgroundColor: "#2563eb" },
-          }}
-        >
-          Save ({group.stepIds.length} steps)
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }

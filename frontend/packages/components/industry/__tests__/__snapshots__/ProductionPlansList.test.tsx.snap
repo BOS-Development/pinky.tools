@@ -8,36 +8,39 @@ exports[`ProductionPlansList Component should match snapshot while loading 1`] =
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthXl css-lkiw04-MuiContainer-root"
+    class="px-4 mt-2 mb-4"
   >
     <div
-      class="MuiBox-root css-1kw3y0a"
+      class="flex justify-between items-center mb-2"
     >
-      <h5
-        class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+      <h2
+        class="text-xl font-semibold text-[#e2e8f0]"
       >
         Production Plans
-      </h5>
+      </h2>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-3ujgny-MuiButtonBase-root-MuiButton-root"
-        tabindex="0"
-        type="button"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-1"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         New Plan
       </button>
     </div>
@@ -58,45 +61,47 @@ exports[`ProductionPlansList Component should match snapshot with empty plans 1`
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthXl css-lkiw04-MuiContainer-root"
+    class="px-4 mt-2 mb-4"
   >
     <div
-      class="MuiBox-root css-1kw3y0a"
+      class="flex justify-between items-center mb-2"
     >
-      <h5
-        class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+      <h2
+        class="text-xl font-semibold text-[#e2e8f0]"
       >
         Production Plans
-      </h5>
+      </h2>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-3ujgny-MuiButtonBase-root-MuiButton-root"
-        tabindex="0"
-        type="button"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-1"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         New Plan
       </button>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 css-57it44-MuiPaper-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center"
     >
       <p
-        class="MuiTypography-root MuiTypography-body1 css-1p2qead-MuiTypography-root"
+        class="text-[#64748b]"
       >
         No production plans yet. Create one to define how items should be produced.
       </p>
@@ -113,243 +118,296 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthXl css-lkiw04-MuiContainer-root"
+    class="px-4 mt-2 mb-4"
   >
     <div
-      class="MuiBox-root css-1kw3y0a"
+      class="flex justify-between items-center mb-2"
     >
-      <h5
-        class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+      <h2
+        class="text-xl font-semibold text-[#e2e8f0]"
       >
         Production Plans
-      </h5>
+      </h2>
       <button
-        class="MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-colorPrimary css-3ujgny-MuiButtonBase-root-MuiButton-root"
-        tabindex="0"
-        type="button"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-9 px-4 py-2"
       >
-        <span
-          class="MuiButton-icon MuiButton-startIcon MuiButton-iconSizeMedium css-1sh91j5-MuiButton-startIcon"
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-plus h-4 w-4 mr-1"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            aria-hidden="true"
-            class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1umw9bq-MuiSvgIcon-root"
-            data-testid="AddIcon"
-            focusable="false"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"
-            />
-          </svg>
-        </span>
+          <path
+            d="M5 12h14"
+          />
+          <path
+            d="M12 5v14"
+          />
+        </svg>
         New Plan
       </button>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiTableContainer-root css-s09dh4-MuiPaper-root-MuiTableContainer-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
     >
-      <table
-        class="MuiTable-root css-1xwxv7r-MuiTable-root"
+      <div
+        class="relative w-full overflow-auto"
       >
-        <thead
-          class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+        <table
+          class="w-full caption-bottom text-sm"
         >
-          <tr
-            class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+          <thead
+            class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
           >
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
+            <tr
+              class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
             >
-              Product
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
-            >
-              Plan Name
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-              scope="col"
-            >
-              Steps
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
-            >
-              Created
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
-              scope="col"
-            >
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody
-          class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-        >
-          <tr
-            class="MuiTableRow-root css-13pprm5-MuiTableRow-root"
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Product
+              </th>
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Plan Name
+              </th>
+              <th
+                class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+              >
+                Steps
+              </th>
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Created
+              </th>
+              <th
+                class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="[&_tr:last-child]:border-0"
           >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            <tr
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#12151f] hover:bg-[#1a1d2e] cursor-pointer"
             >
-              <div
-                class="MuiBox-root css-axw7ok"
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
               >
-                <img
-                  alt=""
-                  height="24"
-                  src="https://images.evetech.net/types/587/icon?size=32"
-                  style="border-radius: 2px;"
-                  width="24"
-                />
-                <p
-                  class="MuiTypography-root MuiTypography-body1 css-28s2xz-MuiTypography-root"
+                <div
+                  class="flex items-center gap-1"
                 >
-                  Rifter
-                </p>
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1akr5kn-MuiTableCell-root"
-            >
-              Rifter Production
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-1aqdq1-MuiTableCell-root"
-            >
-              1
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-hfnm0i-MuiTableCell-root"
-            >
-              2/22/2026
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
-                tabindex="0"
-                type="button"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                  data-testid="EditIcon"
-                  focusable="false"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
+                  <img
+                    alt=""
+                    class="rounded-sm"
+                    height="24"
+                    src="https://images.evetech.net/types/587/icon?size=32"
+                    width="24"
                   />
-                </svg>
-              </button>
-              <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
-                tabindex="0"
-                type="button"
+                  <span
+                    class="text-[#e2e8f0] text-sm"
+                  >
+                    Rifter
+                  </span>
+                </div>
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#cbd5e1] text-sm"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                  data-testid="DeleteIcon"
-                  focusable="false"
-                  viewBox="0 0 24 24"
+                Rifter Production
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#cbd5e1] text-sm"
+              >
+                1
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#64748b] text-[13px]"
+              >
+                2/22/2026
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+              >
+                <button
+                  aria-label="Edit"
+                  class="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
                 >
-                  <path
-                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-pencil h-4 w-4"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                    />
+                    <path
+                      d="m15 5 4 4"
+                    />
+                  </svg>
+                </button>
+                <button
+                  aria-label="Delete"
+                  class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-trash2 lucide-trash-2 h-4 w-4"
+                    data-testid="DeleteIcon"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10 11v6"
+                    />
+                    <path
+                      d="M14 11v6"
+                    />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                    />
+                    <path
+                      d="M3 6h18"
+                    />
+                    <path
+                      d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                    />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#1a1d2e] cursor-pointer"
+            >
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                <div
+                  class="flex items-center gap-1"
+                >
+                  <img
+                    alt=""
+                    class="rounded-sm"
+                    height="24"
+                    src="https://images.evetech.net/types/11379/icon?size=32"
+                    width="24"
                   />
-                </svg>
-              </button>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root css-e5f821-MuiTableRow-root"
-          >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-            >
-              <div
-                class="MuiBox-root css-axw7ok"
+                  <span
+                    class="text-[#e2e8f0] text-sm"
+                  >
+                    Muninn
+                  </span>
+                </div>
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#cbd5e1] text-sm"
               >
-                <img
-                  alt=""
-                  height="24"
-                  src="https://images.evetech.net/types/11379/icon?size=32"
-                  style="border-radius: 2px;"
-                  width="24"
-                />
-                <p
-                  class="MuiTypography-root MuiTypography-body1 css-28s2xz-MuiTypography-root"
-                >
-                  Muninn
-                </p>
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1akr5kn-MuiTableCell-root"
-            >
-              Muninn Production
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-1aqdq1-MuiTableCell-root"
-            >
-              2
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-hfnm0i-MuiTableCell-root"
-            >
-              2/22/2026
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-pl5je7-MuiButtonBase-root-MuiIconButton-root"
-                tabindex="0"
-                type="button"
+                Muninn Production
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#cbd5e1] text-sm"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                  data-testid="EditIcon"
-                  focusable="false"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75z"
-                  />
-                </svg>
-              </button>
-              <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
-                tabindex="0"
-                type="button"
+                2
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#64748b] text-[13px]"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                  data-testid="DeleteIcon"
-                  focusable="false"
-                  viewBox="0 0 24 24"
+                2/22/2026
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+              >
+                <button
+                  aria-label="Edit"
+                  class="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
                 >
-                  <path
-                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z"
-                  />
-                </svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-pencil h-4 w-4"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                    />
+                    <path
+                      d="m15 5 4 4"
+                    />
+                  </svg>
+                </button>
+                <button
+                  aria-label="Delete"
+                  class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-trash2 lucide-trash-2 h-4 w-4"
+                    data-testid="DeleteIcon"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M10 11v6"
+                    />
+                    <path
+                      d="M14 11v6"
+                    />
+                    <path
+                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                    />
+                    <path
+                      d="M3 6h18"
+                    />
+                    <path
+                      d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                    />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
