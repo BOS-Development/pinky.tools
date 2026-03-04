@@ -1,21 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Chip from '@mui/material/Chip';
+import { Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from '@/components/ui/sonner';
 import { formatISK } from '@industry-tool/utils/formatting';
 
 type JobSlotInterestRequest = {
@@ -51,24 +41,19 @@ const PRICING_UNIT_LABELS: Record<string, string> = {
   flat_fee: 'Flat Fee',
 };
 
-const STATUS_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  pending: { bg: 'rgba(245, 158, 11, 0.1)', border: 'rgba(245, 158, 11, 0.3)', text: '#f59e0b' },
-  accepted: { bg: 'rgba(16, 185, 129, 0.1)', border: 'rgba(16, 185, 129, 0.3)', text: '#10b981' },
-  declined: { bg: 'rgba(239, 68, 68, 0.1)', border: 'rgba(239, 68, 68, 0.3)', text: '#ef4444' },
-  withdrawn: { bg: 'rgba(107, 114, 128, 0.1)', border: 'rgba(107, 114, 128, 0.3)', text: '#6b7280' },
+const STATUS_CLASSES: Record<string, string> = {
+  pending: 'bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]',
+  accepted: 'bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981]',
+  declined: 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[#ef4444]',
+  withdrawn: 'bg-[rgba(107,114,128,0.1)] border-[rgba(107,114,128,0.3)] text-[#6b7280]',
 };
 
 export default function InterestRequests() {
   const { data: session } = useSession();
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tab, setTab] = useState('sent');
   const [sentRequests, setSentRequests] = useState<JobSlotInterestRequest[]>([]);
   const [receivedRequests, setReceivedRequests] = useState<JobSlotInterestRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
 
   useEffect(() => {
     if (session) {
@@ -100,166 +85,105 @@ export default function InterestRequests() {
     }
   };
 
-  const handleWithdraw = async (id: number) => {
-    if (!confirm('Are you sure you want to withdraw this interest request?')) return;
+  const handleStatusUpdate = async (id: number, status: string, actionLabel: string) => {
+    if (status !== 'accepted' && !confirm(`Are you sure you want to ${actionLabel.toLowerCase()} this interest request?`)) return;
 
     try {
       const response = await fetch(`/api/job-slots/interest/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'withdrawn' }),
+        body: JSON.stringify({ status }),
       });
 
       if (response.ok) {
-        setSnackbar({ open: true, message: 'Interest withdrawn', severity: 'success' });
+        toast.success(`Interest ${actionLabel.toLowerCase()}`);
         fetchRequests();
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to withdraw', severity: 'error' });
+        toast.error(error.error || `Failed to ${actionLabel.toLowerCase()}`);
       }
     } catch (error) {
-      console.error('Withdraw failed:', error);
-      setSnackbar({ open: true, message: 'Failed to withdraw', severity: 'error' });
-    }
-  };
-
-  const handleAccept = async (id: number) => {
-    try {
-      const response = await fetch(`/api/job-slots/interest/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'accepted' }),
-      });
-
-      if (response.ok) {
-        setSnackbar({ open: true, message: 'Interest accepted', severity: 'success' });
-        fetchRequests();
-      } else {
-        const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to accept', severity: 'error' });
-      }
-    } catch (error) {
-      console.error('Accept failed:', error);
-      setSnackbar({ open: true, message: 'Failed to accept', severity: 'error' });
-    }
-  };
-
-  const handleDecline = async (id: number) => {
-    if (!confirm('Are you sure you want to decline this interest request?')) return;
-
-    try {
-      const response = await fetch(`/api/job-slots/interest/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'declined' }),
-      });
-
-      if (response.ok) {
-        setSnackbar({ open: true, message: 'Interest declined', severity: 'success' });
-        fetchRequests();
-      } else {
-        const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to decline', severity: 'error' });
-      }
-    } catch (error) {
-      console.error('Decline failed:', error);
-      setSnackbar({ open: true, message: 'Failed to decline', severity: 'error' });
+      console.error(`${actionLabel} failed:`, error);
+      toast.error(`Failed to ${actionLabel.toLowerCase()}`);
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)} sx={{ mb: 3 }}>
-        <Tab label={`Sent (${sentRequests.length})`} />
-        <Tab label={`Received (${receivedRequests.length})`} />
-      </Tabs>
+    <div>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList className="mb-3">
+          <TabsTrigger value="sent">{`Sent (${sentRequests.length})`}</TabsTrigger>
+          <TabsTrigger value="received">{`Received (${receivedRequests.length})`}</TabsTrigger>
+        </TabsList>
 
-      {tabIndex === 0 && (
-        <>
+        <TabsContent value="sent">
           {sentRequests.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" color="text.secondary">
-                No sent interest requests
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+              <h3 className="text-lg font-semibold text-[#94a3b8]">No sent interest requests</h3>
+              <p className="text-sm text-[#64748b] mt-1">
                 Browse listings and express interest to get started.
-              </Typography>
-            </Paper>
+              </p>
+            </div>
           ) : (
-            <TableContainer component={Paper}>
+            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
               <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Owner</TableCell>
-                    <TableCell>Character</TableCell>
-                    <TableCell>Activity</TableCell>
-                    <TableCell align="right">Slots</TableCell>
-                    <TableCell align="right">Duration</TableCell>
-                    <TableCell align="right">Price</TableCell>
-                    <TableCell>Message</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell align="center">Action</TableCell>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219]">
+                    <TableHead>Owner</TableHead>
+                    <TableHead>Character</TableHead>
+                    <TableHead>Activity</TableHead>
+                    <TableHead className="text-right">Slots</TableHead>
+                    <TableHead className="text-right">Duration</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead>Message</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-center">Action</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {sentRequests.map((request) => (
-                    <TableRow key={request.id} hover>
-                      <TableCell>{request.listingOwnerName || '-'}</TableCell>
-                      <TableCell>{request.listingCharacterName || '-'}</TableCell>
+                    <TableRow key={request.id} className="hover:bg-[rgba(0,212,255,0.04)]">
+                      <TableCell className="text-[#e2e8f0]">{request.listingOwnerName || '-'}</TableCell>
+                      <TableCell className="text-[#e2e8f0]">{request.listingCharacterName || '-'}</TableCell>
                       <TableCell>
                         {request.listingActivityType && (
-                          <Chip
-                            label={ACTIVITY_LABELS[request.listingActivityType] || request.listingActivityType}
-                            size="small"
-                            sx={{
-                              background: 'rgba(0, 212, 255, 0.1)',
-                              borderColor: 'rgba(0, 212, 255, 0.3)',
-                              color: '#60a5fa',
-                            }}
-                          />
+                          <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                            {ACTIVITY_LABELS[request.listingActivityType] || request.listingActivityType}
+                          </Badge>
                         )}
                       </TableCell>
-                      <TableCell align="right">{request.slotsRequested}</TableCell>
-                      <TableCell align="right">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
-                      <TableCell align="right">
+                      <TableCell className="text-right text-[#e2e8f0]">{request.slotsRequested}</TableCell>
+                      <TableCell className="text-right text-[#94a3b8]">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
+                      <TableCell className="text-right text-[#94a3b8]">
                         {request.listingPriceAmount !== undefined && request.listingPricingUnit
                           ? `${formatISK(request.listingPriceAmount)} ${PRICING_UNIT_LABELS[request.listingPricingUnit] || request.listingPricingUnit}`
                           : '-'}
                       </TableCell>
                       <TableCell>
                         {request.message ? (
-                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                            {request.message}
-                          </Typography>
+                          <span className="text-xs text-[#94a3b8]">{request.message}</span>
                         ) : '-'}
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={request.status}
-                          size="small"
-                          sx={{
-                            background: STATUS_COLORS[request.status]?.bg || 'rgba(107, 114, 128, 0.1)',
-                            borderColor: STATUS_COLORS[request.status]?.border || 'rgba(107, 114, 128, 0.3)',
-                            color: STATUS_COLORS[request.status]?.text || '#6b7280',
-                            textTransform: 'capitalize',
-                          }}
-                        />
+                        <Badge className={`border capitalize cursor-default ${STATUS_CLASSES[request.status] || STATUS_CLASSES.withdrawn}`}>
+                          {request.status}
+                        </Badge>
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell className="text-center">
                         {request.status === 'pending' && (
                           <Button
-                            variant="outlined"
-                            size="small"
-                            color="error"
-                            onClick={() => handleWithdraw(request.id)}
+                            variant="outline"
+                            size="sm"
+                            className="text-[#ef4444] border-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                            onClick={() => handleStatusUpdate(request.id, 'withdrawn', 'Withdraw')}
                           >
                             Withdraw
                           </Button>
@@ -269,117 +193,82 @@ export default function InterestRequests() {
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           )}
-        </>
-      )}
+        </TabsContent>
 
-      {tabIndex === 1 && (
-        <>
+        <TabsContent value="received">
           {receivedRequests.length === 0 ? (
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Typography variant="h6" color="text.secondary">
-                No received interest requests
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+              <h3 className="text-lg font-semibold text-[#94a3b8]">No received interest requests</h3>
+              <p className="text-sm text-[#64748b] mt-1">
                 Create listings to receive interest requests.
-              </Typography>
-            </Paper>
+              </p>
+            </div>
           ) : (
-            <TableContainer component={Paper}>
+            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
               <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Requester</TableCell>
-                    <TableCell align="right">Slots</TableCell>
-                    <TableCell align="right">Duration</TableCell>
-                    <TableCell>Message</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell>Requested At</TableCell>
-                    <TableCell align="center">Actions</TableCell>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219]">
+                    <TableHead>Requester</TableHead>
+                    <TableHead className="text-right">Slots</TableHead>
+                    <TableHead className="text-right">Duration</TableHead>
+                    <TableHead>Message</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Requested At</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {receivedRequests.map((request) => (
-                    <TableRow key={request.id} hover>
+                    <TableRow key={request.id} className="hover:bg-[rgba(0,212,255,0.04)]">
                       <TableCell>
-                        <Chip
-                          label={request.requesterName}
-                          size="small"
-                          sx={{
-                            background: 'rgba(0, 212, 255, 0.1)',
-                            borderColor: 'rgba(0, 212, 255, 0.3)',
-                            color: '#60a5fa',
-                          }}
-                        />
+                        <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                          {request.requesterName}
+                        </Badge>
                       </TableCell>
-                      <TableCell align="right">{request.slotsRequested}</TableCell>
-                      <TableCell align="right">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
+                      <TableCell className="text-right text-[#e2e8f0]">{request.slotsRequested}</TableCell>
+                      <TableCell className="text-right text-[#94a3b8]">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
                       <TableCell>
                         {request.message ? (
-                          <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                            {request.message}
-                          </Typography>
+                          <span className="text-xs text-[#94a3b8]">{request.message}</span>
                         ) : '-'}
                       </TableCell>
                       <TableCell>
-                        <Chip
-                          label={request.status}
-                          size="small"
-                          sx={{
-                            background: STATUS_COLORS[request.status]?.bg || 'rgba(107, 114, 128, 0.1)',
-                            borderColor: STATUS_COLORS[request.status]?.border || 'rgba(107, 114, 128, 0.3)',
-                            color: STATUS_COLORS[request.status]?.text || '#6b7280',
-                            textTransform: 'capitalize',
-                          }}
-                        />
+                        <Badge className={`border capitalize cursor-default ${STATUS_CLASSES[request.status] || STATUS_CLASSES.withdrawn}`}>
+                          {request.status}
+                        </Badge>
                       </TableCell>
-                      <TableCell>{new Date(request.createdAt).toLocaleDateString()}</TableCell>
-                      <TableCell align="center">
+                      <TableCell className="text-[#94a3b8] text-sm">{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-center">
                         {request.status === 'pending' && (
-                          <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
+                          <div className="flex gap-1 justify-center">
                             <Button
-                              variant="contained"
-                              size="small"
-                              color="success"
-                              onClick={() => handleAccept(request.id)}
+                              size="sm"
+                              className="bg-[#10b981] hover:bg-[#059669]"
+                              onClick={() => handleStatusUpdate(request.id, 'accepted', 'Accept')}
                             >
                               Accept
                             </Button>
                             <Button
-                              variant="outlined"
-                              size="small"
-                              color="error"
-                              onClick={() => handleDecline(request.id)}
+                              variant="outline"
+                              size="sm"
+                              className="text-[#ef4444] border-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                              onClick={() => handleStatusUpdate(request.id, 'declined', 'Decline')}
                             >
                               Decline
                             </Button>
-                          </Box>
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           )}
-        </>
-      )}
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity || 'success'}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

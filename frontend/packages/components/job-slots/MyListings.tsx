@@ -1,32 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Chip from '@mui/material/Chip';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Loader2, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { toast } from '@/components/ui/sonner';
 import { formatISK } from '@industry-tool/utils/formatting';
 
 type JobSlotRentalListing = {
@@ -90,11 +72,6 @@ export default function MyListings() {
     pricingUnit: 'per_slot_day',
     locationName: '',
     notes: '',
-  });
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
   });
 
   useEffect(() => {
@@ -162,26 +139,23 @@ export default function MyListings() {
     if (!confirm('Are you sure you want to delete this listing?')) return;
 
     try {
-      const response = await fetch(`/api/job-slots/listings/${id}`, {
-        method: 'DELETE',
-      });
-
+      const response = await fetch(`/api/job-slots/listings/${id}`, { method: 'DELETE' });
       if (response.ok) {
-        setSnackbar({ open: true, message: 'Listing deleted successfully', severity: 'success' });
+        toast.success('Listing deleted successfully');
         fetchListings();
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to delete listing', severity: 'error' });
+        toast.error(error.error || 'Failed to delete listing');
       }
     } catch (error) {
       console.error('Delete failed:', error);
-      setSnackbar({ open: true, message: 'Failed to delete listing', severity: 'error' });
+      toast.error('Failed to delete listing');
     }
   };
 
   const handleSave = async () => {
     if (!formData.characterId || !formData.activityType || formData.slotsListed <= 0 || formData.priceAmount < 0) {
-      setSnackbar({ open: true, message: 'Please fill in all required fields', severity: 'error' });
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -205,16 +179,16 @@ export default function MyListings() {
 
       if (response.ok) {
         setDialogOpen(false);
-        setSnackbar({ open: true, message: selectedListing ? 'Listing updated' : 'Listing created', severity: 'success' });
+        toast.success(selectedListing ? 'Listing updated' : 'Listing created');
         fetchListings();
         fetchInventory();
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to save listing', severity: 'error' });
+        toast.error(error.error || 'Failed to save listing');
       }
     } catch (error) {
       console.error('Save failed:', error);
-      setSnackbar({ open: true, message: 'Failed to save listing', severity: 'error' });
+      toast.error('Failed to save listing');
     }
   };
 
@@ -236,194 +210,178 @@ export default function MyListings() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h5">My Slot Listings</Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreate}>
+    <div>
+      <div className="flex justify-between items-center mb-3">
+        <h2 className="text-xl font-semibold text-[#e2e8f0]">My Slot Listings</h2>
+        <Button onClick={handleCreate}>
+          <Plus className="h-4 w-4 mr-1" />
           Create Listing
         </Button>
-      </Box>
+      </div>
 
       {listings.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
-            No listings yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+          <h3 className="text-lg font-semibold text-[#94a3b8]">No listings yet</h3>
+          <p className="text-sm text-[#64748b] mt-1">
             Create your first listing to rent out idle job slots.
-          </Typography>
-        </Paper>
+          </p>
+        </div>
       ) : (
-        <TableContainer component={Paper}>
+        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Character</TableCell>
-                <TableCell>Activity</TableCell>
-                <TableCell align="right">Slots Listed</TableCell>
-                <TableCell align="right">Price</TableCell>
-                <TableCell>Pricing Unit</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell>Notes</TableCell>
-                <TableCell align="center">Actions</TableCell>
+            <TableHeader>
+              <TableRow className="bg-[#0f1219]">
+                <TableHead>Character</TableHead>
+                <TableHead>Activity</TableHead>
+                <TableHead className="text-right">Slots Listed</TableHead>
+                <TableHead className="text-right">Price</TableHead>
+                <TableHead>Pricing Unit</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {listings.map((listing) => (
-                <TableRow key={listing.id} hover>
-                  <TableCell>{listing.characterName}</TableCell>
+                <TableRow key={listing.id} className="hover:bg-[rgba(0,212,255,0.04)]">
+                  <TableCell className="text-[#e2e8f0]">{listing.characterName}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={ACTIVITY_LABELS[listing.activityType] || listing.activityType}
-                      size="small"
-                      sx={{
-                        background: 'rgba(0, 212, 255, 0.1)',
-                        borderColor: 'rgba(0, 212, 255, 0.3)',
-                        color: '#60a5fa',
-                      }}
-                    />
+                    <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                      {ACTIVITY_LABELS[listing.activityType] || listing.activityType}
+                    </Badge>
                   </TableCell>
-                  <TableCell align="right">{listing.slotsListed}</TableCell>
-                  <TableCell align="right">{formatISK(listing.priceAmount)}</TableCell>
-                  <TableCell>{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
-                  <TableCell>{listing.locationName || '-'}</TableCell>
-                  <TableCell>{listing.notes || '-'}</TableCell>
-                  <TableCell align="center">
-                    <IconButton size="small" color="primary" onClick={() => handleEdit(listing)} aria-label="Edit">
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" color="error" onClick={() => handleDelete(listing.id)} aria-label="Delete">
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                  <TableCell className="text-right text-[#e2e8f0]">{listing.slotsListed}</TableCell>
+                  <TableCell className="text-right text-[#e2e8f0]">{formatISK(listing.priceAmount)}</TableCell>
+                  <TableCell className="text-[#cbd5e1]">{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{listing.locationName || '-'}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{listing.notes || '-'}</TableCell>
+                  <TableCell className="text-center">
+                    <button className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]" onClick={() => handleEdit(listing)} aria-label="Edit">
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]" onClick={() => handleDelete(listing.id)} aria-label="Delete">
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
+        </div>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{selectedListing ? 'Edit Listing' : 'Create Listing'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <FormControl fullWidth required disabled={!!selectedListing}>
-              <InputLabel>Character</InputLabel>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">{selectedListing ? 'Edit Listing' : 'Create Listing'}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3 pt-1">
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Character</Label>
               <Select
-                value={formData.characterId}
-                onChange={(e) => setFormData({ ...formData, characterId: e.target.value as number, activityType: '' })}
-                label="Character"
+                value={formData.characterId ? String(formData.characterId) : ""}
+                onValueChange={(val) => setFormData({ ...formData, characterId: parseInt(val), activityType: '' })}
+                disabled={!!selectedListing}
               >
-                <MenuItem value={0} disabled>Select a character</MenuItem>
-                {inventory.map((char) => (
-                  <MenuItem key={char.characterId} value={char.characterId}>
-                    {char.characterName}
-                  </MenuItem>
-                ))}
+                <SelectTrigger><SelectValue placeholder="Select a character" /></SelectTrigger>
+                <SelectContent>
+                  {inventory.map((char) => (
+                    <SelectItem key={char.characterId} value={String(char.characterId)}>
+                      {char.characterName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
 
-            <FormControl fullWidth required disabled={!formData.characterId || !!selectedListing}>
-              <InputLabel>Activity Type</InputLabel>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Activity Type</Label>
               <Select
                 value={formData.activityType}
-                onChange={(e) => setFormData({ ...formData, activityType: e.target.value })}
-                label="Activity Type"
+                onValueChange={(val) => setFormData({ ...formData, activityType: val })}
+                disabled={!formData.characterId || !!selectedListing}
               >
-                <MenuItem value="" disabled>Select an activity</MenuItem>
-                {getAvailableActivities().map((activity) => (
-                  <MenuItem key={activity} value={activity}>
-                    {ACTIVITY_LABELS[activity] || activity}
-                  </MenuItem>
-                ))}
+                <SelectTrigger><SelectValue placeholder="Select an activity" /></SelectTrigger>
+                <SelectContent>
+                  {getAvailableActivities().map((activity) => (
+                    <SelectItem key={activity} value={activity}>
+                      {ACTIVITY_LABELS[activity] || activity}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
 
-            <TextField
-              label="Slots to List"
-              type="number"
-              fullWidth
-              required
-              value={formData.slotsListed}
-              onChange={(e) => setFormData({ ...formData, slotsListed: parseInt(e.target.value) || 0 })}
-              InputProps={{ inputProps: { min: 1, max: getMaxSlots() } }}
-              helperText={`Max available: ${getMaxSlots()}`}
-              disabled={!formData.activityType}
-            />
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Slots to List</Label>
+              <Input
+                type="number"
+                value={formData.slotsListed}
+                onChange={(e) => setFormData({ ...formData, slotsListed: parseInt(e.target.value) || 0 })}
+                min={1}
+                max={getMaxSlots()}
+                disabled={!formData.activityType}
+              />
+              <span className="text-xs text-[#64748b] mt-0.5 block">Max available: {getMaxSlots()}</span>
+            </div>
 
-            <TextField
-              label="Price Amount (ISK)"
-              type="number"
-              fullWidth
-              required
-              value={formData.priceAmount}
-              onChange={(e) => setFormData({ ...formData, priceAmount: parseFloat(e.target.value) || 0 })}
-              InputProps={{ inputProps: { min: 0 } }}
-            />
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Price Amount (ISK)</Label>
+              <Input
+                type="number"
+                value={formData.priceAmount}
+                onChange={(e) => setFormData({ ...formData, priceAmount: parseFloat(e.target.value) || 0 })}
+                min={0}
+              />
+            </div>
 
-            <FormControl fullWidth required>
-              <InputLabel>Pricing Unit</InputLabel>
-              <Select
-                value={formData.pricingUnit}
-                onChange={(e) => setFormData({ ...formData, pricingUnit: e.target.value })}
-                label="Pricing Unit"
-              >
-                {Object.entries(PRICING_UNIT_LABELS).map(([value, label]) => (
-                  <MenuItem key={value} value={value}>
-                    {label}
-                  </MenuItem>
-                ))}
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Pricing Unit</Label>
+              <Select value={formData.pricingUnit} onValueChange={(val) => setFormData({ ...formData, pricingUnit: val })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {Object.entries(PRICING_UNIT_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
 
-            <TextField
-              label="Location (optional)"
-              fullWidth
-              value={formData.locationName}
-              onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
-              placeholder="e.g., Jita 4-4"
-            />
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Location (optional)</Label>
+              <Input
+                value={formData.locationName}
+                onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
+                placeholder="e.g., Jita 4-4"
+              />
+            </div>
 
-            <TextField
-              label="Notes (optional)"
-              multiline
-              rows={3}
-              fullWidth
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Additional information about this listing..."
-            />
-          </Box>
+            <div>
+              <Label className="text-sm text-[#94a3b8] mb-1 block">Notes (optional)</Label>
+              <textarea
+                className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)]"
+                rows={3}
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Additional information about this listing..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave}>
+              {selectedListing ? 'Update' : 'Create'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
-            {selectedListing ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity || 'success'}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </div>
   );
 }

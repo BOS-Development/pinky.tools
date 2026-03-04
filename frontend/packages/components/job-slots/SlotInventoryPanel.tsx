@@ -1,16 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import CircularProgress from '@mui/material/CircularProgress';
-import Chip from '@mui/material/Chip';
+import { Loader2 } from 'lucide-react';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 type ActivitySlotInfo = {
   activityType: string;
@@ -64,79 +56,65 @@ export default function SlotInventoryPanel() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   if (inventory.length === 0) {
     return (
-      <Paper sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant="h6" color="text.secondary">
-          No slot data available
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+      <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+        <h3 className="text-lg font-semibold text-[#94a3b8]">No slot data available</h3>
+        <p className="text-sm text-[#64748b] mt-1">
           Make sure you have characters with industry skills synced.
-        </Typography>
-      </Paper>
+        </p>
+      </div>
     );
   }
 
   return (
-    <TableContainer component={Paper}>
+    <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
       <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Character</TableCell>
-            <TableCell>Activity Type</TableCell>
-            <TableCell align="right">Max Slots</TableCell>
-            <TableCell align="right">In Use</TableCell>
-            <TableCell align="right">Reserved</TableCell>
-            <TableCell align="right">Listed</TableCell>
-            <TableCell align="right">Available</TableCell>
+        <TableHeader>
+          <TableRow className="bg-[#0f1219]">
+            <TableHead>Character</TableHead>
+            <TableHead>Activity Type</TableHead>
+            <TableHead className="text-right">Max Slots</TableHead>
+            <TableHead className="text-right">In Use</TableHead>
+            <TableHead className="text-right">Reserved</TableHead>
+            <TableHead className="text-right">Listed</TableHead>
+            <TableHead className="text-right">Available</TableHead>
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody>
           {inventory.map((char) => (
             Object.entries(char.slotsByActivity).map(([activityType, slotInfo]) => (
-              <TableRow key={`${char.characterId}-${activityType}`} hover>
+              <TableRow key={`${char.characterId}-${activityType}`} className="hover:bg-[rgba(0,212,255,0.04)]">
                 <TableCell>
-                  <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  <span className="text-sm font-medium text-[#e2e8f0]">
                     {char.characterName}
-                  </Typography>
+                  </span>
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    label={ACTIVITY_LABELS[activityType] || activityType}
-                    size="small"
-                    sx={{
-                      background: 'rgba(0, 212, 255, 0.1)',
-                      borderColor: 'rgba(0, 212, 255, 0.3)',
-                      color: '#60a5fa',
-                    }}
-                  />
+                  <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                    {ACTIVITY_LABELS[activityType] || activityType}
+                  </Badge>
                 </TableCell>
-                <TableCell align="right">{slotInfo.slotsMax}</TableCell>
-                <TableCell align="right">{slotInfo.slotsInUse}</TableCell>
-                <TableCell align="right">{slotInfo.slotsReserved}</TableCell>
-                <TableCell align="right">{slotInfo.slotsListed}</TableCell>
-                <TableCell align="right">
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      color: slotInfo.slotsAvailable > 0 ? '#10b981' : '#ef4444',
-                    }}
-                  >
+                <TableCell className="text-right">{slotInfo.slotsMax}</TableCell>
+                <TableCell className="text-right">{slotInfo.slotsInUse}</TableCell>
+                <TableCell className="text-right">{slotInfo.slotsReserved}</TableCell>
+                <TableCell className="text-right">{slotInfo.slotsListed}</TableCell>
+                <TableCell className="text-right">
+                  <span className={`font-semibold ${slotInfo.slotsAvailable > 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
                     {slotInfo.slotsAvailable}
-                  </Typography>
+                  </span>
                 </TableCell>
               </TableRow>
             ))
           ))}
         </TableBody>
       </Table>
-    </TableContainer>
+    </div>
   );
 }
