@@ -356,6 +356,7 @@ func newDefaultState() *State {
 		knownNames: map[int64]knownNameEntry{
 			60003760: {Name: "Jita IV - Moon 4 - Caldari Navy Assembly Plant", Category: "station"},
 			60008494: {Name: "Amarr VIII (Oris) - Emperor Family Academy", Category: "station"},
+			60011866: {Name: "Dodixie IX - Moon 20 - Federation Navy Assembly Plant", Category: "station"},
 		},
 		marketHistory: []marketHistoryEntry{
 			{Date: "2026-01-30", Average: 5.45, Highest: 5.60, Lowest: 5.30, Volume: 120000, OrderCount: 60},
@@ -907,6 +908,28 @@ func main() {
 			}
 			state.mu.Lock()
 			state.characterAssets[charID] = assets
+			state.mu.Unlock()
+			writeAdminOK(w)
+		})
+
+		// PUT /_admin/character-names/{charID}
+		mux.HandleFunc("/_admin/character-names/", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "PUT" {
+				writeAdminError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			charID, ok := extractID(r.URL.Path, "/_admin/character-names/", "")
+			if !ok {
+				writeAdminError(w, http.StatusBadRequest, "invalid character id")
+				return
+			}
+			var names []nameEntry
+			if err := json.NewDecoder(r.Body).Decode(&names); err != nil {
+				writeAdminError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+				return
+			}
+			state.mu.Lock()
+			state.characterNames[charID] = names
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})

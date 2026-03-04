@@ -26,6 +26,11 @@ export interface Asset {
   type_id: number;
 }
 
+export interface NameEntry {
+  item_id: number;
+  name: string;
+}
+
 export interface SkillEntry {
   skill_id: number;
   trained_skill_level: number;
@@ -203,6 +208,16 @@ export async function setCharacterAssets(
   assets: Asset[],
 ): Promise<void> {
   await adminRequest('PUT', `/_admin/character-assets/${charID}`, assets);
+}
+
+/**
+ * Replace the asset name list for a single character (container names, etc.).
+ */
+export async function setCharacterNames(
+  charID: number,
+  names: NameEntry[],
+): Promise<void> {
+  await adminRequest('PUT', `/_admin/character-names/${charID}`, names);
 }
 
 /**
