@@ -303,7 +303,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
           />
         </div>
         <div
-          class="flex items-center gap-2 whitespace-nowrap"
+          class="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-background-panel border border-overlay-strong"
         >
           <button
             aria-checked="false"
@@ -343,7 +343,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
             >
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down h-4 w-4 text-text-secondary flex-shrink-0"
+                class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -355,7 +355,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="m6 9 6 6 6-6"
+                  d="m18 15-6-6-6 6"
                 />
               </svg>
               <svg
@@ -457,6 +457,301 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
                 </button>
               </div>
             </button>
+            <div>
+              <div>
+                <button
+                  class="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m18 15-6-6-6 6"
+                    />
+                  </svg>
+                  <div
+                    class="flex-1"
+                  >
+                    <span
+                      class="text-sm font-semibold text-text-emphasis"
+                    >
+                      Personal Hangar
+                    </span>
+                    <span
+                      class="text-xs text-text-muted ml-2"
+                    >
+                      1
+                       items
+                    </span>
+                  </div>
+                  <div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                      data-state="closed"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-package h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+                        />
+                        <path
+                          d="M12 22V12"
+                        />
+                        <polyline
+                          points="3.29 7 12 12 20.71 7"
+                        />
+                        <path
+                          d="m7.5 4.27 9 5.15"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </button>
+                <div>
+                  <div
+                    class="px-2 pb-1"
+                  >
+                    <div
+                      class="overflow-x-auto rounded border border-overlay-subtle"
+                    >
+                      <div
+                        class="relative w-full overflow-auto"
+                      >
+                        <table
+                          class="w-full caption-bottom text-sm"
+                        >
+                          <thead
+                            class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted bg-background-void border-b border-overlay-subtle hover:bg-background-void"
+                            >
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Item
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Quantity
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Stockpile
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Volume (m³)
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Unit Price
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Total Value
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Deficit Cost
+                              </th>
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Owner
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center text-text-secondary font-semibold text-xs"
+                              >
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody
+                            class="[&_tr:last-child]:border-0"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted border-b border-overlay-subtle hover:bg-interactive-hover bg-background-panel"
+                            >
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <div
+                                  class="flex items-center gap-2 flex-wrap"
+                                >
+                                  <img
+                                    alt=""
+                                    class="w-6 h-6 flex-shrink-0"
+                                    loading="lazy"
+                                    src="https://images.evetech.net/types/1/icon?size=32"
+                                  />
+                                  <span
+                                    class="text-sm text-text-emphasis"
+                                  >
+                                    Item A
+                                  </span>
+                                </div>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-emphasis"
+                                >
+                                  100
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-secondary"
+                                >
+                                  10.00
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <span
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-overlay-strong text-text-secondary"
+                                >
+                                  Test
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-1.5"
+                              >
+                                <div
+                                  class="flex items-center justify-center gap-0.5"
+                                >
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-plus h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M5 12h14"
+                                      />
+                                      <path
+                                        d="M12 5v14"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-tag h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                                      />
+                                      <circle
+                                        cx="7.5"
+                                        cy="7.5"
+                                        fill="currentColor"
+                                        r=".5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div>
             <button
@@ -838,7 +1133,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
           />
         </div>
         <div
-          class="flex items-center gap-2 whitespace-nowrap"
+          class="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-background-panel border border-overlay-strong"
         >
           <button
             aria-checked="false"
@@ -878,7 +1173,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
             >
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down h-4 w-4 text-text-secondary flex-shrink-0"
+                class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -890,7 +1185,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="m6 9 6 6 6-6"
+                  d="m18 15-6-6-6 6"
                 />
               </svg>
               <svg
@@ -992,6 +1287,448 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
                 </button>
               </div>
             </button>
+            <div>
+              <div>
+                <button
+                  class="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m18 15-6-6-6 6"
+                    />
+                  </svg>
+                  <div
+                    class="flex-1"
+                  >
+                    <span
+                      class="text-sm font-semibold text-text-emphasis"
+                    >
+                      Personal Hangar
+                    </span>
+                    <span
+                      class="text-xs text-text-muted ml-2"
+                    >
+                      2
+                       items
+                    </span>
+                  </div>
+                  <div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                      data-state="closed"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-package h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+                        />
+                        <path
+                          d="M12 22V12"
+                        />
+                        <polyline
+                          points="3.29 7 12 12 20.71 7"
+                        />
+                        <path
+                          d="m7.5 4.27 9 5.15"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </button>
+                <div>
+                  <div
+                    class="px-2 pb-1"
+                  >
+                    <div
+                      class="overflow-x-auto rounded border border-overlay-subtle"
+                    >
+                      <div
+                        class="relative w-full overflow-auto"
+                      >
+                        <table
+                          class="w-full caption-bottom text-sm"
+                        >
+                          <thead
+                            class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted bg-background-void border-b border-overlay-subtle hover:bg-background-void"
+                            >
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Item
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Quantity
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Stockpile
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Volume (m³)
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Unit Price
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Total Value
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Deficit Cost
+                              </th>
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Owner
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center text-text-secondary font-semibold text-xs"
+                              >
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody
+                            class="[&_tr:last-child]:border-0"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted border-b border-overlay-subtle hover:bg-interactive-hover bg-background-panel"
+                            >
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <div
+                                  class="flex items-center gap-2 flex-wrap"
+                                >
+                                  <img
+                                    alt=""
+                                    class="w-6 h-6 flex-shrink-0"
+                                    loading="lazy"
+                                    src="https://images.evetech.net/types/34/icon?size=32"
+                                  />
+                                  <span
+                                    class="text-sm text-text-emphasis"
+                                  >
+                                    Tritanium
+                                  </span>
+                                </div>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-emphasis"
+                                >
+                                  1,000
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-secondary"
+                                >
+                                  10.00
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <span
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-overlay-strong text-text-secondary"
+                                >
+                                  Test Character
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-1.5"
+                              >
+                                <div
+                                  class="flex items-center justify-center gap-0.5"
+                                >
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-plus h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M5 12h14"
+                                      />
+                                      <path
+                                        d="M12 5v14"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-tag h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                                      />
+                                      <circle
+                                        cx="7.5"
+                                        cy="7.5"
+                                        fill="currentColor"
+                                        r=".5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted border-b border-overlay-subtle hover:bg-interactive-hover bg-background-void"
+                            >
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <div
+                                  class="flex items-center gap-2 flex-wrap"
+                                >
+                                  <img
+                                    alt=""
+                                    class="w-6 h-6 flex-shrink-0"
+                                    loading="lazy"
+                                    src="https://images.evetech.net/types/35/icon?size=32"
+                                  />
+                                  <span
+                                    class="text-sm text-text-emphasis"
+                                  >
+                                    Pyerite
+                                  </span>
+                                </div>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-emphasis"
+                                >
+                                  500
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-secondary"
+                                >
+                                  8.00
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <span
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-overlay-strong text-text-secondary"
+                                >
+                                  Test Character
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-1.5"
+                              >
+                                <div
+                                  class="flex items-center justify-center gap-0.5"
+                                >
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-plus h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M5 12h14"
+                                      />
+                                      <path
+                                        d="M12 5v14"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-tag h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                                      />
+                                      <circle
+                                        cx="7.5"
+                                        cy="7.5"
+                                        fill="currentColor"
+                                        r=".5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1252,7 +1989,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
           />
         </div>
         <div
-          class="flex items-center gap-2 whitespace-nowrap"
+          class="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-background-panel border border-overlay-strong"
         >
           <button
             aria-checked="false"
@@ -1292,7 +2029,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
             >
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down h-4 w-4 text-text-secondary flex-shrink-0"
+                class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1304,7 +2041,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="m6 9 6 6 6-6"
+                  d="m18 15-6-6-6 6"
                 />
               </svg>
               <svg
@@ -1406,6 +2143,203 @@ exports[`AssetsList Component With Containers should match snapshot with contain
                 </button>
               </div>
             </button>
+            <div>
+              <div>
+                <button
+                  class="w-full flex items-center gap-2 pl-8 pr-3 py-2 hover:bg-interactive-hover text-left"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-down h-4 w-4 text-text-secondary flex-shrink-0"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m6 9 6 6 6-6"
+                    />
+                  </svg>
+                  <div
+                    class="flex-1 flex items-center gap-2 flex-wrap min-w-0"
+                  >
+                    <span
+                      class="text-sm font-medium text-text-emphasis"
+                    >
+                      📦 Materials Container
+                    </span>
+                    <span
+                      class="text-xs text-text-muted"
+                    >
+                      1
+                       items
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-0.5 flex-shrink-0"
+                  >
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                      data-state="closed"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-package h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+                        />
+                        <path
+                          d="M12 22V12"
+                        />
+                        <polyline
+                          points="3.29 7 12 12 20.71 7"
+                        />
+                        <path
+                          d="m7.5 4.27 9 5.15"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      aria-label="Enable Auto-Buy"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 hover:bg-amber-manufacturing/10 text-text-secondary hover:text-amber-manufacturing"
+                      data-state="closed"
+                    >
+                      <span
+                        class="relative inline-flex items-center"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-shopping-cart h-4 w-4"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="8"
+                            cy="21"
+                            r="1"
+                          />
+                          <circle
+                            cx="19"
+                            cy="21"
+                            r="1"
+                          />
+                          <path
+                            d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                          />
+                        </svg>
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-refresh-ccw absolute -top-0.5 -right-0.5 h-2.5 w-2.5"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                          />
+                          <path
+                            d="M3 3v5h5"
+                          />
+                          <path
+                            d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                          />
+                          <path
+                            d="M16 16h5v5"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      aria-label="Enable Auto-Sell"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 hover:bg-interactive-selected text-text-secondary hover:text-primary"
+                      data-state="closed"
+                    >
+                      <span
+                        class="relative inline-flex items-center"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-tag h-4 w-4"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                          />
+                          <circle
+                            cx="7.5"
+                            cy="7.5"
+                            fill="currentColor"
+                            r=".5"
+                          />
+                        </svg>
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-refresh-ccw absolute -top-0.5 -right-0.5 h-2.5 w-2.5"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                          />
+                          <path
+                            d="M3 3v5h5"
+                          />
+                          <path
+                            d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                          />
+                          <path
+                            d="M16 16h5v5"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1666,7 +2600,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
           />
         </div>
         <div
-          class="flex items-center gap-2 whitespace-nowrap"
+          class="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-background-panel border border-overlay-strong"
         >
           <button
             aria-checked="false"
@@ -1706,7 +2640,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
             >
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down h-4 w-4 text-text-secondary flex-shrink-0"
+                class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1718,7 +2652,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="m6 9 6 6 6-6"
+                  d="m18 15-6-6-6 6"
                 />
               </svg>
               <svg
@@ -1820,6 +2754,413 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
                 </button>
               </div>
             </button>
+            <div>
+              <div>
+                <button
+                  class="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m18 15-6-6-6 6"
+                    />
+                  </svg>
+                  <div
+                    class="flex-1 flex items-center gap-2 flex-wrap min-w-0"
+                  >
+                    <span
+                      class="text-sm font-medium text-text-emphasis"
+                    >
+                      Test Corp - Hangar 1
+                    </span>
+                    <span
+                      class="text-xs text-text-muted"
+                    >
+                      1
+                       items, 
+                      0
+                       containers
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-0.5 flex-shrink-0"
+                  >
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                      data-state="closed"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-package h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+                        />
+                        <path
+                          d="M12 22V12"
+                        />
+                        <polyline
+                          points="3.29 7 12 12 20.71 7"
+                        />
+                        <path
+                          d="m7.5 4.27 9 5.15"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      aria-label="Enable Auto-Buy"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 hover:bg-amber-manufacturing/10 text-text-secondary hover:text-amber-manufacturing"
+                      data-state="closed"
+                    >
+                      <span
+                        class="relative inline-flex items-center"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-shopping-cart h-4 w-4"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle
+                            cx="8"
+                            cy="21"
+                            r="1"
+                          />
+                          <circle
+                            cx="19"
+                            cy="21"
+                            r="1"
+                          />
+                          <path
+                            d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"
+                          />
+                        </svg>
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-refresh-ccw absolute -top-0.5 -right-0.5 h-2.5 w-2.5"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                          />
+                          <path
+                            d="M3 3v5h5"
+                          />
+                          <path
+                            d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                          />
+                          <path
+                            d="M16 16h5v5"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                    <button
+                      aria-label="Enable Auto-Sell"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 hover:bg-interactive-selected text-text-secondary hover:text-primary"
+                      data-state="closed"
+                    >
+                      <span
+                        class="relative inline-flex items-center"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-tag h-4 w-4"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                          />
+                          <circle
+                            cx="7.5"
+                            cy="7.5"
+                            fill="currentColor"
+                            r=".5"
+                          />
+                        </svg>
+                        <svg
+                          aria-hidden="true"
+                          class="lucide lucide-refresh-ccw absolute -top-0.5 -right-0.5 h-2.5 w-2.5"
+                          fill="none"
+                          height="24"
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          viewBox="0 0 24 24"
+                          width="24"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"
+                          />
+                          <path
+                            d="M3 3v5h5"
+                          />
+                          <path
+                            d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"
+                          />
+                          <path
+                            d="M16 16h5v5"
+                          />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </button>
+                <div>
+                  <div
+                    class="px-2 pb-1"
+                  >
+                    <div
+                      class="overflow-x-auto rounded border border-overlay-subtle"
+                    >
+                      <div
+                        class="relative w-full overflow-auto"
+                      >
+                        <table
+                          class="w-full caption-bottom text-sm"
+                        >
+                          <thead
+                            class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted bg-background-void border-b border-overlay-subtle hover:bg-background-void"
+                            >
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Item
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Quantity
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Stockpile
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Volume (m³)
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Unit Price
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Total Value
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Deficit Cost
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center text-text-secondary font-semibold text-xs"
+                              >
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody
+                            class="[&_tr:last-child]:border-0"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted border-b border-overlay-subtle hover:bg-interactive-hover bg-background-panel"
+                            >
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <div
+                                  class="flex items-center gap-2 flex-wrap"
+                                >
+                                  <img
+                                    alt=""
+                                    class="w-6 h-6 flex-shrink-0"
+                                    loading="lazy"
+                                    src="https://images.evetech.net/types/37/icon?size=32"
+                                  />
+                                  <span
+                                    class="text-sm text-text-emphasis"
+                                  >
+                                    Isogen
+                                  </span>
+                                </div>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-emphasis"
+                                >
+                                  3,000
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-secondary"
+                                >
+                                  30.00
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-1.5"
+                              >
+                                <div
+                                  class="flex items-center justify-center gap-0.5"
+                                >
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-plus h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M5 12h14"
+                                      />
+                                      <path
+                                        d="M12 5v14"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-tag h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                                      />
+                                      <circle
+                                        cx="7.5"
+                                        cy="7.5"
+                                        fill="currentColor"
+                                        r=".5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -2080,7 +3421,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
           />
         </div>
         <div
-          class="flex items-center gap-2 whitespace-nowrap"
+          class="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-background-panel border border-overlay-strong"
         >
           <button
             aria-checked="false"
@@ -2120,7 +3461,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
             >
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down h-4 w-4 text-text-secondary flex-shrink-0"
+                class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -2132,7 +3473,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="m6 9 6 6 6-6"
+                  d="m18 15-6-6-6 6"
                 />
               </svg>
               <svg
@@ -2234,6 +3575,545 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
                 </button>
               </div>
             </button>
+            <div>
+              <div>
+                <button
+                  class="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
+                >
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevron-up h-4 w-4 text-text-secondary flex-shrink-0"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m18 15-6-6-6 6"
+                    />
+                  </svg>
+                  <div
+                    class="flex-1"
+                  >
+                    <span
+                      class="text-sm font-semibold text-text-emphasis"
+                    >
+                      Personal Hangar
+                    </span>
+                    <span
+                      class="text-xs text-text-muted ml-2"
+                    >
+                      2
+                       items
+                    </span>
+                  </div>
+                  <div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                      data-state="closed"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-package h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+                        />
+                        <path
+                          d="M12 22V12"
+                        />
+                        <polyline
+                          points="3.29 7 12 12 20.71 7"
+                        />
+                        <path
+                          d="m7.5 4.27 9 5.15"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </button>
+                <div>
+                  <div
+                    class="px-2 pb-1"
+                  >
+                    <div
+                      class="overflow-x-auto rounded border border-overlay-subtle"
+                    >
+                      <div
+                        class="relative w-full overflow-auto"
+                      >
+                        <table
+                          class="w-full caption-bottom text-sm"
+                        >
+                          <thead
+                            class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted bg-background-void border-b border-overlay-subtle hover:bg-background-void"
+                            >
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Item
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Quantity
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Stockpile
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Volume (m³)
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Unit Price
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Total Value
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary font-semibold text-xs"
+                              >
+                                Deficit Cost
+                              </th>
+                              <th
+                                class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary font-semibold text-xs"
+                              >
+                                Owner
+                              </th>
+                              <th
+                                class="h-10 px-2 align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center text-text-secondary font-semibold text-xs"
+                              >
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody
+                            class="[&_tr:last-child]:border-0"
+                          >
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted border-b border-overlay-subtle hover:bg-interactive-hover bg-background-panel border-l-4 border-l-rose-danger font-semibold"
+                            >
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <div
+                                  class="flex items-center gap-2 flex-wrap"
+                                >
+                                  <img
+                                    alt=""
+                                    class="w-6 h-6 flex-shrink-0"
+                                    loading="lazy"
+                                    src="https://images.evetech.net/types/38/icon?size=32"
+                                  />
+                                  <span
+                                    class="text-sm text-text-emphasis"
+                                  >
+                                    Nocxium
+                                  </span>
+                                </div>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-emphasis"
+                                >
+                                  800
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm font-medium"
+                                >
+                                  <span
+                                    class="font-semibold text-sm text-rose-danger"
+                                  >
+                                    -200
+                                  </span>
+                                  <span
+                                    class="text-text-muted mx-1"
+                                  >
+                                    /
+                                  </span>
+                                  <span
+                                    class="text-text-secondary"
+                                  >
+                                    1,000
+                                  </span>
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-secondary"
+                                >
+                                  16.00
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <span
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-overlay-strong text-text-secondary"
+                                >
+                                  Test Character
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-1.5"
+                              >
+                                <div
+                                  class="flex items-center justify-center gap-0.5"
+                                >
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-pencil h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                                      />
+                                      <path
+                                        d="m15 5 4 4"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-rose-danger hover:bg-rose-danger/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-trash2 lucide-trash-2 h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M10 11v6"
+                                      />
+                                      <path
+                                        d="M14 11v6"
+                                      />
+                                      <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                      />
+                                      <path
+                                        d="M3 6h18"
+                                      />
+                                      <path
+                                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-tag h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                                      />
+                                      <circle
+                                        cx="7.5"
+                                        cy="7.5"
+                                        fill="currentColor"
+                                        r=".5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                            <tr
+                              class="transition-colors data-[state=selected]:bg-muted border-b border-overlay-subtle hover:bg-interactive-hover bg-background-void"
+                            >
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <div
+                                  class="flex items-center gap-2 flex-wrap"
+                                >
+                                  <img
+                                    alt=""
+                                    class="w-6 h-6 flex-shrink-0"
+                                    loading="lazy"
+                                    src="https://images.evetech.net/types/39/icon?size=32"
+                                  />
+                                  <span
+                                    class="text-sm text-text-emphasis"
+                                  >
+                                    Zydrine
+                                  </span>
+                                </div>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-emphasis"
+                                >
+                                  1,500
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm font-medium"
+                                >
+                                  <span
+                                    class="font-semibold text-sm text-teal-success"
+                                  >
+                                    +
+                                    500
+                                  </span>
+                                  <span
+                                    class="text-text-muted mx-1"
+                                  >
+                                    /
+                                  </span>
+                                  <span
+                                    class="text-text-secondary"
+                                  >
+                                    1,000
+                                  </span>
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-sm text-text-secondary"
+                                >
+                                  30.00
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right py-1.5"
+                              >
+                                <span
+                                  class="text-xs text-text-muted"
+                                >
+                                  -
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-1.5"
+                              >
+                                <span
+                                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-overlay-strong text-text-secondary"
+                                >
+                                  Test Character
+                                </span>
+                              </td>
+                              <td
+                                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-1.5"
+                              >
+                                <div
+                                  class="flex items-center justify-center gap-0.5"
+                                >
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-pencil h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"
+                                      />
+                                      <path
+                                        d="m15 5 4 4"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-text-secondary hover:text-rose-danger hover:bg-rose-danger/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-trash2 lucide-trash-2 h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M10 11v6"
+                                      />
+                                      <path
+                                        d="M14 11v6"
+                                      />
+                                      <path
+                                        d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"
+                                      />
+                                      <path
+                                        d="M3 6h18"
+                                      />
+                                      <path
+                                        d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                                      />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
+                                    data-state="closed"
+                                  >
+                                    <svg
+                                      aria-hidden="true"
+                                      class="lucide lucide-tag h-3.5 w-3.5"
+                                      fill="none"
+                                      height="24"
+                                      stroke="currentColor"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                      stroke-width="2"
+                                      viewBox="0 0 24 24"
+                                      width="24"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"
+                                      />
+                                      <circle
+                                        cx="7.5"
+                                        cy="7.5"
+                                        fill="currentColor"
+                                        r=".5"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

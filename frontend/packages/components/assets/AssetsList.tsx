@@ -561,6 +561,27 @@ export default function AssetsList(props: AssetsListProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Auto-expand first station when no nodes are expanded
+  useEffect(() => {
+    if (expandedNodes.size > 0 || !assets?.structures?.length) return;
+
+    const firstVisible = assets.structures.find(s => !hiddenStructures.has(s.id));
+    if (!firstVisible) return;
+
+    const nodesToExpand = new Set<string>();
+    nodesToExpand.add(`structure-${firstVisible.id}`);
+
+    // Also expand the first non-empty section
+    if (firstVisible.hangarAssets?.length > 0) {
+      nodesToExpand.add(`structure-${firstVisible.id}-hangar`);
+    } else if (firstVisible.corporationHangers?.length > 0) {
+      const firstHanger = firstVisible.corporationHangers[0];
+      nodesToExpand.add(`structure-${firstVisible.id}-corp-${firstHanger.id}`);
+    }
+
+    setExpandedNodes(nodesToExpand);
+  }, [assets, hiddenStructures]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1302,6 +1323,12 @@ export default function AssetsList(props: AssetsListProps) {
               >
                 <TableCell className="py-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
+                    <img
+                      src={`https://images.evetech.net/types/${asset.typeId}/icon?size=32`}
+                      alt=""
+                      className="w-6 h-6 flex-shrink-0"
+                      loading="lazy"
+                    />
                     <span className="text-sm text-text-emphasis">{asset.name}</span>
                     {(() => {
                       const listing = getListingForAsset(asset, locationId, containerId, divisionNumber);
@@ -1895,7 +1922,7 @@ export default function AssetsList(props: AssetsListProps) {
                 className="pl-9 bg-background-panel border-overlay-strong text-text-emphasis placeholder:text-text-muted"
               />
             </div>
-            <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="flex items-center gap-2 whitespace-nowrap px-3 py-1.5 rounded-lg bg-background-panel border border-overlay-strong">
               <Switch
                 id="below-target"
                 checked={showBelowTargetOnly}
