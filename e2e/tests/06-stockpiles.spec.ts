@@ -214,15 +214,15 @@ test.describe('Stockpiles', () => {
     await expect(page.getByText('Tritanium')).toBeVisible({ timeout: 5000 });
 
     const tritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).first();
-    await tritaniumRow.getByTitle('Remove stockpile target').click();
-    await expect(tritaniumRow.getByTitle('Remove stockpile target')).not.toBeVisible({ timeout: 10000 });
+    await tritaniumRow.locator('button:has(.lucide-trash-2)').click();
+    await expect(tritaniumRow.locator('button:has(.lucide-trash-2)')).not.toBeVisible({ timeout: 10000 });
 
     // Delete the corp Tritanium marker
     await page.getByText(/Stargazer Industries - Main Hangar/).first().click();
 
     const corpTritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).last();
-    await corpTritaniumRow.getByTitle('Remove stockpile target').click();
-    await expect(corpTritaniumRow.getByTitle('Remove stockpile target')).not.toBeVisible({ timeout: 10000 });
+    await corpTritaniumRow.locator('button:has(.lucide-trash-2)').click();
+    await expect(corpTritaniumRow.locator('button:has(.lucide-trash-2)')).not.toBeVisible({ timeout: 10000 });
 
     // Verify on stockpiles page - should be empty again
     await page.goto('/stockpiles');

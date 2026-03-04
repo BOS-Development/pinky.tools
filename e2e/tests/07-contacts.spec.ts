@@ -12,8 +12,10 @@ test.describe('Contacts Workflow', () => {
     await expect(alicePage.getByLabel(/Character Name/i)).toBeVisible();
     await alicePage.getByLabel(/Character Name/i).fill('Bob Bravo');
 
-    // Click Send Request
-    await alicePage.getByRole('button', { name: /Send Request/i }).click();
+    // Radix Dialog portal: Playwright's .click() dispatches mouse events at coordinates,
+    // but the blur from the focused input between mousedown/mouseup can cause React to
+    // re-render, replacing the button DOM node. Use dispatchEvent to send click directly.
+    await alicePage.getByRole('button', { name: /Send Request/i }).dispatchEvent('click');
 
     // Switch to Sent Requests tab
     await alicePage.getByRole('tab', { name: /Sent/i }).click();

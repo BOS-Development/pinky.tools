@@ -28,20 +28,14 @@ async function createHaulingRun(
   const dialog = page.getByRole('dialog');
   await expect(dialog).toBeVisible({ timeout: 5000 });
 
-  await dialog.getByLabel(/Name/i).fill(name);
+  await dialog.getByPlaceholder('Run name').fill(name);
 
-  // From Region: The Forge
-  const fromControl = dialog.locator('.MuiFormControl-root').filter({
-    has: page.locator('label').filter({ hasText: /From Region/i }),
-  });
-  await fromControl.getByRole('combobox').click();
+  // From Region: The Forge (first combobox in dialog)
+  await dialog.getByRole('combobox').first().click();
   await page.getByRole('option', { name: /The Forge/i }).click();
 
-  // To Region: Domain
-  const toControl = dialog.locator('.MuiFormControl-root').filter({
-    has: page.locator('label').filter({ hasText: /To Region/i }),
-  });
-  await toControl.getByRole('combobox').click();
+  // To Region: Domain (second combobox in dialog)
+  await dialog.getByRole('combobox').nth(1).click();
   await page.getByRole('option', { name: /Domain/i }).click();
 
   await dialog.getByRole('button', { name: /Create/i }).click();
@@ -181,12 +175,8 @@ test.describe('Hauling Runs Phase 2', () => {
     // We are on the detail page
     await expect(page.getByText(runName).first()).toBeVisible({ timeout: 5000 });
 
-    // Use the "Change Status" dropdown (MUI Select with InputLabel "Change Status")
-    const statusControl = page.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: /Change Status/i }),
-    });
-    await expect(statusControl).toBeVisible({ timeout: 5000 });
-    await statusControl.getByRole('combobox').click();
+    // Use the "Change Status" dropdown (shadcn Select with placeholder "Change Status")
+    await page.getByRole('combobox').click();
     await page.getByRole('option', { name: 'SELLING' }).click();
 
     // Wait for the status chip to update to SELLING
@@ -219,30 +209,21 @@ test.describe('Hauling Runs Phase 2', () => {
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
     // Fill in the name
-    await dialog.getByLabel(/Name/i).fill(runName);
+    await dialog.getByPlaceholder('Run name').fill(runName);
 
-    // Select source region: The Forge
-    const fromControl = dialog.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: /From Region/i }),
-    });
-    await fromControl.getByRole('combobox').click();
+    // Select source region: The Forge (first combobox in dialog)
+    await dialog.getByRole('combobox').first().click();
     await page.getByRole('option', { name: /The Forge/i }).click();
 
-    // Select destination region: Domain
-    const toControl = dialog.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: /To Region/i }),
-    });
-    await toControl.getByRole('combobox').click();
+    // Select destination region: Domain (second combobox in dialog)
+    await dialog.getByRole('combobox').nth(1).click();
     await page.getByRole('option', { name: /Domain/i }).click();
 
-    // Check the "Daily digest" checkbox.
-    // MUI Checkbox: the actual input is hidden (opacity:0). Click the visible MuiCheckbox-root
-    // span (the checkbox icon area) to trigger React's synthetic event handler.
-    const dailyDigestLabel = dialog.locator('label').filter({ hasText: /daily digest/i });
-    await expect(dailyDigestLabel).toBeVisible({ timeout: 5000 });
-    const checkboxRoot = dailyDigestLabel.locator('.MuiCheckbox-root');
-    await checkboxRoot.click();
-    await expect(dailyDigestLabel.locator('input[type="checkbox"]')).toBeChecked({ timeout: 5000 });
+    // Check the "Daily digest" checkbox (shadcn Checkbox renders as button role="checkbox")
+    const dailyDigestCheckbox = dialog.getByRole('checkbox', { name: /daily digest/i });
+    await expect(dailyDigestCheckbox).toBeVisible({ timeout: 5000 });
+    await dailyDigestCheckbox.click();
+    await expect(dailyDigestCheckbox).toBeChecked({ timeout: 5000 });
 
     // Submit
     await dialog.getByRole('button', { name: /Create/i }).click();
@@ -266,11 +247,7 @@ test.describe('Hauling Runs Phase 2', () => {
     await createHaulingRun(page, runName);
 
     // We are on the detail page — change status to SELLING first
-    const statusControl = page.locator('.MuiFormControl-root').filter({
-      has: page.locator('label').filter({ hasText: /Change Status/i }),
-    });
-    await expect(statusControl).toBeVisible({ timeout: 5000 });
-    await statusControl.getByRole('combobox').click();
+    await page.getByRole('combobox').click();
     await page.getByRole('option', { name: 'SELLING' }).click();
 
     // Wait for SELLING status
@@ -282,9 +259,10 @@ test.describe('Hauling Runs Phase 2', () => {
     const addDialog = page.getByRole('dialog');
     await expect(addDialog).toBeVisible({ timeout: 5000 });
 
-    await addDialog.getByLabel(/Type ID/i).fill('34');
-    await addDialog.getByLabel(/Item Name/i).fill('Tritanium');
-    await addDialog.getByLabel(/Planned Quantity/i).fill('100');
+    // Labels lack htmlFor/id linking — use role-based selectors
+    await addDialog.getByRole('spinbutton').first().fill('34');   // Type ID
+    await addDialog.getByRole('textbox').fill('Tritanium');        // Item Name
+    await addDialog.getByRole('spinbutton').nth(1).fill('100');    // Planned Quantity
     await addDialog.getByRole('button', { name: /^Add$/i }).click();
 
     // Dialog should close
@@ -309,14 +287,14 @@ test.describe('Hauling Runs Phase 2', () => {
       pnlDialog.getByText(/Enter P&L|P&L Entry/i).first()
     ).toBeVisible({ timeout: 5000 });
 
-    // Should have a Qty Sold field
+    // Should have a Qty Sold field (first spinbutton in P&L dialog)
     await expect(
-      pnlDialog.getByLabel(/Qty Sold/i)
+      pnlDialog.getByRole('spinbutton').first()
     ).toBeVisible({ timeout: 5000 });
 
-    // Should have an Avg Sell Price field
+    // Should have an Avg Sell Price field (second spinbutton in P&L dialog)
     await expect(
-      pnlDialog.getByLabel(/Avg Sell Price/i)
+      pnlDialog.getByRole('spinbutton').nth(1)
     ).toBeVisible({ timeout: 5000 });
 
     // Close the dialog

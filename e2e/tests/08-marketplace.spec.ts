@@ -30,20 +30,27 @@ test.describe('Marketplace', () => {
     await bobPage.getByText('Personal Hangar').first().click();
     await expect(bobPage.getByText('Rifter')).toBeVisible({ timeout: 5000 });
 
-    // Click sell button on Rifter row (title="List for sale")
+    // Click sell button on Rifter row (lucide tag icon button)
     const rifterRow = bobPage.getByRole('row').filter({ hasText: 'Rifter' }).first();
-    await rifterRow.getByTitle('List for sale').click();
+    await rifterRow.locator('button:has(.lucide-tag)').click();
 
     // Fill in listing details
     await expect(bobPage.getByText(/List Item for Sale/i)).toBeVisible({ timeout: 5000 });
 
+    // The listing dialog uses uncontrolled inputs (refs) with setTimeout(fn, 0)
+    // to set initial values — wait for quantity to be populated before overwriting
     const qtyInput = bobPage.getByLabel(/Quantity/i).first();
+    await expect(qtyInput).not.toHaveValue('', { timeout: 2000 });
     await qtyInput.clear();
     await qtyInput.fill('5');
 
     const priceInput = bobPage.getByLabel(/Price/i).first();
     await priceInput.clear();
     await priceInput.fill('550000');
+
+    // Blur the price input so onBlur → setListingTotalValue re-render completes
+    // before clicking Create Listing (prevents mousedown/mouseup targeting different DOM elements)
+    await priceInput.blur();
 
     // Save listing
     await bobPage.getByRole('button', { name: /Create Listing/i }).click();
@@ -75,9 +82,10 @@ test.describe('Marketplace', () => {
     // Click Buy button
     await alicePage.getByRole('button', { name: /Buy/i }).click();
 
-    // Fill in purchase quantity
-    await expect(alicePage.getByText(/Quantity to Purchase/i).first()).toBeVisible();
-    const qtyInput = alicePage.getByLabel(/Quantity/i).first();
+    // Fill in purchase quantity (label not linked via htmlFor, scope to dialog)
+    const dialog = alicePage.getByRole('dialog');
+    await expect(dialog.getByText(/Quantity to Purchase/i)).toBeVisible();
+    const qtyInput = dialog.getByRole('textbox');
     await qtyInput.clear();
     await qtyInput.fill('2');
 
@@ -118,25 +126,26 @@ test.describe('Marketplace', () => {
     // Click Create Buy Order button
     await alicePage.getByRole('button', { name: /Create Buy Order/i }).click();
 
-    // Search for item
-    const itemSearch = alicePage.getByPlaceholder(/Start typing to search/i);
-    await itemSearch.fill('Pyerite');
+    // Search for item — click the combobox trigger to open the popover, then fill the search input
+    await alicePage.getByRole('combobox').first().click();
+    await alicePage.getByPlaceholder('Search items...').fill('Pyerite');
 
-    // Select from autocomplete dropdown (use .first() since full SDE has many Pyerite-related types)
-    await alicePage.getByRole('option', { name: /Pyerite/i }).first().click();
+    // Select from dropdown (button accessible name includes image alt + span text)
+    await alicePage.getByRole('button', { name: /Pyerite/i }).first().click();
 
-    // Search for station
-    const stationSearch = alicePage.getByPlaceholder(/Search for a station/i);
-    await stationSearch.fill('Jita');
+    // Search for station — click the combobox trigger to open the popover
+    await alicePage.getByRole('combobox').nth(1).click();
+    await alicePage.getByPlaceholder('Search stations...').fill('Jita');
 
-    // Select Jita station from autocomplete
-    await alicePage.getByRole('option', { name: /Jita/i }).first().click();
+    // Select Jita station from dropdown
+    await alicePage.getByRole('button', { name: /Jita/i }).first().click();
 
-    // Fill in quantity and price
-    const qtyInput = alicePage.getByLabel(/Quantity Desired/i);
+    // Fill in quantity and price (labels not linked via htmlFor, use spinbutton role)
+    // Three number inputs: Quantity Desired, Min Price (optional), Max Price
+    const qtyInput = alicePage.getByRole('spinbutton').first();
     await qtyInput.fill('10000');
 
-    const priceInput = alicePage.getByLabel(/Max Price/i);
+    const priceInput = alicePage.getByRole('spinbutton').nth(2);
     await priceInput.fill('10');
 
     // Create the order
