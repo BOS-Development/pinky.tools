@@ -5,7 +5,7 @@ test.describe('Navigation', () => {
     await page.goto('/');
 
     const navbar = page.locator('nav');
-    await expect(navbar.getByText('EVE Industry Tool')).toBeVisible();
+    await expect(navbar.getByText('pinky.tools')).toBeVisible();
 
     // The navbar has 5 dropdown trigger buttons and a standalone Settings link
     await expect(navbar.getByRole('button', { name: /Account/i })).toBeVisible();

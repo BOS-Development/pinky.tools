@@ -4,7 +4,7 @@ test.describe('Landing Page', () => {
   test('shows authenticated landing page', async ({ page }) => {
     await page.goto('/');
 
-    await expect(page.getByRole('heading', { name: 'EVE Industry Tool', level: 1 })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'pinky.tools', level: 1 })).toBeVisible();
     await expect(page.getByText('Real-time asset tracking')).toBeVisible();
   });
 
