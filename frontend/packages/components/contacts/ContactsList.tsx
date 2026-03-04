@@ -324,7 +324,7 @@ export default function ContactsList() {
   return (
     <>
       <Navbar />
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-screen-xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-display font-semibold">Contacts</h1>
           <div className="flex gap-2">
