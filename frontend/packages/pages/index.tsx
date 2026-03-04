@@ -29,11 +29,11 @@ export default function Home() {
     <>
       <Navbar />
 
-      <div className="flex flex-col items-center justify-between h-screen -mt-16 pt-16 bg-background-void text-center px-3 pb-4">
+      <div className="flex flex-col items-center justify-between min-h-screen -mt-16 pt-16 bg-background-void text-center px-3 pb-4">
         <div className="flex-1 flex flex-col justify-center w-full">
           <div className="max-w-2xl mx-auto">
             <img
-              src="https://images.evetech.net/types/23773/render?size=512"
+              src="https://images.evetech.net/types/23773/render?size=1024"
               alt="Ragnarok Titan"
               className="w-[100px] h-auto mb-2 rounded shadow-glow-lg"
             />
@@ -52,7 +52,7 @@ export default function Home() {
                   <MetricCard
                     label="Asset Value"
                     value={assetMetrics.totalValue === 0
-                      ? '—'
+                      ? '0 ISK'
                       : `${assetMetrics.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
                     }
                     color="var(--color-primary-cyan)"
@@ -61,23 +61,16 @@ export default function Home() {
                     label="Stockpile Deficit"
                     value={assetMetrics.totalDeficit > 0
                       ? `${assetMetrics.totalDeficit.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
-                      : 'None'
+                      : '0 ISK'
                     }
                     color={assetMetrics.totalDeficit > 0 ? 'var(--color-danger-rose)' : 'var(--color-success-teal)'}
                   />
                   <MetricCard
                     label="Active Jobs"
-                    value={assetMetrics.activeJobs > 0 ? String(assetMetrics.activeJobs) : '—'}
+                    value={assetMetrics.activeJobs > 0 ? String(assetMetrics.activeJobs) : '0'}
                     color="var(--color-manufacturing-amber)"
                   />
                 </div>
-
-                <a
-                  href="/inventory"
-                  className="inline-block px-8 py-3 bg-primary text-background-void font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
-                >
-                  Open Dashboard
-                </a>
               </>
             ) : (
               <a
@@ -89,6 +82,22 @@ export default function Home() {
             )}
           </div>
         </div>
+
+        {/* Quick Access */}
+        {isAuthenticated && (
+          <div className="w-full max-w-3xl mx-auto pb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <QuickLink href="/inventory" label="Inventory" description="View all assets" />
+              <QuickLink href="/stockpiles" label="Stockpiles" description="Track targets" />
+              <QuickLink href="/industry" label="Industry" description="Manage jobs" />
+              <QuickLink href="/marketplace" label="Marketplace" description="Browse listings" />
+              <QuickLink href="/reactions" label="Reactions" description="Calculator" />
+              <QuickLink href="/production-plans" label="Plans" description="Production plans" />
+              <QuickLink href="/contacts" label="Contacts" description="Trading network" />
+              <QuickLink href="/hauling" label="Hauling" description="Run logistics" />
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="py-2 text-center">
@@ -112,5 +121,21 @@ function MetricCard({ label, value, color }: { label: string; value: string; col
         {value}
       </p>
     </div>
+  );
+}
+
+function QuickLink({ href, label, description }: { href: string; label: string; description: string }) {
+  return (
+    <a
+      href={href}
+      className="px-3 py-3 bg-background-panel border border-border-dim rounded-sm hover:border-primary/40 hover:shadow-glow-sm transition-all group"
+    >
+      <p className="text-sm font-semibold text-text-emphasis group-hover:text-primary transition-colors">
+        {label}
+      </p>
+      <p className="text-xs text-text-muted mt-0.5">
+        {description}
+      </p>
+    </a>
   );
 }

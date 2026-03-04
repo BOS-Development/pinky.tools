@@ -60,6 +60,7 @@ type AssetContainer struct {
 type AssetsSummary struct {
 	TotalValue   float64 `json:"totalValue"`
 	TotalDeficit float64 `json:"totalDeficit"`
+	ActiveJobs   int     `json:"activeJobs"`
 }
 
 type Assets struct {
@@ -1602,6 +1603,13 @@ func (r *Assets) GetUserAssetsSummary(ctx context.Context, user int64) (*AssetsS
 	err := r.db.QueryRowContext(ctx, query, user).Scan(&summary.TotalValue, &summary.TotalDeficit)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get assets summary")
+	}
+
+	// Count active industry jobs
+	jobCountQuery := `SELECT COUNT(*) FROM esi_industry_jobs WHERE user_id = $1 AND status = 'active'`
+	err = r.db.QueryRowContext(ctx, jobCountQuery, user).Scan(&summary.ActiveJobs)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to count active jobs")
 	}
 
 	return summary, nil

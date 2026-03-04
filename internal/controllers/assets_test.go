@@ -150,6 +150,7 @@ func Test_AssetsController_GetUserAssetsSummary_Success(t *testing.T) {
 	expectedSummary := &repositories.AssetsSummary{
 		TotalValue:   1234567.89,
 		TotalDeficit: 9876.54,
+		ActiveJobs:   5,
 	}
 
 	mockRepo.On("GetUserAssetsSummary", mock.Anything, userID).Return(expectedSummary, nil)
@@ -168,6 +169,7 @@ func Test_AssetsController_GetUserAssetsSummary_Success(t *testing.T) {
 	summary := result.(*repositories.AssetsSummary)
 	assert.Equal(t, 1234567.89, summary.TotalValue)
 	assert.Equal(t, 9876.54, summary.TotalDeficit)
+	assert.Equal(t, 5, summary.ActiveJobs)
 
 	mockRepo.AssertExpectations(t)
 }
@@ -206,6 +208,7 @@ func Test_AssetsController_GetUserAssetsSummary_ZeroValues(t *testing.T) {
 	zeroSummary := &repositories.AssetsSummary{
 		TotalValue:   0.0,
 		TotalDeficit: 0.0,
+		ActiveJobs:   0,
 	}
 
 	mockRepo.On("GetUserAssetsSummary", mock.Anything, userID).Return(zeroSummary, nil)
@@ -224,6 +227,7 @@ func Test_AssetsController_GetUserAssetsSummary_ZeroValues(t *testing.T) {
 	summary := result.(*repositories.AssetsSummary)
 	assert.Equal(t, 0.0, summary.TotalValue)
 	assert.Equal(t, 0.0, summary.TotalDeficit)
+	assert.Equal(t, 0, summary.ActiveJobs)
 
 	mockRepo.AssertExpectations(t)
 }
