@@ -330,3 +330,36 @@ func Test_CharacterBlueprintsUpdater_RefreshesCorporationExpiredToken(t *testing
 	key := string(rune(3001001)) + ":corporation"
 	assert.Len(t, bpRepo.replacedBlueprints[key], 1)
 }
+
+func Test_CharacterBlueprintsUpdater_CharacterLookupFailureDoesNotBlockCorpBlueprints(t *testing.T) {
+	bpRepo := &mockBlueprintsRepo{}
+	esiClient := &mockBlueprintsEsiClient{
+		corpBlueprintsByCorp: map[int64][]*client.EsiBlueprint{
+			3001001: {
+				{ItemID: 92001, TypeID: 787, LocationID: 60003760, LocationFlag: "CorpSAG1", Quantity: -1, MaterialEfficiency: 9, TimeEfficiency: 18, Runs: -1},
+			},
+		},
+	}
+	userRepo := &mockBlueprintsUserRepo{userIDs: []int64{100}}
+	charRepo := &mockBlueprintsCharRepo{
+		getErr: assert.AnError, // Simulate character lookup failure
+	}
+	corpRepo := &mockBlueprintsCorpRepo{
+		corpsByUser: map[int64][]repositories.PlayerCorporation{
+			100: {
+				{ID: 3001001, UserID: 100, Name: "Test Corp", EsiToken: "corp-token", EsiRefreshToken: "corp-refresh", EsiScopes: "esi-corporations.read_blueprints.v1", EsiExpiresOn: time.Now().Add(time.Hour)},
+			},
+		},
+	}
+
+	updater := updaters.NewCharacterBlueprintsUpdater(userRepo, charRepo, corpRepo, bpRepo, esiClient)
+	// Should NOT propagate error — character failure should be logged, not returned
+	err := updater.UpdateAllUsers(context.Background())
+	assert.NoError(t, err)
+
+	// Corp blueprints should still be fetched despite character lookup failure
+	key := string(rune(3001001)) + ":corporation"
+	bps := bpRepo.replacedBlueprints[key]
+	assert.Len(t, bps, 1)
+	assert.Equal(t, int64(787), bps[0].TypeID)
+}

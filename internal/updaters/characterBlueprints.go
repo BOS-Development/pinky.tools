@@ -80,7 +80,8 @@ func (u *CharacterBlueprintsUpdater) UpdateUser(ctx context.Context, userID int6
 	// Update character blueprints
 	characters, err := u.characterRepo.GetAll(ctx, userID)
 	if err != nil {
-		return errors.Wrap(err, "failed to get user characters for blueprints update")
+		log.Error("failed to get user characters for blueprints update", "userID", userID, "error", err)
+		// Don't return — continue to corp blueprints
 	}
 
 	for _, char := range characters {
