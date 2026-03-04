@@ -1,37 +1,24 @@
 import { type LucideIcon } from 'lucide-react';
-import Box from '@mui/material/Box';
-import type { SxProps, Theme } from '@mui/material/styles';
 
 type IconProps = {
   icon: LucideIcon;
   size?: number;
   color?: string;
-  sx?: SxProps<Theme>;
+  className?: string;
 };
 
 /**
  * Wrapper component for Lucide React icons.
- * Provides consistent sizing and MUI sx prop support for gradual migration
- * from @mui/icons-material to Lucide.
+ * Provides consistent sizing and optional className support.
  *
  * Usage:
  *   import { Rocket } from 'lucide-react';
  *   <Icon icon={Rocket} size={20} color="#00d4ff" />
  */
-export default function Icon({ icon: LucideIcon, size = 20, color, sx }: IconProps) {
+export default function Icon({ icon: LucideIcon, size = 20, color, className }: IconProps) {
   return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: color ?? 'inherit',
-        lineHeight: 0,
-        ...sx as object,
-      }}
-    >
+    <span className={`inline-flex items-center justify-center leading-none ${className ?? ''}`} style={{ color: color ?? 'inherit' }}>
       <LucideIcon size={size} />
-    </Box>
+    </span>
   );
 }
