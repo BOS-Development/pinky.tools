@@ -11,7 +11,7 @@ test.describe('Settings', () => {
     await page.goto('/settings');
 
     // Discord Notifications card heading is visible
-    await expect(page.getByText('Discord Notifications')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Discord Notifications' })).toBeVisible({ timeout: 10000 });
 
     // Unlinked state: descriptive text and link button are shown
     await expect(
@@ -19,6 +19,19 @@ test.describe('Settings', () => {
     ).toBeVisible();
 
     await expect(page.getByRole('link', { name: /Link Discord Account/i })).toBeVisible();
+  });
+
+  test('Account Info section is visible', async ({ page }) => {
+    await page.goto('/settings');
+
+    await expect(page.getByRole('heading', { name: 'Account' })).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Linked Characters section is visible with Add Character link', async ({ page }) => {
+    await page.goto('/settings');
+
+    await expect(page.getByRole('heading', { name: 'Linked Characters' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('link', { name: /Add Character/i })).toBeVisible();
   });
 
   test('page renders without errors', async ({ page }) => {
@@ -32,6 +45,6 @@ test.describe('Settings', () => {
     await expect(page.getByText(/application error/i)).not.toBeVisible();
 
     // Notification Targets section is NOT shown when Discord is unlinked
-    await expect(page.getByText('Notification Targets')).not.toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Notification Targets' })).not.toBeVisible();
   });
 });
