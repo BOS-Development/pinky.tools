@@ -4,18 +4,9 @@ import {
   PiPinContent,
 } from '@industry-tool/client/data/models';
 import { formatNumber } from '@industry-tool/utils/formatting';
-import Drawer from '@mui/material/Drawer';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
-import IconButton from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
-import TextField from '@mui/material/TextField';
-import CloseIcon from '@mui/icons-material/Close';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
-import FactoryIcon from '@mui/icons-material/Factory';
-import InventoryIcon from '@mui/icons-material/Inventory';
-import EditIcon from '@mui/icons-material/Edit';
+import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
+import { X, Rocket, Factory, Package, Edit, Loader2 } from 'lucide-react';
 
 type LaunchpadDetailProps = {
   open: boolean;
@@ -192,179 +183,122 @@ export default function LaunchpadDetail({
     return Array.from(map.values()).sort((a, b) => a.depletionHours - b.depletionHours);
   }, [data]);
 
+  if (!open) return null;
+
   return (
-    <Drawer
-      anchor="right"
-      open={open}
-      onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: 450,
-          maxWidth: '100vw',
-          bgcolor: '#0a0e1a',
-          borderLeft: '1px solid rgba(0, 212, 255, 0.15)',
-        },
-      }}
-    >
-      {/* Header */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 2.5,
-          py: 2,
-          borderBottom: '1px solid rgba(148, 163, 184, 0.1)',
-          background: '#0a0e1a',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, flex: 1 }}>
-          <RocketLaunchIcon sx={{ color: '#00d4ff', fontSize: 24, flexShrink: 0 }} />
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography
-              variant="body1"
-              sx={{ color: '#e2e8f0', fontWeight: 600, lineHeight: 1.3 }}
-              noWrap
-            >
-              {planetName}
-            </Typography>
-            {/* Editable label */}
-            {editing ? (
-              <TextField
-                inputRef={labelInputRef}
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onBlur={saveLabel}
-                onKeyDown={handleKeyDown}
-                disabled={savingLabel}
-                size="small"
-                placeholder="Enter label..."
-                variant="standard"
-                sx={{
-                  mt: 0.25,
-                  '& .MuiInput-root': {
-                    color: '#94a3b8',
-                    fontSize: '0.75rem',
-                    '&:before': { borderColor: 'rgba(0, 212, 255, 0.3)' },
-                    '&:after': { borderColor: '#00d4ff' },
-                  },
-                  '& .MuiInputBase-input': { py: 0.25 },
-                }}
-              />
-            ) : (
-              <Box
-                onClick={startEditing}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  cursor: 'pointer',
-                  '&:hover': { '& .edit-icon': { opacity: 1 } },
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: label ? '#94a3b8' : '#475569',
-                    fontStyle: label ? 'normal' : 'italic',
-                  }}
-                >
-                  {label || 'Add label...'}
-                </Typography>
-                <EditIcon
-                  className="edit-icon"
-                  sx={{
-                    fontSize: 12,
-                    color: '#475569',
-                    opacity: label ? 0 : 0.5,
-                    transition: 'opacity 0.15s',
-                  }}
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
+      {/* Panel */}
+      <div className="absolute right-0 top-0 h-full w-[450px] max-w-full bg-[#0a0e1a] border-l border-[rgba(0,212,255,0.15)] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(148,163,184,0.1)] bg-[#0a0e1a]">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <Rocket className="w-5 h-5 text-[#00d4ff] flex-shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-[#e2e8f0] leading-snug truncate">
+                {planetName}
+              </p>
+              {/* Editable label */}
+              {editing ? (
+                <input
+                  ref={labelInputRef}
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={saveLabel}
+                  onKeyDown={handleKeyDown}
+                  disabled={savingLabel}
+                  placeholder="Enter label..."
+                  className="bg-transparent border-b border-[rgba(0,212,255,0.3)] text-[#94a3b8] text-xs outline-none w-full py-0.5 mt-0.5 focus:border-[#00d4ff]"
                 />
-              </Box>
-            )}
-          </Box>
-        </Box>
-        <IconButton onClick={onClose} size="small" sx={{ color: '#64748b', ml: 1 }}>
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      </Box>
+              ) : (
+                <div
+                  onClick={startEditing}
+                  className="flex items-center gap-1 cursor-pointer group"
+                >
+                  <span className={label ? 'text-xs text-[#94a3b8]' : 'text-xs text-[#475569] italic'}>
+                    {label || 'Add label...'}
+                  </span>
+                  <Edit className="w-3 h-3 text-[#475569] opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-[#64748b] hover:text-[#e2e8f0] ml-2"
+            onClick={onClose}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-      {/* Content */}
-      <Box sx={{ flex: 1, overflow: 'auto', px: 2.5, py: 2 }}>
-        {loading && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-            <CircularProgress size={36} sx={{ color: '#00d4ff' }} />
-          </Box>
-        )}
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading && (
+            <div className="flex justify-center items-center py-16">
+              <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+            </div>
+          )}
 
-        {error && !loading && (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <Typography variant="body2" sx={{ color: '#ef4444' }}>
-              {error}
-            </Typography>
-          </Box>
-        )}
+          {error && !loading && (
+            <div className="text-center py-16">
+              <p className="text-sm text-[#ef4444]">{error}</p>
+            </div>
+          )}
 
-        {data && !loading && (
-          <>
-            {/* Input Requirements (aggregated across all factories) */}
-            <SectionHeader
-              icon={<FactoryIcon sx={{ fontSize: 16, color: '#00d4ff' }} />}
-              label={`Input Requirements (${aggregatedInputs.length})`}
-            />
-            {aggregatedInputs.length === 0 ? (
-              <Typography variant="caption" sx={{ color: '#475569', display: 'block', mb: 2 }}>
-                No factory inputs tracked
-              </Typography>
-            ) : (
-              <Box sx={{ mb: 3 }}>
-                {aggregatedInputs.map((input) => (
-                  <InputRow key={input.typeId} input={input} />
-                ))}
-              </Box>
-            )}
+          {data && !loading && (
+            <>
+              {/* Input Requirements */}
+              <SectionHeader
+                icon={<Factory className="w-4 h-4 text-[#00d4ff]" />}
+                label={`Input Requirements (${aggregatedInputs.length})`}
+              />
+              {aggregatedInputs.length === 0 ? (
+                <span className="text-xs text-[#475569] block mb-4">
+                  No factory inputs tracked
+                </span>
+              ) : (
+                <div className="mb-6">
+                  {aggregatedInputs.map((input) => (
+                    <InputRow key={input.typeId} input={input} />
+                  ))}
+                </div>
+              )}
 
-            <Divider sx={{ borderColor: 'rgba(148, 163, 184, 0.08)', mb: 2 }} />
+              <Separator className="bg-[rgba(148,163,184,0.08)] mb-4" />
 
-            {/* Current Contents */}
-            <SectionHeader
-              icon={<InventoryIcon sx={{ fontSize: 16, color: '#00d4ff' }} />}
-              label={`Current Contents (${sortedContents.length})`}
-            />
-            {sortedContents.length === 0 ? (
-              <Typography variant="caption" sx={{ color: '#475569' }}>
-                Launchpad is empty
-              </Typography>
-            ) : (
-              <Box>
-                {sortedContents.map((item) => (
-                  <ContentRow key={item.typeId} item={item} />
-                ))}
-              </Box>
-            )}
-          </>
-        )}
-      </Box>
-    </Drawer>
+              {/* Current Contents */}
+              <SectionHeader
+                icon={<Package className="w-4 h-4 text-[#00d4ff]" />}
+                label={`Current Contents (${sortedContents.length})`}
+              />
+              {sortedContents.length === 0 ? (
+                <span className="text-xs text-[#475569]">Launchpad is empty</span>
+              ) : (
+                <div>
+                  {sortedContents.map((item) => (
+                    <ContentRow key={item.typeId} item={item} />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
 function SectionHeader({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1.5 }}>
+    <div className="flex items-center gap-1.5 mb-3">
       {icon}
-      <Typography
-        variant="caption"
-        sx={{
-          color: '#64748b',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-        }}
-      >
+      <span className="text-xs text-[#64748b] font-semibold uppercase tracking-wide">
         {label}
-      </Typography>
-    </Box>
+      </span>
+    </div>
   );
 }
 
@@ -380,82 +314,50 @@ function InputRow({ input }: { input: AggregatedInput }) {
   const color = depletionColor(input.depletionHours);
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        py: 0.5,
-        '&:not(:last-child)': {
-          borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
-        },
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, flex: 1 }}>
+    <div className="flex items-center justify-between py-1.5 border-b border-[rgba(148,163,184,0.05)] last:border-b-0">
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
         <img
           src={`https://images.evetech.net/types/${input.typeId}/icon?size=32`}
           alt=""
           width={18}
           height={18}
-          style={{ flexShrink: 0 }}
+          className="flex-shrink-0"
         />
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="caption" sx={{ color: '#cbd5e1', display: 'block' }} noWrap>
-            {input.name}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#475569', fontSize: '0.65rem' }}>
+        <div className="min-w-0">
+          <span className="text-xs text-[#cbd5e1] block truncate">{input.name}</span>
+          <span className="text-[#475569]" style={{ fontSize: '0.65rem' }}>
             {formatNumber(input.consumedPerHour)}/hr
-          </Typography>
-        </Box>
-      </Box>
-
-      <Box sx={{ textAlign: 'right', flexShrink: 0, ml: 1 }}>
-        <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block' }}>
-          {formatNumber(input.currentStock)}
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color,
-            fontWeight: 600,
-            fontSize: '0.65rem',
-          }}
-        >
+          </span>
+        </div>
+      </div>
+      <div className="text-right flex-shrink-0 ml-2">
+        <span className="text-xs text-[#94a3b8] block">{formatNumber(input.currentStock)}</span>
+        <span className="font-semibold" style={{ color, fontSize: '0.65rem' }}>
           {formatDepletion(input.depletionHours)}
-        </Typography>
-      </Box>
-    </Box>
+        </span>
+      </div>
+    </div>
   );
 }
 
 function ContentRow({ item }: { item: PiPinContent }) {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        py: 0.5,
-        '&:not(:last-child)': {
-          borderBottom: '1px solid rgba(148, 163, 184, 0.05)',
-        },
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+    <div className="flex items-center justify-between py-1.5 border-b border-[rgba(148,163,184,0.05)] last:border-b-0">
+      <div className="flex items-center gap-1.5 min-w-0">
         <img
           src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`}
           alt=""
           width={18}
           height={18}
-          style={{ flexShrink: 0 }}
+          className="flex-shrink-0"
         />
-        <Typography variant="caption" sx={{ color: '#cbd5e1' }} noWrap>
+        <span className="text-xs text-[#cbd5e1] truncate">
           {item.name || `Type ${item.typeId}`}
-        </Typography>
-      </Box>
-      <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 500, flexShrink: 0, ml: 1 }}>
+        </span>
+      </div>
+      <span className="text-xs text-[#94a3b8] font-medium flex-shrink-0 ml-2">
         {formatNumber(item.amount)}
-      </Typography>
-    </Box>
+      </span>
+    </div>
   );
 }

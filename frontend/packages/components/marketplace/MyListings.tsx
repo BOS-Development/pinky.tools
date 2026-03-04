@@ -1,56 +1,23 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSession } from "next-auth/react";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
-import SellIcon from '@mui/icons-material/Sell';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
-import Chip from '@mui/material/Chip';
-import Badge from '@mui/material/Badge';
-import Tooltip from '@mui/material/Tooltip';
+import { Edit, Trash2, Search, Repeat, Tag } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from '@/components/ui/sonner';
+import { cn } from '@/lib/utils';
+import Loading from "@industry-tool/components/loading";
 
 const AutoSellIcon = () => (
-  <Badge
-    badgeContent={<AutorenewIcon sx={{ fontSize: '0.6rem' }} />}
-    sx={{
-      '& .MuiBadge-badge': {
-        minWidth: 'unset',
-        height: 'unset',
-        padding: 0,
-        backgroundColor: 'transparent',
-        color: 'inherit',
-        top: 2,
-        right: 2,
-      },
-    }}
-  >
-    <SellIcon />
-  </Badge>
+  <span className="relative inline-flex">
+    <Tag className="h-4 w-4" />
+    <Repeat className="h-2.5 w-2.5 absolute -top-0.5 -right-0.5" />
+  </span>
 );
-import Loading from "@industry-tool/components/loading";
 
 export type ForSaleItem = {
   id: number;
@@ -90,9 +57,6 @@ export default function MyListings() {
   const [listings, setListings] = useState<ForSaleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState<ForSaleItem | null>(null);
   const [formData, setFormData] = useState<Partial<ListingFormData>>({});
@@ -142,17 +106,17 @@ export default function MyListings() {
       });
 
       if (response.ok) {
-        showSnackbar('Listing updated successfully', 'success');
+        toast.success('Listing updated successfully');
         setEditDialogOpen(false);
         setSelectedListing(null);
         setFormData({});
         await fetchListings();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to update listing', 'error');
+        toast.error(error.error || 'Failed to update listing');
       }
-    } catch (err) {
-      showSnackbar('Failed to update listing', 'error');
+    } catch {
+      toast.error('Failed to update listing');
     }
   };
 
@@ -165,21 +129,15 @@ export default function MyListings() {
       });
 
       if (response.ok) {
-        showSnackbar('Listing deleted successfully', 'success');
+        toast.success('Listing deleted successfully');
         await fetchListings();
       } else {
         const error = await response.json();
-        showSnackbar(error.error || 'Failed to delete listing', 'error');
+        toast.error(error.error || 'Failed to delete listing');
       }
-    } catch (err) {
-      showSnackbar('Failed to delete listing', 'error');
+    } catch {
+      toast.error('Failed to delete listing');
     }
-  };
-
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
   };
 
   // Filter listings based on search
@@ -211,217 +169,188 @@ export default function MyListings() {
   }
 
   return (
-    <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" gutterBottom>
-          My Listings
-        </Typography>
+    <div className="w-full mt-4 mb-4">
+      <div className="mb-3">
+        <h1 className="text-2xl font-bold text-[#e2e8f0] mb-4">My Listings</h1>
 
         {/* Summary Stats */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Active Listings
-              </Typography>
-              <Typography variant="h3">{filteredListings.length}</Typography>
+        <div className="flex gap-4 mb-6">
+          <Card className="flex-1 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-[#94a3b8] mb-1">Active Listings</h3>
+              <p className="text-3xl font-bold text-[#e2e8f0]">{filteredListings.length}</p>
             </CardContent>
           </Card>
-          <Card sx={{ flex: 1 }}>
-            <CardContent>
-              <Typography variant="h6" color="text.secondary" gutterBottom>
-                Total Value
-              </Typography>
-              <Typography variant="h3">
+          <Card className="flex-1 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold text-[#94a3b8] mb-1">Total Value</h3>
+              <p className="text-3xl font-bold text-[#e2e8f0]">
                 {totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
-              </Typography>
+              </p>
             </CardContent>
           </Card>
-        </Box>
+        </div>
 
         {/* Search */}
-        <Box sx={{ mb: 2 }}>
-          <TextField
-            fullWidth
-            size="small"
+        <div className="mb-4 relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b]" />
+          <Input
+            className="pl-9"
             placeholder="Search items, owners, or locations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
           />
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {/* Listings Table */}
       {filteredListings.length === 0 ? (
-        <Card>
-          <CardContent>
-            <Typography variant="h6" align="center" color="text.secondary">
+        <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <CardContent className="p-6">
+            <h3 className="text-lg font-semibold text-center text-[#94a3b8]">
               {listings.length === 0
                 ? 'No active listings. Create your first listing to get started!'
                 : 'No items match your search.'}
-            </Typography>
+            </h3>
           </CardContent>
         </Card>
       ) : (
-        <Card>
-          <CardContent sx={{ p: 0 }}>
-            <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Item</TableCell>
-                    <TableCell>Owner</TableCell>
-                    <TableCell>Location</TableCell>
-                    <TableCell align="right">Quantity</TableCell>
-                    <TableCell align="right">Price/Unit</TableCell>
-                    <TableCell align="right">Total Value</TableCell>
-                    <TableCell>Notes</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filteredListings.map((item) => (
-                    <TableRow
-                      key={item.id}
-                      hover
-                      sx={{
-                        '&:nth-of-type(odd)': {
-                          backgroundColor: 'action.hover',
-                        },
-                      }}
+        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[#0f1219]">
+                <TableHead>Item</TableHead>
+                <TableHead>Owner</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead className="text-right">Price/Unit</TableHead>
+                <TableHead className="text-right">Total Value</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-center">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredListings.map((item, idx) => (
+                <TableRow
+                  key={item.id}
+                  className={cn(idx % 2 === 0 ? 'bg-[#12151f]' : 'bg-[#0f1219]', 'hover:bg-[rgba(0,212,255,0.04)]')}
+                >
+                  <TableCell className="font-semibold text-[#e2e8f0]">
+                    <div className="flex items-center gap-2">
+                      {item.typeName}
+                      {item.autoSellContainerId && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                className="text-[0.65rem] font-semibold h-[22px] bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)] hover:bg-[rgba(0,212,255,0.2)] cursor-default flex items-center gap-1"
+                              >
+                                <AutoSellIcon />
+                                Auto
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>Auto-managed listing — changes will be overwritten on next sync</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-[#94a3b8]">{item.ownerName}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{item.locationName}</TableCell>
+                  <TableCell className="text-right text-[#e2e8f0]">{item.quantityAvailable.toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-[#e2e8f0]">
+                    {item.pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                  </TableCell>
+                  <TableCell className="text-right text-[#e2e8f0]">
+                    {(item.quantityAvailable * item.pricePerUnit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </TableCell>
+                  <TableCell className="text-[#94a3b8]">{item.notes || '-'}</TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-[#60a5fa] hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
+                      onClick={() => handleEditClick(item)}
+                      aria-label="edit"
                     >
-                      <TableCell sx={{ fontWeight: 600 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {item.typeName}
-                          {item.autoSellContainerId && (
-                            <Tooltip title="Auto-managed listing — changes will be overwritten on next sync">
-                              <Chip
-                                icon={<AutoSellIcon />}
-                                label="Auto"
-                                size="small"
-                                sx={{
-                                  fontSize: '0.65rem',
-                                  fontWeight: 600,
-                                  height: 22,
-                                  background: 'rgba(0, 212, 255, 0.15)',
-                                  color: '#00d4ff',
-                                  border: '1px solid rgba(0, 212, 255, 0.3)',
-                                  '& .MuiChip-icon': { color: '#00d4ff', fontSize: '0.8rem' },
-                                }}
-                              />
-                            </Tooltip>
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell>{item.ownerName}</TableCell>
-                      <TableCell>{item.locationName}</TableCell>
-                      <TableCell align="right">{item.quantityAvailable.toLocaleString()}</TableCell>
-                      <TableCell align="right">
-                        {item.pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                      </TableCell>
-                      <TableCell align="right">
-                        {(item.quantityAvailable * item.pricePerUnit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                      </TableCell>
-                      <TableCell>{item.notes || '-'}</TableCell>
-                      <TableCell align="center">
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          onClick={() => handleEditClick(item)}
-                          aria-label="edit"
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleDelete(item.id)}
-                          aria-label="delete"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </CardContent>
-        </Card>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-[#ef4444] hover:text-[#f87171] hover:bg-[rgba(239,68,68,0.1)]"
+                      onClick={() => handleDelete(item.id)}
+                      aria-label="delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {/* Edit Dialog */}
-      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Listing</DialogTitle>
-        <DialogContent>
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-sm bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">Edit Listing</DialogTitle>
+          </DialogHeader>
           {selectedListing && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Item: <strong>{selectedListing.typeName}</strong>
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Location: <strong>{selectedListing.locationName}</strong>
-              </Typography>
+            <div className="flex flex-col gap-4 mt-1">
+              <p className="text-sm text-[#94a3b8]">
+                Item: <strong className="text-[#e2e8f0]">{selectedListing.typeName}</strong>
+              </p>
+              <p className="text-sm text-[#94a3b8]">
+                Location: <strong className="text-[#e2e8f0]">{selectedListing.locationName}</strong>
+              </p>
 
-              <TextField
-                label="Quantity Available"
-                type="number"
-                fullWidth
-                value={formData.quantityAvailable || ''}
-                onChange={(e) => setFormData({ ...formData, quantityAvailable: parseInt(e.target.value) })}
-                InputProps={{ inputProps: { min: 1 } }}
-              />
+              <div>
+                <label className="text-sm text-[#94a3b8] mb-1 block">Quantity Available</label>
+                <Input
+                  type="number"
+                  value={formData.quantityAvailable || ''}
+                  onChange={(e) => setFormData({ ...formData, quantityAvailable: parseInt(e.target.value) })}
+                  min={1}
+                />
+              </div>
 
-              <TextField
-                label="Price Per Unit (ISK)"
-                type="number"
-                fullWidth
-                value={formData.pricePerUnit || ''}
-                onChange={(e) => setFormData({ ...formData, pricePerUnit: parseInt(e.target.value) })}
-                InputProps={{ inputProps: { min: 0 } }}
-              />
+              <div>
+                <label className="text-sm text-[#94a3b8] mb-1 block">Price Per Unit (ISK)</label>
+                <Input
+                  type="number"
+                  value={formData.pricePerUnit || ''}
+                  onChange={(e) => setFormData({ ...formData, pricePerUnit: parseInt(e.target.value) })}
+                  min={0}
+                />
+              </div>
 
-              <TextField
-                label="Notes (optional)"
-                multiline
-                rows={3}
-                fullWidth
-                value={formData.notes || ''}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              />
-            </Box>
+              <div>
+                <label className="text-sm text-[#94a3b8] mb-1 block">Notes (optional)</label>
+                <textarea
+                  rows={3}
+                  className="w-full rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] text-[#e2e8f0] text-sm px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#00d4ff] focus:border-[#00d4ff]"
+                  value={formData.notes || ''}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                />
+              </div>
+            </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEditSave}
+              disabled={!formData.quantityAvailable || formData.quantityAvailable <= 0 || formData.pricePerUnit === undefined || formData.pricePerUnit < 0}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleEditSave}
-            variant="contained"
-            disabled={!formData.quantityAvailable || formData.quantityAvailable <= 0 || formData.pricePerUnit === undefined || formData.pricePerUnit < 0}
-          >
-            Save Changes
-          </Button>
-        </DialogActions>
       </Dialog>
-
-      {/* Snackbar */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={3000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Container>
+    </div>
   );
 }

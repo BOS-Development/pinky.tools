@@ -4,38 +4,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Navbar from '@industry-tool/components/Navbar';
 import Loading from '@industry-tool/components/loading';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import LinearProgress from '@mui/material/LinearProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import Divider from '@mui/material/Divider';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Plus, Trash2, Pencil, ExternalLink } from 'lucide-react';
 import { HaulingRun, HaulingRunItem, HaulingArbitrageRow, HaulingRunPnlEntry, HaulingRunPnlSummary } from '@industry-tool/client/data/models';
 import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
 import { getItemIconUrl } from '@industry-tool/utils/eveImages';
@@ -72,17 +49,25 @@ const STATUS_OPTIONS: HaulingRun['status'][] = [
   'CANCELLED',
 ];
 
-function getStatusColor(status: HaulingRun['status']): 'primary' | 'warning' | 'success' | 'error' | 'default' | 'info' {
-  switch (status) {
-    case 'PLANNING': return 'primary';
-    case 'ACCUMULATING': return 'warning';
-    case 'READY': return 'success';
-    case 'IN_TRANSIT': return 'info';
-    case 'SELLING': return 'warning';
-    case 'COMPLETE': return 'success';
-    case 'CANCELLED': return 'error';
-    default: return 'default';
-  }
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { color: string; bg: string }> = {
+    PLANNING: { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.1)' },
+    ACCUMULATING: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    READY: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+    IN_TRANSIT: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
+    SELLING: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    COMPLETE: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+    CANCELLED: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
+  };
+  const c = config[status] || { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+      style={{ backgroundColor: c.bg, color: c.color }}
+    >
+      {status}
+    </span>
+  );
 }
 
 function getRowBgColor(fillPercent: number): string | undefined {
@@ -156,7 +141,6 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
   const [addItemOpen, setAddItemOpen] = useState(false);
   const [editAcquiredOpen, setEditAcquiredOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<HaulingRunItem | null>(null);
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
 
   const [addItemForm, setAddItemForm] = useState<AddItemForm>({
     typeId: '',
@@ -267,8 +251,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
     }
   }, [run, fetchRouteSafety]);
 
-  const handleStatusChange = async (newStatus: HaulingRun['status']) => {
-    setStatusMenuOpen(false);
+  const handleStatusChange = async (newStatus: string) => {
     if (!run) return;
     try {
       const response = await fetch(`/api/hauling/runs/${runId}/status`, {
@@ -431,9 +414,9 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
     return (
       <>
         <Navbar />
-        <Container maxWidth={false} sx={{ mt: 4 }}>
-          <Typography color="error">Run not found.</Typography>
-        </Container>
+        <div className="w-full px-4 mt-8">
+          <p className="text-red-400">Run not found.</p>
+        </div>
       </>
     );
   }
@@ -464,106 +447,94 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
     })
     .slice(0, 3);
 
+  const capacityColor = volumePercent >= 95 ? '#10b981' : volumePercent >= 70 ? '#00d4ff' : '#f59e0b';
+
   return (
-    <>
+    <TooltipProvider>
       <Navbar />
-      <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
+      <div className="w-full px-4 mt-8 mb-8">
         {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Button
-            component={Link}
-            href="/hauling"
-            startIcon={<ArrowBackIcon />}
-            variant="text"
-            size="small"
-          >
-            Back
+        <div className="flex items-center gap-4 mb-6">
+          <Button asChild variant="ghost" size="sm" className="text-[#94a3b8] hover:text-[#e2e8f0]">
+            <Link href="/hauling">
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Back
+            </Link>
           </Button>
-          <Typography variant="h4" sx={{ fontWeight: 600, flex: 1 }}>
-            {run.name}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Chip
-              label={run.status}
-              color={getStatusColor(run.status)}
-            />
-            <FormControl size="small" sx={{ minWidth: 160 }}>
-              <InputLabel>Change Status</InputLabel>
-              <Select
-                value=""
-                label="Change Status"
-                onChange={(e) => handleStatusChange(e.target.value as HaulingRun['status'])}
-                displayEmpty
-              >
-                {STATUS_OPTIONS.map((s) => (
-                  <MenuItem key={s} value={s}>{s}</MenuItem>
-                ))}
+          <h1 className="text-2xl font-bold text-[#e2e8f0] flex-1">{run.name}</h1>
+          <div className="flex items-center gap-2">
+            <StatusBadge status={run.status} />
+            <div className="min-w-[160px]">
+              <Select value="" onValueChange={(v) => handleStatusChange(v)}>
+                <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#94a3b8] text-xs h-8">
+                  <SelectValue placeholder="Change Status" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  {STATUS_OPTIONS.map((s) => (
+                    <SelectItem key={s} value={s} className="text-[#e2e8f0]">
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
 
         {/* Route & Capacity */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-          <Card sx={{ flex: 1, minWidth: 200 }}>
-            <CardContent>
-              <Typography variant="body2" color="text.secondary" gutterBottom>Route</Typography>
-              <Typography variant="h6">{fromName} &rarr; {toName}</Typography>
+        <div className="flex gap-4 mb-6 flex-wrap">
+          <Card className="flex-1 min-w-[200px] bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="pt-4">
+              <p className="text-sm text-[#94a3b8] mb-1">Route</p>
+              <p className="text-lg font-semibold text-[#e2e8f0]">{fromName} &rarr; {toName}</p>
             </CardContent>
           </Card>
           {maxVol > 0 && (
-            <Card sx={{ flex: 2, minWidth: 300 }}>
-              <CardContent>
-                <Typography variant="body2" color="text.secondary" gutterBottom>Capacity</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box sx={{ flex: 1 }}>
-                    <LinearProgress
-                      variant="determinate"
-                      value={volumePercent}
-                      sx={{
-                        height: 12,
-                        borderRadius: 6,
-                        backgroundColor: '#1e2a3a',
-                        '& .MuiLinearProgress-bar': {
-                          backgroundColor: volumePercent >= 95 ? '#10b981' : volumePercent >= 70 ? '#00d4ff' : '#f59e0b',
-                        },
-                      }}
-                    />
-                  </Box>
-                  <Typography variant="body2" sx={{ minWidth: 140, textAlign: 'right' }}>
+            <Card className="flex-[2] min-w-[300px] bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+              <CardContent className="pt-4">
+                <p className="text-sm text-[#94a3b8] mb-2">Capacity</p>
+                <div className="flex items-center gap-4">
+                  <div className="flex-1">
+                    <div className="h-3 bg-[#1e2a3a] rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${volumePercent}%`, backgroundColor: capacityColor }}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm text-[#94a3b8] min-w-[140px] text-right">
                     {formatNumber(totalUsedVolume, 1)} / {formatNumber(maxVol)} m³
-                  </Typography>
-                </Box>
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
-        </Box>
+        </div>
 
         {/* Route Safety */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>Route Safety</Typography>
+        <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <CardContent className="pt-4">
+            <h2 className="text-lg font-semibold text-[#e2e8f0] mb-3">Route Safety</h2>
             {routeSafety.loading ? (
-              <Typography variant="body2" color="text.secondary">Loading route data...</Typography>
+              <p className="text-sm text-[#94a3b8]">Loading route data...</p>
             ) : (
-              <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">Shortest Route</Typography>
+              <div className="flex gap-6 flex-wrap items-center">
+                <div>
+                  <p className="text-sm text-[#94a3b8]">Shortest Route</p>
                   {routeSafety.jumps !== null ? (
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                    <p className="font-semibold text-[#e2e8f0]">
                       {routeSafety.jumps} jumps ({fromName} &rarr; {toName})
-                    </Typography>
+                    </p>
                   ) : (
-                    <Typography variant="body1">—</Typography>
+                    <p className="text-[#e2e8f0]">—</p>
                   )}
-                </Box>
-                <Box>
-                  <Typography variant="body2" color="text.secondary">Source Region Kills (24h)</Typography>
+                </div>
+                <div>
+                  <p className="text-sm text-[#94a3b8]">Source Region Kills (24h)</p>
                   {routeSafety.kills24h !== null ? (
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 600,
+                    <p
+                      className="font-semibold"
+                      style={{
                         color: routeSafety.kills24h <= 5
                           ? '#10b981'
                           : routeSafety.kills24h <= 20
@@ -572,199 +543,186 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                       }}
                     >
                       {routeSafety.kills24h}
-                    </Typography>
+                    </p>
                   ) : (
-                    <Typography variant="body1">—</Typography>
+                    <p className="text-[#e2e8f0]">—</p>
                   )}
-                </Box>
-              </Box>
+                </div>
+              </div>
             )}
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              Data from EVE ESI and zKillboard
-            </Typography>
+            <p className="text-xs text-[#64748b] mt-2">Data from EVE ESI and zKillboard</p>
             {/* TODO(Phase 3): Undercut alert — show warning if current dest market price
                 has dropped below item sell prices since this run was created. */}
           </CardContent>
         </Card>
 
         {/* Items Table */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6">Items</Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            size="small"
-            onClick={() => setAddItemOpen(true)}
-          >
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-[#e2e8f0]">Items</h2>
+          <Button size="sm" onClick={() => setAddItemOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
             Add Item
           </Button>
-        </Box>
+        </div>
 
         {items.length === 0 ? (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Typography variant="body1" align="center" color="text.secondary" sx={{ py: 2 }}>
-                No items added yet.
-              </Typography>
+          <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="py-6">
+              <p className="text-center text-[#94a3b8]">No items added yet.</p>
             </CardContent>
           </Card>
         ) : (
-          <Card sx={{ mb: 3 }}>
-            <CardContent sx={{ p: 0 }}>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Item</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Buy Price</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Sell Price</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Net Profit/unit</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Planned Qty</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Acquired</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700, width: 140 }}>Fill %</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Volume</TableCell>
-                      <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {items.map((item) => {
-                      const rowBg = getRowBgColor(item.fillPercent);
-                      const netProfitUnit = item.netProfitIsk !== undefined
-                        ? item.netProfitIsk
-                        : (item.sellPriceIsk && item.buyPriceIsk)
-                          ? item.sellPriceIsk - item.buyPriceIsk
-                          : undefined;
+          <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
+                    <TableHead className="font-bold text-[#e2e8f0]">Item</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Buy Price</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Sell Price</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Net Profit/unit</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Planned Qty</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Acquired</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] w-36">Fill %</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Volume</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item) => {
+                    const rowBg = getRowBgColor(item.fillPercent);
+                    const netProfitUnit = item.netProfitIsk !== undefined
+                      ? item.netProfitIsk
+                      : (item.sellPriceIsk && item.buyPriceIsk)
+                        ? item.sellPriceIsk - item.buyPriceIsk
+                        : undefined;
+                    const fillColor = item.fillPercent >= 100 ? '#10b981' : '#00d4ff';
 
-                      return (
-                        <TableRow
-                          key={item.id}
-                          hover
-                          sx={{ backgroundColor: rowBg }}
-                        >
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Image
-                                src={getItemIconUrl(item.typeId, 32)}
-                                alt={item.typeName}
-                                width={24}
-                                height={24}
-                                style={{ borderRadius: 2 }}
-                              />
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {item.typeName}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell align="right">
-                            {item.buyPriceIsk !== undefined ? formatISK(item.buyPriceIsk) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {item.sellPriceIsk !== undefined ? formatISK(item.sellPriceIsk) : '—'}
-                          </TableCell>
-                          <TableCell align="right">
-                            {netProfitUnit !== undefined ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: netProfitUnit >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}
-                              >
-                                {formatISK(netProfitUnit)}
-                              </Typography>
-                            ) : '—'}
-                          </TableCell>
-                          <TableCell align="right">{item.quantityPlanned.toLocaleString()}</TableCell>
-                          <TableCell align="right">{item.quantityAcquired.toLocaleString()}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Box sx={{ flex: 1 }}>
-                                <LinearProgress
-                                  variant="determinate"
-                                  value={Math.min(item.fillPercent, 100)}
-                                  sx={{
-                                    height: 6,
-                                    borderRadius: 3,
-                                    backgroundColor: '#1e2a3a',
-                                    '& .MuiLinearProgress-bar': {
-                                      backgroundColor: item.fillPercent >= 100 ? '#10b981' : '#00d4ff',
-                                    },
-                                  }}
+                    return (
+                      <TableRow
+                        key={item.id}
+                        className="border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
+                        style={{ backgroundColor: rowBg }}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Image
+                              src={getItemIconUrl(item.typeId, 32)}
+                              alt={item.typeName}
+                              width={24}
+                              height={24}
+                              style={{ borderRadius: 2 }}
+                            />
+                            <span className="text-sm font-semibold text-[#e2e8f0]">{item.typeName}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {item.buyPriceIsk !== undefined ? formatISK(item.buyPriceIsk) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {item.sellPriceIsk !== undefined ? formatISK(item.sellPriceIsk) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {netProfitUnit !== undefined ? (
+                            <span
+                              className="text-sm font-semibold"
+                              style={{ color: netProfitUnit >= 0 ? '#10b981' : '#ef4444' }}
+                            >
+                              {formatISK(netProfitUnit)}
+                            </span>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {item.quantityPlanned.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {item.quantityAcquired.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <div className="h-1.5 bg-[#1e2a3a] rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{ width: `${Math.min(item.fillPercent, 100)}%`, backgroundColor: fillColor }}
                                 />
-                              </Box>
-                              <Typography variant="caption" sx={{ minWidth: 36, textAlign: 'right' }}>
-                                {item.fillPercent.toFixed(0)}%
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell align="right">
-                            {item.volumeM3 !== undefined
-                              ? `${formatNumber(item.volumeM3 * item.quantityPlanned, 1)} m³`
-                              : '—'}
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', gap: 0.5 }}>
-                              <Tooltip title="Edit acquired qty">
-                                <IconButton
-                                  size="small"
+                              </div>
+                            </div>
+                            <span className="text-xs text-[#94a3b8] min-w-[36px] text-right">
+                              {item.fillPercent.toFixed(0)}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {item.volumeM3 !== undefined
+                            ? `${formatNumber(item.volumeM3 * item.quantityPlanned, 1)} m³`
+                            : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
                                   onClick={() => {
                                     setEditingItem(item);
                                     setEditAcquiredForm({ quantityAcquired: String(item.quantityAcquired) });
                                     setEditAcquiredOpen(true);
                                   }}
                                 >
-                                  <EditIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Remove item">
-                                <IconButton
-                                  size="small"
-                                  color="error"
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit acquired qty</TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
                                   onClick={() => handleRemoveItem(item.id)}
                                 >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Remove item</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         )}
 
         {/* Fill Remaining Capacity */}
         {topSuggestions.length > 0 && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Fill Remaining Capacity</Typography>
-                <Button
-                  component={Link}
-                  href={`/hauling/scanner?dest_region=${run.toRegionId}&source_region=${run.fromRegionId}`}
-                  endIcon={<OpenInNewIcon fontSize="small" />}
-                  size="small"
-                >
-                  See all
+          <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-[#e2e8f0]">Fill Remaining Capacity</h2>
+                <Button asChild variant="ghost" size="sm" className="text-[#94a3b8] hover:text-[#e2e8f0]">
+                  <Link href={`/hauling/scanner?dest_region=${run.toRegionId}&source_region=${run.fromRegionId}`}>
+                    See all
+                    <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                  </Link>
                 </Button>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              </div>
+              <div className="flex flex-col gap-2">
                 {topSuggestions.map((row) => {
                   const profitPerM3 = row.netProfitIsk && row.volumeM3
                     ? row.netProfitIsk / row.volumeM3
                     : undefined;
                   return (
-                    <Box
+                    <div
                       key={row.typeId}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                        p: 1,
-                        borderRadius: 1,
-                        backgroundColor: '#12151f',
-                      }}
+                      className="flex items-center gap-4 p-2 rounded bg-[#0f1219]"
                     >
                       <Image
                         src={getItemIconUrl(row.typeId, 32)}
@@ -773,373 +731,406 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                         height={24}
                         style={{ borderRadius: 2 }}
                       />
-                      <Typography variant="body2" sx={{ flex: 1, fontWeight: 600 }}>
-                        {row.typeName}
-                      </Typography>
+                      <span className="flex-1 text-sm font-semibold text-[#e2e8f0]">{row.typeName}</span>
                       {row.netProfitIsk !== undefined && (
-                        <Typography variant="body2" sx={{ color: '#10b981' }}>
-                          {formatISK(row.netProfitIsk)}/unit
-                        </Typography>
+                        <span className="text-sm text-[#10b981]">{formatISK(row.netProfitIsk)}/unit</span>
                       )}
                       {profitPerM3 !== undefined && (
-                        <Typography variant="caption" color="text.secondary">
-                          {formatISK(profitPerM3)}/m³
-                        </Typography>
+                        <span className="text-xs text-[#64748b]">{formatISK(profitPerM3)}/m³</span>
                       )}
                       {row.volumeM3 !== undefined && (
-                        <Typography variant="caption" color="text.secondary">
-                          {formatNumber(row.volumeM3, 2)} m³
-                        </Typography>
+                        <span className="text-xs text-[#64748b]">{formatNumber(row.volumeM3, 2)} m³</span>
                       )}
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => handleAddScannerItem(row)}
-                      >
+                      <Button size="sm" variant="outline" onClick={() => handleAddScannerItem(row)}>
                         Add
                       </Button>
-                    </Box>
+                    </div>
                   );
                 })}
-              </Box>
+              </div>
             </CardContent>
           </Card>
         )}
 
         {/* P&L Section — shown for SELLING or COMPLETE runs */}
         {(run.status === 'SELLING' || run.status === 'COMPLETE') && (
-          <Card sx={{ mb: 3 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6">Profit &amp; Loss</Typography>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<AddIcon />}
-                  onClick={() => handleOpenPnlDialog()}
-                >
+          <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold text-[#e2e8f0]">Profit &amp; Loss</h2>
+                <Button size="sm" onClick={() => handleOpenPnlDialog()}>
+                  <Plus className="h-4 w-4 mr-2" />
                   Enter P&amp;L
                 </Button>
-              </Box>
+              </div>
               {pnlEntries.length === 0 ? (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 2 }}>
+                <p className="text-center text-sm text-[#94a3b8] py-4">
                   No P&amp;L entries yet. Mark items as sold to track profit.
-                </Typography>
+                </p>
               ) : (
-                <TableContainer component={Paper} variant="outlined" sx={{ mb: 2 }}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Type</TableCell>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Qty Sold</TableCell>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Avg Sell Price</TableCell>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Revenue</TableCell>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Cost</TableCell>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }} align="right">Net Profit</TableCell>
-                        <TableCell sx={{ backgroundColor: '#0f1219', fontWeight: 700 }}>Actions</TableCell>
+                <div className="overflow-x-auto mb-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
+                        <TableHead className="font-bold text-[#e2e8f0]">Type</TableHead>
+                        <TableHead className="font-bold text-[#e2e8f0] text-right">Qty Sold</TableHead>
+                        <TableHead className="font-bold text-[#e2e8f0] text-right">Avg Sell Price</TableHead>
+                        <TableHead className="font-bold text-[#e2e8f0] text-right">Revenue</TableHead>
+                        <TableHead className="font-bold text-[#e2e8f0] text-right">Cost</TableHead>
+                        <TableHead className="font-bold text-[#e2e8f0] text-right">Net Profit</TableHead>
+                        <TableHead className="font-bold text-[#e2e8f0]">Actions</TableHead>
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
                     <TableBody>
                       {pnlEntries.map((entry) => (
-                        <TableRow key={entry.id} hover>
-                          <TableCell>{entry.typeName || `Type ${entry.typeId}`}</TableCell>
-                          <TableCell align="right">{formatNumber(entry.quantitySold)}</TableCell>
-                          <TableCell align="right">
+                        <TableRow key={entry.id} className="border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]">
+                          <TableCell className="text-sm text-[#e2e8f0]">
+                            {entry.typeName || `Type ${entry.typeId}`}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-[#94a3b8]">
+                            {formatNumber(entry.quantitySold)}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-[#94a3b8]">
                             {entry.avgSellPriceIsk !== undefined ? formatISK(entry.avgSellPriceIsk) : '—'}
                           </TableCell>
-                          <TableCell align="right" sx={{ color: '#10b981' }}>
+                          <TableCell className="text-right text-sm" style={{ color: '#10b981' }}>
                             {entry.totalRevenueIsk !== undefined ? formatISK(entry.totalRevenueIsk) : '—'}
                           </TableCell>
-                          <TableCell align="right" sx={{ color: '#ef4444' }}>
+                          <TableCell className="text-right text-sm" style={{ color: '#ef4444' }}>
                             {entry.totalCostIsk !== undefined ? formatISK(entry.totalCostIsk) : '—'}
                           </TableCell>
-                          <TableCell align="right">
+                          <TableCell className="text-right">
                             {entry.netProfitIsk !== undefined ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: entry.netProfitIsk >= 0 ? '#10b981' : '#ef4444', fontWeight: 600 }}
+                              <span
+                                className="text-sm font-semibold"
+                                style={{ color: entry.netProfitIsk >= 0 ? '#10b981' : '#ef4444' }}
                               >
                                 {formatISK(entry.netProfitIsk)}
-                              </Typography>
+                              </span>
                             ) : '—'}
                           </TableCell>
                           <TableCell>
-                            <Tooltip title="Edit P&L entry">
-                              <IconButton size="small" onClick={() => handleOpenPnlDialog(entry)}>
-                                <EditIcon fontSize="small" />
-                              </IconButton>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                                  onClick={() => handleOpenPnlDialog(entry)}
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit P&L entry</TooltipContent>
                             </Tooltip>
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
-                </TableContainer>
+                </div>
               )}
               {pnlSummary && (
-                <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mt: 1 }}>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Total Revenue</Typography>
-                    <Typography variant="h6" sx={{ color: '#10b981' }}>
+                <div className="flex gap-6 flex-wrap mt-2">
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Total Revenue</p>
+                    <p className="text-lg font-semibold" style={{ color: '#10b981' }}>
                       {formatISK(pnlSummary.totalRevenueIsk)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Total Cost</Typography>
-                    <Typography variant="h6" sx={{ color: '#ef4444' }}>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Total Cost</p>
+                    <p className="text-lg font-semibold" style={{ color: '#ef4444' }}>
                       {formatISK(pnlSummary.totalCostIsk)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Net Profit</Typography>
-                    <Typography variant="h6" sx={{ color: pnlSummary.netProfitIsk >= 0 ? '#10b981' : '#ef4444' }}>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Net Profit</p>
+                    <p
+                      className="text-lg font-semibold"
+                      style={{ color: pnlSummary.netProfitIsk >= 0 ? '#10b981' : '#ef4444' }}
+                    >
                       {formatISK(pnlSummary.netProfitIsk)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Margin %</Typography>
-                    <Typography variant="h6">
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Margin %</p>
+                    <p className="text-lg font-semibold text-[#e2e8f0]">
                       {pnlSummary.marginPct.toFixed(1)}%
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Items Sold</Typography>
-                    <Typography variant="h6">{formatNumber(pnlSummary.itemsSold)}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Items Pending</Typography>
-                    <Typography variant="h6">{formatNumber(pnlSummary.itemsPending)}</Typography>
-                  </Box>
-                </Box>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Items Sold</p>
+                    <p className="text-lg font-semibold text-[#e2e8f0]">{formatNumber(pnlSummary.itemsSold)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Items Pending</p>
+                    <p className="text-lg font-semibold text-[#e2e8f0]">{formatNumber(pnlSummary.itemsPending)}</p>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
         )}
 
         {/* Stats Footer */}
-        <Card>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>Run Summary</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-              <Box>
-                <Typography variant="body2" color="text.secondary">Total ISK Outlay</Typography>
-                <Typography variant="h6" sx={{ color: '#ef4444' }}>
+        <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <CardContent className="pt-4">
+            <h2 className="text-lg font-semibold text-[#e2e8f0] mb-2">Run Summary</h2>
+            <Separator className="mb-4 bg-[rgba(148,163,184,0.1)]" />
+            <div className="flex gap-6 flex-wrap">
+              <div>
+                <p className="text-sm text-[#94a3b8]">Total ISK Outlay</p>
+                <p className="text-lg font-semibold" style={{ color: '#ef4444' }}>
                   {formatISK(totalOutlay)}
-                </Typography>
-              </Box>
+                </p>
+              </div>
               {run.status === 'COMPLETE' && pnlSummary ? (
                 <>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Actual Revenue</Typography>
-                    <Typography variant="h6" sx={{ color: '#10b981' }}>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Actual Revenue</p>
+                    <p className="text-lg font-semibold" style={{ color: '#10b981' }}>
                       {formatISK(pnlSummary.totalRevenueIsk)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Actual Net Profit</Typography>
-                    <Typography variant="h6" sx={{ color: pnlSummary.netProfitIsk >= 0 ? '#10b981' : '#ef4444' }}>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Actual Net Profit</p>
+                    <p
+                      className="text-lg font-semibold"
+                      style={{ color: pnlSummary.netProfitIsk >= 0 ? '#10b981' : '#ef4444' }}
+                    >
                       {formatISK(pnlSummary.netProfitIsk)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Margin %</Typography>
-                    <Typography variant="h6">
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Margin %</p>
+                    <p className="text-lg font-semibold text-[#e2e8f0]">
                       {pnlSummary.marginPct.toFixed(1)}%
-                    </Typography>
-                  </Box>
+                    </p>
+                  </div>
                 </>
               ) : (
                 <>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Total ISK Revenue</Typography>
-                    <Typography variant="h6" sx={{ color: '#10b981' }}>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Total ISK Revenue</p>
+                    <p className="text-lg font-semibold" style={{ color: '#10b981' }}>
                       {formatISK(totalRevenue)}
-                    </Typography>
-                  </Box>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">Net Profit</Typography>
-                    <Typography variant="h6" sx={{ color: netProfit >= 0 ? '#10b981' : '#ef4444' }}>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-[#94a3b8]">Net Profit</p>
+                    <p
+                      className="text-lg font-semibold"
+                      style={{ color: netProfit >= 0 ? '#10b981' : '#ef4444' }}
+                    >
                       {formatISK(netProfit)}
-                    </Typography>
-                  </Box>
+                    </p>
+                  </div>
                 </>
               )}
-              <Box>
-                <Typography variant="body2" color="text.secondary">Fill % Overall</Typography>
-                <Typography variant="h6">
-                  {overallFill.toFixed(1)}%
-                </Typography>
-              </Box>
-            </Box>
+              <div>
+                <p className="text-sm text-[#94a3b8]">Fill % Overall</p>
+                <p className="text-lg font-semibold text-[#e2e8f0]">{overallFill.toFixed(1)}%</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-      </Container>
+      </div>
 
       {/* Add Item Dialog */}
-      <Dialog open={addItemOpen} onClose={() => setAddItemOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Add Item</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField
-              label="Type ID"
-              type="number"
-              value={addItemForm.typeId}
-              onChange={(e) => setAddItemForm({ ...addItemForm, typeId: e.target.value })}
-              fullWidth
-              required
-              autoFocus
-            />
-            <TextField
-              label="Item Name"
-              value={addItemForm.typeName}
-              onChange={(e) => setAddItemForm({ ...addItemForm, typeName: e.target.value })}
-              fullWidth
-              required
-            />
-            <TextField
-              label="Planned Quantity"
-              type="number"
-              value={addItemForm.quantityPlanned}
-              onChange={(e) => setAddItemForm({ ...addItemForm, quantityPlanned: e.target.value })}
-              fullWidth
-              required
-              inputProps={{ min: 1 }}
-            />
-            <TextField
-              label="Buy Price (ISK)"
-              type="number"
-              value={addItemForm.buyPriceIsk}
-              onChange={(e) => setAddItemForm({ ...addItemForm, buyPriceIsk: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              label="Sell Price (ISK)"
-              type="number"
-              value={addItemForm.sellPriceIsk}
-              onChange={(e) => setAddItemForm({ ...addItemForm, sellPriceIsk: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              label="Volume (m³)"
-              type="number"
-              value={addItemForm.volumeM3}
-              onChange={(e) => setAddItemForm({ ...addItemForm, volumeM3: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0, step: '0.01' }}
-            />
-          </Box>
+      <Dialog open={addItemOpen} onOpenChange={setAddItemOpen}>
+        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">Add Item</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-2">
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Type ID *</label>
+              <Input
+                type="number"
+                value={addItemForm.typeId}
+                onChange={(e) => setAddItemForm({ ...addItemForm, typeId: e.target.value })}
+                autoFocus
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Item Name *</label>
+              <Input
+                value={addItemForm.typeName}
+                onChange={(e) => setAddItemForm({ ...addItemForm, typeName: e.target.value })}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Planned Quantity *</label>
+              <Input
+                type="number"
+                value={addItemForm.quantityPlanned}
+                onChange={(e) => setAddItemForm({ ...addItemForm, quantityPlanned: e.target.value })}
+                min={1}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Buy Price (ISK)</label>
+              <Input
+                type="number"
+                value={addItemForm.buyPriceIsk}
+                onChange={(e) => setAddItemForm({ ...addItemForm, buyPriceIsk: e.target.value })}
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Sell Price (ISK)</label>
+              <Input
+                type="number"
+                value={addItemForm.sellPriceIsk}
+                onChange={(e) => setAddItemForm({ ...addItemForm, sellPriceIsk: e.target.value })}
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Volume (m³)</label>
+              <Input
+                type="number"
+                value={addItemForm.volumeM3}
+                onChange={(e) => setAddItemForm({ ...addItemForm, volumeM3: e.target.value })}
+                min={0}
+                step={0.01}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="ghost" onClick={() => setAddItemOpen(false)} className="text-[#94a3b8]">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddItem}
+              disabled={!addItemForm.typeId || !addItemForm.quantityPlanned || !addItemForm.typeName || submitting}
+            >
+              {submitting ? 'Adding...' : 'Add'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setAddItemOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleAddItem}
-            variant="contained"
-            disabled={!addItemForm.typeId || !addItemForm.quantityPlanned || !addItemForm.typeName || submitting}
-          >
-            {submitting ? 'Adding...' : 'Add'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* Edit Acquired Dialog */}
-      <Dialog open={editAcquiredOpen} onClose={() => setEditAcquiredOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Update Acquired Quantity</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 1 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              {editingItem?.typeName}
-            </Typography>
-            <TextField
-              label="Quantity Acquired"
-              type="number"
-              value={editAcquiredForm.quantityAcquired}
-              onChange={(e) => setEditAcquiredForm({ quantityAcquired: e.target.value })}
-              fullWidth
-              autoFocus
-              inputProps={{ min: 0 }}
-            />
-          </Box>
+      <Dialog open={editAcquiredOpen} onOpenChange={setEditAcquiredOpen}>
+        <DialogContent className="max-w-xs bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">Update Acquired Quantity</DialogTitle>
+          </DialogHeader>
+          <div className="mt-2">
+            <p className="text-sm text-[#94a3b8] mb-3">{editingItem?.typeName}</p>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Quantity Acquired</label>
+              <Input
+                type="number"
+                value={editAcquiredForm.quantityAcquired}
+                onChange={(e) => setEditAcquiredForm({ quantityAcquired: e.target.value })}
+                autoFocus
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="ghost" onClick={() => setEditAcquiredOpen(false)} className="text-[#94a3b8]">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleEditAcquired}
+              disabled={editAcquiredForm.quantityAcquired === '' || submitting}
+            >
+              {submitting ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditAcquiredOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleEditAcquired}
-            variant="contained"
-            disabled={editAcquiredForm.quantityAcquired === '' || submitting}
-          >
-            {submitting ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* P&L Entry Dialog */}
-      <Dialog open={pnlDialogOpen} onClose={() => setPnlDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>{editingPnlEntry ? 'Edit P&L Entry' : 'Enter P&L'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <FormControl fullWidth required>
-              <InputLabel>Item</InputLabel>
+      <Dialog open={pnlDialogOpen} onOpenChange={setPnlDialogOpen}>
+        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">
+              {editingPnlEntry ? 'Edit P&L Entry' : 'Enter P&L'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-2">
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Item *</label>
               <Select
                 value={pnlForm.typeId}
-                label="Item"
-                onChange={(e) => {
-                  const selectedItem = items.find((item) => String(item.typeId) === e.target.value);
+                onValueChange={(v) => {
+                  const selectedItem = items.find((item) => String(item.typeId) === v);
                   setPnlForm({
                     ...pnlForm,
-                    typeId: e.target.value as string,
+                    typeId: v,
                     typeName: selectedItem ? selectedItem.typeName : pnlForm.typeName,
                   });
                 }}
               >
-                {items.map((item) => (
-                  <MenuItem key={item.typeId} value={String(item.typeId)}>
-                    {item.typeName}
-                  </MenuItem>
-                ))}
+                <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectValue placeholder="Select item" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  {items.map((item) => (
+                    <SelectItem key={item.typeId} value={String(item.typeId)} className="text-[#e2e8f0]">
+                      {item.typeName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
-            <TextField
-              label="Qty Sold"
-              type="number"
-              value={pnlForm.quantitySold}
-              onChange={(e) => setPnlForm({ ...pnlForm, quantitySold: e.target.value })}
-              fullWidth
-              required
-              inputProps={{ min: 1 }}
-            />
-            <TextField
-              label="Avg Sell Price (ISK)"
-              type="number"
-              value={pnlForm.avgSellPriceIsk}
-              onChange={(e) => setPnlForm({ ...pnlForm, avgSellPriceIsk: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              label="Total Cost (ISK, optional)"
-              type="number"
-              value={pnlForm.totalCostIsk}
-              onChange={(e) => setPnlForm({ ...pnlForm, totalCostIsk: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0 }}
-              helperText="Total buy cost for this item lot"
-            />
-          </Box>
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Qty Sold *</label>
+              <Input
+                type="number"
+                value={pnlForm.quantitySold}
+                onChange={(e) => setPnlForm({ ...pnlForm, quantitySold: e.target.value })}
+                min={1}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Avg Sell Price (ISK)</label>
+              <Input
+                type="number"
+                value={pnlForm.avgSellPriceIsk}
+                onChange={(e) => setPnlForm({ ...pnlForm, avgSellPriceIsk: e.target.value })}
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Total Cost (ISK, optional)</label>
+              <Input
+                type="number"
+                value={pnlForm.totalCostIsk}
+                onChange={(e) => setPnlForm({ ...pnlForm, totalCostIsk: e.target.value })}
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+              <p className="text-xs text-[#64748b] mt-1">Total buy cost for this item lot</p>
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="ghost" onClick={() => setPnlDialogOpen(false)} className="text-[#94a3b8]">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmitPnl}
+              disabled={!pnlForm.typeId || !pnlForm.quantitySold || submitting}
+            >
+              {submitting ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPnlDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleSubmitPnl}
-            variant="contained"
-            disabled={!pnlForm.typeId || !pnlForm.quantitySold || submitting}
-          >
-            {submitting ? 'Saving...' : 'Save'}
-          </Button>
-        </DialogActions>
       </Dialog>
-    </>
+    </TooltipProvider>
   );
 }

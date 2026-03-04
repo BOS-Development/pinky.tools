@@ -3,23 +3,18 @@ import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import { PiProfitResponse, PiFactoryProfit } from "@industry-tool/client/data/models";
 import { formatISK, formatNumber, FONT_NUMERIC } from "@industry-tool/utils/formatting";
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import IconButton from '@mui/material/IconButton';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { ChevronDown, ChevronRight, TrendingUp, TrendingDown } from 'lucide-react';
 
 type ProductGroup = {
   outputTypeId: number;
@@ -58,49 +53,51 @@ function ProductGroupRow({ group, expanded, onToggle }: {
   return (
     <>
       <TableRow
-        sx={{
-          cursor: 'pointer',
-          '&:hover': { bgcolor: 'rgba(0, 212, 255, 0.04)' },
-          bgcolor: expanded ? 'rgba(0, 212, 255, 0.03)' : 'transparent',
-        }}
+        className={cn(
+          'cursor-pointer hover:bg-[rgba(0,212,255,0.04)]',
+          expanded ? 'bg-[rgba(0,212,255,0.03)]' : ''
+        )}
         onClick={onToggle}
       >
-        <TableCell sx={{ color: '#e2e8f0', borderColor: 'rgba(148, 163, 184, 0.1)', width: 40, p: 1 }}>
-          <IconButton size="small" sx={{ color: '#64748b', p: 0.5 }}>
-            {expanded ? <KeyboardArrowDownIcon fontSize="small" /> : <KeyboardArrowRightIcon fontSize="small" />}
-          </IconButton>
+        <TableCell className="border-[rgba(148,163,184,0.1)] w-10 p-1">
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-[#64748b] p-0">
+            {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          </Button>
         </TableCell>
-        <TableCell sx={{ color: '#e2e8f0', borderColor: 'rgba(148, 163, 184, 0.1)' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <TableCell className="border-[rgba(148,163,184,0.1)]">
+          <div className="flex items-center gap-2">
             {group.outputTypeId > 0 && (
               <img
                 src={`https://images.evetech.net/types/${group.outputTypeId}/icon?size=32`}
-                alt="" width={20} height={20} style={{ flexShrink: 0 }}
+                alt="" width={20} height={20} className="flex-shrink-0"
               />
             )}
-            <Box>
-              <Typography variant="body2" sx={{ color: '#e2e8f0', fontWeight: 500, lineHeight: 1.2 }}>
+            <div>
+              <p className="text-sm text-[#e2e8f0] font-medium leading-tight">
                 {group.outputName}
-              </Typography>
-              <Typography variant="caption" sx={{ color: '#64748b' }}>
+              </p>
+              <span className="text-xs text-[#64748b]">
                 {group.outputTier} &middot; {group.factories.length} {group.factories.length === 1 ? 'factory' : 'factories'}
-              </Typography>
-            </Box>
-          </Box>
+              </span>
+            </div>
+          </div>
         </TableCell>
-        <TableCell align="right" sx={{ color: '#94a3b8', borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+        <TableCell className="text-right text-[#94a3b8] border-[rgba(148,163,184,0.1)]">
           {formatNumber(Math.round(group.totalRatePerHour))}/hr
         </TableCell>
-        <TableCell align="right" sx={{ color: '#10b981', borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+        <TableCell className="text-right text-[#10b981] border-[rgba(148,163,184,0.1)]">
           {formatISK(group.totalOutputValue)}
         </TableCell>
-        <TableCell align="right" sx={{ color: '#ef4444', borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+        <TableCell className="text-right text-[#ef4444] border-[rgba(148,163,184,0.1)]">
           {formatISK(group.totalInputCost)}
         </TableCell>
-        <TableCell align="right" sx={{ color: '#f59e0b', borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+        <TableCell className="text-right text-[#f59e0b] border-[rgba(148,163,184,0.1)]">
           {formatISK(totalTax)}
         </TableCell>
-        <TableCell align="right" sx={{ color: profitColor(group.totalProfit), fontWeight: 600, borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+        <TableCell
+          className="text-right font-semibold border-[rgba(148,163,184,0.1)]"
+          style={{ color: profitColor(group.totalProfit) }}
+        >
           {formatISK(group.totalProfit)}
         </TableCell>
       </TableRow>
@@ -113,40 +110,28 @@ function ProductGroupRow({ group, expanded, onToggle }: {
 
 function FactoryDetailRow({ factory }: { factory: FactoryWithPlanet }) {
   return (
-    <TableRow sx={{ bgcolor: 'rgba(15, 18, 25, 0.5)' }}>
-      <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.05)' }} />
-      <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.05)', pl: 6 }}>
-        <Typography variant="caption" sx={{ color: '#cbd5e1' }}>
-          {factory.solarSystemName}
-        </Typography>
-        <Typography variant="caption" sx={{ color: '#475569', ml: 0.5 }}>
-          ({factory.characterName})
-        </Typography>
+    <TableRow className="bg-[rgba(15,18,25,0.5)]">
+      <TableCell className="border-[rgba(148,163,184,0.05)]" />
+      <TableCell className="border-[rgba(148,163,184,0.05)] pl-12">
+        <span className="text-xs text-[#cbd5e1]">{factory.solarSystemName}</span>
+        <span className="text-xs text-[#475569] ml-1">({factory.characterName})</span>
       </TableCell>
-      <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.05)' }}>
-        <Typography variant="caption" sx={{ color: '#64748b' }}>
-          {formatNumber(Math.round(factory.ratePerHour))}/hr
-        </Typography>
+      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+        <span className="text-xs text-[#64748b]">{formatNumber(Math.round(factory.ratePerHour))}/hr</span>
       </TableCell>
-      <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.05)' }}>
-        <Typography variant="caption" sx={{ color: '#10b981' }}>
-          {formatISK(factory.outputValuePerHour)}
-        </Typography>
+      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+        <span className="text-xs text-[#10b981]">{formatISK(factory.outputValuePerHour)}</span>
       </TableCell>
-      <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.05)' }}>
-        <Typography variant="caption" sx={{ color: '#ef4444' }}>
-          {formatISK(factory.inputCostPerHour)}
-        </Typography>
+      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+        <span className="text-xs text-[#ef4444]">{formatISK(factory.inputCostPerHour)}</span>
       </TableCell>
-      <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.05)' }}>
-        <Typography variant="caption" sx={{ color: '#f59e0b' }}>
-          {formatISK(factory.exportTaxPerHour + factory.importTaxPerHour)}
-        </Typography>
+      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+        <span className="text-xs text-[#f59e0b]">{formatISK(factory.exportTaxPerHour + factory.importTaxPerHour)}</span>
       </TableCell>
-      <TableCell align="right" sx={{ borderColor: 'rgba(148, 163, 184, 0.05)' }}>
-        <Typography variant="caption" sx={{ color: profitColor(factory.profitPerHour), fontWeight: 600 }}>
+      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+        <span className="text-xs font-semibold" style={{ color: profitColor(factory.profitPerHour) }}>
           {formatISK(factory.profitPerHour)}
-        </Typography>
+        </span>
       </TableCell>
     </TableRow>
   );
@@ -184,13 +169,11 @@ export default function ProfitTable() {
 
   const profitData = profitResponse?.planets || [];
 
-  const handlePriceSourceChange = (_: React.MouseEvent<HTMLElement>, newSource: string | null) => {
-    if (newSource) {
-      setPriceSource(newSource);
-      hasFetchedRef.current = false;
-      fetchProfit(newSource);
-      hasFetchedRef.current = true;
-    }
+  const handlePriceSourceChange = (newSource: string) => {
+    setPriceSource(newSource);
+    hasFetchedRef.current = false;
+    fetchProfit(newSource);
+    hasFetchedRef.current = true;
   };
 
   const toggleGroup = (typeId: number) => {
@@ -264,21 +247,21 @@ export default function ProfitTable() {
   }
 
   return (
-    <Box>
+    <div>
       {/* Summary cards + controls */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2, flexWrap: 'wrap', gap: 2 }}>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <div className="flex justify-between items-start mb-4 flex-wrap gap-4">
+        <div className="flex gap-4 flex-wrap">
           <SummaryCard
             label="Revenue / hr"
             value={formatISK(totals.output)}
             color="#10b981"
-            icon={<TrendingUpIcon sx={{ fontSize: 18, color: '#10b981' }} />}
+            icon={<TrendingUp className="w-4 h-4 text-[#10b981]" />}
           />
           <SummaryCard
             label="Costs / hr"
             value={formatISK(totals.input)}
             color="#ef4444"
-            icon={<TrendingDownIcon sx={{ fontSize: 18, color: '#ef4444' }} />}
+            icon={<TrendingDown className="w-4 h-4 text-[#ef4444]" />}
           />
           <SummaryCard
             label="Taxes / hr"
@@ -291,52 +274,44 @@ export default function ProfitTable() {
             color={profitColor(totals.profit)}
             bold
           />
-        </Box>
-        <ToggleButtonGroup
-          value={priceSource}
-          exclusive
-          onChange={handlePriceSourceChange}
-          size="small"
-          sx={{
-            '& .MuiToggleButton-root': {
-              color: '#64748b',
-              borderColor: 'rgba(148, 163, 184, 0.2)',
-              textTransform: 'none',
-              fontSize: '0.75rem',
-              px: 1.5,
-              py: 0.5,
-              '&.Mui-selected': {
-                color: '#00d4ff',
-                bgcolor: 'rgba(0, 212, 255, 0.1)',
-                borderColor: 'rgba(0, 212, 255, 0.3)',
-              },
-            },
-          }}
-        >
-          <ToggleButton value="sell">Sell</ToggleButton>
-          <ToggleButton value="buy">Buy</ToggleButton>
-          <ToggleButton value="split">Split</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+        </div>
+        {/* Price source toggle */}
+        <div className="flex rounded overflow-hidden border border-[rgba(148,163,184,0.2)]">
+          {(['sell', 'buy', 'split'] as const).map((source) => (
+            <button
+              key={source}
+              onClick={() => handlePriceSourceChange(source)}
+              className={cn(
+                'px-3 py-1 text-xs font-medium capitalize transition-colors',
+                priceSource === source
+                  ? 'bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border-[rgba(0,212,255,0.3)]'
+                  : 'text-[#64748b] hover:text-[#94a3b8] hover:bg-[rgba(148,163,184,0.05)]'
+              )}
+            >
+              {source.charAt(0).toUpperCase() + source.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Profit table grouped by product */}
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableCell sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219', width: 40 }} />
-              <TableCell sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219' }}>Product</TableCell>
-              <TableCell align="right" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219' }}>Rate</TableCell>
-              <TableCell align="right" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219' }}>Revenue/hr</TableCell>
-              <TableCell align="right" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219' }}>Costs/hr</TableCell>
-              <TableCell align="right" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219' }}>Taxes/hr</TableCell>
-              <TableCell align="right" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', bgcolor: '#0f1219' }}>Profit/hr</TableCell>
+              <TableHead className="text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219] w-10" />
+              <TableHead className="text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Product</TableHead>
+              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Rate</TableHead>
+              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Revenue/hr</TableHead>
+              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Costs/hr</TableHead>
+              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Taxes/hr</TableHead>
+              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Profit/hr</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {productGroups.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ color: '#64748b', borderColor: 'rgba(148, 163, 184, 0.1)', py: 4 }}>
+                <TableCell colSpan={7} className="text-center text-[#64748b] border-[rgba(148,163,184,0.1)] py-8">
                   No PI profit data available
                 </TableCell>
               </TableRow>
@@ -351,30 +326,33 @@ export default function ProfitTable() {
               ))
             )}
             {productGroups.length > 0 && (
-              <TableRow sx={{ bgcolor: '#0f1219' }}>
-                <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.1)' }} />
-                <TableCell sx={{ color: '#e2e8f0', fontWeight: 600, borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+              <TableRow className="bg-[#0f1219]">
+                <TableCell className="border-[rgba(148,163,184,0.1)]" />
+                <TableCell className="text-[#e2e8f0] font-semibold border-[rgba(148,163,184,0.1)]">
                   Total ({productGroups.length} products)
                 </TableCell>
-                <TableCell sx={{ borderColor: 'rgba(148, 163, 184, 0.1)' }} />
-                <TableCell align="right" sx={{ color: '#10b981', fontWeight: 600, borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+                <TableCell className="border-[rgba(148,163,184,0.1)]" />
+                <TableCell className="text-right text-[#10b981] font-semibold border-[rgba(148,163,184,0.1)]">
                   {formatISK(totals.output)}
                 </TableCell>
-                <TableCell align="right" sx={{ color: '#ef4444', fontWeight: 600, borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+                <TableCell className="text-right text-[#ef4444] font-semibold border-[rgba(148,163,184,0.1)]">
                   {formatISK(totals.input)}
                 </TableCell>
-                <TableCell align="right" sx={{ color: '#f59e0b', fontWeight: 600, borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+                <TableCell className="text-right text-[#f59e0b] font-semibold border-[rgba(148,163,184,0.1)]">
                   {formatISK(totals.totalTax)}
                 </TableCell>
-                <TableCell align="right" sx={{ color: profitColor(totals.profit), fontWeight: 700, borderColor: 'rgba(148, 163, 184, 0.1)' }}>
+                <TableCell
+                  className="text-right font-bold border-[rgba(148,163,184,0.1)]"
+                  style={{ color: profitColor(totals.profit) }}
+                >
                   {formatISK(totals.profit)}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
-      </TableContainer>
-    </Box>
+      </div>
+    </div>
   );
 }
 
@@ -386,20 +364,24 @@ function SummaryCard({ label, value, color, icon, bold }: {
   bold?: boolean;
 }) {
   return (
-    <Card sx={{
-      background: '#12151f',
-      border: `1px solid ${color}25`,
-      borderRadius: 2,
-      minWidth: 140,
-    }}>
-      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+    <Card
+      className="min-w-[140px] rounded-lg"
+      style={{
+        background: '#12151f',
+        border: `1px solid ${color}25`,
+      }}
+    >
+      <CardContent className="p-3 pb-3">
+        <div className="flex items-center gap-1 mb-1">
           {icon}
-          <Typography variant="caption" sx={{ color: '#64748b' }}>{label}</Typography>
-        </Box>
-        <Typography variant="body2" sx={{ color, fontWeight: bold ? 700 : 600, fontFamily: FONT_NUMERIC }}>
+          <span className="text-xs text-[#64748b]">{label}</span>
+        </div>
+        <p
+          className={cn('text-sm', bold ? 'font-bold' : 'font-semibold')}
+          style={{ color, fontFamily: FONT_NUMERIC }}
+        >
           {value}
-        </Typography>
+        </p>
       </CardContent>
     </Card>
   );

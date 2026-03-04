@@ -1,25 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { ShoppingCart, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/sonner';
 import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
 
 type ForSaleListing = {
@@ -48,11 +35,6 @@ export default function MarketplaceBrowser() {
   const [selectedListing, setSelectedListing] = useState<ForSaleListing | null>(null);
   const [purchaseQuantity, setPurchaseQuantity] = useState('');
   const [submittingPurchase, setSubmittingPurchase] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
 
   useEffect(() => {
     if (session) {
@@ -92,7 +74,7 @@ export default function MarketplaceBrowser() {
 
     const quantity = parseInt(purchaseQuantity.replace(/,/g, ''));
     if (quantity <= 0 || quantity > selectedListing.quantityAvailable) {
-      setSnackbar({ open: true, message: 'Invalid quantity', severity: 'error' });
+      toast.error('Invalid quantity');
       return;
     }
 
@@ -109,15 +91,15 @@ export default function MarketplaceBrowser() {
 
       if (response.ok) {
         setPurchaseDialogOpen(false);
-        await fetchListings(); // Refresh listings
-        setSnackbar({ open: true, message: 'Purchase successful', severity: 'success' });
+        await fetchListings();
+        toast.success('Purchase successful');
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Purchase failed', severity: 'error' });
+        toast.error(error.error || 'Purchase failed');
       }
     } catch (error) {
       console.error('Purchase failed:', error);
-      setSnackbar({ open: true, message: 'Purchase failed', severity: 'error' });
+      toast.error('Purchase failed');
     } finally {
       setSubmittingPurchase(false);
     }
@@ -131,102 +113,82 @@ export default function MarketplaceBrowser() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          fullWidth
-          label="Search listings..."
-          variant="outlined"
+    <div>
+      <div className="mb-4">
+        <Input
+          placeholder="Search by item name, seller, or location"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by item name, seller, or location"
         />
-      </Box>
+      </div>
 
       {filteredListings.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
-            No listings available
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+          <h3 className="text-lg font-semibold text-[#94a3b8]">No listings available</h3>
+          <p className="text-sm text-[#64748b] mt-1">
             {listings.length === 0
               ? "Your contacts haven't listed any items for sale, or they haven't granted you browse permission."
               : "No listings match your search."}
-          </Typography>
-        </Paper>
+          </p>
+        </div>
       ) : (
-        <TableContainer component={Paper}>
+        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Item</TableCell>
-                <TableCell>Seller</TableCell>
-                <TableCell>Location</TableCell>
-                <TableCell align="right">Quantity</TableCell>
-                <TableCell align="right">Price per Unit</TableCell>
-                <TableCell align="right">Total Value</TableCell>
-                <TableCell>Notes</TableCell>
-                <TableCell align="center">Action</TableCell>
+            <TableHeader>
+              <TableRow className="bg-[#0f1219]">
+                <TableHead>Item</TableHead>
+                <TableHead>Seller</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead className="text-right">Quantity</TableHead>
+                <TableHead className="text-right">Price per Unit</TableHead>
+                <TableHead className="text-right">Total Value</TableHead>
+                <TableHead>Notes</TableHead>
+                <TableHead className="text-center">Action</TableHead>
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {filteredListings.map((listing) => (
-                <TableRow key={listing.id} hover>
+                <TableRow key={listing.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
                   <TableCell>
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {listing.typeName}
-                    </Typography>
+                    <span className="font-medium text-[#e2e8f0]">{listing.typeName}</span>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={listing.ownerName}
-                      size="small"
-                      sx={{
-                        background: 'rgba(0, 212, 255, 0.1)',
-                        borderColor: 'rgba(0, 212, 255, 0.3)',
-                        color: '#60a5fa',
-                      }}
-                    />
+                    <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                      {listing.ownerName}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" sx={{ color: '#94a3b8' }}>
-                      {listing.locationName}
-                    </Typography>
+                    <span className="text-sm text-[#94a3b8]">{listing.locationName}</span>
                   </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="body2">{formatNumber(listing.quantityAvailable)}</Typography>
+                  <TableCell className="text-right text-[#e2e8f0]">
+                    <span className="text-sm">{formatNumber(listing.quantityAvailable)}</span>
                   </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                      {formatISK(listing.pricePerUnit)}
-                    </Typography>
+                  <TableCell className="text-right">
+                    <span className="text-sm font-medium text-[#e2e8f0]">{formatISK(listing.pricePerUnit)}</span>
                   </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="body2" sx={{ color: '#10b981', fontWeight: 600 }}>
+                  <TableCell className="text-right">
+                    <span className="text-sm font-semibold text-[#10b981]">
                       {formatISK(listing.quantityAvailable * listing.pricePerUnit)}
-                    </Typography>
+                    </span>
                   </TableCell>
                   <TableCell>
                     {listing.notes && (
-                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
-                        {listing.notes}
-                      </Typography>
+                      <span className="text-xs text-[#94a3b8]">{listing.notes}</span>
                     )}
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell className="text-center">
                     <Button
-                      variant="contained"
-                      size="small"
-                      startIcon={<ShoppingCartIcon />}
+                      size="sm"
                       onClick={() => handleOpenPurchaseDialog(listing)}
                     >
+                      <ShoppingCart className="h-4 w-4 mr-1" />
                       Buy
                     </Button>
                   </TableCell>
@@ -234,81 +196,62 @@ export default function MarketplaceBrowser() {
               ))}
             </TableBody>
           </Table>
-        </TableContainer>
+        </div>
       )}
 
       {/* Purchase Dialog */}
-      <Dialog
-        open={purchaseDialogOpen}
-        onClose={() => setPurchaseDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Purchase Item</DialogTitle>
-        <DialogContent>
+      <Dialog open={purchaseDialogOpen} onOpenChange={setPurchaseDialogOpen}>
+        <DialogContent className="max-w-sm bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">Purchase Item</DialogTitle>
+          </DialogHeader>
           {selectedListing && (
-            <Box sx={{ pt: 1 }}>
-              <Typography variant="body2" gutterBottom>
+            <div className="flex flex-col gap-2 pt-1">
+              <p className="text-sm text-[#e2e8f0]">
                 <strong>Item:</strong> {selectedListing.typeName}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
+              </p>
+              <p className="text-sm text-[#e2e8f0]">
                 <strong>Seller:</strong> {selectedListing.ownerName}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
+              </p>
+              <p className="text-sm text-[#e2e8f0]">
                 <strong>Location:</strong> {selectedListing.locationName}
-              </Typography>
-              <Typography variant="body2" gutterBottom>
+              </p>
+              <p className="text-sm text-[#e2e8f0]">
                 <strong>Price per Unit:</strong> {selectedListing.pricePerUnit.toLocaleString()} ISK
-              </Typography>
-              <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
+              </p>
+              <p className="text-sm text-[#e2e8f0] mb-2">
                 <strong>Available:</strong> {selectedListing.quantityAvailable.toLocaleString()}
-              </Typography>
+              </p>
 
-              <TextField
-                fullWidth
-                label="Quantity to Purchase"
-                type="text"
-                value={purchaseQuantity}
-                onChange={(e) => handlePurchaseQuantityChange(e.target.value)}
-                required
-                placeholder="0"
-                helperText={
-                  purchaseQuantity
+              <div>
+                <label className="text-sm text-[#94a3b8] mb-1 block">Quantity to Purchase</label>
+                <Input
+                  type="text"
+                  value={purchaseQuantity}
+                  onChange={(e) => handlePurchaseQuantityChange(e.target.value)}
+                  placeholder="0"
+                />
+                <p className="text-xs text-[#64748b] mt-1">
+                  {purchaseQuantity
                     ? `Total Cost: ${(
                         parseInt(purchaseQuantity.replace(/,/g, '')) * selectedListing.pricePerUnit
                       ).toLocaleString()} ISK`
-                    : `Max: ${selectedListing.quantityAvailable.toLocaleString()}`
-                }
-              />
-            </Box>
+                    : `Max: ${selectedListing.quantityAvailable.toLocaleString()}`}
+                </p>
+              </div>
+            </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPurchaseDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handlePurchase}
+              disabled={!purchaseQuantity || submittingPurchase}
+            >
+              {submittingPurchase ? 'Purchasing...' : 'Confirm Purchase'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPurchaseDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handlePurchase}
-            variant="contained"
-            disabled={!purchaseQuantity || submittingPurchase}
-          >
-            {submittingPurchase ? 'Purchasing...' : 'Confirm Purchase'}
-          </Button>
-        </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity || 'success'}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </div>
   );
 }

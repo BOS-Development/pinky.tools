@@ -1,34 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
+import Image from 'next/image';
 import { getItemIconUrl } from "@industry-tool/utils/eveImages";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
-import Chip from '@mui/material/Chip';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import CircularProgress from '@mui/material/CircularProgress';
-import Avatar from '@mui/material/Avatar';
+import { Plus, Edit, Trash2, Loader2, ChevronDown, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { toast } from '@/components/ui/sonner';
+import { cn } from '@/lib/utils';
 import Loading from "@industry-tool/components/loading";
 
 export type BuyOrder = {
@@ -71,25 +54,232 @@ type StationOption = {
   solarSystemName: string;
 };
 
+// Async search combobox for items
+function ItemSearchCombobox({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: ItemType | null;
+  onChange: (item: ItemType | null) => void;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [options, setOptions] = useState<ItemType[]>([]);
+  const [loading, setLoading] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearch = (val: string) => {
+    setSearch(val);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (!val || val.length < 2) {
+      setOptions([]);
+      return;
+    }
+    timeoutRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/item-types/search?q=${encodeURIComponent(val)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOptions(data || []);
+        }
+      } catch {
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+  };
+
+  return (
+    <Popover open={open && !disabled} onOpenChange={(v) => !disabled && setOpen(v)}>
+      <PopoverTrigger asChild>
+        <button
+          role="combobox"
+          disabled={disabled}
+          className={cn(
+            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#00d4ff]",
+            disabled && "opacity-50 cursor-not-allowed",
+            !value && "text-[#64748b]"
+          )}
+        >
+          <span className="flex items-center gap-2 min-w-0">
+            {value && (
+              <Image
+                src={getItemIconUrl(value.TypeID, 32)}
+                alt={value.TypeName}
+                width={20}
+                height={20}
+                className="rounded-sm shrink-0"
+              />
+            )}
+            <span className="truncate">{value ? value.TypeName : 'Start typing to search...'}</span>
+          </span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <div className="flex flex-col">
+          <div className="p-2">
+            <Input
+              placeholder="Search items..."
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="h-8"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto">
+            {loading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin text-[#00d4ff]" />
+              </div>
+            ) : options.length === 0 ? (
+              <div className="py-6 text-center text-sm text-[#64748b]">
+                {search.length < 2 ? 'Type at least 2 characters' : 'No items found'}
+              </div>
+            ) : (
+              options.map((option) => (
+                <button
+                  key={option.TypeID}
+                  className={cn(
+                    "flex w-full items-center gap-2 px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-[rgba(148,163,184,0.08)]",
+                    value?.TypeID === option.TypeID && "bg-[rgba(0,212,255,0.08)] text-[#00d4ff]"
+                  )}
+                  onClick={() => {
+                    onChange(option);
+                    setOpen(false);
+                    setSearch('');
+                  }}
+                >
+                  <Image
+                    src={getItemIconUrl(option.TypeID, 32)}
+                    alt={option.TypeName}
+                    width={24}
+                    height={24}
+                    className="rounded-sm shrink-0"
+                  />
+                  <span>{option.TypeName}</span>
+                  {value?.TypeID === option.TypeID && <Check className="h-4 w-4 ml-auto shrink-0" />}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+// Async search combobox for stations
+function StationSearchCombobox({
+  value,
+  onChange,
+}: {
+  value: StationOption | null;
+  onChange: (station: StationOption | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [options, setOptions] = useState<StationOption[]>([]);
+  const [loading, setLoading] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSearch = (val: string) => {
+    setSearch(val);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (!val || val.length < 2) {
+      setOptions([]);
+      return;
+    }
+    timeoutRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(`/api/stations/search?q=${encodeURIComponent(val)}`);
+        if (response.ok) {
+          const data = await response.json();
+          setOptions(data || []);
+        }
+      } catch {
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          role="combobox"
+          className={cn(
+            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#00d4ff]",
+            !value && "text-[#64748b]"
+          )}
+        >
+          <span className="truncate">{value ? value.name : 'Search for a station...'}</span>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <div className="flex flex-col">
+          <div className="p-2">
+            <Input
+              placeholder="Search stations..."
+              value={search}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="h-8"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto">
+            {loading ? (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-4 w-4 animate-spin text-[#00d4ff]" />
+              </div>
+            ) : options.length === 0 ? (
+              <div className="py-6 text-center text-sm text-[#64748b]">
+                {search.length < 2 ? 'Type at least 2 characters' : 'No stations found'}
+              </div>
+            ) : (
+              options.map((option) => (
+                <button
+                  key={option.stationId}
+                  className={cn(
+                    "flex w-full flex-col items-start px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-[rgba(148,163,184,0.08)]",
+                    value?.stationId === option.stationId && "bg-[rgba(0,212,255,0.08)]"
+                  )}
+                  onClick={() => {
+                    onChange(option);
+                    setOpen(false);
+                    setSearch('');
+                  }}
+                >
+                  <span className="text-[#e2e8f0]">{option.name}</span>
+                  <span className="text-xs text-[#64748b]">{option.solarSystemName}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 export default function BuyOrders() {
   const { data: session } = useSession();
   const [orders, setOrders] = useState<BuyOrder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<BuyOrder | null>(null);
   const [formData, setFormData] = useState<Partial<BuyOrderFormData>>({});
-  const [itemOptions, setItemOptions] = useState<ItemType[]>([]);
-  const [itemSearchLoading, setItemSearchLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<ItemType | null>(null);
-  const [stationOptions, setStationOptions] = useState<StationOption[]>([]);
-  const [stationSearchLoading, setStationSearchLoading] = useState(false);
   const [selectedStation, setSelectedStation] = useState<StationOption | null>(null);
   const hasFetchedRef = useRef(false);
-  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const stationSearchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (session && !hasFetchedRef.current) {
@@ -106,70 +296,10 @@ export default function BuyOrders() {
       setOrders(data);
     } catch (error) {
       console.error('Error fetching buy orders:', error);
-      showSnackbar('Failed to load buy orders', 'error');
+      toast.error('Failed to load buy orders');
     } finally {
       setLoading(false);
     }
-  };
-
-  const searchItems = async (query: string) => {
-    if (!query || query.length < 2) {
-      setItemOptions([]);
-      return;
-    }
-
-    setItemSearchLoading(true);
-    try {
-      const response = await fetch(`/api/item-types/search?q=${encodeURIComponent(query)}`);
-      if (!response.ok) throw new Error('Failed to search items');
-      const data = await response.json();
-      setItemOptions(data || []);
-    } catch (error) {
-      console.error('Error searching items:', error);
-      setItemOptions([]);
-    } finally {
-      setItemSearchLoading(false);
-    }
-  };
-
-  const handleItemSearch = (value: string) => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    searchTimeoutRef.current = setTimeout(() => {
-      searchItems(value);
-    }, 300);
-  };
-
-  const searchStations = async (query: string) => {
-    if (!query || query.length < 2) {
-      setStationOptions([]);
-      return;
-    }
-
-    setStationSearchLoading(true);
-    try {
-      const response = await fetch(`/api/stations/search?q=${encodeURIComponent(query)}`);
-      if (!response.ok) throw new Error('Failed to search stations');
-      const data = await response.json();
-      setStationOptions(data || []);
-    } catch (error) {
-      console.error('Error searching stations:', error);
-      setStationOptions([]);
-    } finally {
-      setStationSearchLoading(false);
-    }
-  };
-
-  const handleStationSearch = (value: string) => {
-    if (stationSearchTimeoutRef.current) {
-      clearTimeout(stationSearchTimeoutRef.current);
-    }
-
-    stationSearchTimeoutRef.current = setTimeout(() => {
-      searchStations(value);
-    }, 300);
   };
 
   const handleCreate = () => {
@@ -214,17 +344,17 @@ export default function BuyOrders() {
 
       if (!response.ok) throw new Error('Failed to delete buy order');
 
-      showSnackbar('Buy order cancelled successfully', 'success');
+      toast.success('Buy order cancelled successfully');
       fetchOrders();
     } catch (error) {
       console.error('Error deleting buy order:', error);
-      showSnackbar('Failed to cancel buy order', 'error');
+      toast.error('Failed to cancel buy order');
     }
   };
 
   const handleSave = async () => {
     if (!formData.typeId || !formData.locationId || !formData.quantityDesired || formData.maxPricePerUnit === undefined) {
-      showSnackbar('Please fill in all required fields', 'error');
+      toast.error('Please fill in all required fields');
       return;
     }
 
@@ -251,22 +381,13 @@ export default function BuyOrders() {
         throw new Error(errorData.error || 'Failed to save buy order');
       }
 
-      showSnackbar(
-        selectedOrder ? 'Buy order updated successfully' : 'Buy order created successfully',
-        'success'
-      );
+      toast.success(selectedOrder ? 'Buy order updated successfully' : 'Buy order created successfully');
       setDialogOpen(false);
       fetchOrders();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error saving buy order:', error);
-      showSnackbar(error.message || 'Failed to save buy order', 'error');
+      toast.error(error instanceof Error ? error.message : 'Failed to save buy order');
     }
-  };
-
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
   };
 
   const formatNumber = (num: number) => num.toLocaleString();
@@ -278,293 +399,200 @@ export default function BuyOrders() {
   }
 
   return (
-    <Container maxWidth="xl">
-      <Box sx={{ my: 4 }}>
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h5" component="h2">
-                My Buy Orders
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
-                onClick={handleCreate}
-              >
-                Create Buy Order
-              </Button>
-            </Box>
+    <div className="max-w-[1280px] my-4">
+      <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-[#e2e8f0]">My Buy Orders</h2>
+            <Button onClick={handleCreate}>
+              <Plus className="h-4 w-4 mr-1" />
+              Create Buy Order
+            </Button>
+          </div>
 
-            {orders.length === 0 ? (
-              <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                No buy orders yet. Create one to let sellers know what you're looking for!
-              </Typography>
-            ) : (
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Item</TableCell>
-                      <TableCell>Location</TableCell>
-                      <TableCell align="right">Quantity Desired</TableCell>
-                      <TableCell align="right">Price Range/Unit</TableCell>
-                      <TableCell align="right">Total Budget</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Notes</TableCell>
-                      <TableCell>Created</TableCell>
-                      <TableCell align="right">Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell>{order.typeName}</TableCell>
-                        <TableCell>{order.locationName || '-'}</TableCell>
-                        <TableCell align="right">{formatNumber(order.quantityDesired)}</TableCell>
-                        <TableCell align="right">
-                          {order.minPricePerUnit > 0
-                            ? `${formatISK(order.minPricePerUnit)} - ${formatISK(order.maxPricePerUnit)}`
-                            : formatISK(order.maxPricePerUnit)}
-                        </TableCell>
-                        <TableCell align="right">
-                          {formatISK(order.quantityDesired * order.maxPricePerUnit)}
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
-                            <Chip
-                              label={order.isActive ? 'Active' : 'Inactive'}
-                              color={order.isActive ? 'success' : 'default'}
-                              size="small"
-                            />
-                            {order.autoBuyConfigId && (
-                              <Chip
-                                label="Auto"
-                                size="small"
-                                sx={{
-                                  fontSize: '0.7rem',
-                                  fontWeight: 600,
-                                  background: 'rgba(245, 158, 11, 0.15)',
-                                  color: '#f59e0b',
-                                  border: '1px solid rgba(245, 158, 11, 0.3)',
-                                }}
-                              />
+          {orders.length === 0 ? (
+            <p className="text-[#94a3b8] text-center py-8">
+              No buy orders yet. Create one to let sellers know what you&apos;re looking for!
+            </p>
+          ) : (
+            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219]">
+                    <TableHead>Item</TableHead>
+                    <TableHead>Location</TableHead>
+                    <TableHead className="text-right">Quantity Desired</TableHead>
+                    <TableHead className="text-right">Price Range/Unit</TableHead>
+                    <TableHead className="text-right">Total Budget</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Notes</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {orders.map((order) => (
+                    <TableRow key={order.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
+                      <TableCell className="text-[#e2e8f0]">{order.typeName}</TableCell>
+                      <TableCell className="text-[#94a3b8]">{order.locationName || '-'}</TableCell>
+                      <TableCell className="text-right text-[#e2e8f0]">{formatNumber(order.quantityDesired)}</TableCell>
+                      <TableCell className="text-right text-[#e2e8f0]">
+                        {order.minPricePerUnit > 0
+                          ? `${formatISK(order.minPricePerUnit)} - ${formatISK(order.maxPricePerUnit)}`
+                          : formatISK(order.maxPricePerUnit)}
+                      </TableCell>
+                      <TableCell className="text-right text-[#e2e8f0]">
+                        {formatISK(order.quantityDesired * order.maxPricePerUnit)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 items-center">
+                          <Badge
+                            className={cn(
+                              "text-xs font-semibold",
+                              order.isActive
+                                ? "bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)]"
+                                : "bg-[rgba(148,163,184,0.1)] text-[#64748b] border border-[rgba(148,163,184,0.2)] hover:bg-[rgba(148,163,184,0.15)]"
                             )}
-                          </Box>
-                        </TableCell>
-                        <TableCell>{order.notes || '-'}</TableCell>
-                        <TableCell>{formatDate(order.createdAt)}</TableCell>
-                        <TableCell align="right">
-                          {!order.autoBuyConfigId && (
-                            <>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleEdit(order)}
-                                title="Edit"
-                              >
-                                <EditIcon />
-                              </IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDelete(order.id)}
-                                title="Cancel"
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </>
+                          >
+                            {order.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                          {order.autoBuyConfigId && (
+                            <Badge className="text-[0.7rem] font-semibold bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)] hover:bg-[rgba(245,158,11,0.2)] cursor-default">
+                              Auto
+                            </Badge>
                           )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </CardContent>
-        </Card>
-      </Box>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-[#94a3b8]">{order.notes || '-'}</TableCell>
+                      <TableCell className="text-[#94a3b8]">{formatDate(order.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        {!order.autoBuyConfigId && (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-[#60a5fa] hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
+                              onClick={() => handleEdit(order)}
+                              title="Edit"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-[#ef4444] hover:text-[#f87171] hover:bg-[rgba(239,68,68,0.1)]"
+                              onClick={() => handleDelete(order.id)}
+                              title="Cancel"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          {selectedOrder ? 'Edit Buy Order' : 'Create Buy Order'}
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-            <Autocomplete
-              value={selectedItem}
-              onChange={(_, newValue) => {
-                setSelectedItem(newValue);
-                if (newValue) {
-                  setFormData({
-                    ...formData,
-                    typeId: newValue.TypeID,
-                    typeName: newValue.TypeName
-                  });
-                } else {
-                  setFormData({
-                    ...formData,
-                    typeId: undefined,
-                    typeName: undefined
-                  });
-                }
-              }}
-              onInputChange={(_, value) => handleItemSearch(value)}
-              options={itemOptions}
-              getOptionLabel={(option) => option.TypeName}
-              isOptionEqualToValue={(option, value) => option.TypeID === value.TypeID}
-              loading={itemSearchLoading}
-              disabled={!!selectedOrder}
-              renderOption={(props, option) => (
-                <Box component="li" {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Avatar
-                    src={getItemIconUrl(option.TypeID, 32)}
-                    alt={option.TypeName}
-                    sx={{ width: 32, height: 32 }}
-                    variant="square"
-                  />
-                  <Typography>{option.TypeName}</Typography>
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Item Name"
-                  placeholder="Start typing to search..."
-                  required
-                  helperText={selectedOrder ? "Cannot change item type" : "Search for an item by name"}
-                  InputProps={{
-                    ...params.InputProps,
-                    startAdornment: selectedItem ? (
-                      <>
-                        <Avatar
-                          src={getItemIconUrl(selectedItem.TypeID, 32)}
-                          alt={selectedItem.TypeName}
-                          sx={{ width: 24, height: 24, mr: 1 }}
-                          variant="square"
-                        />
-                        {params.InputProps.startAdornment}
-                      </>
-                    ) : params.InputProps.startAdornment,
-                    endAdornment: (
-                      <>
-                        {itemSearchLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-              fullWidth
-            />
-            <Autocomplete
-              value={selectedStation}
-              onChange={(_, newValue) => {
-                setSelectedStation(newValue);
-                if (newValue) {
-                  setFormData({ ...formData, locationId: newValue.stationId });
-                } else {
-                  setFormData({ ...formData, locationId: 0 });
-                }
-              }}
-              onInputChange={(_, value) => handleStationSearch(value)}
-              options={stationOptions}
-              getOptionLabel={(option) => option.name}
-              isOptionEqualToValue={(option, value) => option.stationId === value.stationId}
-              loading={stationSearchLoading}
-              renderOption={(props, option) => (
-                <Box component="li" {...props}>
-                  <Box>
-                    <Typography variant="body2">{option.name}</Typography>
-                    <Typography variant="caption" color="text.secondary">{option.solarSystemName}</Typography>
-                  </Box>
-                </Box>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Station"
-                  placeholder="Search for a station..."
-                  required
-                  helperText="Where you want items delivered"
-                  InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {stationSearchLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    ),
-                  }}
-                />
-              )}
-              fullWidth
-            />
-            <TextField
-              label="Quantity Desired"
-              type="number"
-              value={formData.quantityDesired || ''}
-              onChange={(e) => setFormData({ ...formData, quantityDesired: parseInt(e.target.value) })}
-              fullWidth
-              required
-            />
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                label="Min Price Per Unit (ISK)"
-                type="number"
-                value={formData.minPricePerUnit || ''}
-                onChange={(e) => setFormData({ ...formData, minPricePerUnit: parseFloat(e.target.value) || 0 })}
-                fullWidth
-                helperText="Floor price for auto-fulfill (optional)"
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-sm bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">
+              {selectedOrder ? 'Edit Buy Order' : 'Create Buy Order'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-2">
+            <div>
+              <label className="text-sm text-[#94a3b8] mb-1 block">Item Name *</label>
+              <ItemSearchCombobox
+                value={selectedItem}
+                onChange={(item) => {
+                  setSelectedItem(item);
+                  if (item) {
+                    setFormData({ ...formData, typeId: item.TypeID, typeName: item.TypeName });
+                  } else {
+                    setFormData({ ...formData, typeId: undefined, typeName: undefined });
+                  }
+                }}
+                disabled={!!selectedOrder}
               />
-              <TextField
-                label="Max Price Per Unit (ISK)"
-                type="number"
-                value={formData.maxPricePerUnit || ''}
-                onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseFloat(e.target.value) || 0 })}
-                fullWidth
-                required
-                helperText="Maximum you're willing to pay"
-              />
-            </Box>
-            <TextField
-              label="Notes"
-              multiline
-              rows={3}
-              value={formData.notes || ''}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              fullWidth
-              placeholder="Optional notes about this buy order..."
-            />
-            {formData.quantityDesired && formData.maxPricePerUnit !== undefined && (
-              <Typography variant="body2" color="text.secondary">
-                Total Budget: {formatISK(formData.quantityDesired * formData.maxPricePerUnit)}
-              </Typography>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained">
-            {selectedOrder ? 'Update' : 'Create'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+              <p className="text-xs text-[#64748b] mt-1">
+                {selectedOrder ? 'Cannot change item type' : 'Search for an item by name'}
+              </p>
+            </div>
 
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Container>
+            <div>
+              <label className="text-sm text-[#94a3b8] mb-1 block">Station *</label>
+              <StationSearchCombobox
+                value={selectedStation}
+                onChange={(station) => {
+                  setSelectedStation(station);
+                  setFormData({ ...formData, locationId: station ? station.stationId : 0 });
+                }}
+              />
+              <p className="text-xs text-[#64748b] mt-1">Where you want items delivered</p>
+            </div>
+
+            <div>
+              <label className="text-sm text-[#94a3b8] mb-1 block">Quantity Desired *</label>
+              <Input
+                type="number"
+                value={formData.quantityDesired || ''}
+                onChange={(e) => setFormData({ ...formData, quantityDesired: parseInt(e.target.value) })}
+              />
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <label className="text-sm text-[#94a3b8] mb-1 block">Min Price Per Unit (ISK)</label>
+                <Input
+                  type="number"
+                  value={formData.minPricePerUnit || ''}
+                  onChange={(e) => setFormData({ ...formData, minPricePerUnit: parseFloat(e.target.value) || 0 })}
+                />
+                <p className="text-xs text-[#64748b] mt-1">Floor price for auto-fulfill (optional)</p>
+              </div>
+              <div className="flex-1">
+                <label className="text-sm text-[#94a3b8] mb-1 block">Max Price Per Unit (ISK) *</label>
+                <Input
+                  type="number"
+                  value={formData.maxPricePerUnit || ''}
+                  onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseFloat(e.target.value) || 0 })}
+                />
+                <p className="text-xs text-[#64748b] mt-1">Maximum you&apos;re willing to pay</p>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-[#94a3b8] mb-1 block">Notes</label>
+              <textarea
+                rows={3}
+                className="w-full rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] text-[#e2e8f0] text-sm px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#00d4ff] focus:border-[#00d4ff]"
+                value={formData.notes || ''}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Optional notes about this buy order..."
+              />
+            </div>
+
+            {formData.quantityDesired && formData.maxPricePerUnit !== undefined && (
+              <p className="text-sm text-[#94a3b8]">
+                Total Budget: {formatISK(formData.quantityDesired * formData.maxPricePerUnit)}
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave}>
+              {selectedOrder ? 'Update' : 'Create'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

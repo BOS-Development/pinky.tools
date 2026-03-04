@@ -1,25 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Chip from '@mui/material/Chip';
-import CircularProgress from '@mui/material/CircularProgress';
-import Button from '@mui/material/Button';
-import ButtonGroup from '@mui/material/ButtonGroup';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import { CheckCircle, XCircle, ClipboardList, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from '@/components/ui/sonner';
+import { cn } from '@/lib/utils';
 
 type PurchaseTransaction = {
   id: number;
@@ -40,15 +27,10 @@ type PurchaseTransaction = {
 
 export default function PurchaseHistory() {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('purchases');
   const [buyerHistory, setBuyerHistory] = useState<PurchaseTransaction[]>([]);
   const [sellerHistory, setSellerHistory] = useState<PurchaseTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity?: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
 
   useEffect(() => {
     if (session) {
@@ -91,18 +73,18 @@ export default function PurchaseHistory() {
     });
   };
 
-  const getStatusColor = (status: string): 'warning' | 'info' | 'success' | 'error' | 'default' => {
+  const getStatusBadgeClass = (status: string): string => {
     switch (status) {
       case 'pending':
-        return 'warning';
+        return 'bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)]';
       case 'contract_created':
-        return 'info';
+        return 'bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border border-[rgba(59,130,246,0.3)]';
       case 'completed':
-        return 'success';
+        return 'bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)]';
       case 'cancelled':
-        return 'error';
+        return 'bg-[rgba(239,68,68,0.15)] text-[#ef4444] border border-[rgba(239,68,68,0.3)]';
       default:
-        return 'default';
+        return 'bg-[rgba(148,163,184,0.1)] text-[#64748b] border border-[rgba(148,163,184,0.2)]';
     }
   };
 
@@ -114,14 +96,14 @@ export default function PurchaseHistory() {
 
       if (response.ok) {
         await fetchHistory();
-        setSnackbar({ open: true, message: 'Contract marked as created', severity: 'success' });
+        toast.success('Contract marked as created');
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to mark contract created', severity: 'error' });
+        toast.error(error.error || 'Failed to mark contract created');
       }
     } catch (error) {
       console.error('Failed to mark contract created:', error);
-      setSnackbar({ open: true, message: 'Failed to mark contract created', severity: 'error' });
+      toast.error('Failed to mark contract created');
     }
   };
 
@@ -133,14 +115,14 @@ export default function PurchaseHistory() {
 
       if (response.ok) {
         await fetchHistory();
-        setSnackbar({ open: true, message: 'Purchase marked as completed', severity: 'success' });
+        toast.success('Purchase marked as completed');
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to complete purchase', severity: 'error' });
+        toast.error(error.error || 'Failed to complete purchase');
       }
     } catch (error) {
       console.error('Failed to complete purchase:', error);
-      setSnackbar({ open: true, message: 'Failed to complete purchase', severity: 'error' });
+      toast.error('Failed to complete purchase');
     }
   };
 
@@ -156,110 +138,91 @@ export default function PurchaseHistory() {
 
       if (response.ok) {
         await fetchHistory();
-        setSnackbar({ open: true, message: 'Purchase cancelled successfully', severity: 'success' });
+        toast.success('Purchase cancelled successfully');
       } else {
         const error = await response.json();
-        setSnackbar({ open: true, message: error.error || 'Failed to cancel purchase', severity: 'error' });
+        toast.error(error.error || 'Failed to cancel purchase');
       }
     } catch (error) {
       console.error('Failed to cancel purchase:', error);
-      setSnackbar({ open: true, message: 'Failed to cancel purchase', severity: 'error' });
+      toast.error('Failed to cancel purchase');
     }
   };
 
   const renderTransactionsTable = (transactions: PurchaseTransaction[], isBuyer: boolean) => {
     if (transactions.length === 0) {
       return (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
-            No {isBuyer ? 'purchases' : 'sales'} yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+          <h3 className="text-lg font-semibold text-[#94a3b8]">No {isBuyer ? 'purchases' : 'sales'} yet</h3>
+          <p className="text-sm text-[#64748b] mt-1">
             {isBuyer
               ? 'Browse the marketplace to make your first purchase.'
               : 'List items for sale to start selling.'}
-          </Typography>
-        </Paper>
+          </p>
+        </div>
       );
     }
 
     return (
-      <TableContainer component={Paper}>
+      <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
         <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Date</TableCell>
-              <TableCell>Item</TableCell>
-              <TableCell align="right">Quantity</TableCell>
-              <TableCell align="right">Price per Unit</TableCell>
-              <TableCell align="right">Total Price</TableCell>
-              <TableCell>Status</TableCell>
-              {transactions.some(t => t.transactionNotes) && <TableCell>Notes</TableCell>}
-              <TableCell align="center">Actions</TableCell>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219]">
+              <TableHead>Date</TableHead>
+              <TableHead>Item</TableHead>
+              <TableHead className="text-right">Quantity</TableHead>
+              <TableHead className="text-right">Price per Unit</TableHead>
+              <TableHead className="text-right">Total Price</TableHead>
+              <TableHead>Status</TableHead>
+              {transactions.some(t => t.transactionNotes) && <TableHead>Notes</TableHead>}
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
-              <TableRow key={transaction.id}>
-                <TableCell>{formatDate(transaction.purchasedAt)}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <TableRow key={transaction.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
+                <TableCell className="text-[#94a3b8]">{formatDate(transaction.purchasedAt)}</TableCell>
+                <TableCell className="text-[#e2e8f0]">
+                  <div className="flex items-center gap-1.5">
                     {transaction.typeName}
                     {transaction.isAutoFulfilled && (
-                      <Chip
-                        label="Auto"
-                        size="small"
-                        sx={{
-                          fontSize: '0.65rem',
-                          fontWeight: 600,
-                          height: 20,
-                          background: 'rgba(16, 185, 129, 0.15)',
-                          color: '#10b981',
-                          border: '1px solid rgba(16, 185, 129, 0.3)',
-                        }}
-                      />
+                      <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
+                        Auto
+                      </Badge>
                     )}
-                  </Box>
+                  </div>
                 </TableCell>
-                <TableCell align="right">{transaction.quantityPurchased.toLocaleString()}</TableCell>
-                <TableCell align="right">{transaction.pricePerUnit.toLocaleString()} ISK</TableCell>
-                <TableCell align="right">
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 600,
-                      color: isBuyer ? 'error.main' : 'success.main',
-                    }}
-                  >
+                <TableCell className="text-right text-[#e2e8f0]">{transaction.quantityPurchased.toLocaleString()}</TableCell>
+                <TableCell className="text-right text-[#e2e8f0]">{transaction.pricePerUnit.toLocaleString()} ISK</TableCell>
+                <TableCell className="text-right">
+                  <span className={cn("font-semibold", isBuyer ? 'text-[#ef4444]' : 'text-[#10b981]')}>
                     {isBuyer ? '-' : '+'}
                     {transaction.totalPrice.toLocaleString()} ISK
-                  </Typography>
+                  </span>
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    label={transaction.status.replace('_', ' ')}
-                    size="small"
-                    color={getStatusColor(transaction.status)}
-                  />
+                  <Badge className={cn("text-xs hover:opacity-90 cursor-default", getStatusBadgeClass(transaction.status))}>
+                    {transaction.status.replace('_', ' ')}
+                  </Badge>
                 </TableCell>
                 {transactions.some(t => t.transactionNotes) && (
                   <TableCell>
                     {transaction.transactionNotes && (
-                      <Typography variant="caption" color="text.secondary">
-                        {transaction.transactionNotes}
-                      </Typography>
+                      <span className="text-xs text-[#64748b]">{transaction.transactionNotes}</span>
                     )}
                   </TableCell>
                 )}
-                <TableCell align="center">
-                  <ButtonGroup size="small" variant="outlined">
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center gap-1">
                     {/* Buyer actions */}
                     {isBuyer && transaction.status === 'contract_created' && (
                       <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-emerald-500 text-emerald-400 hover:bg-emerald-500/10"
                         onClick={() => handleCompletePurchase(transaction.id)}
-                        color="success"
-                        startIcon={<CheckCircleIcon />}
                       >
+                        <CheckCircle className="h-4 w-4 mr-1" />
                         Complete
                       </Button>
                     )}
@@ -267,10 +230,12 @@ export default function PurchaseHistory() {
                     {/* Seller actions */}
                     {!isBuyer && transaction.status === 'pending' && (
                       <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
                         onClick={() => handleMarkContractCreated(transaction.id)}
-                        color="info"
-                        startIcon={<AssignmentIcon />}
                       >
+                        <ClipboardList className="h-4 w-4 mr-1" />
                         Mark Contract Created
                       </Button>
                     )}
@@ -278,64 +243,59 @@ export default function PurchaseHistory() {
                     {/* Cancel action (both parties) */}
                     {(transaction.status === 'pending' || transaction.status === 'contract_created') && (
                       <Button
+                        variant="outline"
+                        size="sm"
+                        className="border-red-500 text-red-400 hover:bg-red-500/10"
                         onClick={() => handleCancelPurchase(transaction.id)}
-                        color="error"
-                        startIcon={<CancelIcon />}
                       >
+                        <XCircle className="h-4 w-4 mr-1" />
                         Cancel
                       </Button>
                     )}
 
                     {/* No actions for completed/cancelled */}
                     {(transaction.status === 'completed' || transaction.status === 'cancelled') && (
-                      <Typography variant="caption" color="text.secondary">
-                        -
-                      </Typography>
+                      <span className="text-xs text-[#64748b]">-</span>
                     )}
-                  </ButtonGroup>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
+      </div>
     );
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center items-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <Box>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-          <Tab label={`My Purchases (${buyerHistory.length})`} />
-          <Tab label={`My Sales (${sellerHistory.length})`} />
-        </Tabs>
-      </Box>
+    <div>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-6">
+          <TabsTrigger
+            value="purchases"
+            className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2"
+          >
+            My Purchases ({buyerHistory.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="sales"
+            className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2"
+          >
+            My Sales ({sellerHistory.length})
+          </TabsTrigger>
+        </TabsList>
 
-      {activeTab === 0 && renderTransactionsTable(buyerHistory, true)}
-      {activeTab === 1 && renderTransactionsTable(sellerHistory, false)}
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity || 'success'}
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-    </Box>
+        <TabsContent value="purchases">{renderTransactionsTable(buyerHistory, true)}</TabsContent>
+        <TabsContent value="sales">{renderTransactionsTable(sellerHistory, false)}</TabsContent>
+      </Tabs>
+    </div>
   );
 }

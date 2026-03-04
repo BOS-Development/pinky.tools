@@ -1,24 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import SearchIcon from '@mui/icons-material/Search';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import Chip from '@mui/material/Chip';
+import { TrendingUp, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { toast } from '@/components/ui/sonner';
 import Loading from "@industry-tool/components/loading";
 
 export type BuyOrder = {
@@ -41,9 +28,6 @@ export default function DemandViewer() {
   const [demand, setDemand] = useState<BuyOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
@@ -61,16 +45,10 @@ export default function DemandViewer() {
       setDemand(data);
     } catch (error) {
       console.error('Error fetching demand:', error);
-      showSnackbar('Failed to load demand data', 'error');
+      toast.error('Failed to load demand data');
     } finally {
       setLoading(false);
     }
-  };
-
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
   };
 
   const formatNumber = (num: number) => num.toLocaleString();
@@ -91,7 +69,7 @@ export default function DemandViewer() {
         totalQuantity: 0,
         maxPrice: 0,
         orderCount: 0,
-        orders: [],
+        orders: [] as BuyOrder[],
       };
     }
     acc[key].totalQuantity += order.quantityDesired;
@@ -117,137 +95,109 @@ export default function DemandViewer() {
   }
 
   return (
-    <Container maxWidth="xl">
-      <Box sx={{ my: 4 }}>
-        <Card>
-          <CardContent>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <TrendingUpIcon fontSize="large" color="primary" />
-                <Box>
-                  <Typography variant="h5" component="h2">
-                    Market Demand
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Buy orders from your contacts
-                  </Typography>
-                </Box>
-              </Box>
-              <TextField
+    <div className="max-w-[1280px] my-4">
+      <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="h-7 w-7 text-[#00d4ff]" />
+              <div>
+                <h2 className="text-xl font-semibold text-[#e2e8f0]">Market Demand</h2>
+                <p className="text-sm text-[#94a3b8]">Buy orders from your contacts</p>
+              </div>
+            </div>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b]" />
+              <Input
                 placeholder="Search items..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                size="small"
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                }}
+                className="pl-9 w-52"
               />
-            </Box>
+            </div>
+          </div>
 
-            {demand.length === 0 ? (
-              <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
-                No active buy orders from your contacts yet.
-                <br />
-                When your contacts create buy orders, they'll appear here!
-              </Typography>
-            ) : (
-              <>
-                {/* Aggregated Summary */}
-                <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-                  Aggregated Demand
-                </Typography>
-                <TableContainer component={Paper} sx={{ mb: 4 }}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Item</TableCell>
-                        <TableCell align="right">Total Quantity Wanted</TableCell>
-                        <TableCell align="right">Highest Floor Price</TableCell>
-                        <TableCell align="right">Potential Revenue</TableCell>
-                        <TableCell align="center">Number of Orders</TableCell>
+          {demand.length === 0 ? (
+            <p className="text-[#94a3b8] text-center py-8">
+              No active buy orders from your contacts yet.
+              <br />
+              When your contacts create buy orders, they&apos;ll appear here!
+            </p>
+          ) : (
+            <>
+              {/* Aggregated Summary */}
+              <h3 className="text-lg font-semibold text-[#e2e8f0] mb-3 mt-2">Aggregated Demand</h3>
+              <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)] mb-8">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-[#0f1219]">
+                      <TableHead>Item</TableHead>
+                      <TableHead className="text-right">Total Quantity Wanted</TableHead>
+                      <TableHead className="text-right">Highest Floor Price</TableHead>
+                      <TableHead className="text-right">Potential Revenue</TableHead>
+                      <TableHead className="text-center">Number of Orders</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {aggregatedData.map((item) => (
+                      <TableRow key={item.typeId} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
+                        <TableCell>
+                          <strong className="text-[#e2e8f0]">{item.typeName}</strong>
+                        </TableCell>
+                        <TableCell className="text-right text-[#e2e8f0]">{formatNumber(item.totalQuantity)}</TableCell>
+                        <TableCell className="text-right text-[#e2e8f0]">{formatISK(item.maxPrice)}</TableCell>
+                        <TableCell className="text-right">
+                          <span className="font-bold text-[#10b981]">
+                            {formatISK(item.totalQuantity * item.maxPrice)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge className="bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border border-[rgba(59,130,246,0.3)] hover:bg-[rgba(59,130,246,0.2)] cursor-default">
+                            {item.orderCount}
+                          </Badge>
+                        </TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {aggregatedData.map((item) => (
-                        <TableRow key={item.typeId}>
-                          <TableCell>
-                            <strong>{item.typeName}</strong>
-                          </TableCell>
-                          <TableCell align="right">{formatNumber(item.totalQuantity)}</TableCell>
-                          <TableCell align="right">{formatISK(item.maxPrice)}</TableCell>
-                          <TableCell align="right">
-                            <Typography variant="body2" color="success.main" fontWeight="bold">
-                              {formatISK(item.totalQuantity * item.maxPrice)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="center">
-                            <Chip label={item.orderCount} size="small" color="primary" />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-                {/* Detailed Orders */}
-                <Typography variant="h6" gutterBottom>
-                  Individual Buy Orders
-                </Typography>
-                <TableContainer component={Paper}>
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableCell>Item</TableCell>
-                        <TableCell>Location</TableCell>
-                        <TableCell align="right">Quantity</TableCell>
-                        <TableCell align="right">Min Price/Unit</TableCell>
-                        <TableCell align="right">Est. Revenue</TableCell>
-                        <TableCell>Notes</TableCell>
-                        <TableCell>Created</TableCell>
+              {/* Detailed Orders */}
+              <h3 className="text-lg font-semibold text-[#e2e8f0] mb-3">Individual Buy Orders</h3>
+              <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-[#0f1219]">
+                      <TableHead>Item</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead className="text-right">Quantity</TableHead>
+                      <TableHead className="text-right">Min Price/Unit</TableHead>
+                      <TableHead className="text-right">Est. Revenue</TableHead>
+                      <TableHead>Notes</TableHead>
+                      <TableHead>Created</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredDemand.map((order) => (
+                      <TableRow key={order.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
+                        <TableCell className="text-[#e2e8f0]">{order.typeName}</TableCell>
+                        <TableCell className="text-[#94a3b8]">{order.locationName || '-'}</TableCell>
+                        <TableCell className="text-right text-[#e2e8f0]">{formatNumber(order.quantityDesired)}</TableCell>
+                        <TableCell className="text-right text-[#e2e8f0]">{formatISK(order.minPricePerUnit)}</TableCell>
+                        <TableCell className="text-right text-[#e2e8f0]">
+                          {formatISK(order.quantityDesired * order.minPricePerUnit)}
+                        </TableCell>
+                        <TableCell className="text-[#94a3b8]">{order.notes || '-'}</TableCell>
+                        <TableCell className="text-[#94a3b8]">{formatDate(order.createdAt)}</TableCell>
                       </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredDemand.map((order) => (
-                        <TableRow key={order.id}>
-                          <TableCell>{order.typeName}</TableCell>
-                          <TableCell>{order.locationName || '-'}</TableCell>
-                          <TableCell align="right">{formatNumber(order.quantityDesired)}</TableCell>
-                          <TableCell align="right">{formatISK(order.minPricePerUnit)}</TableCell>
-                          <TableCell align="right">
-                            {formatISK(order.quantityDesired * order.minPricePerUnit)}
-                          </TableCell>
-                          <TableCell>{order.notes || '-'}</TableCell>
-                          <TableCell>{formatDate(order.createdAt)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </Box>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity={snackbarSeverity}
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Container>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

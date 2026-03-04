@@ -6,19 +6,15 @@ import PlanetOverview from "@industry-tool/components/pi/PlanetOverview";
 import ProfitTable from "@industry-tool/components/pi/ProfitTable";
 import SupplyChain from "@industry-tool/components/pi/SupplyChain";
 import Navbar from "@industry-tool/components/Navbar";
-import Container from "@mui/material/Container";
-import Typography from "@mui/material/Typography";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Box from "@mui/material/Box";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 export default function PlanetaryIndustry() {
   const { status } = useSession();
   const [tab, setTab] = useState(() => {
     if (typeof window !== "undefined") {
-      return parseInt(localStorage.getItem("pi-tab") || "0", 10);
+      return localStorage.getItem("pi-tab") || "overview";
     }
-    return 0;
+    return "overview";
   });
 
   if (status === "loading") {
@@ -29,37 +25,51 @@ export default function PlanetaryIndustry() {
     return <Unuathorized />;
   }
 
-  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
-    setTab(newValue);
-    localStorage.setItem("pi-tab", String(newValue));
-  };
-
   return (
     <>
       <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-        <Typography variant="h5" sx={{ color: "#e2e8f0", mb: 2, fontWeight: 600 }}>
+      <div className="max-w-screen-xl mx-auto px-4 mt-2 mb-8">
+        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-4">
           Planetary Industry
-        </Typography>
-        <Box sx={{ borderBottom: 1, borderColor: "rgba(148, 163, 184, 0.15)", mb: 2 }}>
-          <Tabs
-            value={tab}
-            onChange={handleTabChange}
-            sx={{
-              "& .MuiTab-root": { color: "#64748b", textTransform: "none", fontWeight: 500 },
-              "& .Mui-selected": { color: "#00d4ff" },
-              "& .MuiTabs-indicator": { backgroundColor: "#00d4ff" },
-            }}
-          >
-            <Tab label="Overview" />
-            <Tab label="Profit" />
-            <Tab label="Supply Chain" />
-          </Tabs>
-        </Box>
-        {tab === 0 && <PlanetOverview embedded />}
-        {tab === 1 && <ProfitTable />}
-        {tab === 2 && <SupplyChain />}
-      </Container>
+        </h2>
+        <Tabs
+          value={tab}
+          onValueChange={(v) => {
+            setTab(v);
+            localStorage.setItem("pi-tab", v);
+          }}
+        >
+          <TabsList className="w-full justify-start mb-4">
+            <TabsTrigger
+              value="overview"
+              className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="profit"
+              className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
+            >
+              Profit
+            </TabsTrigger>
+            <TabsTrigger
+              value="supply"
+              className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
+            >
+              Supply Chain
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview">
+            <PlanetOverview embedded />
+          </TabsContent>
+          <TabsContent value="profit">
+            <ProfitTable />
+          </TabsContent>
+          <TabsContent value="supply">
+            <SupplyChain />
+          </TabsContent>
+        </Tabs>
+      </div>
     </>
   );
 }

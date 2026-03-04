@@ -1,21 +1,14 @@
 import React, { useState } from "react";
+import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableHead,
+  TableHeader,
   TableRow,
-  Button,
-  IconButton,
-  Box,
-  Chip,
-  CircularProgress,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
+} from "@/components/ui/table";
 import { JFRoute } from "../../pages/transport";
 import { JFRouteDialog } from "./JFRouteDialog";
 
@@ -56,79 +49,86 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-        <CircularProgress size={32} />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
     <>
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleAdd} size="small">
+      <div className="flex justify-end mb-3">
+        <Button size="sm" onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
           Add JF Route
         </Button>
-      </Box>
+      </div>
 
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1219" }}>
-              <TableCell>Name</TableCell>
-              <TableCell>Origin</TableCell>
-              <TableCell>Destination</TableCell>
-              <TableCell align="right">Total Distance (LY)</TableCell>
-              <TableCell align="right">Waypoints</TableCell>
-              <TableCell align="center">Actions</TableCell>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219] hover:bg-[#0f1219]">
+              <TableHead>Name</TableHead>
+              <TableHead>Origin</TableHead>
+              <TableHead>Destination</TableHead>
+              <TableHead className="text-right">Total Distance (LY)</TableHead>
+              <TableHead className="text-right">Waypoints</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {routes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4, color: "#94a3b8" }}>
-                  <Typography variant="body2">No JF routes configured</Typography>
+                <TableCell
+                  colSpan={6}
+                  className="text-center py-8 text-[#94a3b8]"
+                >
+                  No JF routes configured
                 </TableCell>
               </TableRow>
             ) : (
               routes.map((r) => (
-                <TableRow
-                  key={r.id}
-                  sx={{ "&:hover": { backgroundColor: "rgba(0, 212, 255, 0.05)" } }}
-                >
-                  <TableCell sx={{ fontWeight: 500 }}>{r.name}</TableCell>
-                  <TableCell>{r.originSystemName || r.originSystemId}</TableCell>
-                  <TableCell>{r.destinationSystemName || r.destinationSystemId}</TableCell>
-                  <TableCell align="right">{r.totalDistanceLy.toFixed(2)} LY</TableCell>
-                  <TableCell align="right">
-                    <Box sx={{ display: "flex", gap: 0.5, justifyContent: "flex-end", flexWrap: "wrap" }}>
+                <TableRow key={r.id} className="hover:bg-[rgba(0,212,255,0.05)]">
+                  <TableCell className="font-medium text-[#e2e8f0]">{r.name}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{r.originSystemName || r.originSystemId}</TableCell>
+                  <TableCell className="text-[#94a3b8]">{r.destinationSystemName || r.destinationSystemId}</TableCell>
+                  <TableCell className="text-right">{r.totalDistanceLy.toFixed(2)} LY</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex gap-1 justify-end flex-wrap">
                       {(r.waypoints || []).map((wp) => (
-                        <Chip
+                        <span
                           key={wp.id}
-                          label={wp.systemName || wp.systemId}
-                          size="small"
-                          sx={{
-                            backgroundColor: "rgba(139, 92, 246, 0.15)",
-                            color: "#8b5cf6",
-                            fontSize: "0.7rem",
-                          }}
-                        />
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(139,92,246,0.15)] text-[#8b5cf6]"
+                        >
+                          {wp.systemName || wp.systemId}
+                        </span>
                       ))}
-                    </Box>
+                    </div>
                   </TableCell>
-                  <TableCell align="center">
-                    <IconButton size="small" onClick={() => handleEdit(r)} sx={{ color: "#94a3b8" }}>
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(r)} sx={{ color: "#ef4444" }}>
-                      <DeleteIcon fontSize="small" />
-                    </IconButton>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      onClick={() => handleEdit(r)}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                      onClick={() => handleDelete(r)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
             )}
           </TableBody>
         </Table>
-      </TableContainer>
+      </div>
 
       <JFRouteDialog
         open={dialogOpen}

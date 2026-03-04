@@ -140,8 +140,8 @@ test.describe('Auto-Sell Containers', () => {
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Select "Jita Sell" from price source dropdown
-    await dialog.getByLabel('Price Source').click();
+    // Select "Jita Sell" from price source dropdown (shadcn Select renders as combobox)
+    await dialog.getByRole('combobox').click();
     await alicePage.getByRole('option', { name: /Jita Sell/i }).click();
 
     // Set percentage to 90%
@@ -181,8 +181,8 @@ test.describe('Auto-Sell Containers', () => {
     const dialog = alicePage.getByRole('dialog');
     await expect(dialog).toBeVisible({ timeout: 5000 });
 
-    // Change price source to Jita Split
-    await dialog.getByLabel('Price Source').click();
+    // Change price source to Jita Split (shadcn Select renders as combobox)
+    await dialog.getByRole('combobox').click();
     await alicePage.getByRole('option', { name: /Jita Split/i }).click();
 
     // Save

@@ -3,35 +3,14 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Navbar from '@industry-tool/components/Navbar';
 import Loading from '@industry-tool/components/loading';
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Chip from '@mui/material/Chip';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import LinearProgress from '@mui/material/LinearProgress';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
-import FormGroup from '@mui/material/FormGroup';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import AddIcon from '@mui/icons-material/Add';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Plus, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { HaulingRun } from '@industry-tool/client/data/models';
 import { formatISK } from '@industry-tool/utils/formatting';
@@ -54,17 +33,25 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
   name,
 }));
 
-function getStatusColor(status: HaulingRun['status']): 'primary' | 'warning' | 'success' | 'error' | 'default' | 'info' {
-  switch (status) {
-    case 'PLANNING': return 'primary';
-    case 'ACCUMULATING': return 'warning';
-    case 'READY': return 'success';
-    case 'IN_TRANSIT': return 'info';
-    case 'SELLING': return 'warning';
-    case 'COMPLETE': return 'success';
-    case 'CANCELLED': return 'error';
-    default: return 'default';
-  }
+function StatusBadge({ status }: { status: string }) {
+  const config: Record<string, { color: string; bg: string }> = {
+    PLANNING: { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.1)' },
+    ACCUMULATING: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    READY: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+    IN_TRANSIT: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
+    SELLING: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
+    COMPLETE: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+    CANCELLED: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
+  };
+  const c = config[status] || { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
+      style={{ backgroundColor: c.bg, color: c.color }}
+    >
+      {status}
+    </span>
+  );
 }
 
 function computeRunVolume(run: HaulingRun): { used: number; total: number; percent: number } {
@@ -189,262 +176,250 @@ export default function HaulingRunsList() {
   return (
     <>
       <Navbar />
-      <Container maxWidth={false} sx={{ mt: 4, mb: 4 }}>
+      <div className="w-full px-4 mt-8 mb-8">
         {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <LocalShippingIcon fontSize="large" sx={{ color: '#00d4ff' }} />
-            <Typography variant="h4" sx={{ fontWeight: 600 }}>
-              Hauling Runs
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setDialogOpen(true)}
-          >
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Truck className="h-7 w-7 text-[#00d4ff]" />
+            <h1 className="text-2xl font-bold text-[#e2e8f0]">Hauling Runs</h1>
+          </div>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
             New Run
           </Button>
-        </Box>
+        </div>
 
-        {/* Status summary chips */}
+        {/* Status summary badges */}
         {runs.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
+          <div className="flex gap-2 mb-6 flex-wrap">
             {Object.entries(statusCounts).map(([status, count]) => (
-              <Chip
-                key={status}
-                label={`${status}: ${count}`}
-                color={getStatusColor(status as HaulingRun['status'])}
-                size="small"
-                variant="outlined"
-              />
+              <StatusBadge key={status} status={`${status}: ${count}`} />
             ))}
-          </Box>
+          </div>
         )}
 
         {/* Runs Table */}
         {runs.length === 0 ? (
-          <Card>
-            <CardContent>
-              <Typography variant="h6" align="center" color="text.secondary" sx={{ py: 4 }}>
+          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <CardContent className="py-8">
+              <p className="text-center text-[#94a3b8] text-base">
                 No hauling runs yet. Create your first run to get started.
-              </Typography>
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <Card>
-            <CardContent sx={{ p: 0 }}>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead sx={{ backgroundColor: '#0f1219' }}>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 700 }}>Name</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Status</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Route</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }} align="right">Volume Used</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }} align="right">Items</TableCell>
-                      <TableCell sx={{ fontWeight: 700, width: 160 }}>Progress</TableCell>
-                      <TableCell sx={{ fontWeight: 700 }}>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {runs.map((run, idx) => {
-                      const { used, total, percent } = computeRunVolume(run);
-                      const fillPercent = computeOverallFill(run);
-                      const fromName = EVE_REGIONS[run.fromRegionId] || `Region ${run.fromRegionId}`;
-                      const toName = EVE_REGIONS[run.toRegionId] || `Region ${run.toRegionId}`;
-                      const itemCount = (run.items || []).length;
+          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
+                    <TableHead className="font-bold text-[#e2e8f0]">Name</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0]">Status</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0]">Route</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Volume Used</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] text-right">Items</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0] w-40">Progress</TableHead>
+                    <TableHead className="font-bold text-[#e2e8f0]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {runs.map((run, idx) => {
+                    const { used, total } = computeRunVolume(run);
+                    const fillPercent = computeOverallFill(run);
+                    const fromName = EVE_REGIONS[run.fromRegionId] || `Region ${run.fromRegionId}`;
+                    const toName = EVE_REGIONS[run.toRegionId] || `Region ${run.toRegionId}`;
+                    const itemCount = (run.items || []).length;
+                    const progressColor = fillPercent >= 100 ? '#10b981' : fillPercent >= 50 ? '#00d4ff' : '#f59e0b';
 
-                      return (
-                        <TableRow
-                          key={run.id}
-                          hover
-                          onClick={() => router.push(`/hauling/${run.id}`)}
-                          sx={{
-                            cursor: 'pointer',
-                            '&:nth-of-type(odd)': { backgroundColor: 'action.hover' },
-                          }}
-                        >
-                          <TableCell sx={{ fontWeight: 600 }}>
-                            <Link href={`/hauling/${run.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                              {run.name}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={run.status}
-                              color={getStatusColor(run.status)}
-                              size="small"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {fromName} &rarr; {toName}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            {total > 0
-                              ? `${used.toLocaleString(undefined, { maximumFractionDigits: 1 })} / ${total.toLocaleString()} m³`
-                              : used > 0
-                              ? `${used.toLocaleString(undefined, { maximumFractionDigits: 1 })} m³`
-                              : '—'}
-                          </TableCell>
-                          <TableCell align="right">{itemCount}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Box sx={{ flex: 1 }}>
-                                <LinearProgress
-                                  variant="determinate"
-                                  value={fillPercent}
-                                  sx={{
-                                    height: 8,
-                                    borderRadius: 4,
-                                    backgroundColor: '#1e2a3a',
-                                    '& .MuiLinearProgress-bar': {
-                                      backgroundColor: fillPercent >= 100 ? '#10b981' : fillPercent >= 50 ? '#00d4ff' : '#f59e0b',
-                                    },
-                                  }}
+                    return (
+                      <TableRow
+                        key={run.id}
+                        className="cursor-pointer hover:bg-[rgba(0,212,255,0.03)] border-[rgba(148,163,184,0.07)]"
+                        style={{ backgroundColor: idx % 2 === 0 ? undefined : 'rgba(255,255,255,0.02)' }}
+                        onClick={() => router.push(`/hauling/${run.id}`)}
+                      >
+                        <TableCell className="font-semibold text-[#e2e8f0]">
+                          <Link href={`/hauling/${run.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                            {run.name}
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={run.status} />
+                        </TableCell>
+                        <TableCell className="text-sm text-[#94a3b8]">
+                          {fromName} &rarr; {toName}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                          {total > 0
+                            ? `${used.toLocaleString(undefined, { maximumFractionDigits: 1 })} / ${total.toLocaleString()} m³`
+                            : used > 0
+                            ? `${used.toLocaleString(undefined, { maximumFractionDigits: 1 })} m³`
+                            : '—'}
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-[#94a3b8]">{itemCount}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1">
+                              <div className="h-2 bg-[#1e2a3a] rounded-full overflow-hidden">
+                                <div
+                                  className="h-full rounded-full transition-all"
+                                  style={{ width: `${fillPercent}%`, backgroundColor: progressColor }}
                                 />
-                              </Box>
-                              <Typography variant="caption" sx={{ minWidth: 36, textAlign: 'right' }}>
-                                {fillPercent.toFixed(0)}%
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              component={Link}
-                              href={`/hauling/${run.id}`}
-                              size="small"
-                              variant="outlined"
-                            >
-                              View
+                              </div>
+                            </div>
+                            <span className="text-xs text-[#94a3b8] min-w-[36px] text-right">
+                              {fillPercent.toFixed(0)}%
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                            <Button asChild size="sm" variant="outline">
+                              <Link href={`/hauling/${run.id}`}>View</Link>
                             </Button>
                             <Button
-                              size="small"
-                              color="error"
-                              variant="outlined"
-                              sx={{ ml: 1 }}
-                              onClick={(e) => { e.stopPropagation(); handleDeleteRun(run.id); }}
+                              size="sm"
+                              variant="outline"
+                              className="border-red-500 text-red-400 hover:bg-red-500/10 ml-1"
+                              onClick={() => handleDeleteRun(run.id)}
                             >
                               Delete
                             </Button>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         )}
-      </Container>
+      </div>
 
       {/* New Run Dialog */}
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>New Hauling Run</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField
-              label="Name"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              fullWidth
-              required
-              autoFocus
-            />
-            <FormControl fullWidth required>
-              <InputLabel>From Region</InputLabel>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogHeader>
+            <DialogTitle className="text-[#e2e8f0]">New Hauling Run</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 mt-2">
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Name *</label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Run name"
+                autoFocus
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">From Region *</label>
               <Select
-                value={form.fromRegionId}
-                label="From Region"
-                onChange={(e) => setForm({ ...form, fromRegionId: e.target.value as number })}
+                value={form.fromRegionId !== '' ? String(form.fromRegionId) : ''}
+                onValueChange={(v) => setForm({ ...form, fromRegionId: Number(v) })}
               >
-                {REGION_OPTIONS.map((r) => (
-                  <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                ))}
+                <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  {REGION_OPTIONS.map((r) => (
+                    <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
-            <FormControl fullWidth required>
-              <InputLabel>To Region</InputLabel>
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">To Region *</label>
               <Select
-                value={form.toRegionId}
-                label="To Region"
-                onChange={(e) => setForm({ ...form, toRegionId: e.target.value as number })}
+                value={form.toRegionId !== '' ? String(form.toRegionId) : ''}
+                onValueChange={(v) => setForm({ ...form, toRegionId: Number(v) })}
               >
-                {REGION_OPTIONS.map((r) => (
-                  <MenuItem key={r.id} value={r.id}>{r.name}</MenuItem>
-                ))}
+                <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  {REGION_OPTIONS.map((r) => (
+                    <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                      {r.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
-            <TextField
-              label="Max Volume (m³)"
-              type="number"
-              value={form.maxVolumeM3}
-              onChange={(e) => setForm({ ...form, maxVolumeM3: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              label="Haul Threshold ISK"
-              type="number"
-              value={form.haulThresholdIsk}
-              onChange={(e) => setForm({ ...form, haulThresholdIsk: e.target.value })}
-              fullWidth
-              inputProps={{ min: 0 }}
-              helperText="Minimum net profit to consider hauling"
-            />
-            <Box>
-              <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>Discord Notifications</Typography>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-                Requires Discord linked in Settings.
-              </Typography>
-              <FormGroup>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.notifyTier2}
-                      onChange={(e) => setForm({ ...form, notifyTier2: e.target.checked })}
-                      size="small"
-                    />
-                  }
-                  label="Notify when fill crosses 80% (requires Discord)"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.notifyTier3}
-                      onChange={(e) => setForm({ ...form, notifyTier3: e.target.checked })}
-                      size="small"
-                    />
-                  }
-                  label="Notify when items are slow to fill (requires Discord)"
-                />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={form.dailyDigest}
-                      onChange={(e) => setForm({ ...form, dailyDigest: e.target.checked })}
-                      size="small"
-                    />
-                  }
-                  label="Daily digest in Discord"
-                />
-              </FormGroup>
-            </Box>
-          </Box>
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Max Volume (m³)</label>
+              <Input
+                type="number"
+                value={form.maxVolumeM3}
+                onChange={(e) => setForm({ ...form, maxVolumeM3: e.target.value })}
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-[#94a3b8] mb-1 block">Haul Threshold ISK</label>
+              <Input
+                type="number"
+                value={form.haulThresholdIsk}
+                onChange={(e) => setForm({ ...form, haulThresholdIsk: e.target.value })}
+                min={0}
+                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+              />
+              <p className="text-xs text-[#64748b] mt-1">Minimum net profit to consider hauling</p>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#e2e8f0] mb-1">Discord Notifications</p>
+              <p className="text-xs text-[#64748b] mb-2">Requires Discord linked in Settings.</p>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="notifyTier2"
+                    checked={form.notifyTier2}
+                    onCheckedChange={(checked) => setForm({ ...form, notifyTier2: Boolean(checked) })}
+                  />
+                  <label htmlFor="notifyTier2" className="text-sm text-[#94a3b8] cursor-pointer">
+                    Notify when fill crosses 80% (requires Discord)
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="notifyTier3"
+                    checked={form.notifyTier3}
+                    onCheckedChange={(checked) => setForm({ ...form, notifyTier3: Boolean(checked) })}
+                  />
+                  <label htmlFor="notifyTier3" className="text-sm text-[#94a3b8] cursor-pointer">
+                    Notify when items are slow to fill (requires Discord)
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="dailyDigest"
+                    checked={form.dailyDigest}
+                    onCheckedChange={(checked) => setForm({ ...form, dailyDigest: Boolean(checked) })}
+                  />
+                  <label htmlFor="dailyDigest" className="text-sm text-[#94a3b8] cursor-pointer">
+                    Daily digest in Discord
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="mt-4">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="text-[#94a3b8]">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateRun}
+              disabled={!form.name || form.fromRegionId === '' || form.toRegionId === '' || submitting}
+            >
+              {submitting ? 'Creating...' : 'Create'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleCreateRun}
-            variant="contained"
-            disabled={!form.name || form.fromRegionId === '' || form.toRegionId === '' || submitting}
-          >
-            {submitting ? 'Creating...' : 'Create'}
-          </Button>
-        </DialogActions>
       </Dialog>
     </>
   );

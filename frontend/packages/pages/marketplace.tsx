@@ -1,12 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import Unauthorized from "@industry-tool/components/unauthorized";
 import Navbar from "@industry-tool/components/Navbar";
-import Container from '@mui/material/Container';
-import Box from '@mui/material/Box';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
 import MyListings from "@industry-tool/components/marketplace/MyListings";
 import MarketplaceBrowser from "@industry-tool/components/marketplace/MarketplaceBrowser";
 import PurchaseHistory from "@industry-tool/components/marketplace/PurchaseHistory";
@@ -14,22 +10,19 @@ import PendingSales from "@industry-tool/components/marketplace/PendingSales";
 import BuyOrders from "@industry-tool/components/marketplace/BuyOrders";
 import DemandViewer from "@industry-tool/components/marketplace/DemandViewer";
 import SalesMetrics from "@industry-tool/components/analytics/SalesMetrics";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+const tabMap = ['listings', 'browse', 'pending', 'history', 'buy-orders', 'demand', 'analytics'];
 
 export default function Marketplace() {
   const { status } = useSession();
-  const [tabIndex, setTabIndex] = useState(() => {
-    // Load saved tab from localStorage on initial render
+  const [tabValue, setTabValue] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('marketplaceTab');
-      return saved ? parseInt(saved, 10) : 0;
+      return saved ? (tabMap[parseInt(saved, 10)] || 'listings') : 'listings';
     }
-    return 0;
+    return 'listings';
   });
-
-  // Save tab selection to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('marketplaceTab', tabIndex.toString());
-  }, [tabIndex]);
 
   if (status === "loading") {
     return <Loading />;
@@ -42,27 +35,68 @@ export default function Marketplace() {
   return (
     <>
       <Navbar />
-      <Container maxWidth={false}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-          <Tabs value={tabIndex} onChange={(_, newValue) => setTabIndex(newValue)}>
-            <Tab label="My Listings" />
-            <Tab label="Browse" />
-            <Tab label="Pending Sales" />
-            <Tab label="History" />
-            <Tab label="My Buy Orders" />
-            <Tab label="Demand" />
-            <Tab label="Analytics" />
-          </Tabs>
-        </Box>
+      <div className="w-full px-4">
+        <Tabs
+          value={tabValue}
+          onValueChange={(v) => {
+            setTabValue(v);
+            localStorage.setItem('marketplaceTab', String(tabMap.indexOf(v)));
+          }}
+        >
+          <TabsList className="w-full justify-start mb-6 overflow-x-auto">
+            <TabsTrigger
+              value="listings"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              My Listings
+            </TabsTrigger>
+            <TabsTrigger
+              value="browse"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              Browse
+            </TabsTrigger>
+            <TabsTrigger
+              value="pending"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              Pending Sales
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              History
+            </TabsTrigger>
+            <TabsTrigger
+              value="buy-orders"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              My Buy Orders
+            </TabsTrigger>
+            <TabsTrigger
+              value="demand"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              Demand
+            </TabsTrigger>
+            <TabsTrigger
+              value="analytics"
+              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+            >
+              Analytics
+            </TabsTrigger>
+          </TabsList>
 
-        {tabIndex === 0 && <MyListings />}
-        {tabIndex === 1 && <MarketplaceBrowser />}
-        {tabIndex === 2 && <PendingSales />}
-        {tabIndex === 3 && <PurchaseHistory />}
-        {tabIndex === 4 && <BuyOrders />}
-        {tabIndex === 5 && <DemandViewer />}
-        {tabIndex === 6 && <SalesMetrics />}
-      </Container>
+          <TabsContent value="listings"><MyListings /></TabsContent>
+          <TabsContent value="browse"><MarketplaceBrowser /></TabsContent>
+          <TabsContent value="pending"><PendingSales /></TabsContent>
+          <TabsContent value="history"><PurchaseHistory /></TabsContent>
+          <TabsContent value="buy-orders"><BuyOrders /></TabsContent>
+          <TabsContent value="demand"><DemandViewer /></TabsContent>
+          <TabsContent value="analytics"><SalesMetrics /></TabsContent>
+        </Tabs>
+      </div>
     </>
   );
 }
