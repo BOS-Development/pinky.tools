@@ -101,7 +101,8 @@ func (u *IndustryJobsUpdater) UpdateAllUsers(ctx context.Context) error {
 func (u *IndustryJobsUpdater) UpdateUserJobs(ctx context.Context, userID int64) error {
 	characters, err := u.characterRepo.GetAll(ctx, userID)
 	if err != nil {
-		return errors.Wrap(err, "failed to get user characters for industry jobs update")
+		log.Error("failed to get user characters for industry jobs update", "userID", userID, "error", err)
+		// Don't return — continue to corp jobs and queue matching
 	}
 
 	for _, char := range characters {

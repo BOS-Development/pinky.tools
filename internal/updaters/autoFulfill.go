@@ -224,6 +224,14 @@ func (u *AutoFulfill) createAutoFulfillPurchase(ctx context.Context, order *mode
 		return errors.Wrap(err, "failed to create auto-fulfill purchase transaction")
 	}
 
+	// Duplicate detected — purchase already exists for this order+item pair.
+	// Return nil so the deferred tx.Rollback() undoes the quantity reduction.
+	if purchase.ID == 0 {
+		log.Info("auto-fulfill purchase already exists, skipping",
+			"orderID", order.ID, "itemID", item.ID)
+		return nil
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return errors.Wrap(err, "failed to commit auto-fulfill transaction")

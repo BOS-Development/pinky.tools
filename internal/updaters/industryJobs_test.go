@@ -115,9 +115,13 @@ func (m *mockIndustryUserRepo) GetAllIDs(ctx context.Context) ([]int64, error) {
 
 type mockIndustryCharRepo struct {
 	charactersByUser map[int64][]*repositories.Character
+	getErr           error
 }
 
 func (m *mockIndustryCharRepo) GetAll(ctx context.Context, baseUserID int64) ([]*repositories.Character, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
 	return m.charactersByUser[baseUserID], nil
 }
 
@@ -127,9 +131,13 @@ func (m *mockIndustryCharRepo) UpdateTokens(ctx context.Context, id, userID int6
 
 type mockIndustryCorpRepo struct {
 	corpsByUser map[int64][]repositories.PlayerCorporation
+	getErr      error
 }
 
 func (m *mockIndustryCorpRepo) Get(ctx context.Context, user int64) ([]repositories.PlayerCorporation, error) {
+	if m.getErr != nil {
+		return nil, m.getErr
+	}
 	if m.corpsByUser != nil {
 		return m.corpsByUser[user], nil
 	}
@@ -396,4 +404,86 @@ func Test_IndustryJobsUpdater_SkipsCorpsWithoutScope(t *testing.T) {
 
 	// Should not have upserted any jobs since corp lacks the industry scope
 	assert.Empty(t, jobsRepo.upsertedJobs)
+}
+
+func Test_IndustryJobsUpdater_CharacterLookupFailureDoesNotBlockCorpJobs(t *testing.T) {
+	now := time.Now().UTC()
+	cost := 2500000.0
+
+	jobsRepo := &mockIndustryJobsRepo{}
+	queueRepo := &mockJobQueueRepo{}
+	esiClient := &mockIndustryEsiClient{
+		jobsByChar: map[int64][]*client.EsiIndustryJob{},
+		jobsByCorp: map[int64][]*client.EsiIndustryJob{
+			98000001: {
+				{
+					JobID: 200001, InstallerID: 1001, FacilityID: 60003760, LocationID: 60003760,
+					ActivityID: 9, BlueprintID: 5555, BlueprintTypeID: 46166,
+					BlueprintLocationID: 60003760, OutputLocationID: 60003760,
+					Runs: 100, Cost: &cost, Status: "active", Duration: 7200,
+					StartDate: now.Format(time.RFC3339), EndDate: now.Add(2 * time.Hour).Format(time.RFC3339),
+				},
+			},
+		},
+	}
+	userRepo := &mockIndustryUserRepo{userIDs: []int64{100}}
+	charRepo := &mockIndustryCharRepo{
+		getErr: assert.AnError, // Simulate character lookup failure
+	}
+	corpRepo := &mockIndustryCorpRepo{
+		corpsByUser: map[int64][]repositories.PlayerCorporation{
+			100: {
+				{ID: 98000001, UserID: 100, Name: "Test Corp", EsiToken: "corp-token", EsiScopes: "esi-industry.read_corporation_jobs.v1", EsiExpiresOn: now.Add(time.Hour)},
+			},
+		},
+	}
+
+	updater := updaters.NewIndustryJobsUpdater(userRepo, charRepo, corpRepo, jobsRepo, queueRepo, esiClient)
+
+	// Should NOT return error — character failure should be logged, not propagated
+	err := updater.UpdateUserJobs(context.Background(), 100)
+	assert.NoError(t, err)
+
+	// Corp jobs should still be fetched despite character lookup failure
+	assert.Len(t, jobsRepo.upsertedJobs[100], 1)
+	assert.Equal(t, int64(200001), jobsRepo.upsertedJobs[100][0].JobID)
+	assert.Equal(t, "corporation", jobsRepo.upsertedJobs[100][0].Source)
+}
+
+func Test_IndustryJobsUpdater_CharacterLookupFailureStillRunsQueueMatching(t *testing.T) {
+	now := time.Now().UTC()
+	createdAt := now.Add(-time.Hour)
+
+	jobsRepo := &mockIndustryJobsRepo{
+		activeJobs: []*models.IndustryJob{
+			{
+				JobID: 100001, BlueprintTypeID: 787, ActivityID: 1, Runs: 10,
+				StartDate: now, Status: "active",
+			},
+		},
+	}
+	queueRepo := &mockJobQueueRepo{
+		plannedJobs: []*models.IndustryJobQueueEntry{
+			{
+				ID: 1, BlueprintTypeID: 787, Activity: "manufacturing", Runs: 10,
+				CreatedAt: createdAt, Status: "planned",
+			},
+		},
+	}
+	esiClient := &mockIndustryEsiClient{
+		jobsByChar: map[int64][]*client.EsiIndustryJob{},
+	}
+	userRepo := &mockIndustryUserRepo{userIDs: []int64{100}}
+	charRepo := &mockIndustryCharRepo{
+		getErr: assert.AnError, // Simulate character lookup failure
+	}
+
+	updater := updaters.NewIndustryJobsUpdater(userRepo, charRepo, &mockIndustryCorpRepo{}, jobsRepo, queueRepo, esiClient)
+	err := updater.UpdateUserJobs(context.Background(), 100)
+	assert.NoError(t, err)
+
+	// Queue matching should still run despite character lookup failure
+	assert.Len(t, queueRepo.linkedCalls, 1)
+	assert.Equal(t, int64(1), queueRepo.linkedCalls[0].QueueID)
+	assert.Equal(t, int64(100001), queueRepo.linkedCalls[0].EsiJobID)
 }

@@ -59,6 +59,7 @@ func (m *mockAutoFulfillForSaleRepo) GetByID(ctx context.Context, itemID int64) 
 type mockAutoFulfillPurchaseRepo struct {
 	createdPurchases  []*models.PurchaseTransaction
 	createErr         error
+	duplicateOnCreate bool
 	pendingByBuyOrder map[int64]int64 // buyOrderID -> pending qty
 	pendingByOrderErr error
 }
@@ -67,8 +68,12 @@ func (m *mockAutoFulfillPurchaseRepo) CreateAutoFulfill(ctx context.Context, tx 
 	if m.createErr != nil {
 		return m.createErr
 	}
+	if m.duplicateOnCreate {
+		// Simulate ON CONFLICT DO NOTHING — no row inserted, purchase.ID stays 0
+		return nil
+	}
+	purchase.ID = int64(len(m.createdPurchases) + 1)
 	cp := *purchase
-	cp.ID = int64(len(m.createdPurchases) + 1)
 	m.createdPurchases = append(m.createdPurchases, &cp)
 	return nil
 }
@@ -422,6 +427,40 @@ func Test_AutoFulfill_SyncForAllUsers_Error(t *testing.T) {
 
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to get all active buy orders")
+}
+
+// --- Duplicate Auto-Fulfill Tests ---
+
+func Test_AutoFulfill_DuplicateAutoFulfillSkippedGracefully(t *testing.T) {
+	orderID := int64(5316)
+	buyOrderRepo := &mockAutoFulfillBuyOrdersRepo{
+		userOrders: []*models.BuyOrder{
+			{ID: orderID, BuyerUserID: 42, TypeID: 9802, QuantityDesired: 100, MinPricePerUnit: 5.0, MaxPricePerUnit: 10.0, IsActive: true},
+		},
+	}
+	forSaleRepo := &mockAutoFulfillForSaleRepo{
+		matchingItems: []*models.ForSaleItem{
+			{ID: 1, UserID: 99, TypeID: 9802, QuantityAvailable: 500, PricePerUnit: 8.0, IsActive: true},
+		},
+	}
+	purchaseRepo := &mockAutoFulfillPurchaseRepo{
+		pendingByBuyOrder: map[int64]int64{},
+		duplicateOnCreate: true, // Simulate ON CONFLICT DO NOTHING
+	}
+	permRepo := &mockAutoFulfillPermissionsRepo{allowed: true}
+
+	u, mock := newAutoFulfillUpdaterWithDB(t, buyOrderRepo, forSaleRepo, purchaseRepo, permRepo)
+	mock.ExpectBegin()
+	// No commit expected — deferred rollback will clean up the quantity change
+	mock.ExpectRollback()
+
+	err := u.SyncForUser(context.Background(), 42)
+
+	// Should not return error — duplicate is handled gracefully
+	assert.NoError(t, err)
+	// Should not have created any purchases (all were duplicates)
+	assert.Len(t, purchaseRepo.createdPurchases, 0)
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 // --- Constructor Test ---

@@ -48,10 +48,47 @@ func (r *PurchaseTransactions) Create(ctx context.Context, tx *sql.Tx, purchase 
 	return nil
 }
 
-// CreateAutoFulfill records an auto-fulfilled purchase transaction (within transaction)
+// CreateAutoFulfill records an auto-fulfilled purchase transaction (within transaction).
+// Uses ON CONFLICT DO NOTHING to handle race conditions where two concurrent sync runs
+// try to create the same purchase for the same buy_order + for_sale_item pair.
+// When a duplicate is detected, purchase.ID remains 0 and no error is returned.
 func (r *PurchaseTransactions) CreateAutoFulfill(ctx context.Context, tx *sql.Tx, purchase *models.PurchaseTransaction) error {
 	purchase.IsAutoFulfilled = true
-	return r.Create(ctx, tx, purchase)
+
+	query := `
+		INSERT INTO purchase_transactions
+		(for_sale_item_id, buyer_user_id, seller_user_id, type_id, quantity_purchased,
+		 price_per_unit, total_price, status, transaction_notes, buy_order_id, is_auto_fulfilled, purchased_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
+		ON CONFLICT (buy_order_id, for_sale_item_id)
+			WHERE is_auto_fulfilled = true AND status IN ('pending', 'contract_created')
+		DO NOTHING
+		RETURNING id, purchased_at
+	`
+
+	err := tx.QueryRowContext(ctx, query,
+		purchase.ForSaleItemID,
+		purchase.BuyerUserID,
+		purchase.SellerUserID,
+		purchase.TypeID,
+		purchase.QuantityPurchased,
+		purchase.PricePerUnit,
+		purchase.TotalPrice,
+		purchase.Status,
+		purchase.TransactionNotes,
+		purchase.BuyOrderID,
+		purchase.IsAutoFulfilled,
+	).Scan(&purchase.ID, &purchase.PurchasedAt)
+
+	if err == sql.ErrNoRows {
+		// Duplicate auto-fulfill — row already exists, treat as no-op
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed to create auto-fulfill purchase transaction")
+	}
+
+	return nil
 }
 
 // UpdateContractKeys updates contract keys for multiple purchase IDs
