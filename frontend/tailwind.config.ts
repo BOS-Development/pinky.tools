@@ -36,6 +36,28 @@ const config: Config = {
         rose: {
           danger: "var(--color-danger-rose)",
         },
+        status: {
+          "success-tint": "var(--color-success-tint)",
+          "warning-tint": "var(--color-warning-tint)",
+          "error-tint": "var(--color-error-tint)",
+          "info-tint": "var(--color-info-tint)",
+          "neutral-tint": "var(--color-neutral-tint)",
+        },
+        category: {
+          violet: "var(--color-category-violet)",
+          pink: "var(--color-category-pink)",
+          orange: "var(--color-category-orange)",
+          teal: "var(--color-category-teal)",
+          slate: "var(--color-category-slate)",
+        },
+        "accent-blue": {
+          DEFAULT: "var(--color-accent-blue)",
+          hover: "var(--color-accent-blue-hover)",
+          muted: "var(--color-accent-blue-muted)",
+        },
+        "bg-manufacturing": "var(--color-bg-manufacturing)",
+        "bg-science": "var(--color-bg-science)",
+        "bg-warning": "var(--color-bg-warning)",
         text: {
           primary: "var(--color-text-primary)",
           secondary: "var(--color-text-secondary)",

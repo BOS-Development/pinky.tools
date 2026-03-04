@@ -96,13 +96,13 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
     >
       <span
         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-        style="background-color: rgba(148, 163, 184, 0.1); color: var(--color-text-secondary);"
+        style="background-color: var(--color-neutral-tint); color: var(--color-text-secondary);"
       >
         PLANNING: 1
       </span>
       <span
         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-        style="background-color: rgba(148, 163, 184, 0.1); color: var(--color-text-secondary);"
+        style="background-color: var(--color-neutral-tint); color: var(--color-text-secondary);"
       >
         IN_TRANSIT: 1
       </span>
@@ -166,7 +166,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
               class="[&_tr:last-child]:border-0"
             >
               <tr
-                class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-[rgba(0,212,255,0.03)] border-[rgba(148,163,184,0.07)]"
+                class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-interactive-hover border-overlay-subtle"
               >
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-semibold text-text-emphasis"
@@ -182,7 +182,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                 >
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    style="background-color: rgba(0, 212, 255, 0.1); color: var(--color-primary-cyan);"
+                    style="background-color: var(--color-info-tint); color: var(--color-primary-cyan);"
                   >
                     PLANNING
                   </span>
@@ -214,7 +214,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                       class="flex-1"
                     >
                       <div
-                        class="h-2 bg-[#1e2a3a] rounded-full overflow-hidden"
+                        class="h-2 bg-background-elevated rounded-full overflow-hidden"
                       >
                         <div
                           class="h-full rounded-full transition-all"
@@ -242,7 +242,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                       View
                     </a>
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs border-red-500 text-red-400 hover:bg-red-500/10 ml-1"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs border-rose-danger text-rose-danger hover:bg-rose-danger/10 ml-1"
                     >
                       Delete
                     </button>
@@ -250,8 +250,8 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                 </td>
               </tr>
               <tr
-                class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-[rgba(0,212,255,0.03)] border-[rgba(148,163,184,0.07)]"
-                style="background-color: rgba(255, 255, 255, 0.02);"
+                class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-interactive-hover border-overlay-subtle"
+                style="background-color: var(--color-overlay-subtle);"
               >
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-semibold text-text-emphasis"
@@ -267,7 +267,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                 >
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    style="background-color: rgba(56, 189, 248, 0.1); color: rgb(56, 189, 248);"
+                    style="background-color: var(--color-info-tint); color: var(--color-primary-cyan);"
                   >
                     IN_TRANSIT
                   </span>
@@ -299,7 +299,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                       class="flex-1"
                     >
                       <div
-                        class="h-2 bg-[#1e2a3a] rounded-full overflow-hidden"
+                        class="h-2 bg-background-elevated rounded-full overflow-hidden"
                       >
                         <div
                           class="h-full rounded-full transition-all"
@@ -327,7 +327,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                       View
                     </a>
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs border-red-500 text-red-400 hover:bg-red-500/10 ml-1"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs border-rose-danger text-rose-danger hover:bg-rose-danger/10 ml-1"
                     >
                       Delete
                     </button>

@@ -120,7 +120,7 @@ function StationSearchDropdown({
         )}
       </div>
       {open && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-background-elevated border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt.stationId}
@@ -203,7 +203,7 @@ function ItemTypeSearchDropdown({
         )}
       </div>
       {open && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-background-elevated border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt.TypeID}
@@ -523,7 +523,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
           {items.length > 0 && (
             <Table>
               <TableHeader>
-                <TableRow className="[&>th]:text-text-secondary [&>th]:border-[#1e2231]">
+                <TableRow className="[&>th]:text-text-secondary [&>th]:border-overlay-subtle">
                   <TableHead>Item</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Volume (m³)</TableHead>
@@ -532,7 +532,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
               </TableHeader>
               <TableBody>
                 {items.map((item) => (
-                  <TableRow key={item.itemType.TypeID} className="[&>td]:border-[#1e2231]">
+                  <TableRow key={item.itemType.TypeID} className="[&>td]:border-overlay-subtle">
                     <TableCell>
                       <div className="flex gap-2 items-center">
                         <img
@@ -561,7 +561,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
                     </TableCell>
                   </TableRow>
                 ))}
-                <TableRow className="[&>td]:border-[#1e2231] font-semibold">
+                <TableRow className="[&>td]:border-overlay-subtle font-semibold">
                   <TableCell>Total</TableCell>
                   <TableCell className="text-right">
                     {formatNumber(items.reduce((sum, i) => sum + i.quantity, 0))}

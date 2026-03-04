@@ -221,7 +221,7 @@ export default function ShoppingList({ planData, loading, assets, isAuthenticate
             return (
               <TableRow
                 key={item.type_id}
-                className="odd:bg-[rgba(192,197,208,0.03)]"
+                className="odd:bg-status-neutral-tint"
               >
                 <TableCell>
                   <div className="flex items-center gap-2">

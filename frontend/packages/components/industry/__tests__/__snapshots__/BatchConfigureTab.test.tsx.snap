@@ -83,7 +83,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
             class="[&_tr:last-child]:border-0"
           >
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-[#1e2235]"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-background-elevated"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -131,7 +131,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
               >
                 <div
-                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default bg-category-violet/10 text-category-violet hover:bg-category-violet/10"
                 >
                   reaction
                 </div>
@@ -140,7 +140,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
               >
                 <div
-                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] bg-[#1e293b] text-text-secondary hover:bg-[#1e293b] cursor-default"
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] bg-background-elevated text-text-secondary hover:bg-background-elevated cursor-default"
                 >
                   1
                 </div>
@@ -152,7 +152,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   class="flex items-center justify-center gap-1 flex-wrap"
                 >
                   <div
-                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] text-text-muted hover:bg-[#1e3a5f]"
+                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-background-elevated text-text-muted hover:bg-bg-science"
                   >
                     <svg
                       aria-hidden="true"
@@ -175,7 +175,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     0
                   </div>
                   <div
-                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] text-text-muted hover:bg-[#1e293b]"
+                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-background-elevated text-text-muted hover:bg-background-elevated"
                   >
                     <svg
                       aria-hidden="true"
@@ -208,7 +208,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     ?
                   </div>
                   <button
-                    class="p-0.5 rounded text-[#334155]"
+                    class="p-0.5 rounded text-text-muted"
                     data-state="closed"
                   >
                     <svg
@@ -231,7 +231,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     </svg>
                   </button>
                   <button
-                    class="p-0.5 rounded text-[#334155]"
+                    class="p-0.5 rounded text-text-muted"
                     data-state="closed"
                     disabled=""
                   >
@@ -294,7 +294,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   class="flex justify-center gap-1"
                 >
                   <button
-                    class="p-1 rounded text-[#334155]"
+                    class="p-1 rounded text-text-muted"
                     data-state="closed"
                     disabled=""
                   >
@@ -357,7 +357,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
               </td>
             </tr>
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-[#1e2235]"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-background-elevated"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -405,7 +405,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
               >
                 <div
-                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
                 >
                   manufacturing
                 </div>
@@ -414,7 +414,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
               >
                 <div
-                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] bg-[#1e293b] text-text-secondary hover:bg-[#1e293b] cursor-default"
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] bg-background-elevated text-text-secondary hover:bg-background-elevated cursor-default"
                 >
                   2
                 </div>
@@ -426,7 +426,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   class="flex items-center justify-center gap-1 flex-wrap"
                 >
                   <div
-                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] text-text-muted hover:bg-[#1e3a5f]"
+                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-background-elevated text-text-muted hover:bg-bg-science"
                   >
                     <svg
                       aria-hidden="true"
@@ -449,7 +449,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     0
                   </div>
                   <div
-                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] text-text-muted hover:bg-[#1e293b]"
+                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-background-elevated text-text-muted hover:bg-background-elevated"
                   >
                     <svg
                       aria-hidden="true"
@@ -482,7 +482,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     ?
                   </div>
                   <button
-                    class="p-0.5 rounded text-[#334155]"
+                    class="p-0.5 rounded text-text-muted"
                     data-state="closed"
                   >
                     <svg
@@ -505,7 +505,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     </svg>
                   </button>
                   <button
-                    class="p-0.5 rounded text-[#334155]"
+                    class="p-0.5 rounded text-text-muted"
                     data-state="closed"
                     disabled=""
                   >
@@ -568,7 +568,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   class="flex justify-center gap-1"
                 >
                   <button
-                    class="p-1 rounded text-[#334155]"
+                    class="p-1 rounded text-text-muted"
                     data-state="closed"
                     disabled=""
                   >
@@ -631,7 +631,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
               </td>
             </tr>
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-[#1e2235]"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-background-elevated"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -679,7 +679,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
               >
                 <div
-                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
                 >
                   manufacturing
                 </div>
@@ -688,7 +688,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
               >
                 <div
-                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] bg-[#1e293b] text-text-secondary hover:bg-[#1e293b] cursor-default"
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] bg-background-elevated text-text-secondary hover:bg-background-elevated cursor-default"
                 >
                   1
                 </div>
@@ -700,7 +700,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   class="flex items-center justify-center gap-1 flex-wrap"
                 >
                   <div
-                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
+                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-bg-science text-blue-science hover:bg-bg-science"
                   >
                     <svg
                       aria-hidden="true"
@@ -723,7 +723,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     2
                   </div>
                   <div
-                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] text-text-muted hover:bg-[#1e293b]"
+                    class="rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-background-elevated text-text-muted hover:bg-background-elevated"
                   >
                     <svg
                       aria-hidden="true"
@@ -756,7 +756,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                     ?
                   </div>
                   <button
-                    class="p-0.5 rounded text-[#334155]"
+                    class="p-0.5 rounded text-text-muted"
                     data-state="closed"
                   >
                     <svg
@@ -841,7 +841,7 @@ exports[`BatchConfigureTab Component should match snapshot with grouped steps 1`
                   class="flex justify-center gap-1"
                 >
                   <button
-                    class="p-1 rounded text-[#334155]"
+                    class="p-1 rounded text-text-muted"
                     data-state="closed"
                     disabled=""
                   >

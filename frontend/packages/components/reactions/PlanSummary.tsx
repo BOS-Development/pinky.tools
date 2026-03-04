@@ -108,7 +108,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                 {planData.intermediates.map((item) => (
                   <TableRow
                     key={item.type_id}
-                    className="odd:bg-[rgba(192,197,208,0.03)]"
+                    className="odd:bg-status-neutral-tint"
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -170,7 +170,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
                       return (
                         <TableRow
                           key={r.reaction_type_id}
-                          className="odd:bg-[rgba(192,197,208,0.03)]"
+                          className="odd:bg-status-neutral-tint"
                         >
                           <TableCell>
                             <div className="flex items-center gap-2">

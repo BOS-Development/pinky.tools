@@ -31,6 +31,16 @@ const getStatusColor = (status: string) => {
   return colors[status] || "var(--color-text-secondary)";
 };
 
+const getStatusBgColor = (status: string) => {
+  const colors: Record<string, string> = {
+    planned: "var(--color-info-tint)",
+    in_transit: "var(--color-warning-tint)",
+    delivered: "var(--color-success-tint)",
+    cancelled: "var(--color-error-tint)",
+  };
+  return colors[status] || "var(--color-neutral-tint)";
+};
+
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
     planned: "Planned",
@@ -140,7 +150,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
               jobs.map((job) => (
                 <React.Fragment key={job.id}>
                   <TableRow
-                    className={`hover:bg-[rgba(0,212,255,0.05)] ${expandedJobId === job.id ? "[&>td]:border-b-0" : ""}`}
+                    className={`hover:bg-interactive-hover ${expandedJobId === job.id ? "[&>td]:border-b-0" : ""}`}
                   >
                     <TableCell className="px-1">
                       <Button
@@ -160,7 +170,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                       <span
                         className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                         style={{
-                          backgroundColor: `${getStatusColor(job.status)}20`,
+                          backgroundColor: getStatusBgColor(job.status),
                           color: getStatusColor(job.status),
                         }}
                       >
@@ -198,7 +208,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-[0.65rem] py-0 h-6 border-red-500 text-red-400 hover:bg-red-500/10"
+                            className="text-[0.65rem] py-0 h-6 border-rose-danger text-rose-danger hover:bg-rose-danger/10"
                             onClick={() => handleStatusChange(job.id, "cancelled")}
                           >
                             Cancel
@@ -209,7 +219,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                         <Button
                           size="sm"
                           variant="outline"
-                          className="text-[0.65rem] py-0 h-6 border-emerald-500 text-emerald-400 hover:bg-emerald-500/10"
+                          className="text-[0.65rem] py-0 h-6 border-teal-success text-teal-success hover:bg-teal-success/10"
                           onClick={() => handleStatusChange(job.id, "delivered")}
                         >
                           Delivered
@@ -224,7 +234,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                           {job.items && job.items.length > 0 ? (
                             <Table>
                               <TableHeader>
-                                <TableRow className="[&>th]:text-text-secondary [&>th]:border-[#1e2231] [&>th]:py-1">
+                                <TableRow className="[&>th]:text-text-secondary [&>th]:border-overlay-subtle [&>th]:py-1">
                                   <TableHead>Item</TableHead>
                                   <TableHead className="text-right">Quantity</TableHead>
                                   <TableHead className="text-right">Volume (m³)</TableHead>
@@ -232,7 +242,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                               </TableHeader>
                               <TableBody>
                                 {job.items.map((item) => (
-                                  <TableRow key={item.id} className="[&>td]:border-[#1e2231] [&>td]:py-1">
+                                  <TableRow key={item.id} className="[&>td]:border-overlay-subtle [&>td]:py-1">
                                     <TableCell>
                                       <div className="flex gap-2 items-center">
                                         <img

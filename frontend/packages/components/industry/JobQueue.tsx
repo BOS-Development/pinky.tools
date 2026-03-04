@@ -18,10 +18,10 @@ type Props = {
 function getStatusClasses(status: string): string {
   switch (status) {
     case "planned": return "bg-interactive-selected border-border-active text-primary";
-    case "active": return "bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success";
-    case "completed": return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
-    case "cancelled": return "bg-rose-danger/10 border-[rgba(239,68,68,0.3)] text-rose-danger";
-    default: return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
+    case "active": return "bg-teal-success/10 border-teal-success/30 text-teal-success";
+    case "completed": return "bg-overlay-subtle border-overlay-strong text-text-secondary";
+    case "cancelled": return "bg-rose-danger/10 border-rose-danger/30 text-rose-danger";
+    default: return "bg-overlay-subtle border-overlay-strong text-text-secondary";
   }
 }
 
@@ -165,7 +165,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
               entries.map((entry, idx) => (
                 <TableRow
                   key={entry.id}
-                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-background-panel"}
+                  className={idx % 2 === 0 ? "bg-background-void" : "bg-background-panel"}
                 >
                   {entry.activity === "transport" ? (
                     <>
@@ -268,7 +268,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                                 className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer ${
                                   entry.characterName
                                     ? "bg-interactive-selected border-border-active text-blue-science"
-                                    : "bg-transparent border-[#334155] text-text-secondary"
+                                    : "bg-transparent border-overlay-medium text-text-secondary"
                                 }`}
                                 onClick={handleOpenReassign}
                                 disabled={reassignLoading}

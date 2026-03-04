@@ -48,7 +48,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
       >
         <span
           class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-          style="background-color: rgba(245, 158, 11, 0.1); color: var(--color-manufacturing-amber);"
+          style="background-color: var(--color-warning-tint); color: var(--color-manufacturing-amber);"
         >
           SELLING
         </span>
@@ -133,7 +133,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
               class="flex-1"
             >
               <div
-                class="h-3 bg-[#1e2a3a] rounded-full overflow-hidden"
+                class="h-3 bg-background-elevated rounded-full overflow-hidden"
               >
                 <div
                   class="h-full rounded-full transition-all"
@@ -308,7 +308,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
               class="[&_tr:last-child]:border-0"
             >
               <tr
-                class="border-b transition-colors data-[state=selected]:bg-muted border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
+                class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-interactive-hover"
               >
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -370,7 +370,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                       class="flex-1"
                     >
                       <div
-                        class="h-1.5 bg-[#1e2a3a] rounded-full overflow-hidden"
+                        class="h-1.5 bg-background-elevated rounded-full overflow-hidden"
                       >
                         <div
                           class="h-full rounded-full transition-all"
@@ -423,7 +423,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                       </svg>
                     </button>
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                       data-state="closed"
                     >
                       <svg
@@ -560,7 +560,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                 class="[&_tr:last-child]:border-0"
               >
                 <tr
-                  class="border-b transition-colors data-[state=selected]:bg-muted border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-interactive-hover"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm text-text-emphasis"
@@ -841,7 +841,7 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
       >
         <span
           class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-          style="background-color: rgba(0, 212, 255, 0.1); color: var(--color-primary-cyan);"
+          style="background-color: var(--color-info-tint); color: var(--color-primary-cyan);"
         >
           PLANNING
         </span>
@@ -926,7 +926,7 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
               class="flex-1"
             >
               <div
-                class="h-3 bg-[#1e2a3a] rounded-full overflow-hidden"
+                class="h-3 bg-background-elevated rounded-full overflow-hidden"
               >
                 <div
                   class="h-full rounded-full transition-all"
@@ -1101,7 +1101,7 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
               class="[&_tr:last-child]:border-0"
             >
               <tr
-                class="border-b transition-colors data-[state=selected]:bg-muted border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
+                class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-interactive-hover"
               >
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -1163,7 +1163,7 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
                       class="flex-1"
                     >
                       <div
-                        class="h-1.5 bg-[#1e2a3a] rounded-full overflow-hidden"
+                        class="h-1.5 bg-background-elevated rounded-full overflow-hidden"
                       >
                         <div
                           class="h-full rounded-full transition-all"
@@ -1216,7 +1216,7 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
                       </svg>
                     </button>
                     <button
-                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                       data-state="closed"
                     >
                       <svg

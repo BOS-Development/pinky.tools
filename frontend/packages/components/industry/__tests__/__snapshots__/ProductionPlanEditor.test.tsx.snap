@@ -74,7 +74,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
         </div>
       </div>
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-[var(--color-bg-void)] shadow font-semibold h-9 px-4 py-2 bg-teal-success hover:bg-[#059669]"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-[var(--color-bg-void)] shadow font-semibold h-9 px-4 py-2 bg-teal-success hover:bg-teal-success/80"
       >
         <svg
           aria-hidden="true"
@@ -240,7 +240,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                 class="[&_tr:last-child]:border-0"
               >
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#1a1d2e] hover:bg-[#1e2235]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-elevated hover:bg-background-elevated"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -287,7 +287,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                         Rifter
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
                       >
                         manufacturing
                       </div>
@@ -356,7 +356,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                   </td>
                 </tr>
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#151825]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-panel"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -388,7 +388,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                         10
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default"
                       >
                         Buy
                       </div>
@@ -431,7 +431,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                   </td>
                 </tr>
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#151825]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-panel"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -463,7 +463,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                         22222
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default"
                       >
                         Buy
                       </div>
@@ -483,7 +483,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                   />
                 </tr>
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#151825]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-panel"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -515,7 +515,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                         5555
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default"
                       >
                         Buy
                       </div>
@@ -624,7 +624,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
         </div>
       </div>
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-[var(--color-bg-void)] shadow font-semibold h-9 px-4 py-2 bg-teal-success hover:bg-[#059669]"
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 text-[var(--color-bg-void)] shadow font-semibold h-9 px-4 py-2 bg-teal-success hover:bg-teal-success/80"
       >
         <svg
           aria-hidden="true"
@@ -790,7 +790,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                 class="[&_tr:last-child]:border-0"
               >
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#1a1d2e] hover:bg-[#1e2235]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-elevated hover:bg-background-elevated"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -837,7 +837,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                         Rifter
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
                       >
                         manufacturing
                       </div>
@@ -906,7 +906,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                   </td>
                 </tr>
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-[#1e2235]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-background-elevated"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -957,7 +957,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                         Morphite
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-category-violet/10 text-category-violet hover:bg-category-violet/10"
                       >
                         reaction
                       </div>
@@ -1055,7 +1055,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                   </td>
                 </tr>
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#151825]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-panel"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -1087,7 +1087,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                         22222
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default"
                       >
                         Buy
                       </div>
@@ -1107,7 +1107,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                   />
                 </tr>
                 <tr
-                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#151825]"
+                  class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-panel"
                 >
                   <td
                     class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] relative pl-0"
@@ -1139,7 +1139,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                         5555
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default"
                       >
                         Buy
                       </div>

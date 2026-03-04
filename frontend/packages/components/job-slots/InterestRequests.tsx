@@ -42,10 +42,10 @@ const PRICING_UNIT_LABELS: Record<string, string> = {
 };
 
 const STATUS_CLASSES: Record<string, string> = {
-  pending: 'bg-amber-manufacturing/10 border-[rgba(245,158,11,0.3)] text-amber-manufacturing',
-  accepted: 'bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success',
-  declined: 'bg-rose-danger/10 border-[rgba(239,68,68,0.3)] text-rose-danger',
-  withdrawn: 'bg-[rgba(107,114,128,0.1)] border-[rgba(107,114,128,0.3)] text-[#6b7280]',
+  pending: 'bg-amber-manufacturing/10 border-amber-manufacturing/30 text-amber-manufacturing',
+  accepted: 'bg-teal-success/10 border-teal-success/30 text-teal-success',
+  declined: 'bg-rose-danger/10 border-rose-danger/30 text-rose-danger',
+  withdrawn: 'bg-overlay-subtle border-overlay-strong text-text-muted',
 };
 
 export default function InterestRequests() {
@@ -245,7 +245,7 @@ export default function InterestRequests() {
                           <div className="flex gap-1 justify-center">
                             <Button
                               size="sm"
-                              className="bg-teal-success hover:bg-[#059669]"
+                              className="bg-teal-success hover:bg-teal-success/80"
                               onClick={() => handleStatusUpdate(request.id, 'accepted', 'Accept')}
                             >
                               Accept

@@ -302,14 +302,14 @@ export default function AddJob({ onJobAdded }: Props) {
                 Detected: ME {detectedLevel.materialEfficiency} / TE {detectedLevel.timeEfficiency} from {detectedLevel.ownerName}{detectedLevel.isCopy ? " (BPC)" : ""}
               </Badge>
               {(meLevel !== detectedLevel.materialEfficiency || teLevel !== detectedLevel.timeEfficiency) && (
-                <Badge className="bg-amber-manufacturing/10 border border-[rgba(245,158,11,0.3)] text-amber-manufacturing hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
+                <Badge className="bg-amber-manufacturing/10 border border-amber-manufacturing/30 text-amber-manufacturing hover:bg-amber-manufacturing/15 cursor-default text-[11px]">
                   Overridden
                 </Badge>
               )}
             </div>
           ) : (
             <div className="flex items-center gap-1 self-end pb-1">
-              <Badge className="bg-amber-manufacturing/10 border border-[rgba(245,158,11,0.3)] text-amber-manufacturing hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
+              <Badge className="bg-amber-manufacturing/10 border border-amber-manufacturing/30 text-amber-manufacturing hover:bg-amber-manufacturing/15 cursor-default text-[11px]">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 No blueprint detected — using manual values
               </Badge>

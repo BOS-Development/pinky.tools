@@ -1295,9 +1295,9 @@ export default function AssetsList(props: AssetsListProps) {
               <TableRow
                 key={idx}
                 className={cn(
-                  'border-b border-[rgba(148,163,184,0.05)] hover:bg-[rgba(148,163,184,0.04)]',
+                  'border-b border-overlay-subtle hover:bg-interactive-hover',
                   idx % 2 === 0 ? 'bg-background-panel' : 'bg-background-void',
-                  asset.stockpileDelta !== undefined && asset.stockpileDelta < 0 && 'border-l-4 border-l-[#ef4444] font-semibold'
+                  asset.stockpileDelta !== undefined && asset.stockpileDelta < 0 && 'border-l-4 border-l-rose-danger font-semibold'
                 )}
               >
                 <TableCell className="py-1.5">
@@ -1313,7 +1313,7 @@ export default function AssetsList(props: AssetsListProps) {
                               'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border cursor-pointer',
                               listing.autoSellContainerId
                                 ? 'bg-interactive-active text-primary border-border-active'
-                                : 'bg-[rgba(16,185,129,0.15)] text-teal-success border-[rgba(16,185,129,0.3)]'
+                                : 'bg-teal-success/15 text-teal-success border-teal-success/30'
                             )}
                           >
                             {listing.autoSellContainerId ? (
@@ -1416,7 +1416,7 @@ export default function AssetsList(props: AssetsListProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-[#3b82f6] hover:text-blue-science hover:bg-[rgba(59,130,246,0.1)]"
+                            className="h-7 w-7 text-accent-blue hover:text-blue-science hover:bg-accent-blue/10"
                             onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber)}
                           >
                             <Tag className="h-3.5 w-3.5" />
@@ -1445,7 +1445,7 @@ export default function AssetsList(props: AssetsListProps) {
       <div key={container.id}>
         <button
           onClick={() => toggleNode(nodeId)}
-          className="w-full flex items-center gap-2 pl-8 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+          className="w-full flex items-center gap-2 pl-8 pr-3 py-2 hover:bg-interactive-hover text-left"
         >
           {isExpanded ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
           <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
@@ -1457,7 +1457,7 @@ export default function AssetsList(props: AssetsListProps) {
               </span>
             )}
             {autoBuyConfig && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-manufacturing/15 text-amber-manufacturing border border-amber-manufacturing/30">
                 <AutoBuyIcon />
                 {`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
               </span>
@@ -1542,7 +1542,7 @@ export default function AssetsList(props: AssetsListProps) {
       <div key={hanger.id}>
         <button
           onClick={() => toggleNode(nodeId)}
-          className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+          className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
         >
           {isExpanded ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
           <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
@@ -1554,7 +1554,7 @@ export default function AssetsList(props: AssetsListProps) {
               </span>
             )}
             {autoBuyConfig && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-amber-manufacturing/15 text-amber-manufacturing border border-amber-manufacturing/30">
                 <AutoBuyIcon />
                 {`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
               </span>
@@ -1642,12 +1642,12 @@ export default function AssetsList(props: AssetsListProps) {
         <button
           onClick={() => toggleNode(structureNodeId)}
           className={cn(
-            'w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left',
+            'w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left',
             isHidden && 'opacity-60'
           )}
         >
           {isStructureExpanded ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
-          <MapPin className="h-4 w-4 text-[#3b82f6] flex-shrink-0" />
+          <MapPin className="h-4 w-4 text-accent-blue flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-bold text-text-emphasis truncate">{structure.name}</p>
             <p className="text-xs text-text-muted">{structure.solarSystem} · {structure.region}</p>
@@ -1659,7 +1659,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={cn('h-7 w-7', pinnedStructures.has(structure.id) ? 'text-[#3b82f6]' : 'text-text-secondary hover:text-text-emphasis')}
+                    className={cn('h-7 w-7', pinnedStructures.has(structure.id) ? 'text-accent-blue' : 'text-text-secondary hover:text-text-emphasis')}
                     onClick={(e) => {
                       e.stopPropagation();
                       togglePinStructure(structure.id);
@@ -1699,7 +1699,7 @@ export default function AssetsList(props: AssetsListProps) {
               <div>
                 <button
                   onClick={() => toggleNode(`structure-${structure.id}-hangar`)}
-                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
                 >
                   {expandedNodes.has(`structure-${structure.id}-hangar`) ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
                   <div className="flex-1">
@@ -1753,7 +1753,7 @@ export default function AssetsList(props: AssetsListProps) {
               <div>
                 <button
                   onClick={() => toggleNode(`structure-${structure.id}-deliveries`)}
-                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
                 >
                   {expandedNodes.has(`structure-${structure.id}-deliveries`) ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
                   <div className="flex-1">
@@ -1772,7 +1772,7 @@ export default function AssetsList(props: AssetsListProps) {
               <div>
                 <button
                   onClick={() => toggleNode(`structure-${structure.id}-safety`)}
-                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
+                  className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-interactive-hover text-left"
                 >
                   {expandedNodes.has(`structure-${structure.id}-safety`) ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
                   <div className="flex-1">
@@ -1802,7 +1802,7 @@ export default function AssetsList(props: AssetsListProps) {
       <Navbar />
       <div className="mt-2 mb-2 px-6">
         {/* Sticky Header Section */}
-        <div className="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3">
+        <div className="sticky top-16 z-[100] bg-background-void pb-3 mb-3">
           <div className="flex items-center justify-between mb-3 pt-1">
             <div>
               <h2 className="text-xl font-semibold text-text-emphasis">Asset Inventory</h2>
@@ -1824,28 +1824,28 @@ export default function AssetsList(props: AssetsListProps) {
 
             {/* Summary Stats */}
             <div className="flex gap-2.5 items-center flex-wrap">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-primary/20">
                 <Package className="h-5 w-5 text-primary" />
                 <div>
                   <p className="text-sm font-bold text-text-emphasis">{formatCompact(totalItems)}</p>
                   <p className="text-[0.7rem] text-text-secondary">Items</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]">
-                <Layers className="h-5 w-5 text-[#8b5cf6]" />
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-category-violet/8 border border-category-violet/20">
+                <Layers className="h-5 w-5 text-category-violet" />
                 <div>
                   <p className="text-sm font-bold text-text-emphasis">{formatCompact(uniqueTypes)}</p>
                   <p className="text-[0.7rem] text-text-secondary">Types</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-manufacturing/8 border border-amber-manufacturing/20">
                 <MapPin className="h-5 w-5 text-amber-manufacturing" />
                 <div>
                   <p className="text-sm font-bold text-text-emphasis">{formatCompact(totalVolume)}</p>
                   <p className="text-[0.7rem] text-text-secondary">m³</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-success/8 border border-teal-success/20">
                 <DollarSign className="h-5 w-5 text-teal-success" />
                 <div>
                   <p className="text-sm font-bold text-teal-success">{formatISK(totalValue)}</p>
@@ -1853,7 +1853,7 @@ export default function AssetsList(props: AssetsListProps) {
                 </div>
               </div>
               {totalDeficit > 0 && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)]">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-rose-danger/8 border border-rose-danger/20">
                   <AlertTriangle className="h-5 w-5 text-rose-danger" />
                   <div>
                     <p className="text-sm font-bold text-rose-danger">{formatISK(totalDeficit)}</p>
@@ -1911,7 +1911,7 @@ export default function AssetsList(props: AssetsListProps) {
         {/* Tree View - Visible Stations */}
         <Card className="bg-background-panel border-overlay-medium">
           <CardContent className="p-0">
-            <div className="divide-y divide-[rgba(148,163,184,0.05)]">
+            <div className="divide-y divide-overlay-subtle">
               {visibleStructures.map((structure) => renderStructureTree(structure, false))}
             </div>
           </CardContent>
@@ -1927,7 +1927,7 @@ export default function AssetsList(props: AssetsListProps) {
                   Hidden Stations ({hiddenStructuresList.length})
                 </h3>
               </div>
-              <div className="divide-y divide-[rgba(148,163,184,0.05)]">
+              <div className="divide-y divide-overlay-subtle">
                 {hiddenStructuresList.map((structure) => renderStructureTree(structure, true))}
               </div>
             </CardContent>
@@ -1986,7 +1986,7 @@ export default function AssetsList(props: AssetsListProps) {
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full rounded-md border border-overlay-strong bg-background-void px-3 py-2 text-sm text-text-emphasis placeholder:text-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
+                  className="w-full rounded-md border border-overlay-strong bg-background-void px-3 py-2 text-sm text-text-emphasis placeholder:text-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-accent-blue"
                 />
               </div>
               <Separator className="bg-overlay-subtle" />
@@ -2021,7 +2021,7 @@ export default function AssetsList(props: AssetsListProps) {
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
+                      <SelectContent className="bg-background-elevated border-overlay-medium">
                         {availablePlans.map((plan) => (
                           <SelectItem
                             key={plan.id}
@@ -2057,7 +2057,7 @@ export default function AssetsList(props: AssetsListProps) {
               <Button
                 onClick={handleSaveStockpile}
                 disabled={!desiredQuantity}
-                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+                className="bg-accent-blue hover:bg-accent-blue-hover text-white"
               >
                 Save
               </Button>
@@ -2120,7 +2120,7 @@ export default function AssetsList(props: AssetsListProps) {
                   variant="destructive"
                   onClick={handleDeleteListing}
                   disabled={submittingListing}
-                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-rose-danger hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                  className="mr-auto bg-rose-danger/15 text-rose-danger hover:bg-rose-danger/25 border border-rose-danger/30"
                 >
                   Delete
                 </Button>
@@ -2132,7 +2132,7 @@ export default function AssetsList(props: AssetsListProps) {
               <Button
                 onClick={handleCreateListing}
                 disabled={submittingListing}
-                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+                className="bg-accent-blue hover:bg-accent-blue-hover text-white"
               >
                 {submittingListing ? (editingListingId ? 'Updating...' : 'Creating...') : (editingListingId ? 'Update Listing' : 'Create Listing')}
               </Button>
@@ -2167,7 +2167,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
+                  <SelectContent className="bg-background-elevated border-overlay-medium">
                     {PRICE_SOURCE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="text-text-emphasis focus:bg-interactive-hover">
                         {option.label}
@@ -2210,7 +2210,7 @@ export default function AssetsList(props: AssetsListProps) {
                   variant="destructive"
                   onClick={handleDisableAutoSell}
                   disabled={submittingAutoSell}
-                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-rose-danger hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                  className="mr-auto bg-rose-danger/15 text-rose-danger hover:bg-rose-danger/25 border border-rose-danger/30"
                 >
                   Disable
                 </Button>
@@ -2222,7 +2222,7 @@ export default function AssetsList(props: AssetsListProps) {
               <Button
                 onClick={handleSaveAutoSell}
                 disabled={submittingAutoSell || !autoSellPercentage || parseFloat(autoSellPercentage) <= 0 || parseFloat(autoSellPercentage) > 200}
-                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+                className="bg-accent-blue hover:bg-accent-blue-hover text-white"
               >
                 {submittingAutoSell ? 'Saving...' : 'Save'}
               </Button>
@@ -2257,7 +2257,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
+                  <SelectContent className="bg-background-elevated border-overlay-medium">
                     {PRICE_SOURCE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value} className="text-text-emphasis focus:bg-interactive-hover">
                         {option.label}
@@ -2319,7 +2319,7 @@ export default function AssetsList(props: AssetsListProps) {
                   variant="destructive"
                   onClick={handleDisableAutoBuy}
                   disabled={submittingAutoBuy}
-                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-rose-danger hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                  className="mr-auto bg-rose-danger/15 text-rose-danger hover:bg-rose-danger/25 border border-rose-danger/30"
                 >
                   Disable
                 </Button>
@@ -2331,7 +2331,7 @@ export default function AssetsList(props: AssetsListProps) {
               <Button
                 onClick={handleSaveAutoBuy}
                 disabled={submittingAutoBuy || !autoBuyMaxPercentage || parseFloat(autoBuyMaxPercentage) <= 0 || parseFloat(autoBuyMaxPercentage) > 200 || parseFloat(autoBuyMinPercentage) < 0 || parseFloat(autoBuyMinPercentage) > parseFloat(autoBuyMaxPercentage)}
-                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+                className="bg-accent-blue hover:bg-accent-blue-hover text-white"
               >
                 {submittingAutoBuy ? 'Saving...' : 'Save'}
               </Button>

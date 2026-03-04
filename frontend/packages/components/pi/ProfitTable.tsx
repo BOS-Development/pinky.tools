@@ -55,7 +55,7 @@ function ProductGroupRow({ group, expanded, onToggle }: {
       <TableRow
         className={cn(
           'cursor-pointer hover:bg-interactive-hover',
-          expanded ? 'bg-[rgba(0,212,255,0.03)]' : ''
+          expanded ? 'bg-interactive-hover' : ''
         )}
         onClick={onToggle}
       >
@@ -110,25 +110,25 @@ function ProductGroupRow({ group, expanded, onToggle }: {
 
 function FactoryDetailRow({ factory }: { factory: FactoryWithPlanet }) {
   return (
-    <TableRow className="bg-[rgba(15,18,25,0.5)]">
-      <TableCell className="border-[rgba(148,163,184,0.05)]" />
-      <TableCell className="border-[rgba(148,163,184,0.05)] pl-12">
+    <TableRow className="bg-background-void/50">
+      <TableCell className="border-overlay-subtle" />
+      <TableCell className="border-overlay-subtle pl-12">
         <span className="text-xs text-text-primary">{factory.solarSystemName}</span>
         <span className="text-xs text-text-muted ml-1">({factory.characterName})</span>
       </TableCell>
-      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+      <TableCell className="text-right border-overlay-subtle">
         <span className="text-xs text-text-muted">{formatNumber(Math.round(factory.ratePerHour))}/hr</span>
       </TableCell>
-      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+      <TableCell className="text-right border-overlay-subtle">
         <span className="text-xs text-teal-success">{formatISK(factory.outputValuePerHour)}</span>
       </TableCell>
-      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+      <TableCell className="text-right border-overlay-subtle">
         <span className="text-xs text-rose-danger">{formatISK(factory.inputCostPerHour)}</span>
       </TableCell>
-      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+      <TableCell className="text-right border-overlay-subtle">
         <span className="text-xs text-amber-manufacturing">{formatISK(factory.exportTaxPerHour + factory.importTaxPerHour)}</span>
       </TableCell>
-      <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
+      <TableCell className="text-right border-overlay-subtle">
         <span className="text-xs font-semibold" style={{ color: profitColor(factory.profitPerHour) }}>
           {formatISK(factory.profitPerHour)}
         </span>
@@ -285,7 +285,7 @@ export default function ProfitTable() {
                 'px-3 py-1 text-xs font-medium capitalize transition-colors',
                 priceSource === source
                   ? 'bg-interactive-selected text-primary border-border-active'
-                  : 'text-text-muted hover:text-text-secondary hover:bg-[rgba(148,163,184,0.05)]'
+                  : 'text-text-muted hover:text-text-secondary hover:bg-interactive-hover'
               )}
             >
               {source.charAt(0).toUpperCase() + source.slice(1)}

@@ -242,7 +242,7 @@ export default function MyListings() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge
-                                className="text-[0.65rem] font-semibold h-[22px] bg-interactive-active text-primary border border-border-active hover:bg-[rgba(0,212,255,0.2)] cursor-default flex items-center gap-1"
+                                className="text-[0.65rem] font-semibold h-[22px] bg-interactive-active text-primary border border-border-active hover:bg-interactive-active cursor-default flex items-center gap-1"
                               >
                                 <AutoSellIcon />
                                 Auto
@@ -268,7 +268,7 @@ export default function MyListings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-blue-science hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
+                      className="h-8 w-8 text-blue-science hover:text-blue-science hover:bg-blue-science/10"
                       onClick={() => handleEditClick(item)}
                       aria-label="edit"
                     >
@@ -277,7 +277,7 @@ export default function MyListings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-rose-danger hover:text-[#f87171] hover:bg-rose-danger/10"
+                      className="h-8 w-8 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                       onClick={() => handleDelete(item.id)}
                       aria-label="delete"
                     >

@@ -45,15 +45,15 @@ const getRigTiersForCategory = (category: string): string[] => {
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
     ship: "bg-primary/10 text-primary border-primary/30",
-    component: "bg-[#8b5cf6]/10 text-[#8b5cf6] border-[#8b5cf6]/30",
+    component: "bg-category-violet/10 text-category-violet border-category-violet/30",
     equipment: "bg-teal-success/10 text-teal-success border-teal-success/30",
     ammo: "bg-amber-manufacturing/10 text-amber-manufacturing border-amber-manufacturing/30",
-    drone: "bg-[#06b6d4]/10 text-[#06b6d4] border-[#06b6d4]/30",
-    reaction: "bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/30",
-    reprocessing: "bg-[#f97316]/10 text-[#f97316] border-[#f97316]/30",
-    thukker: "bg-[#d97706]/10 text-[#d97706] border-[#d97706]/30",
+    drone: "bg-category-teal/10 text-category-teal border-category-teal/30",
+    reaction: "bg-category-pink/10 text-category-pink border-category-pink/30",
+    reprocessing: "bg-category-orange/10 text-category-orange border-category-orange/30",
+    thukker: "bg-category-orange/10 text-category-orange border-category-orange/30",
   };
-  return colors[category] || "bg-[#94a3b8]/10 text-text-secondary border-[#94a3b8]/30";
+  return colors[category] || "bg-category-slate/10 text-text-secondary border-category-slate/30";
 };
 
 export default function StationDialog({ open, station, onClose }: Props) {
@@ -263,12 +263,12 @@ export default function StationDialog({ open, station, onClose }: Props) {
             />
             {stationSearchLoading && (
               <div className="flex items-center gap-2 mt-1">
-                <Loader2 className="h-3 w-3 animate-spin text-[var(--color-primary-cyan)]" />
-                <span className="text-xs text-[var(--color-text-muted)]">Searching...</span>
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                <span className="text-xs text-text-muted">Searching...</span>
               </div>
             )}
             {stationOptions.length > 0 && !selectedStation && (
-              <div className="mt-1 border border-[var(--color-border-dim)] rounded-sm max-h-40 overflow-y-auto bg-[var(--color-bg-panel)]">
+              <div className="mt-1 border border-dim rounded-sm max-h-40 overflow-y-auto bg-background-panel">
                 {stationOptions.map(opt => (
                   <button
                     key={opt.stationId}
@@ -278,10 +278,10 @@ export default function StationDialog({ open, station, onClose }: Props) {
                       setStationSearchQuery(opt.name);
                       setStationOptions([]);
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-[var(--color-surface-elevated)] transition-colors cursor-pointer"
+                    className="w-full text-left px-3 py-2 hover:bg-background-elevated transition-colors cursor-pointer"
                   >
-                    <div className="text-sm text-[var(--color-text-primary)]">{opt.name}</div>
-                    <div className="text-xs text-[var(--color-text-muted)]">{opt.solarSystemName}</div>
+                    <div className="text-sm text-text-primary">{opt.name}</div>
+                    <div className="text-xs text-text-muted">{opt.solarSystemName}</div>
                   </button>
                 ))}
               </div>
@@ -297,7 +297,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
               onChange={(e) => setScanText(e.target.value)}
               placeholder="Paste structure fitting scan here..."
               rows={4}
-              className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] resize-none"
+              className="flex w-full rounded-sm border border-dim bg-background-void px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary resize-none"
             />
             <Button
               variant="outline"
@@ -348,12 +348,12 @@ export default function StationDialog({ open, station, onClose }: Props) {
           {/* Services */}
           {services.length > 0 && (
             <div>
-              <Label className="text-[var(--color-text-muted)]">Services</Label>
+              <Label className="text-text-muted">Services</Label>
               <div className="flex gap-1 flex-wrap mt-1">
                 {services.map((svc, i) => (
                   <Badge
                     key={i}
-                    className={`text-[11px] border ${svc.activity === "manufacturing" ? "bg-[var(--color-primary-cyan)]/10 text-[var(--color-primary-cyan)] border-[var(--color-primary-cyan)]/30" : "bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/30"}`}
+                    className={`text-[11px] border ${svc.activity === "manufacturing" ? "bg-primary/10 text-primary border-primary/30" : "bg-category-pink/10 text-category-pink border-category-pink/30"}`}
                   >
                     {svc.serviceName}
                   </Badge>
@@ -365,7 +365,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
           {/* Rigs */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <Label className="text-[var(--color-text-muted)]">Rigs</Label>
+              <Label className="text-text-muted">Rigs</Label>
               <Button variant="ghost" size="sm" onClick={handleAddRig}>
                 <Plus className="h-4 w-4 mr-1" />
                 Add Rig
@@ -373,7 +373,7 @@ export default function StationDialog({ open, station, onClose }: Props) {
             </div>
 
             {rigs.length === 0 && (
-              <p className="text-[var(--color-text-muted)] text-xs">
+              <p className="text-text-muted text-xs">
                 No rigs. Paste a scan or add manually.
               </p>
             )}
@@ -403,11 +403,11 @@ export default function StationDialog({ open, station, onClose }: Props) {
                   </SelectContent>
                 </Select>
 
-                <span className="text-[var(--color-text-muted)] text-xs flex-1 truncate" title={rig.rigName}>
+                <span className="text-text-muted text-xs flex-1 truncate" title={rig.rigName}>
                   {rig.rigName || "Manual"}
                 </span>
 
-                <Button variant="ghost" size="icon" onClick={() => handleRemoveRig(index)} className="text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)] h-8 w-8">
+                <Button variant="ghost" size="icon" onClick={() => handleRemoveRig(index)} className="text-rose-danger hover:text-rose-danger h-8 w-8">
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>

@@ -153,7 +153,7 @@ export default function ProductionPlansList() {
                 {plans.map((plan, idx) => (
                   <TableRow
                     key={plan.id}
-                    className={`${idx % 2 === 0 ? "bg-background-panel" : "bg-background-void"} hover:bg-[#1a1d2e] cursor-pointer`}
+                    className={`${idx % 2 === 0 ? "bg-background-panel" : "bg-background-void"} hover:bg-background-elevated cursor-pointer`}
                     onClick={() => setSelectedPlanId(plan.id)}
                   >
                     <TableCell>

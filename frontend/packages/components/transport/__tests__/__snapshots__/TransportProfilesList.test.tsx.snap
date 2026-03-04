@@ -236,7 +236,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-[rgba(0,212,255,0.05)]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-interactive-hover"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-medium text-text-emphasis"
@@ -248,7 +248,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
             >
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                style="background-color: var(--color-primary-cyan)20; color: var(--color-primary-cyan);"
+                style="background-color: var(--color-info-tint); color: var(--color-primary-cyan);"
               >
                 Freighter
               </span>
@@ -283,7 +283,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[rgba(16,185,129,0.15)] text-teal-success"
+                class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-success/15 text-teal-success"
               >
                 Default
               </span>
@@ -351,7 +351,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
             </td>
           </tr>
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-[rgba(0,212,255,0.05)]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-interactive-hover"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-medium text-text-emphasis"
@@ -363,7 +363,7 @@ exports[`TransportProfilesList should match snapshot with profiles 1`] = `
             >
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                style="background-color: rgba(139, 92, 246, 0.125); color: rgb(139, 92, 246);"
+                style="background-color: var(--color-neutral-tint); color: var(--color-category-violet);"
               >
                 Jump Freighter
               </span>

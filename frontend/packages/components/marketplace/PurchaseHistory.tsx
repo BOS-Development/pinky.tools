@@ -76,13 +76,13 @@ export default function PurchaseHistory() {
   const getStatusBadgeClass = (status: string): string => {
     switch (status) {
       case 'pending':
-        return 'bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)]';
+        return 'bg-amber-manufacturing/15 text-amber-manufacturing border border-amber-manufacturing/30';
       case 'contract_created':
-        return 'bg-[rgba(59,130,246,0.15)] text-blue-science border border-[rgba(59,130,246,0.3)]';
+        return 'bg-accent-blue-muted text-blue-science border border-accent-blue/30';
       case 'completed':
-        return 'bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)]';
+        return 'bg-teal-success/15 text-teal-success border border-teal-success/30';
       case 'cancelled':
-        return 'bg-[rgba(239,68,68,0.15)] text-rose-danger border border-[rgba(239,68,68,0.3)]';
+        return 'bg-rose-danger/15 text-rose-danger border border-rose-danger/30';
       default:
         return 'bg-overlay-subtle text-text-muted border border-overlay-strong';
     }
@@ -186,7 +186,7 @@ export default function PurchaseHistory() {
                   <div className="flex items-center gap-1.5">
                     {transaction.typeName}
                     {transaction.isAutoFulfilled && (
-                      <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
+                      <Badge className="text-[0.65rem] font-semibold h-5 bg-teal-success/15 text-teal-success border border-teal-success/30 hover:bg-teal-success/20 cursor-default">
                         Auto
                       </Badge>
                     )}
@@ -219,7 +219,7 @@ export default function PurchaseHistory() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-emerald-500 text-emerald-400 hover:bg-emerald-500/10"
+                        className="border-teal-success text-teal-success hover:bg-teal-success/10"
                         onClick={() => handleCompletePurchase(transaction.id)}
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
@@ -232,7 +232,7 @@ export default function PurchaseHistory() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                        className="border-accent-blue text-blue-science hover:bg-accent-blue/10"
                         onClick={() => handleMarkContractCreated(transaction.id)}
                       >
                         <ClipboardList className="h-4 w-4 mr-1" />
@@ -245,7 +245,7 @@ export default function PurchaseHistory() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="border-red-500 text-red-400 hover:bg-red-500/10"
+                        className="border-rose-danger text-rose-danger hover:bg-rose-danger/10"
                         onClick={() => handleCancelPurchase(transaction.id)}
                       >
                         <XCircle className="h-4 w-4 mr-1" />

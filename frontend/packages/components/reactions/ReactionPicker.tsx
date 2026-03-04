@@ -182,7 +182,7 @@ function ReactionRow({ reaction: r, instances, onInstanceChange, expanded, onTog
     <>
       <TableRow
         className={cn(
-          "odd:bg-[rgba(192,197,208,0.03)]",
+          "odd:bg-status-neutral-tint",
           instances > 0 && "bg-interactive-hover"
         )}
       >

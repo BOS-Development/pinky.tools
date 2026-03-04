@@ -187,7 +187,7 @@ export default function ListingsBrowser() {
                   </TableCell>
                   <TableCell className="text-text-emphasis">{listing.characterName}</TableCell>
                   <TableCell>
-                    <Badge className="bg-teal-success/10 border border-[rgba(16,185,129,0.3)] text-teal-success hover:bg-[rgba(16,185,129,0.15)] cursor-default">
+                    <Badge className="bg-teal-success/10 border border-teal-success/30 text-teal-success hover:bg-teal-success/15 cursor-default">
                       {ACTIVITY_LABELS[listing.activityType] || listing.activityType}
                     </Badge>
                   </TableCell>
@@ -251,7 +251,7 @@ export default function ListingsBrowser() {
               <div>
                 <Label className="text-sm text-text-secondary mb-1 block">Message (optional)</Label>
                 <textarea
-                  className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)]"
+                  className="flex w-full rounded-sm border border-dim bg-background-void px-3 py-2 text-sm placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary"
                   rows={3}
                   value={interestData.message}
                   onChange={(e) => setInterestData({ ...interestData, message: e.target.value })}

@@ -51,15 +51,15 @@ const STATUS_OPTIONS: HaulingRun['status'][] = [
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { color: string; bg: string }> = {
-    PLANNING: { color: 'var(--color-primary-cyan)', bg: 'rgba(0, 212, 255, 0.1)' },
-    ACCUMULATING: { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' },
-    READY: { color: 'var(--color-success-teal)', bg: 'rgba(16, 185, 129, 0.1)' },
-    IN_TRANSIT: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
-    SELLING: { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' },
-    COMPLETE: { color: 'var(--color-success-teal)', bg: 'rgba(16, 185, 129, 0.1)' },
-    CANCELLED: { color: 'var(--color-danger-rose)', bg: 'rgba(239, 68, 68, 0.1)' },
+    PLANNING: { color: 'var(--color-primary-cyan)', bg: 'var(--color-info-tint)' },
+    ACCUMULATING: { color: 'var(--color-manufacturing-amber)', bg: 'var(--color-warning-tint)' },
+    READY: { color: 'var(--color-success-teal)', bg: 'var(--color-success-tint)' },
+    IN_TRANSIT: { color: 'var(--color-primary-cyan)', bg: 'var(--color-info-tint)' },
+    SELLING: { color: 'var(--color-manufacturing-amber)', bg: 'var(--color-warning-tint)' },
+    COMPLETE: { color: 'var(--color-success-teal)', bg: 'var(--color-success-tint)' },
+    CANCELLED: { color: 'var(--color-danger-rose)', bg: 'var(--color-error-tint)' },
   };
-  const c = config[status] || { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
+  const c = config[status] || { color: 'var(--color-text-secondary)', bg: 'var(--color-neutral-tint)' };
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -71,8 +71,8 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function getRowBgColor(fillPercent: number): string | undefined {
-  if (fillPercent >= 100) return 'rgba(16, 185, 129, 0.08)';
-  if (fillPercent < 50) return 'rgba(245, 158, 11, 0.06)';
+  if (fillPercent >= 100) return 'var(--color-success-tint)';
+  if (fillPercent < 50) return 'var(--color-warning-tint)';
   return undefined;
 }
 
@@ -415,7 +415,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
       <>
         <Navbar />
         <div className="w-full px-4 mt-8">
-          <p className="text-red-400">Run not found.</p>
+          <p className="text-rose-danger">Run not found.</p>
         </div>
       </>
     );
@@ -495,7 +495,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                 <p className="text-sm text-text-secondary mb-2">Capacity</p>
                 <div className="flex items-center gap-4">
                   <div className="flex-1">
-                    <div className="h-3 bg-[#1e2a3a] rounded-full overflow-hidden">
+                    <div className="h-3 bg-background-elevated rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all"
                         style={{ width: `${volumePercent}%`, backgroundColor: capacityColor }}
@@ -601,7 +601,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                     return (
                       <TableRow
                         key={item.id}
-                        className="border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]"
+                        className="border-overlay-subtle hover:bg-interactive-hover"
                         style={{ backgroundColor: rowBg }}
                       >
                         <TableCell>
@@ -641,7 +641,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="flex-1">
-                              <div className="h-1.5 bg-[#1e2a3a] rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-background-elevated rounded-full overflow-hidden">
                                 <div
                                   className="h-full rounded-full transition-all"
                                   style={{ width: `${Math.min(item.fillPercent, 100)}%`, backgroundColor: fillColor }}
@@ -682,7 +682,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-7 w-7 text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                                  className="h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                                   onClick={() => handleRemoveItem(item.id)}
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
@@ -783,7 +783,7 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
                     </TableHeader>
                     <TableBody>
                       {pnlEntries.map((entry) => (
-                        <TableRow key={entry.id} className="border-[rgba(148,163,184,0.07)] hover:bg-[rgba(255,255,255,0.02)]">
+                        <TableRow key={entry.id} className="border-overlay-subtle hover:bg-interactive-hover">
                           <TableCell className="text-sm text-text-emphasis">
                             {entry.typeName || `Type ${entry.typeId}`}
                           </TableCell>

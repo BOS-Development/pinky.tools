@@ -88,7 +88,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
               </TableRow>
             ) : (
               routes.map((r) => (
-                <TableRow key={r.id} className="hover:bg-[rgba(0,212,255,0.05)]">
+                <TableRow key={r.id} className="hover:bg-interactive-hover">
                   <TableCell className="font-medium text-text-emphasis">{r.name}</TableCell>
                   <TableCell className="text-text-secondary">{r.originSystemName || r.originSystemId}</TableCell>
                   <TableCell className="text-text-secondary">{r.destinationSystemName || r.destinationSystemId}</TableCell>
@@ -98,7 +98,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
                       {(r.waypoints || []).map((wp) => (
                         <span
                           key={wp.id}
-                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(139,92,246,0.15)] text-[#8b5cf6]"
+                          className="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-category-violet/15 text-category-violet"
                         >
                           {wp.systemName || wp.systemId}
                         </span>

@@ -97,7 +97,7 @@ export default function SalesMetrics() {
 
   if (error) {
     return (
-      <div className="rounded-sm border border-[rgba(239,68,68,0.3)] bg-rose-danger/10 text-rose-danger px-4 py-3 mb-4 text-sm">
+      <div className="rounded-sm border border-rose-danger/30 bg-rose-danger/10 text-rose-danger px-4 py-3 mb-4 text-sm">
         {error}
       </div>
     );
@@ -105,7 +105,7 @@ export default function SalesMetrics() {
 
   if (!metrics) {
     return (
-      <div className="rounded-sm border border-[rgba(59,130,246,0.3)] bg-[rgba(59,130,246,0.1)] text-blue-science px-4 py-3 mb-4 text-sm">
+      <div className="rounded-sm border border-accent-blue/30 bg-accent-blue/10 text-blue-science px-4 py-3 mb-4 text-sm">
         No sales data available
       </div>
     );
@@ -127,8 +127,8 @@ export default function SalesMetrics() {
                 className={cn(
                   "px-3 py-1.5 text-sm border-r border-overlay-strong last:border-r-0",
                   period === p
-                    ? "bg-primary text-[#0a0e1a] font-semibold"
-                    : "bg-transparent text-text-secondary hover:text-text-emphasis hover:bg-[rgba(148,163,184,0.08)]"
+                    ? "bg-primary text-background-void font-semibold"
+                    : "bg-transparent text-text-secondary hover:text-text-emphasis hover:bg-status-neutral-tint"
                 )}
               >
                 {p === 'all' ? 'All Time' : p.toUpperCase()}
@@ -143,7 +143,7 @@ export default function SalesMetrics() {
       </div>
 
       {/* Info Alert */}
-      <div className="rounded-sm border border-[rgba(59,130,246,0.3)] bg-[rgba(59,130,246,0.08)] text-blue-science px-4 py-3 mb-6 text-sm">
+      <div className="rounded-sm border border-accent-blue/30 bg-accent-blue/8 text-blue-science px-4 py-3 mb-6 text-sm">
         Analytics only shows completed transactions. Pending sales (contract_created status) are not included in these metrics.
       </div>
 
@@ -165,7 +165,7 @@ export default function SalesMetrics() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Transactions</span>
-              <ShoppingCart className="h-5 w-5 text-[#8b5cf6]" />
+              <ShoppingCart className="h-5 w-5 text-category-violet" />
             </div>
             <p className="text-2xl font-bold text-text-emphasis" style={{ fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.totalTransactions)}

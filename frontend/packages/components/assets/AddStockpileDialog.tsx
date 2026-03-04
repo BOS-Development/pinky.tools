@@ -218,7 +218,7 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
                 <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-text-muted" />
               )}
               {dropdownOpen && itemOptions.length > 0 && (
-                <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-1 bg-background-elevated border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
                   {itemOptions.map((opt) => (
                     <button
                       key={opt.TypeID}
@@ -250,7 +250,7 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
                 <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                   <SelectValue placeholder="Select owner..." />
                 </SelectTrigger>
-                <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
+                <SelectContent className="bg-background-elevated border-overlay-medium">
                   {owners.map(o => (
                     <SelectItem
                       key={`${o.ownerType}:${o.ownerId}`}
@@ -318,7 +318,7 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
                       }
                     />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
+                  <SelectContent className="bg-background-elevated border-overlay-medium">
                     {availablePlans.map((plan) => (
                       <SelectItem
                         key={plan.id}
@@ -362,7 +362,7 @@ export default function AddStockpileDialog({ open, onClose, onSaved, locationId,
           <Button
             onClick={handleSave}
             disabled={saving || !canSave}
-            className="bg-[#3b82f6] hover:bg-[#2563eb] text-white"
+            className="bg-accent-blue hover:bg-accent-blue-hover text-white"
           >
             {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {saving ? 'Saving...' : 'Add Stockpile'}

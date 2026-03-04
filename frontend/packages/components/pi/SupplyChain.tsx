@@ -27,10 +27,10 @@ const RESIZE_PRESETS = [
 ];
 
 const SOURCE_COLORS: Record<string, { bg: string; text: string }> = {
-  extracted: { bg: 'rgba(16, 185, 129, 0.1)', text: 'var(--color-success-teal)' },
-  produced:  { bg: 'rgba(0, 212, 255, 0.1)', text: 'var(--color-primary-cyan)' },
-  bought:    { bg: 'rgba(245, 158, 11, 0.1)', text: 'var(--color-manufacturing-amber)' },
-  mixed:     { bg: 'rgba(148, 163, 184, 0.1)', text: 'var(--color-text-secondary)' },
+  extracted: { bg: 'var(--color-success-tint)', text: 'var(--color-success-teal)' },
+  produced:  { bg: 'var(--color-info-tint)', text: 'var(--color-primary-cyan)' },
+  bought:    { bg: 'var(--color-warning-tint)', text: 'var(--color-manufacturing-amber)' },
+  mixed:     { bg: 'var(--color-neutral-tint)', text: 'var(--color-text-secondary)' },
 };
 
 function formatDepletion(hours: number): string {
@@ -89,21 +89,21 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
           hasChildren ? 'cursor-pointer' : 'cursor-default',
           'hover:bg-interactive-hover',
           expanded
-            ? 'bg-[rgba(0,212,255,0.03)]'
+            ? 'bg-interactive-hover'
             : isDeficit
-            ? 'bg-[rgba(239,68,68,0.03)]'
+            ? 'bg-rose-danger/5'
             : ''
         )}
         onClick={hasChildren ? onToggle : undefined}
       >
-        <TableCell className="border-[rgba(148,163,184,0.08)] w-9 p-1">
+        <TableCell className="border-overlay-subtle w-9 p-1">
           {hasChildren && (
             <button className="text-text-muted p-0.5 leading-none">
               {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </button>
           )}
         </TableCell>
-        <TableCell className="border-[rgba(148,163,184,0.08)]">
+        <TableCell className="border-overlay-subtle">
           <div className="flex items-center gap-2">
             <img
               src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`}
@@ -119,7 +119,7 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
             </div>
           </div>
         </TableCell>
-        <TableCell className="border-[rgba(148,163,184,0.08)]">
+        <TableCell className="border-overlay-subtle">
           <span
             className="inline-flex items-center px-2 py-0.5 rounded text-[0.65rem] font-medium"
             style={{ backgroundColor: sourceStyle.bg, color: sourceStyle.text }}
@@ -128,24 +128,24 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
           </span>
         </TableCell>
         <TableCell
-          className="text-right border-[rgba(148,163,184,0.08)]"
-          style={{ color: item.producedPerHour > 0 ? 'var(--color-success-teal)' : '#475569' }}
+          className="text-right border-overlay-subtle"
+          style={{ color: item.producedPerHour > 0 ? 'var(--color-success-teal)' : 'var(--color-text-muted)' }}
         >
           <span className="text-xs">{formatRate(item.producedPerHour)}</span>
         </TableCell>
         <TableCell
-          className="text-right border-[rgba(148,163,184,0.08)]"
-          style={{ color: item.consumedPerHour > 0 ? 'var(--color-danger-rose)' : '#475569' }}
+          className="text-right border-overlay-subtle"
+          style={{ color: item.consumedPerHour > 0 ? 'var(--color-danger-rose)' : 'var(--color-text-muted)' }}
         >
           <span className="text-xs">{formatRate(item.consumedPerHour)}</span>
         </TableCell>
-        <TableCell className="text-right border-[rgba(148,163,184,0.08)]">
+        <TableCell className="text-right border-overlay-subtle">
           <span className="text-xs font-semibold" style={{ color: netColor(item.netPerHour) }}>
             {item.netPerHour > 0.01 ? '+' : ''}{formatRate(item.netPerHour)}
           </span>
         </TableCell>
         <TableCell
-          className="text-right border-[rgba(148,163,184,0.08)]"
+          className="text-right border-overlay-subtle"
           onClick={(e) => { if (canResize) e.stopPropagation(); }}
         >
           {canResize ? (
@@ -159,7 +159,7 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
                 </span>
               </PopoverTrigger>
               <PopoverContent
-                className="p-3 w-48 bg-[#1a1f2e] border-overlay-medium"
+                className="p-3 w-48 bg-background-elevated border-overlay-medium"
                 align="end"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -189,7 +189,7 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
             </span>
           )}
         </TableCell>
-        <TableCell className="text-right border-[rgba(148,163,184,0.08)]">
+        <TableCell className="text-right border-overlay-subtle">
           <span
             className="text-xs"
             style={{
@@ -206,8 +206,8 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
           {item.producers?.length > 0 && (
             <>
               <TableRow>
-                <TableCell className="border-[rgba(148,163,184,0.03)] py-1" />
-                <TableCell colSpan={7} className="border-[rgba(148,163,184,0.03)] py-1">
+                <TableCell className="border-overlay-subtle py-1" />
+                <TableCell colSpan={7} className="border-overlay-subtle py-1">
                   <span className="text-text-muted font-semibold uppercase tracking-wide" style={{ fontSize: '0.6rem' }}>
                     Producers
                   </span>
@@ -221,8 +221,8 @@ function SupplyChainRow({ item, expanded, onToggle, onResize }: {
           {item.consumers?.length > 0 && (
             <>
               <TableRow>
-                <TableCell className="border-[rgba(148,163,184,0.03)] py-1" />
-                <TableCell colSpan={7} className="border-[rgba(148,163,184,0.03)] py-1">
+                <TableCell className="border-overlay-subtle py-1" />
+                <TableCell colSpan={7} className="border-overlay-subtle py-1">
                   <span className="text-text-muted font-semibold uppercase tracking-wide" style={{ fontSize: '0.6rem' }}>
                     Consumers
                   </span>
@@ -243,15 +243,15 @@ function PlanetEntryRow({ entry, type }: { entry: SupplyChainPlanetEntry; type: 
   const rateColor = type === 'producer' ? 'var(--color-success-teal)' : 'var(--color-danger-rose)';
 
   return (
-    <TableRow className="bg-[rgba(15,18,25,0.4)]">
-      <TableCell className="border-[rgba(148,163,184,0.03)]" />
-      <TableCell colSpan={3} className="border-[rgba(148,163,184,0.03)] pl-12">
+    <TableRow className="bg-background-void/40">
+      <TableCell className="border-overlay-subtle" />
+      <TableCell colSpan={3} className="border-overlay-subtle pl-12">
         <span className="text-xs text-text-primary">{entry.solarSystemName}</span>
         <span className="text-xs text-text-muted ml-1">
           {entry.planetType} &middot; {entry.characterName}
         </span>
       </TableCell>
-      <TableCell colSpan={4} className="text-right border-[rgba(148,163,184,0.03)]">
+      <TableCell colSpan={4} className="text-right border-overlay-subtle">
         <span className="text-xs" style={{ color: rateColor }}>
           {formatNumber(Math.round(entry.ratePerHour))}/hr
         </span>
@@ -422,7 +422,7 @@ export default function SupplyChain() {
                 'px-2.5 py-1 rounded text-xs font-medium border transition-colors',
                 tierFilter === tier
                   ? 'bg-interactive-active text-primary border-border-active'
-                  : 'bg-[rgba(148,163,184,0.06)] text-text-muted border-transparent hover:bg-overlay-subtle'
+                  : 'bg-status-neutral-tint text-text-muted border-transparent hover:bg-overlay-subtle'
               )}
             >
               {tier}
@@ -441,7 +441,7 @@ export default function SupplyChain() {
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="p-3 w-56 bg-[#1a1f2e] border-overlay-medium"
+              className="p-3 w-56 bg-background-elevated border-overlay-medium"
               align="start"
             >
               <span className="block text-[0.6rem] text-text-muted font-semibold uppercase tracking-wide mb-2">

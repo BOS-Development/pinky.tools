@@ -248,7 +248,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[#0d1117]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -329,7 +329,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             >
               <div>
                 <button
-                  class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer bg-transparent border-[#334155] text-text-secondary"
+                  class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer bg-transparent border-overlay-medium text-text-secondary"
                 >
                   Assign
                 </button>
@@ -576,7 +576,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success cursor-default"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-teal-success/10 border-teal-success/30 text-teal-success cursor-default"
               >
                 active
               </div>
@@ -735,7 +735,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[#0d1117]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
