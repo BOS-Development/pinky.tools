@@ -218,4 +218,52 @@ INSERT INTO character_skills (character_id, user_id, skill_id, trained_level, ac
   (2002001, 1002, 3387,  3, 3, 40000,  NOW())    -- Mass Production
 ON CONFLICT (character_id, skill_id) DO NOTHING;
 
+-- ===========================================
+-- Design Review Fixtures (extra universe + item data)
+-- ===========================================
+
+-- Dodixie region/constellation/system/station
+INSERT INTO regions (region_id, name) VALUES
+  (10000032, 'Sinq Laison')
+ON CONFLICT (region_id) DO NOTHING;
+
+INSERT INTO constellations (constellation_id, name, region_id) VALUES
+  (20000462, 'Coriault', 10000032)
+ON CONFLICT (constellation_id) DO NOTHING;
+
+INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES
+  (30002659, 'Dodixie', 20000462, 0.9)
+ON CONFLICT (solar_system_id) DO NOTHING;
+
+INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station) VALUES
+  (60011866, 'Dodixie IX - Moon 20 - Federation Navy Assembly Plant', 30002659, 1000107, true)
+ON CONFLICT (station_id) DO NOTHING;
+
+-- Cruiser group (for Thorax)
+INSERT INTO sde_groups (group_id, name, category_id, published) VALUES
+  (26, 'Cruiser', 6, true)
+ON CONFLICT (group_id) DO NOTHING;
+
+-- Additional item types for design review
+INSERT INTO asset_item_types (type_id, type_name, volume, group_id) VALUES
+  (39,    'Zydrine',              0.01,  18),
+  (40,    'Megacyte',             0.01,  18),
+  (24692, 'Thorax',              28000,  26),
+  (24694, 'Thorax Blueprint',    0.01,   NULL),
+  (44992, 'PLEX',                0.01,   NULL),
+  (40520, 'Large Skill Injector', 0.01,  NULL)
+ON CONFLICT (type_id) DO NOTHING;
+
+-- Market prices for design review items
+INSERT INTO market_prices (type_id, region_id, buy_price, sell_price, adjusted_price) VALUES
+  (39,    10000002, 1000.00,       1200.00,       1100.00),
+  (40,    10000002, 50000.00,      55000.00,      52500.00),
+  (24692, 10000002, 9500000.00,    11000000.00,   10250000.00),
+  (44992, 10000002, 3500000.00,    3700000.00,    3600000.00),
+  (40520, 10000002, 900000000.00,  950000000.00,  925000000.00)
+ON CONFLICT (type_id) DO UPDATE SET
+  buy_price      = EXCLUDED.buy_price,
+  sell_price     = EXCLUDED.sell_price,
+  adjusted_price = EXCLUDED.adjusted_price;
+
 COMMIT;
