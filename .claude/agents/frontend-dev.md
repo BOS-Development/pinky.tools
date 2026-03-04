@@ -49,7 +49,7 @@ You are a frontend specialist for this EVE Online industry tool. The frontend is
 | `Accordion` / `AccordionDetails` | shadcn `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` with `Set<string>` for open state |
 | `Drawer` | Fixed-position overlay div with Tailwind transitions |
 | `ToggleButtonGroup` | Custom inline `<div>` with `<button>` elements and active state styling |
-| `LinearProgress` | `<div className="w-full bg-[#1e293b] rounded h-2"><div style={{width: `${pct}%`}} className="h-full rounded bg-[color]" /></div>` |
+| `LinearProgress` | `<div className="w-full bg-background-elevated rounded h-2"><div style={{width: `${pct}%`}} className="h-full rounded bg-primary" /></div>` |
 | `Popover` (anchor-based) | shadcn `Popover`, `PopoverTrigger`, `PopoverContent` |
 | `Snackbar` / `Alert` | `toast.success()` / `toast.error()` from `sonner` (already in layout) |
 | `Tooltip` | shadcn `Tooltip`, `TooltipTrigger`, `TooltipContent` — wrap parent in `TooltipProvider` |
@@ -92,9 +92,9 @@ return (
   <div className="relative">
     <Input value={query} onChange={(e) => { setQuery(e.target.value); setOpen(true); }} />
     {open && results.length > 0 && (
-      <div className="absolute z-50 w-full bg-[#1e293b] border border-[rgba(148,163,184,0.15)] rounded shadow-lg max-h-60 overflow-y-auto">
+      <div className="absolute z-50 w-full bg-background-elevated border border-overlay-medium rounded shadow-lg max-h-60 overflow-y-auto">
         {results.map(item => (
-          <div key={item.id} className="px-3 py-2 cursor-pointer hover:bg-[#334155]"
+          <div key={item.id} className="px-3 py-2 cursor-pointer hover:bg-interactive-hover"
                onClick={() => { onSelect(item); setOpen(false); setQuery(''); }}>
             {item.name}
           </div>
@@ -159,23 +159,36 @@ try {
 - Use utilities from `packages/utils/formatting.ts`: `formatISK`, `formatNumber`, `formatCompact`
 - Never write custom number formatting
 
-### Dark Theme Standards
+### Design Token System — CRITICAL
 
-- Background: `#0a0e1a`, Cards: `#12151f`, Primary: `#3b82f6`
-- Green `#10b981` for revenue/success, Red `#ef4444` for costs/errors
-- Tables: Dark header `#0f1219`, alternating row colors, right-align numbers
-- Muted text: `text-[#94a3b8]` (slate-400), Active/accent: `text-[#00d4ff]`
-- Borders: `border-[rgba(148,163,184,0.15)]`
+**NEVER use hardcoded hex or rgba() color values in components.** All colors must use design tokens from `globals.css` via CSS variables or Tailwind classes.
+
+**Background 3-tier system:** `bg-background-void` (deepest) → `bg-background-panel` (cards) → `bg-background-elevated` (popovers, dropdowns, raised surfaces)
+
+**Status colors (Tailwind):** `amber-manufacturing`, `blue-science`, `teal-success`, `rose-danger`
+**Status tints (backgrounds):** `status-success-tint`, `status-warning-tint`, `status-error-tint`, `status-info-tint`, `status-neutral-tint`
+**Status borders:** Use Tailwind opacity modifiers: `border-teal-success/30`, `border-rose-danger/30`, etc.
+
+**Category colors (data-viz):** `category-violet`, `category-pink`, `category-orange`, `category-teal`, `category-slate`
+**Accent blue (secondary actions):** `accent-blue`, `accent-blue-hover`, `accent-blue-muted`
+**Semantic backgrounds:** `bg-manufacturing`, `bg-science`, `bg-warning`
+
+**Text hierarchy:** `text-text-emphasis` → `text-text-primary` → `text-text-secondary` → `text-text-muted`
+**Borders:** `border-dim` (cyan subtle), `border-active` (cyan visible), `border-overlay-subtle/medium/strong` (neutral)
+**Interactive:** `interactive-hover`, `interactive-active`, `interactive-selected`
+
+**Inline styles** use CSS variables: `var(--color-success-tint)`, `var(--color-bg-void)`, etc.
+
 - Use `<Loading />` component, not custom spinners
 - Empty states: Centered message in table cell with `colSpan`
 
 ### Tab styling convention (shadcn Tabs)
 For the standard underline-style tabs used across the app:
 ```tsx
-<TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-4">
+<TabsList className="border-b border-overlay-medium bg-transparent w-full justify-start rounded-none p-0 h-auto mb-4">
   <TabsTrigger
     value="tab-name"
-    className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+    className="text-text-muted data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
   >
     Tab Label
   </TabsTrigger>
