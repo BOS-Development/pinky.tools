@@ -4,6 +4,15 @@ import ActiveJobs from '../ActiveJobs';
 import { IndustryJob } from '@industry-tool/client/data/models';
 
 describe('ActiveJobs Component', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-02-22T12:00:00Z'));
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('should match snapshot when loading', () => {
     const { container } = render(<ActiveJobs jobs={[]} loading={true} />);
     expect(container).toMatchSnapshot();
@@ -34,6 +43,7 @@ describe('ActiveJobs Component', () => {
         outputLocationId: 60003760,
         runs: 10,
         cost: 1500000,
+        productTypeId: 587,
         status: 'active',
         source: 'character',
         duration: 3600,
@@ -89,6 +99,7 @@ describe('ActiveJobs Component', () => {
         outputLocationId: 60003760,
         runs: 10,
         cost: 1500000,
+        productTypeId: 587,
         status: 'active',
         source: 'character',
         duration: 3600,

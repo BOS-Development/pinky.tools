@@ -97,6 +97,7 @@ describe('JobQueue Component', () => {
         updatedAt: '2026-02-22T00:00:00Z',
         blueprintName: 'Rifter Blueprint',
         productName: 'Rifter',
+        productTypeId: 587,
         notes: 'Test note',
         stationName: 'Jita IV - Moon 4 - Caldari Navy Assembly Plant',
         inputLocation: 'CharOwner > Big Container',

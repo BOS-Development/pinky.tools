@@ -111,14 +111,37 @@ export default function ActiveJobs({ jobs, loading }: Props) {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-text-emphasis">
-                      {job.blueprintName || `Type ${job.blueprintTypeId}`}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <img
+                        src={`https://images.evetech.net/types/${job.blueprintTypeId}/icon?size=32`}
+                        alt=""
+                        width={24}
+                        height={24}
+                        className="flex-shrink-0"
+                        loading="lazy"
+                        style={{ filter: "sepia(1) saturate(3) hue-rotate(180deg)" }}
+                      />
+                      <span className="text-sm text-text-emphasis">
+                        {job.blueprintName || `Type ${job.blueprintTypeId}`}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-text-primary">
-                      {job.productName || "-"}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {job.productTypeId && (
+                        <img
+                          src={`https://images.evetech.net/types/${job.productTypeId}/icon?size=32`}
+                          alt=""
+                          width={24}
+                          height={24}
+                          className="flex-shrink-0"
+                          loading="lazy"
+                        />
+                      )}
+                      <span className="text-sm text-text-primary">
+                        {job.productName || "-"}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-text-primary">
@@ -141,9 +164,24 @@ export default function ActiveJobs({ jobs, loading }: Props) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-sm ${job.status === "active" ? "text-primary" : "text-text-secondary"}`}>
-                      {formatTimeRemaining(job.endDate)}
-                    </span>
+                    <div>
+                      <span className={`text-sm ${job.status === "active" ? "text-primary" : "text-text-secondary"}`}>
+                        {formatTimeRemaining(job.endDate)}
+                      </span>
+                      {job.status === "active" && (() => {
+                        const total = job.duration * 1000;
+                        const elapsed = total - (new Date(job.endDate).getTime() - Date.now());
+                        const pct = Math.min(100, Math.max(0, (elapsed / total) * 100));
+                        return (
+                          <div className="mt-0.5 h-1 w-full rounded-full bg-overlay-subtle">
+                            <div
+                              className="h-1 rounded-full bg-primary"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                        );
+                      })()}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-text-secondary">

@@ -221,14 +221,37 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                   ) : (
                     <>
                       <TableCell>
-                        <span className="text-sm text-text-emphasis">
-                          {entry.blueprintName || `Type ${entry.blueprintTypeId}`}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <img
+                            src={`https://images.evetech.net/types/${entry.blueprintTypeId}/icon?size=32`}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="flex-shrink-0"
+                            loading="lazy"
+                            style={{ filter: "sepia(1) saturate(3) hue-rotate(180deg)" }}
+                          />
+                          <span className="text-sm text-text-emphasis">
+                            {entry.blueprintName || `Type ${entry.blueprintTypeId}`}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-text-primary">
-                          {entry.productName || "-"}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {entry.productTypeId && (
+                            <img
+                              src={`https://images.evetech.net/types/${entry.productTypeId}/icon?size=32`}
+                              alt=""
+                              width={24}
+                              height={24}
+                              className="flex-shrink-0"
+                              loading="lazy"
+                            />
+                          )}
+                          <span className="text-sm text-text-primary">
+                            {entry.productName || "-"}
+                          </span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <span className="text-sm text-text-primary capitalize">
