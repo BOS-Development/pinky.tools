@@ -39,7 +39,7 @@ exports[`StationDialog Component should match snapshot when open for adding 1`] 
       class="flex flex-col space-y-1.5 text-center sm:text-left"
     >
       <h2
-        class="text-lg font-bold leading-none tracking-tight text-[var(--color-primary-cyan)]"
+        class="text-lg font-bold leading-none tracking-tight text-[var(--color-heading)]"
         id="radix-_r_4_"
       >
         Add Station
@@ -273,7 +273,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
       class="flex flex-col space-y-1.5 text-center sm:text-left"
     >
       <h2
-        class="text-lg font-bold leading-none tracking-tight text-[var(--color-primary-cyan)]"
+        class="text-lg font-bold leading-none tracking-tight text-[var(--color-heading)]"
         id="radix-_r_d_"
       >
         Edit Station
@@ -383,7 +383,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
           class="flex gap-1 flex-wrap mt-1"
         >
           <div
-            class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[11px] border bg-primary/10 text-primary border-primary/30"
+            class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-overlay-medium)] text-[11px] border bg-primary/10 text-primary border-primary/30"
           >
             Standup Manufacturing Plant I
           </div>

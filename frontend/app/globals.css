@@ -101,6 +101,10 @@ body {
   --color-text-muted: #64748b;
   --color-text-emphasis: #e0e4eb;
 
+  /* Visual hierarchy — semantic role tokens */
+  --color-heading: #e0e4eb;
+  --color-data-value: #d4a44a;
+
   /* Neutral overlays — structural backgrounds & borders */
   --color-overlay-subtle: rgba(148, 163, 184, 0.10);
   --color-overlay-medium: rgba(148, 163, 184, 0.15);
@@ -223,8 +227,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1, h2 {
-  color: var(--color-primary-cyan);
-  text-shadow: var(--glow-text-heading);
+  color: var(--color-heading);
 }
 
 h3 {

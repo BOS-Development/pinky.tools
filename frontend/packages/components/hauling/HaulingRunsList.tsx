@@ -180,7 +180,7 @@ export default function HaulingRunsList() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Truck className="h-7 w-7 text-primary" />
+            <Truck className="h-7 w-7 text-text-secondary" />
             <h1 className="text-2xl font-bold text-text-emphasis">Hauling Runs</h1>
           </div>
           <Button onClick={() => setDialogOpen(true)}>

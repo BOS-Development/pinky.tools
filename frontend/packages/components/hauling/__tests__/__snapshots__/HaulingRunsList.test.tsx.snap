@@ -28,7 +28,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
       >
         <svg
           aria-hidden="true"
-          class="lucide lucide-truck h-7 w-7 text-primary"
+          class="lucide lucide-truck h-7 w-7 text-text-secondary"
           fill="none"
           height="24"
           stroke="currentColor"

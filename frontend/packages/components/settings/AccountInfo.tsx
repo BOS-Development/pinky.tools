@@ -13,7 +13,7 @@ export default function AccountInfo({ userName, characterId }: AccountInfoProps)
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <User className="h-5 w-5 text-[var(--color-primary-cyan)]" />
+          <User className="h-5 w-5 text-[var(--color-text-secondary)]" />
           <h3 className="text-lg font-semibold text-[var(--color-text-emphasis)]">Account</h3>
         </div>
         <div className="flex items-center gap-3">

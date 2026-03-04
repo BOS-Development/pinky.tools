@@ -11,7 +11,7 @@ export default function LinkedCharacters({ characters }: LinkedCharactersProps) 
     <Card>
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Users className="h-5 w-5 text-[var(--color-primary-cyan)]" />
+          <Users className="h-5 w-5 text-[var(--color-text-secondary)]" />
           <h3 className="text-lg font-semibold text-[var(--color-text-emphasis)]">Linked Characters</h3>
         </div>
 
