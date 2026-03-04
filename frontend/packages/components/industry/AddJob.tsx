@@ -206,10 +206,11 @@ export default function AddJob({ onJobAdded }: Props) {
       {/* Settings Row */}
       <div className="flex gap-2 flex-wrap mb-3">
         <div className="min-w-[300px] flex-grow relative">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Search Blueprint</Label>
+          <Label htmlFor="search-blueprint" className="text-xs text-[#94a3b8] mb-1 block">Search Blueprint</Label>
           <Popover open={searchOpen && blueprintOptions.length > 0} onOpenChange={setSearchOpen}>
             <PopoverTrigger asChild>
               <Input
+                id="search-blueprint"
                 placeholder="Search Blueprint"
                 value={blueprintQuery}
                 onChange={(e) => {
@@ -260,8 +261,9 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="w-[100px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Runs</Label>
+          <Label htmlFor="runs" className="text-xs text-[#94a3b8] mb-1 block">Runs</Label>
           <Input
+            id="runs"
             type="number"
             value={runs}
             onChange={(e) => setRuns(Math.max(1, parseInt(e.target.value) || 1))}
@@ -272,8 +274,9 @@ export default function AddJob({ onJobAdded }: Props) {
 
       <div className="flex gap-2 flex-wrap mb-3">
         <div className="w-[90px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">ME Level</Label>
+          <Label htmlFor="me-level" className="text-xs text-[#94a3b8] mb-1 block">ME Level</Label>
           <Input
+            id="me-level"
             type="number"
             value={meLevel}
             onChange={(e) => setMeLevel(Math.max(0, Math.min(10, parseInt(e.target.value) || 0)))}
@@ -282,8 +285,9 @@ export default function AddJob({ onJobAdded }: Props) {
           />
         </div>
         <div className="w-[90px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">TE Level</Label>
+          <Label htmlFor="te-level" className="text-xs text-[#94a3b8] mb-1 block">TE Level</Label>
           <Input
+            id="te-level"
             type="number"
             value={teLevel}
             onChange={(e) => setTeLevel(Math.max(0, Math.min(20, parseInt(e.target.value) || 0)))}

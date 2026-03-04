@@ -9,6 +9,15 @@ jest.mock('@industry-tool/utils/formatting', () => ({
   formatCompact: (val: number) => val.toLocaleString(),
 }));
 
+// Mock sonner toast (renders via portal, not in component DOM)
+jest.mock('@/components/ui/sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+  },
+}));
+import { toast } from '@/components/ui/sonner';
+
 const mockRootStep: ProductionPlanStep = {
   id: 10,
   planId: 1,
@@ -133,6 +142,8 @@ describe('BatchConfigureTab Component', () => {
   beforeEach(() => {
     (global.fetch as jest.Mock).mockClear();
     mockOnUpdate.mockClear();
+    (toast.success as jest.Mock).mockClear();
+    (toast.error as jest.Mock).mockClear();
   });
 
   it('should match snapshot with grouped steps', () => {
@@ -508,10 +519,10 @@ describe('BatchConfigureTab Component', () => {
     );
 
     // Each group row has a build button for "Set all to Build"
-    // 3 groups = 3 build buttons + 1 chip icon (Rifter group has children) = 4 total BuildIcons
+    // 3 groups = 3 build buttons (inside <button>) + 3 badge icons (inside <Badge> div) = 6 total BuildIcons
     const allBuildIcons = screen.getAllByTestId('BuildIcon');
     const buildButtons = allBuildIcons.filter(
-      (icon) => icon.closest('button[class*="IconButton"]'),
+      (icon) => icon.closest('button'),
     );
     expect(buildButtons.length).toBeGreaterThanOrEqual(3);
 
@@ -556,10 +567,10 @@ describe('BatchConfigureTab Component', () => {
       <BatchConfigureTab plan={planWithChildren} planId={1} onUpdate={mockOnUpdate} />,
     );
 
-    // Find "Set all to Buy" buttons — these are IconButtons containing ShoppingCartIcon
-    // (distinct from the Chip icons which are not inside IconButtons)
+    // Find "Set all to Buy" buttons — these are buttons containing ShoppingCartIcon
+    // (distinct from the Badge icons which are not inside buttons)
     const cartButtons = screen.getAllByTestId('ShoppingCartIcon')
-      .filter((icon) => icon.closest('button.MuiIconButton-root'))
+      .filter((icon) => icon.closest('button'))
       .map((icon) => icon.closest('button')!);
     // Groups alphabetically: Chromium (0), Nitrogen Fuel Block (1), Pyerite (2), Rifter (3)
     await act(async () => {
@@ -704,7 +715,7 @@ describe('BatchConfigureTab Component', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText(/Applied detected ME\/TE to/)).toBeInTheDocument();
+        expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/Applied detected ME\/TE to/));
       });
     });
 

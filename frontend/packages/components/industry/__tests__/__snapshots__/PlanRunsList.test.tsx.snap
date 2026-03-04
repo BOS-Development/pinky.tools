@@ -8,16 +8,16 @@ exports[`PlanRunsList Component should match snapshot while loading 1`] = `
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthXl css-lkiw04-MuiContainer-root"
+    class="px-4 mt-2 mb-4"
   >
     <div
-      class="MuiBox-root css-1qm1lh"
+      class="mb-2"
     >
-      <h5
-        class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+      <h2
+        class="text-xl font-semibold text-[#e2e8f0]"
       >
         Plan Runs
-      </h5>
+      </h2>
     </div>
     <div
       data-testid="loading"
@@ -36,23 +36,22 @@ exports[`PlanRunsList Component should match snapshot with empty runs 1`] = `
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthXl css-lkiw04-MuiContainer-root"
+    class="px-4 mt-2 mb-4"
   >
     <div
-      class="MuiBox-root css-1qm1lh"
+      class="mb-2"
     >
-      <h5
-        class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+      <h2
+        class="text-xl font-semibold text-[#e2e8f0]"
       >
         Plan Runs
-      </h5>
+      </h2>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 css-57it44-MuiPaper-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center"
     >
       <p
-        class="MuiTypography-root MuiTypography-body1 css-1p2qead-MuiTypography-root"
+        class="text-[#64748b]"
       >
         No plan runs yet. Generate jobs from a production plan to create a run.
       </p>
@@ -69,204 +68,188 @@ exports[`PlanRunsList Component should match snapshot with runs 1`] = `
     Navbar
   </div>
   <div
-    class="MuiContainer-root MuiContainer-maxWidthXl css-lkiw04-MuiContainer-root"
+    class="px-4 mt-2 mb-4"
   >
     <div
-      class="MuiBox-root css-1qm1lh"
+      class="mb-2"
     >
-      <h5
-        class="MuiTypography-root MuiTypography-h5 css-119faas-MuiTypography-root"
+      <h2
+        class="text-xl font-semibold text-[#e2e8f0]"
       >
         Plan Runs
-      </h5>
+      </h2>
     </div>
     <div
-      class="MuiPaper-root MuiPaper-elevation MuiPaper-rounded MuiPaper-elevation1 MuiTableContainer-root css-s09dh4-MuiPaper-root-MuiTableContainer-root"
-      style="--Paper-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2),0px 1px 1px 0px rgba(0,0,0,0.14),0px 1px 3px 0px rgba(0,0,0,0.12);"
+      class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
     >
-      <table
-        class="MuiTable-root css-1xwxv7r-MuiTable-root"
+      <div
+        class="relative w-full overflow-auto"
       >
-        <thead
-          class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+        <table
+          class="w-full caption-bottom text-sm"
         >
-          <tr
-            class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+          <thead
+            class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
           >
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
+            <tr
+              class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
             >
-              Product
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
-            >
-              Plan
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-              scope="col"
-            >
-              Qty
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
-            >
-              Status
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
-            >
-              Jobs
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-              scope="col"
-            >
-              Created
-            </th>
-            <th
-              class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
-              scope="col"
-            >
-              Actions
-            </th>
-          </tr>
-        </thead>
-        <tbody
-          class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-        >
-          <tr
-            class="MuiTableRow-root css-12jwrqf-MuiTableRow-root"
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Product
+              </th>
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Plan
+              </th>
+              <th
+                class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+              >
+                Qty
+              </th>
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Status
+              </th>
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Jobs
+              </th>
+              <th
+                class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                Created
+              </th>
+              <th
+                class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody
+            class="[&_tr:last-child]:border-0"
           >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+            <tr
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#12151f] hover:bg-[#1a1d2e]"
             >
-              <div
-                class="MuiBox-root css-axw7ok"
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#e2e8f0] text-sm"
               >
-                <p
-                  class="MuiTypography-root MuiTypography-body1 css-28s2xz-MuiTypography-root"
-                >
-                  Rifter
-                </p>
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1akr5kn-MuiTableCell-root"
-            >
-              Rifter Plan
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-1aqdq1-MuiTableCell-root"
-            >
-              10
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-            >
-              <div
-                class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorWarning MuiChip-outlinedWarning css-1dw70sc-MuiChip-root"
+                Rifter
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#cbd5e1] text-sm"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                Rifter Plan
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#cbd5e1] text-sm"
+              >
+                10
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                <div
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] capitalize cursor-default bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]"
                 >
                   In Progress
-                </span>
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
-            >
-              1/5 done, 2 active
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
-            >
-              2/22/2026
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
-            >
-              <button
-                class="MuiButtonBase-root MuiIconButton-root MuiIconButton-sizeSmall css-bm3ath-MuiButtonBase-root-MuiIconButton-root"
-                tabindex="0"
-                title="Cancel planned jobs"
-                type="button"
+                </div>
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8] text-[13px]"
               >
-                <svg
-                  aria-hidden="true"
-                  class="MuiSvgIcon-root MuiSvgIcon-fontSizeSmall css-120dh41-MuiSvgIcon-root"
-                  data-testid="CancelIcon"
-                  focusable="false"
-                  viewBox="0 0 24 24"
+                1/5 done, 2 active
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8] text-[13px]"
+              >
+                2/22/2026
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+              >
+                <button
+                  class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                  title="Cancel planned jobs"
                 >
-                  <path
-                    d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2m5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12z"
-                  />
-                </svg>
-              </button>
-            </td>
-          </tr>
-          <tr
-            class="MuiTableRow-root css-smtqgp-MuiTableRow-root"
-          >
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-circle-x h-4 w-4"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                    />
+                    <path
+                      d="m15 9-6 6"
+                    />
+                    <path
+                      d="m9 9 6 6"
+                    />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+            <tr
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#1a1d2e]"
             >
-              <div
-                class="MuiBox-root css-axw7ok"
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#e2e8f0] text-sm"
               >
-                <p
-                  class="MuiTypography-root MuiTypography-body1 css-28s2xz-MuiTypography-root"
-                >
-                  Slasher
-                </p>
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-1akr5kn-MuiTableCell-root"
-            >
-              Slasher Plan
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-1aqdq1-MuiTableCell-root"
-            >
-              3
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-            >
-              <div
-                class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorDefault MuiChip-outlinedDefault css-8m2o99-MuiChip-root"
+                Slasher
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#cbd5e1] text-sm"
               >
-                <span
-                  class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                Slasher Plan
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#cbd5e1] text-sm"
+              >
+                3
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              >
+                <div
+                  class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border hover:border-[var(--color-border-active)] capitalize cursor-default bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]"
                 >
                   Completed
-                </span>
-              </div>
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
-            >
-              3/3 done
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-vo16no-MuiTableCell-root"
-            >
-              2/22/2026
-            </td>
-            <td
-              class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
-            />
-          </tr>
-        </tbody>
-      </table>
+                </div>
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8] text-[13px]"
+              >
+                3/3 done
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8] text-[13px]"
+              >
+                2/22/2026
+              </td>
+              <td
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+              />
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

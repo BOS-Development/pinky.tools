@@ -3,27 +3,25 @@
 exports[`ActiveJobs Component should match snapshot when loading 1`] = `
 <div>
   <div
-    class="MuiBox-root css-wg1uo3"
+    class="flex justify-center py-8"
   >
-    <span
-      class="MuiCircularProgress-root MuiCircularProgress-indeterminate MuiCircularProgress-colorPrimary css-1wxecgq-MuiCircularProgress-root"
-      role="progressbar"
-      style="width: 40px; height: 40px;"
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-[#00d4ff]"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
     >
-      <svg
-        class="MuiCircularProgress-svg css-54pwck-MuiCircularProgress-svg"
-        viewBox="22 22 44 44"
-      >
-        <circle
-          class="MuiCircularProgress-circle MuiCircularProgress-circleIndeterminate css-19t5dcl-MuiCircularProgress-circle"
-          cx="44"
-          cy="44"
-          fill="none"
-          r="20.2"
-          stroke-width="3.6"
-        />
-      </svg>
-    </span>
+      <path
+        d="M21 12a9 9 0 1 1-6.219-8.56"
+      />
+    </svg>
   </div>
 </div>
 `;
@@ -31,100 +29,93 @@ exports[`ActiveJobs Component should match snapshot when loading 1`] = `
 exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
 <div>
   <div
-    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
   >
-    <table
-      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    <div
+      class="relative w-full overflow-auto"
     >
-      <thead
-        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      <table
+        class="w-full caption-bottom text-sm"
       >
-        <tr
-          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        <thead
+          class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
-            scope="col"
+          <tr
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
           >
-            Source
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Blueprint
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Product
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Activity
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
-          >
-            Runs
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Character
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Status
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Time Left
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Duration
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
-          >
-            Cost
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            System
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-      >
-        <tr
-          class="MuiTableRow-root css-1xtozoh-MuiTableRow-root"
+            <th
+              class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+            >
+              Source
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Blueprint
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Product
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Activity
+            </th>
+            <th
+              class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              Runs
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Character
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Status
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Time Left
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Duration
+            </th>
+            <th
+              class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              Cost
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              System
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="[&_tr:last-child]:border-0"
         >
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1btjunt-MuiTableCell-root"
-            colspan="11"
+          <tr
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
           >
-            No active industry jobs
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-4 text-[#64748b]"
+              colspan="11"
+            >
+              No active industry jobs
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 `;
@@ -132,320 +123,340 @@ exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
 exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
 <div>
   <div
-    class="MuiTableContainer-root css-70zvr5-MuiTableContainer-root"
+    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
   >
-    <table
-      class="MuiTable-root css-1xwxv7r-MuiTable-root"
+    <div
+      class="relative w-full overflow-auto"
     >
-      <thead
-        class="MuiTableHead-root css-1a7iywq-MuiTableHead-root"
+      <table
+        class="w-full caption-bottom text-sm"
       >
-        <tr
-          class="MuiTableRow-root MuiTableRow-head css-26wbf9-MuiTableRow-root"
+        <thead
+          class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignCenter MuiTableCell-sizeSmall css-1p4g5cl-MuiTableCell-root"
-            scope="col"
+          <tr
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
           >
-            Source
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Blueprint
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Product
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Activity
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
-          >
-            Runs
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Character
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Status
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Time Left
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            Duration
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-alignRight MuiTableCell-sizeSmall css-14ucdea-MuiTableCell-root"
-            scope="col"
-          >
-            Cost
-          </th>
-          <th
-            class="MuiTableCell-root MuiTableCell-head MuiTableCell-sizeSmall css-fb16f1-MuiTableCell-root"
-            scope="col"
-          >
-            System
-          </th>
-        </tr>
-      </thead>
-      <tbody
-        class="MuiTableBody-root css-gmh7jj-MuiTableBody-root"
-      >
-        <tr
-          class="MuiTableRow-root css-ky2cy3-MuiTableRow-root"
+            <th
+              class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+            >
+              Source
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Blueprint
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Product
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Activity
+            </th>
+            <th
+              class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              Runs
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Character
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Status
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Time Left
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              Duration
+            </th>
+            <th
+              class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              Cost
+            </th>
+            <th
+              class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              System
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          class="[&_tr:last-child]:border-0"
         >
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
+          <tr
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0d1117]"
           >
-            <svg
-              aria-hidden="true"
-              aria-label="Character Job"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-qahz97-MuiSvgIcon-root"
-              data-mui-internal-clone-element="true"
-              data-testid="PersonIcon"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4m0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4"
-              />
-            </svg>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
-            >
-              Rifter Blueprint
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
-            >
-              Rifter
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
-            >
-              Manufacturing
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
-            >
-              10
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
-            >
-              Test Pilot
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <div
-              class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorSuccess MuiChip-outlinedSuccess css-fko4l-MuiChip-root"
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <span
-                class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                class="inline-flex"
+                data-state="closed"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-user h-[18px] w-[18px] text-[#94a3b8]"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="7"
+                    r="4"
+                  />
+                </svg>
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#e2e8f0]"
+              >
+                Rifter Blueprint
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#cbd5e1]"
+              >
+                Rifter
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#cbd5e1]"
+              >
+                Manufacturing
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              <span
+                class="text-sm text-[#e2e8f0]"
+              >
+                10
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                Test Pilot
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <div
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981] cursor-default"
               >
                 active
-              </span>
-            </div>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-1xxnkgx-MuiTypography-root"
-            >
-              Ready
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
-            >
-              1h 0m
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
-            >
-              1.50M ISK
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
-            >
-              Jita
-            </p>
-          </td>
-        </tr>
-        <tr
-          class="MuiTableRow-root css-ky2cy3-MuiTableRow-root"
-        >
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignCenter MuiTableCell-sizeSmall css-wsxt5g-MuiTableCell-root"
-          >
-            <svg
-              aria-hidden="true"
-              aria-label="Corporation Job"
-              class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-64fxvi-MuiSvgIcon-root"
-              data-mui-internal-clone-element="true"
-              data-testid="CorporateFareIcon"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M12 7V3H2v18h20V7zm-2 12H4v-2h6zm0-4H4v-2h6zm0-4H4V9h6zm0-4H4V5h6zm10 12h-8V9h8zm-2-8h-4v2h4zm0 4h-4v2h4z"
-              />
-            </svg>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
-            >
-              Reaction Blueprint
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
-            >
-              -
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
-            >
-              Reaction
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-yaetr5-MuiTypography-root"
-            >
-              100
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
-            >
-              Corp Alt
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <div
-              class="MuiChip-root MuiChip-outlined MuiChip-sizeSmall MuiChip-colorInfo MuiChip-outlinedInfo css-mr7bkj-MuiChip-root"
+              </div>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="MuiChip-label MuiChip-labelSmall css-19m61dl-MuiChip-label"
+                class="text-sm text-[#00d4ff]"
+              >
+                Ready
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                1h 0m
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              <span
+                class="text-sm text-[#cbd5e1]"
+              >
+                1.50M ISK
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                Jita
+              </span>
+            </td>
+          </tr>
+          <tr
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#12151f]"
+          >
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+            >
+              <span
+                class="inline-flex"
+                data-state="closed"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-building2 lucide-building-2 h-[18px] w-[18px] text-[#f59e0b]"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M10 12h4"
+                  />
+                  <path
+                    d="M10 8h4"
+                  />
+                  <path
+                    d="M14 21v-3a2 2 0 0 0-4 0v3"
+                  />
+                  <path
+                    d="M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"
+                  />
+                  <path
+                    d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"
+                  />
+                </svg>
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#e2e8f0]"
+              >
+                Reaction Blueprint
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#cbd5e1]"
+              >
+                -
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#cbd5e1]"
+              >
+                Reaction
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+            >
+              <span
+                class="text-sm text-[#e2e8f0]"
+              >
+                100
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                Corp Alt
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <div
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff] cursor-default"
               >
                 ready
+              </div>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+            >
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                Ready
               </span>
-            </div>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
-              Ready
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                2h 0m
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
-              2h 0m
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-alignRight MuiTableCell-sizeSmall css-17j8okc-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-16mz89a-MuiTypography-root"
+              <span
+                class="text-sm text-[#cbd5e1]"
+              >
+                -
+              </span>
+            </td>
+            <td
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
-              -
-            </p>
-          </td>
-          <td
-            class="MuiTableCell-root MuiTableCell-body MuiTableCell-sizeSmall css-jiabcu-MuiTableCell-root"
-          >
-            <p
-              class="MuiTypography-root MuiTypography-body2 css-rfztis-MuiTypography-root"
-            >
-              -
-            </p>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+              <span
+                class="text-sm text-[#94a3b8]"
+              >
+                -
+              </span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 `;

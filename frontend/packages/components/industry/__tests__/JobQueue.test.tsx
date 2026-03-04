@@ -3,6 +3,17 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import JobQueue from '../JobQueue';
 import { CharacterSlotInfo, IndustryJobQueueEntry } from '@industry-tool/client/data/models';
 
+// Mock Radix DropdownMenu for JSDOM compatibility
+jest.mock('@/components/ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: any) => children,
+  DropdownMenuContent: ({ children }: any) => <div>{children}</div>,
+  DropdownMenuItem: ({ children, onClick, disabled }: any) => (
+    <div role="menuitem" onClick={disabled ? undefined : onClick}>{children}</div>
+  ),
+  DropdownMenuSeparator: () => <hr />,
+}));
+
 // Mock fetch for character-slots and character reassignment
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
@@ -308,12 +319,11 @@ describe('JobQueue Component', () => {
     ];
 
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
-    // The character name should appear as a Chip (clickable)
+    // The character name should appear as a clickable button (dropdown trigger)
     const chip = screen.getByText('Alpha Pilot');
     expect(chip).toBeInTheDocument();
-    // The chip should be within a MUI chip element (has the chip role or class)
-    // We verify it's not a plain Typography by checking the Chip rendered correctly
-    expect(chip.closest('.MuiChip-root')).toBeInTheDocument();
+    // Verify it's inside a button for planned entries
+    expect(chip.closest('button')).toBeTruthy();
   });
 
   it('should show Assign chip for planned entry with no character assigned', () => {
@@ -337,7 +347,7 @@ describe('JobQueue Component', () => {
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
     const assignChip = screen.getByText('Assign');
     expect(assignChip).toBeInTheDocument();
-    expect(assignChip.closest('.MuiChip-root')).toBeInTheDocument();
+    expect(assignChip.closest('button')).toBeTruthy();
   });
 
   it('should show plain text for non-planned entry character cell', () => {
@@ -363,8 +373,8 @@ describe('JobQueue Component', () => {
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
     const charName = screen.getByText('Alpha Pilot');
     expect(charName).toBeInTheDocument();
-    // Should NOT be in a Chip for active status
-    expect(charName.closest('.MuiChip-root')).not.toBeInTheDocument();
+    // Should NOT be in a button for active status (plain text)
+    expect(charName.closest('button')).toBeFalsy();
   });
 
   it('should fetch character slots and open menu when chip is clicked', async () => {
@@ -394,7 +404,7 @@ describe('JobQueue Component', () => {
 
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} onRefresh={mockOnRefresh} />);
 
-    const chip = screen.getByText('Alpha Pilot').closest('.MuiChip-root') as HTMLElement;
+    const chip = screen.getByText('Alpha Pilot').closest('button') as HTMLElement;
     fireEvent.click(chip);
 
     await waitFor(() => {
@@ -439,7 +449,7 @@ describe('JobQueue Component', () => {
 
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} onRefresh={mockOnRefresh} />);
 
-    const chip = screen.getByText('Alpha Pilot').closest('.MuiChip-root') as HTMLElement;
+    const chip = screen.getByText('Alpha Pilot').closest('button') as HTMLElement;
     fireEvent.click(chip);
 
     await waitFor(() => {
@@ -493,7 +503,7 @@ describe('JobQueue Component', () => {
 
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} onRefresh={mockOnRefresh} />);
 
-    const chip = screen.getByText('Alpha Pilot').closest('.MuiChip-root') as HTMLElement;
+    const chip = screen.getByText('Alpha Pilot').closest('button') as HTMLElement;
     fireEvent.click(chip);
 
     await waitFor(() => {
@@ -536,7 +546,7 @@ describe('JobQueue Component', () => {
 
     render(<JobQueue entries={entries} loading={false} onCancel={mockOnCancel} />);
 
-    const chip = screen.getByText('Assign').closest('.MuiChip-root') as HTMLElement;
+    const chip = screen.getByText('Assign').closest('button') as HTMLElement;
     fireEvent.click(chip);
 
     await waitFor(() => {

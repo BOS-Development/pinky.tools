@@ -491,7 +491,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
                   <Tooltip>
                     <TooltipTrigger>
-                      <Info className="h-3.5 w-3.5 text-[#00d4ff]" />
+                      <Info className="h-3.5 w-3.5 text-[#00d4ff]" data-testid="InfoIcon" />
                     </TooltipTrigger>
                     <TooltipContent>
                       Detected: ME {detectedLevels[step.blueprintTypeId].materialEfficiency} / TE {detectedLevels[step.blueprintTypeId].timeEfficiency} from {detectedLevels[step.blueprintTypeId].ownerName}
@@ -500,7 +500,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 ) : (
                   <Tooltip>
                     <TooltipTrigger>
-                      <CheckCircle className="h-3.5 w-3.5 text-[#10b981]" />
+                      <CheckCircle className="h-3.5 w-3.5 text-[#10b981]" data-testid="CheckCircleOutlineIcon" />
                     </TooltipTrigger>
                     <TooltipContent>
                       Blueprint detected from {detectedLevels[step.blueprintTypeId].ownerName}
@@ -510,7 +510,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
               ) : Object.keys(detectedLevels).length > 0 && (
                 <Tooltip>
                   <TooltipTrigger>
-                    <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" />
+                    <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" data-testid="WarningAmberIcon" />
                   </TooltipTrigger>
                   <TooltipContent>
                     No blueprint detected — ME/TE values are manual
@@ -565,7 +565,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
             onClick={() => setEditStepId(step.id)}
             aria-label="Edit"
           >
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-4 w-4" data-testid="EditIcon" />
           </button>
           {depth > 0 && (
             <button
@@ -669,7 +669,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                       ) : Object.keys(detectedLevels).length > 0 ? (
                         <Tooltip>
                           <TooltipTrigger>
-                            <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" />
+                            <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" data-testid="WarningAmberIcon" />
                           </TooltipTrigger>
                           <TooltipContent>No blueprint detected</TooltipContent>
                         </Tooltip>
@@ -747,7 +747,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     setEditingName(true);
                   }}
                 >
-                  <Pencil className="h-4 w-4" />
+                  <Pencil className="h-4 w-4" data-testid="EditIcon" />
                 </button>
               </div>
             )}
@@ -1445,8 +1445,9 @@ function EditStepDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
+              <Label htmlFor="edit-me-level" className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
               <Input
+                id="edit-me-level"
                 type="number"
                 value={meLevel}
                 onChange={(e) => setMeLevel(parseInt(e.target.value) || 0)}
@@ -1455,8 +1456,9 @@ function EditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
+              <Label htmlFor="edit-te-level" className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
               <Input
+                id="edit-te-level"
                 type="number"
                 value={teLevel}
                 onChange={(e) => setTeLevel(parseInt(e.target.value) || 0)}

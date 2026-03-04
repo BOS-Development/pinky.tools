@@ -198,7 +198,7 @@ export default function ProductionPlansList() {
                         }}
                         aria-label="Delete"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4" data-testid="DeleteIcon" />
                       </button>
                     </TableCell>
                   </TableRow>
@@ -407,7 +407,7 @@ function CreatePlanDialog({
 
           {/* Manufacturing Station */}
           <div>
-            <Label className="text-sm text-[#94a3b8] mb-1 block">Default Manufacturing Station</Label>
+            <Label htmlFor="default-mfg-station" className="text-sm text-[#94a3b8] mb-1 block">Default Manufacturing Station</Label>
             <Select
               value={defaultManufacturingStation ? String(defaultManufacturingStation.id) : "none"}
               onValueChange={(val) => {
@@ -419,7 +419,7 @@ function CreatePlanDialog({
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger id="default-mfg-station">
                 <SelectValue placeholder="Optional" />
               </SelectTrigger>
               <SelectContent>
@@ -435,7 +435,7 @@ function CreatePlanDialog({
 
           {/* Reaction Station */}
           <div>
-            <Label className="text-sm text-[#94a3b8] mb-1 block">Default Reaction Station</Label>
+            <Label htmlFor="default-rxn-station" className="text-sm text-[#94a3b8] mb-1 block">Default Reaction Station</Label>
             <Select
               value={defaultReactionStation ? String(defaultReactionStation.id) : "none"}
               onValueChange={(val) => {
@@ -447,7 +447,7 @@ function CreatePlanDialog({
                 }
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger id="default-rxn-station">
                 <SelectValue placeholder="Optional" />
               </SelectTrigger>
               <SelectContent>

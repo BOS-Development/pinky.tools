@@ -476,9 +476,9 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           onClick={() => toggleExpand(group)}
                         >
                           {isExpanded ? (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-4 w-4" data-testid="ExpandMoreIcon" />
                           ) : (
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-4 w-4" data-testid="ChevronRightIcon" />
                           )}
                         </button>
                         <img
@@ -515,11 +515,11 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                       ) : (
                         <div className="flex items-center justify-center gap-1 flex-wrap">
                           <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 ${buildCount > 0 ? "bg-[#1e3a5f] text-[#60a5fa]" : "bg-[#1e293b] text-[#475569]"} hover:bg-[#1e3a5f]`}>
-                            <Wrench className="h-3 w-3" />
+                            <Wrench className="h-3 w-3" data-testid="BuildIcon" />
                             {buildCount}
                           </Badge>
                           <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] ${buyCount && buyCount > 0 ? "text-[#94a3b8]" : "text-[#475569]"} hover:bg-[#1e293b]`}>
-                            <ShoppingCart className="h-3 w-3" />
+                            <ShoppingCart className="h-3 w-3" data-testid="ShoppingCartIcon" />
                             {buyCount ?? "?"}
                           </Badge>
                           <Tooltip>
@@ -529,7 +529,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                                 onClick={() => handleSetAllBuild(group)}
                                 disabled={buyCount === 0}
                               >
-                                <Wrench className="h-4 w-4" />
+                                <Wrench className="h-4 w-4" data-testid="BuildIcon" />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>Set all materials to Build</TooltipContent>
@@ -541,7 +541,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                                 onClick={() => handleSetAllBuy(group)}
                                 disabled={buildCount === 0}
                               >
-                                <ShoppingCart className="h-4 w-4" />
+                                <ShoppingCart className="h-4 w-4" data-testid="ShoppingCartIcon" />
                               </button>
                             </TooltipTrigger>
                             <TooltipContent>Set all materials to Buy</TooltipContent>
@@ -594,7 +594,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                                   onClick={() => handleApplyBlueprintLevels(group)}
                                   disabled={!hasDetected || applyingBlueprintGroup === groupKey(group)}
                                 >
-                                  <Sparkles className="h-4 w-4" />
+                                  <Sparkles className="h-4 w-4" data-testid="AutoFixHighIcon" />
                                 </button>
                               </TooltipTrigger>
                               <TooltipContent>Apply detected ME/TE from blueprints</TooltipContent>
@@ -605,7 +605,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
                           onClick={() => setEditGroup(group)}
                         >
-                          <Pencil className="h-4 w-4" />
+                          <Pencil className="h-4 w-4" data-testid="EditIcon" />
                         </button>
                       </div>
                     </TableCell>
@@ -684,9 +684,9 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                                     }
                                   >
                                     {mat.produceStatus === "none" ? (
-                                      <Wrench className="h-4 w-4" />
+                                      <Wrench className="h-4 w-4" data-testid="BuildIcon" />
                                     ) : (
-                                      <ShoppingCart className="h-4 w-4" />
+                                      <ShoppingCart className="h-4 w-4" data-testid="ShoppingCartIcon" />
                                     )}
                                   </button>
                                 )}
@@ -1034,8 +1034,9 @@ function BatchEditStepDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
+              <Label htmlFor="batch-me-level" className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
               <Input
+                id="batch-me-level"
                 type="number"
                 value={meLevel}
                 onChange={(e) => setMeLevel(parseInt(e.target.value) || 0)}
@@ -1044,8 +1045,9 @@ function BatchEditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
+              <Label htmlFor="batch-te-level" className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
               <Input
+                id="batch-te-level"
                 type="number"
                 value={teLevel}
                 onChange={(e) => setTeLevel(parseInt(e.target.value) || 0)}
