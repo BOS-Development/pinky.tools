@@ -1250,7 +1250,7 @@ export default function AssetsList(props: AssetsListProps) {
         <Navbar />
         <div className="mt-2 mb-2 px-6">
           <div className="flex justify-center items-center min-h-[60vh]">
-            <p className="text-lg text-[#94a3b8]">Loading assets...</p>
+            <p className="text-lg text-text-secondary">Loading assets...</p>
           </div>
         </div>
       </>
@@ -1263,8 +1263,8 @@ export default function AssetsList(props: AssetsListProps) {
         <Navbar />
         <div className="max-w-screen-xl mx-auto px-4 mt-4">
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-            <h2 className="text-3xl font-semibold text-[#e2e8f0] mb-2">No Assets Found</h2>
-            <p className="text-sm text-[#94a3b8]">
+            <h2 className="text-3xl font-semibold text-text-emphasis mb-2">No Assets Found</h2>
+            <p className="text-sm text-text-secondary">
               You don&apos;t have any assets yet, or they haven&apos;t been synced.
             </p>
           </div>
@@ -1275,19 +1275,19 @@ export default function AssetsList(props: AssetsListProps) {
 
   const renderAssetsTable = (assetsToRender: Asset[], showOwner: boolean, locationId: number, containerId?: number, divisionNumber?: number) => (
     <div className="px-2 pb-1">
-      <div className="overflow-x-auto rounded border border-[rgba(148,163,184,0.1)]">
+      <div className="overflow-x-auto rounded border border-overlay-subtle">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219] border-b border-[rgba(148,163,184,0.1)] hover:bg-[#0f1219]">
-              <TableHead className="text-[#94a3b8] font-semibold text-xs">Item</TableHead>
-              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Quantity</TableHead>
-              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Stockpile</TableHead>
-              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Volume (m³)</TableHead>
-              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Unit Price</TableHead>
-              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Total Value</TableHead>
-              <TableHead className="text-right text-[#94a3b8] font-semibold text-xs">Deficit Cost</TableHead>
-              {showOwner && <TableHead className="text-[#94a3b8] font-semibold text-xs">Owner</TableHead>}
-              <TableHead className="text-center text-[#94a3b8] font-semibold text-xs">Actions</TableHead>
+            <TableRow className="bg-background-void border-b border-overlay-subtle hover:bg-background-void">
+              <TableHead className="text-text-secondary font-semibold text-xs">Item</TableHead>
+              <TableHead className="text-right text-text-secondary font-semibold text-xs">Quantity</TableHead>
+              <TableHead className="text-right text-text-secondary font-semibold text-xs">Stockpile</TableHead>
+              <TableHead className="text-right text-text-secondary font-semibold text-xs">Volume (m³)</TableHead>
+              <TableHead className="text-right text-text-secondary font-semibold text-xs">Unit Price</TableHead>
+              <TableHead className="text-right text-text-secondary font-semibold text-xs">Total Value</TableHead>
+              <TableHead className="text-right text-text-secondary font-semibold text-xs">Deficit Cost</TableHead>
+              {showOwner && <TableHead className="text-text-secondary font-semibold text-xs">Owner</TableHead>}
+              <TableHead className="text-center text-text-secondary font-semibold text-xs">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1296,13 +1296,13 @@ export default function AssetsList(props: AssetsListProps) {
                 key={idx}
                 className={cn(
                   'border-b border-[rgba(148,163,184,0.05)] hover:bg-[rgba(148,163,184,0.04)]',
-                  idx % 2 === 0 ? 'bg-[#12151f]' : 'bg-[#0f1219]',
+                  idx % 2 === 0 ? 'bg-background-panel' : 'bg-background-void',
                   asset.stockpileDelta !== undefined && asset.stockpileDelta < 0 && 'border-l-4 border-l-[#ef4444] font-semibold'
                 )}
               >
                 <TableCell className="py-1.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm text-[#e2e8f0]">{asset.name}</span>
+                    <span className="text-sm text-text-emphasis">{asset.name}</span>
                     {(() => {
                       const listing = getListingForAsset(asset, locationId, containerId, divisionNumber);
                       if (listing) {
@@ -1312,12 +1312,12 @@ export default function AssetsList(props: AssetsListProps) {
                             className={cn(
                               'inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold border cursor-pointer',
                               listing.autoSellContainerId
-                                ? 'bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border-[rgba(0,212,255,0.3)]'
-                                : 'bg-[rgba(16,185,129,0.15)] text-[#10b981] border-[rgba(16,185,129,0.3)]'
+                                ? 'bg-interactive-active text-primary border-border-active'
+                                : 'bg-[rgba(16,185,129,0.15)] text-teal-success border-[rgba(16,185,129,0.3)]'
                             )}
                           >
                             {listing.autoSellContainerId ? (
-                              <AutoSellIcon className="text-[#00d4ff]" />
+                              <AutoSellIcon className="text-primary" />
                             ) : (
                               <CheckCircle2 className="h-3.5 w-3.5" />
                             )}
@@ -1330,48 +1330,48 @@ export default function AssetsList(props: AssetsListProps) {
                   </div>
                 </TableCell>
                 <TableCell className="text-right py-1.5">
-                  <span className="text-sm text-[#e2e8f0]">{formatNumber(asset.quantity)}</span>
+                  <span className="text-sm text-text-emphasis">{formatNumber(asset.quantity)}</span>
                 </TableCell>
                 <TableCell className="text-right py-1.5">
                   {asset.desiredQuantity ? (
                     <span className="text-sm font-medium">
-                      <span className={cn('font-semibold text-sm', asset.stockpileDelta! >= 0 ? 'text-[#10b981]' : 'text-[#ef4444]')}>
+                      <span className={cn('font-semibold text-sm', asset.stockpileDelta! >= 0 ? 'text-teal-success' : 'text-rose-danger')}>
                         {asset.stockpileDelta! >= 0 ? '+' : ''}{formatNumber(asset.stockpileDelta!)}
                       </span>
-                      <span className="text-[#64748b] mx-1">/</span>
-                      <span className="text-[#94a3b8]">{formatNumber(asset.desiredQuantity)}</span>
+                      <span className="text-text-muted mx-1">/</span>
+                      <span className="text-text-secondary">{formatNumber(asset.desiredQuantity)}</span>
                     </span>
                   ) : (
-                    <span className="text-xs text-[#64748b]">-</span>
+                    <span className="text-xs text-text-muted">-</span>
                   )}
                 </TableCell>
                 <TableCell className="text-right py-1.5">
-                  <span className="text-sm text-[#94a3b8]">{formatNumber(asset.volume, 2)}</span>
+                  <span className="text-sm text-text-secondary">{formatNumber(asset.volume, 2)}</span>
                 </TableCell>
                 <TableCell className="text-right py-1.5">
                   {asset.unitPrice ? (
-                    <span className="text-sm text-[#e2e8f0]">{formatISK(asset.unitPrice)}</span>
+                    <span className="text-sm text-text-emphasis">{formatISK(asset.unitPrice)}</span>
                   ) : (
-                    <span className="text-xs text-[#64748b]">-</span>
+                    <span className="text-xs text-text-muted">-</span>
                   )}
                 </TableCell>
                 <TableCell className="text-right py-1.5">
                   {asset.totalValue ? (
-                    <span className="text-sm font-semibold text-[#10b981]">{formatISK(asset.totalValue)}</span>
+                    <span className="text-sm font-semibold text-teal-success">{formatISK(asset.totalValue)}</span>
                   ) : (
-                    <span className="text-xs text-[#64748b]">-</span>
+                    <span className="text-xs text-text-muted">-</span>
                   )}
                 </TableCell>
                 <TableCell className="text-right py-1.5">
                   {asset.deficitValue && asset.deficitValue > 0 ? (
-                    <span className="text-sm font-semibold text-[#ef4444]">{formatISK(asset.deficitValue)}</span>
+                    <span className="text-sm font-semibold text-rose-danger">{formatISK(asset.deficitValue)}</span>
                   ) : (
-                    <span className="text-xs text-[#64748b]">-</span>
+                    <span className="text-xs text-text-muted">-</span>
                   )}
                 </TableCell>
                 {showOwner && (
                   <TableCell className="py-1.5">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-[rgba(148,163,184,0.2)] text-[#94a3b8]">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-overlay-strong text-text-secondary">
                       {asset.ownerName}
                     </span>
                   </TableCell>
@@ -1384,7 +1384,7 @@ export default function AssetsList(props: AssetsListProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                            className="h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
                             onClick={() => handleOpenStockpileModal(asset, locationId, containerId, divisionNumber)}
                           >
                             {asset.desiredQuantity ? <Pencil className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5" />}
@@ -1400,7 +1400,7 @@ export default function AssetsList(props: AssetsListProps) {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-[#94a3b8] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                              className="h-7 w-7 text-text-secondary hover:text-rose-danger hover:bg-rose-danger/10"
                               onClick={() => handleDeleteStockpile(asset, locationId, containerId, divisionNumber)}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
@@ -1416,7 +1416,7 @@ export default function AssetsList(props: AssetsListProps) {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-[#3b82f6] hover:text-[#60a5fa] hover:bg-[rgba(59,130,246,0.1)]"
+                            className="h-7 w-7 text-[#3b82f6] hover:text-blue-science hover:bg-[rgba(59,130,246,0.1)]"
                             onClick={() => handleOpenListingDialog(asset, locationId, containerId, divisionNumber)}
                           >
                             <Tag className="h-3.5 w-3.5" />
@@ -1447,22 +1447,22 @@ export default function AssetsList(props: AssetsListProps) {
           onClick={() => toggleNode(nodeId)}
           className="w-full flex items-center gap-2 pl-8 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
         >
-          {isExpanded ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+          {isExpanded ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
           <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
-            <span className="text-sm font-medium text-[#e2e8f0]">{`📦 ${container.name}`}</span>
+            <span className="text-sm font-medium text-text-emphasis">{`📦 ${container.name}`}</span>
             {autoSellConfig && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-interactive-active text-primary border border-border-active">
                 <AutoSellIcon />
                 {`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
               </span>
             )}
             {autoBuyConfig && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)]">
                 <AutoBuyIcon />
                 {`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
               </span>
             )}
-            <span className="text-xs text-[#64748b]">{container.assets.length} items</span>
+            <span className="text-xs text-text-muted">{container.assets.length} items</span>
           </div>
           <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <TooltipProvider>
@@ -1471,7 +1471,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                    className="h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenAddStockpileDialog(locationId, [{ ownerType: container.ownerType, ownerId: container.ownerId, ownerName: container.ownerName }], container.id, divisionNumber);
@@ -1490,7 +1490,7 @@ export default function AssetsList(props: AssetsListProps) {
                     variant="ghost"
                     size="icon"
                     aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
-                    className={cn('h-7 w-7 hover:bg-[rgba(245,158,11,0.1)]', autoBuyConfig ? 'text-[#f59e0b]' : 'text-[#94a3b8] hover:text-[#f59e0b]')}
+                    className={cn('h-7 w-7 hover:bg-amber-manufacturing/10', autoBuyConfig ? 'text-amber-manufacturing' : 'text-text-secondary hover:text-amber-manufacturing')}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenAutoBuyDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
@@ -1509,7 +1509,7 @@ export default function AssetsList(props: AssetsListProps) {
                     variant="ghost"
                     size="icon"
                     aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
-                    className={cn('h-7 w-7 hover:bg-[rgba(0,212,255,0.1)]', autoSellConfig ? 'text-[#00d4ff]' : 'text-[#94a3b8] hover:text-[#00d4ff]')}
+                    className={cn('h-7 w-7 hover:bg-interactive-selected', autoSellConfig ? 'text-primary' : 'text-text-secondary hover:text-primary')}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenAutoSellDialog(container.ownerType, container.ownerId, locationId, container.id, container.name, divisionNumber);
@@ -1544,22 +1544,22 @@ export default function AssetsList(props: AssetsListProps) {
           onClick={() => toggleNode(nodeId)}
           className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
         >
-          {isExpanded ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+          {isExpanded ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
           <div className="flex-1 flex items-center gap-2 flex-wrap min-w-0">
-            <span className="text-sm font-medium text-[#e2e8f0]">{`${hanger.corporationName} - ${hanger.name}`}</span>
+            <span className="text-sm font-medium text-text-emphasis">{`${hanger.corporationName} - ${hanger.name}`}</span>
             {autoSellConfig && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-interactive-active text-primary border border-border-active">
                 <AutoSellIcon />
                 {`Auto-Sell @ ${autoSellConfig.pricePercentage}% ${getPriceSourceAbbrev(autoSellConfig.priceSource)}`}
               </span>
             )}
             {autoBuyConfig && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)]">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)]">
                 <AutoBuyIcon />
                 {`Auto-Buy @ ${autoBuyConfig.minPricePercentage > 0 ? `${autoBuyConfig.minPricePercentage}-` : ''}${autoBuyConfig.maxPricePercentage}% ${getPriceSourceAbbrev(autoBuyConfig.priceSource)}`}
               </span>
             )}
-            <span className="text-xs text-[#64748b]">{hanger.assets.length} items, {hanger.hangarContainers?.length || 0} containers</span>
+            <span className="text-xs text-text-muted">{hanger.assets.length} items, {hanger.hangarContainers?.length || 0} containers</span>
           </div>
           <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <TooltipProvider>
@@ -1568,7 +1568,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                    className="h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenAddStockpileDialog(structureId, [{ ownerType: 'corporation', ownerId: hanger.corporationId, ownerName: hanger.corporationName }], undefined, hanger.id);
@@ -1587,7 +1587,7 @@ export default function AssetsList(props: AssetsListProps) {
                     variant="ghost"
                     size="icon"
                     aria-label={autoBuyConfig ? 'Edit Auto-Buy' : 'Enable Auto-Buy'}
-                    className={cn('h-7 w-7 hover:bg-[rgba(245,158,11,0.1)]', autoBuyConfig ? 'text-[#f59e0b]' : 'text-[#94a3b8] hover:text-[#f59e0b]')}
+                    className={cn('h-7 w-7 hover:bg-amber-manufacturing/10', autoBuyConfig ? 'text-amber-manufacturing' : 'text-text-secondary hover:text-amber-manufacturing')}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenAutoBuyDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
@@ -1606,7 +1606,7 @@ export default function AssetsList(props: AssetsListProps) {
                     variant="ghost"
                     size="icon"
                     aria-label={autoSellConfig ? 'Edit Auto-Sell' : 'Enable Auto-Sell'}
-                    className={cn('h-7 w-7 hover:bg-[rgba(0,212,255,0.1)]', autoSellConfig ? 'text-[#00d4ff]' : 'text-[#94a3b8] hover:text-[#00d4ff]')}
+                    className={cn('h-7 w-7 hover:bg-interactive-selected', autoSellConfig ? 'text-primary' : 'text-text-secondary hover:text-primary')}
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenAutoSellDialog('corporation', hanger.corporationId, structureId, undefined, hanger.name, hanger.id);
@@ -1646,11 +1646,11 @@ export default function AssetsList(props: AssetsListProps) {
             isHidden && 'opacity-60'
           )}
         >
-          {isStructureExpanded ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+          {isStructureExpanded ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
           <MapPin className="h-4 w-4 text-[#3b82f6] flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-[#e2e8f0] truncate">{structure.name}</p>
-            <p className="text-xs text-[#64748b]">{structure.solarSystem} · {structure.region}</p>
+            <p className="text-sm font-bold text-text-emphasis truncate">{structure.name}</p>
+            <p className="text-xs text-text-muted">{structure.solarSystem} · {structure.region}</p>
           </div>
           <div className="flex items-center gap-0.5 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
             <TooltipProvider>
@@ -1659,7 +1659,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className={cn('h-7 w-7', pinnedStructures.has(structure.id) ? 'text-[#3b82f6]' : 'text-[#94a3b8] hover:text-[#e2e8f0]')}
+                    className={cn('h-7 w-7', pinnedStructures.has(structure.id) ? 'text-[#3b82f6]' : 'text-text-secondary hover:text-text-emphasis')}
                     onClick={(e) => {
                       e.stopPropagation();
                       togglePinStructure(structure.id);
@@ -1677,7 +1677,7 @@ export default function AssetsList(props: AssetsListProps) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                    className="h-7 w-7 text-text-secondary hover:text-text-emphasis"
                     onClick={(e) => {
                       e.stopPropagation();
                       toggleHideStructure(structure.id);
@@ -1701,10 +1701,10 @@ export default function AssetsList(props: AssetsListProps) {
                   onClick={() => toggleNode(`structure-${structure.id}-hangar`)}
                   className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
                 >
-                  {expandedNodes.has(`structure-${structure.id}-hangar`) ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+                  {expandedNodes.has(`structure-${structure.id}-hangar`) ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
                   <div className="flex-1">
-                    <span className="text-sm font-semibold text-[#e2e8f0]">Personal Hangar</span>
-                    <span className="text-xs text-[#64748b] ml-2">{structure.hangarAssets.length} items</span>
+                    <span className="text-sm font-semibold text-text-emphasis">Personal Hangar</span>
+                    <span className="text-xs text-text-muted ml-2">{structure.hangarAssets.length} items</span>
                   </div>
                   {!isHidden && (
                     <div onClick={(e) => e.stopPropagation()}>
@@ -1714,7 +1714,7 @@ export default function AssetsList(props: AssetsListProps) {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]"
+                              className="h-7 w-7 text-text-secondary hover:text-text-emphasis hover:bg-overlay-subtle"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const seen = new Map<string, { ownerType: string; ownerId: number; ownerName: string }>();
@@ -1755,10 +1755,10 @@ export default function AssetsList(props: AssetsListProps) {
                   onClick={() => toggleNode(`structure-${structure.id}-deliveries`)}
                   className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
                 >
-                  {expandedNodes.has(`structure-${structure.id}-deliveries`) ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+                  {expandedNodes.has(`structure-${structure.id}-deliveries`) ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
                   <div className="flex-1">
-                    <span className="text-sm font-semibold text-[#e2e8f0]">📬 Deliveries</span>
-                    <span className="text-xs text-[#64748b] ml-2">{structure.deliveries.length} items</span>
+                    <span className="text-sm font-semibold text-text-emphasis">📬 Deliveries</span>
+                    <span className="text-xs text-text-muted ml-2">{structure.deliveries.length} items</span>
                   </div>
                 </button>
                 {expandedNodes.has(`structure-${structure.id}-deliveries`) && (
@@ -1774,10 +1774,10 @@ export default function AssetsList(props: AssetsListProps) {
                   onClick={() => toggleNode(`structure-${structure.id}-safety`)}
                   className="w-full flex items-center gap-2 pl-6 pr-3 py-2 hover:bg-[rgba(148,163,184,0.04)] text-left"
                 >
-                  {expandedNodes.has(`structure-${structure.id}-safety`) ? <ChevronUp className="h-4 w-4 text-[#94a3b8] flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-[#94a3b8] flex-shrink-0" />}
+                  {expandedNodes.has(`structure-${structure.id}-safety`) ? <ChevronUp className="h-4 w-4 text-text-secondary flex-shrink-0" /> : <ChevronDown className="h-4 w-4 text-text-secondary flex-shrink-0" />}
                   <div className="flex-1">
-                    <span className="text-sm font-semibold text-[#e2e8f0]">🛡️ Asset Safety</span>
-                    <span className="text-xs text-[#64748b] ml-2">{structure.assetSafety.length} items</span>
+                    <span className="text-sm font-semibold text-text-emphasis">🛡️ Asset Safety</span>
+                    <span className="text-xs text-text-muted ml-2">{structure.assetSafety.length} items</span>
                   </div>
                 </button>
                 {expandedNodes.has(`structure-${structure.id}-safety`) && (
@@ -1805,9 +1805,9 @@ export default function AssetsList(props: AssetsListProps) {
         <div className="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3">
           <div className="flex items-center justify-between mb-3 pt-1">
             <div>
-              <h2 className="text-xl font-semibold text-[#e2e8f0]">Asset Inventory</h2>
+              <h2 className="text-xl font-semibold text-text-emphasis">Asset Inventory</h2>
               {assetStatus && (
-                <p className="text-[#94a3b8] text-xs mt-0.5">
+                <p className="text-text-secondary text-xs mt-0.5">
                   {assetStatus.lastUpdatedAt ? (
                     <>
                       Last updated: {formatRelativeTime(new Date(assetStatus.lastUpdatedAt))}
@@ -1824,40 +1824,40 @@ export default function AssetsList(props: AssetsListProps) {
 
             {/* Summary Stats */}
             <div className="flex gap-2.5 items-center flex-wrap">
-              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(0,212,255,0.08)] border border-[rgba(0,212,255,0.2)]">
-                <Package className="h-5 w-5 text-[#00d4ff]" />
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]">
+                <Package className="h-5 w-5 text-primary" />
                 <div>
-                  <p className="text-sm font-bold text-[#e2e8f0]">{formatCompact(totalItems)}</p>
-                  <p className="text-[0.7rem] text-[#94a3b8]">Items</p>
+                  <p className="text-sm font-bold text-text-emphasis">{formatCompact(totalItems)}</p>
+                  <p className="text-[0.7rem] text-text-secondary">Items</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]">
                 <Layers className="h-5 w-5 text-[#8b5cf6]" />
                 <div>
-                  <p className="text-sm font-bold text-[#e2e8f0]">{formatCompact(uniqueTypes)}</p>
-                  <p className="text-[0.7rem] text-[#94a3b8]">Types</p>
+                  <p className="text-sm font-bold text-text-emphasis">{formatCompact(uniqueTypes)}</p>
+                  <p className="text-[0.7rem] text-text-secondary">Types</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]">
-                <MapPin className="h-5 w-5 text-[#f59e0b]" />
+                <MapPin className="h-5 w-5 text-amber-manufacturing" />
                 <div>
-                  <p className="text-sm font-bold text-[#e2e8f0]">{formatCompact(totalVolume)}</p>
-                  <p className="text-[0.7rem] text-[#94a3b8]">m³</p>
+                  <p className="text-sm font-bold text-text-emphasis">{formatCompact(totalVolume)}</p>
+                  <p className="text-[0.7rem] text-text-secondary">m³</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]">
-                <DollarSign className="h-5 w-5 text-[#10b981]" />
+                <DollarSign className="h-5 w-5 text-teal-success" />
                 <div>
-                  <p className="text-sm font-bold text-[#10b981]">{formatISK(totalValue)}</p>
-                  <p className="text-[0.7rem] text-[#94a3b8]">Total Value</p>
+                  <p className="text-sm font-bold text-teal-success">{formatISK(totalValue)}</p>
+                  <p className="text-[0.7rem] text-text-secondary">Total Value</p>
                 </div>
               </div>
               {totalDeficit > 0 && (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.2)]">
-                  <AlertTriangle className="h-5 w-5 text-[#ef4444]" />
+                  <AlertTriangle className="h-5 w-5 text-rose-danger" />
                   <div>
-                    <p className="text-sm font-bold text-[#ef4444]">{formatISK(totalDeficit)}</p>
-                    <p className="text-[0.7rem] text-[#94a3b8]">Deficit Cost</p>
+                    <p className="text-sm font-bold text-rose-danger">{formatISK(totalDeficit)}</p>
+                    <p className="text-[0.7rem] text-text-secondary">Deficit Cost</p>
                   </div>
                 </div>
               )}
@@ -1869,7 +1869,7 @@ export default function AssetsList(props: AssetsListProps) {
                       size="icon"
                       onClick={handleRefreshPrices}
                       disabled={refreshingPrices}
-                      className="h-9 w-9 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      className="h-9 w-9 text-text-secondary hover:text-text-emphasis"
                     >
                       {refreshingPrices ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -1887,12 +1887,12 @@ export default function AssetsList(props: AssetsListProps) {
           {/* Search Bar and Filter */}
           <div className="flex gap-3 items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-[#64748b]" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-muted" />
               <Input
                 placeholder="Search items..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-9 bg-[#12151f] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] placeholder:text-[#64748b]"
+                className="pl-9 bg-background-panel border-overlay-strong text-text-emphasis placeholder:text-text-muted"
               />
             </div>
             <div className="flex items-center gap-2 whitespace-nowrap">
@@ -1901,7 +1901,7 @@ export default function AssetsList(props: AssetsListProps) {
                 checked={showBelowTargetOnly}
                 onCheckedChange={setShowBelowTargetOnly}
               />
-              <Label htmlFor="below-target" className="text-sm text-[#e2e8f0] cursor-pointer">
+              <Label htmlFor="below-target" className="text-sm text-text-emphasis cursor-pointer">
                 Below target only
               </Label>
             </div>
@@ -1909,7 +1909,7 @@ export default function AssetsList(props: AssetsListProps) {
         </div>
 
         {/* Tree View - Visible Stations */}
-        <Card className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <Card className="bg-background-panel border-overlay-medium">
           <CardContent className="p-0">
             <div className="divide-y divide-[rgba(148,163,184,0.05)]">
               {visibleStructures.map((structure) => renderStructureTree(structure, false))}
@@ -1919,11 +1919,11 @@ export default function AssetsList(props: AssetsListProps) {
 
         {/* Hidden Stations */}
         {hiddenStructuresList.length > 0 && (
-          <Card className="mt-4 bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <Card className="mt-4 bg-background-panel border-overlay-medium">
             <CardContent className="p-0">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-[rgba(148,163,184,0.1)]">
-                <EyeOff className="h-4 w-4 text-[#94a3b8]" />
-                <h3 className="text-base font-semibold text-[#e2e8f0]">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-overlay-subtle">
+                <EyeOff className="h-4 w-4 text-text-secondary" />
+                <h3 className="text-base font-semibold text-text-emphasis">
                   Hidden Stations ({hiddenStructuresList.length})
                 </h3>
               </div>
@@ -1935,9 +1935,9 @@ export default function AssetsList(props: AssetsListProps) {
         )}
 
         {filteredStructures.length === 0 && searchQuery && (
-          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <Card className="bg-background-panel border-overlay-medium">
             <CardContent className="py-8 text-center">
-              <p className="text-sm text-[#94a3b8]">
+              <p className="text-sm text-text-secondary">
                 No items found matching &quot;{searchQuery}&quot;
               </p>
             </CardContent>
@@ -1952,17 +1952,17 @@ export default function AssetsList(props: AssetsListProps) {
             else desiredQuantityInputRef.current?.focus();
           }}
         >
-          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+          <DialogContent className="sm:max-w-md bg-background-panel border border-overlay-medium text-text-emphasis">
             <DialogHeader>
-              <DialogTitle className="text-[#e2e8f0]">
+              <DialogTitle className="text-text-emphasis">
                 {selectedAsset?.asset.desiredQuantity ? 'Edit' : 'Set'} Stockpile Marker
               </DialogTitle>
             </DialogHeader>
             <div className="pt-1 flex flex-col gap-3">
-              <p className="text-sm text-[#e2e8f0]"><strong>Item:</strong> {selectedAsset?.asset.name}</p>
-              <p className="text-sm text-[#e2e8f0] mb-1"><strong>Current Quantity:</strong> {selectedAsset?.asset.quantity.toLocaleString()}</p>
+              <p className="text-sm text-text-emphasis"><strong>Item:</strong> {selectedAsset?.asset.name}</p>
+              <p className="text-sm text-text-emphasis mb-1"><strong>Current Quantity:</strong> {selectedAsset?.asset.quantity.toLocaleString()}</p>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="stockpile-qty" className="text-xs text-[#94a3b8]">Desired Quantity *</Label>
+                <Label htmlFor="stockpile-qty" className="text-xs text-text-secondary">Desired Quantity *</Label>
                 <Input
                   id="stockpile-qty"
                   type="text"
@@ -1976,41 +1976,41 @@ export default function AssetsList(props: AssetsListProps) {
                   }}
                   placeholder="0"
                   ref={desiredQuantityInputRef}
-                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                  className="bg-background-void border-overlay-strong text-text-emphasis"
                 />
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="stockpile-notes" className="text-xs text-[#94a3b8]">Notes (optional)</Label>
+                <Label htmlFor="stockpile-notes" className="text-xs text-text-secondary">Notes (optional)</Label>
                 <textarea
                   id="stockpile-notes"
                   rows={3}
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full rounded-md border border-[rgba(148,163,184,0.2)] bg-[#0f1219] px-3 py-2 text-sm text-[#e2e8f0] placeholder:text-[#64748b] resize-none focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
+                  className="w-full rounded-md border border-overlay-strong bg-background-void px-3 py-2 text-sm text-text-emphasis placeholder:text-text-muted resize-none focus:outline-none focus:ring-1 focus:ring-[#3b82f6]"
                 />
               </div>
-              <Separator className="bg-[rgba(148,163,184,0.1)]" />
-              <p className="text-xs font-semibold text-[#94a3b8]">Auto-Production</p>
+              <Separator className="bg-overlay-subtle" />
+              <p className="text-xs font-semibold text-text-secondary">Auto-Production</p>
               <div className="flex items-center gap-2">
                 <Switch
                   id="stockpile-auto-prod"
                   checked={autoProductionEnabled}
                   onCheckedChange={setAutoProductionEnabled}
                 />
-                <Label htmlFor="stockpile-auto-prod" className="text-sm text-[#e2e8f0] cursor-pointer">
+                <Label htmlFor="stockpile-auto-prod" className="text-sm text-text-emphasis cursor-pointer">
                   Enable Auto-Production
                 </Label>
               </div>
               {autoProductionEnabled && (
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <Label className="text-xs text-[#94a3b8]">Production Plan</Label>
+                    <Label className="text-xs text-text-secondary">Production Plan</Label>
                     <Select
                       value={selectedPlanId !== null ? String(selectedPlanId) : ''}
                       onValueChange={(v) => setSelectedPlanId(v ? Number(v) : null)}
                       disabled={plansLoading || availablePlans.length === 0}
                     >
-                      <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                      <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                         <SelectValue
                           placeholder={
                             plansLoading
@@ -2021,12 +2021,12 @@ export default function AssetsList(props: AssetsListProps) {
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]">
+                      <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
                         {availablePlans.map((plan) => (
                           <SelectItem
                             key={plan.id}
                             value={String(plan.id)}
-                            className="text-[#e2e8f0] focus:bg-[rgba(0,212,255,0.08)]"
+                            className="text-text-emphasis focus:bg-interactive-hover"
                           >
                             {plan.name}
                           </SelectItem>
@@ -2035,23 +2035,23 @@ export default function AssetsList(props: AssetsListProps) {
                     </Select>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="stockpile-parallelism" className="text-xs text-[#94a3b8]">Max Parallelism</Label>
+                    <Label htmlFor="stockpile-parallelism" className="text-xs text-text-secondary">Max Parallelism</Label>
                     <Input
                       id="stockpile-parallelism"
                       type="number"
                       min={0}
                       value={parallelism}
                       onChange={(e) => setParallelism(Math.max(0, parseInt(e.target.value, 10) || 0))}
-                      className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                      className="bg-background-void border-overlay-strong text-text-emphasis"
                     />
-                    <p className="text-xs text-[#64748b]">0 = no character assignment</p>
+                    <p className="text-xs text-text-muted">0 = no character assignment</p>
                   </div>
                 </div>
               )}
             </div>
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => setStockpileModalOpen(false)}
-                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                className="border-overlay-strong text-text-emphasis hover:bg-overlay-subtle">
                 Cancel
               </Button>
               <Button
@@ -2067,50 +2067,50 @@ export default function AssetsList(props: AssetsListProps) {
 
         {/* List for Sale Dialog */}
         <Dialog open={listingDialogOpen} onOpenChange={(o) => { if (!o) setListingDialogOpen(false); }}>
-          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+          <DialogContent className="sm:max-w-md bg-background-panel border border-overlay-medium text-text-emphasis">
             <DialogHeader>
-              <DialogTitle className="text-[#e2e8f0]">
+              <DialogTitle className="text-text-emphasis">
                 {editingListingId ? 'Edit Listing' : 'List Item for Sale'}
               </DialogTitle>
             </DialogHeader>
             <div className="pt-1 flex flex-col gap-3">
-              <p className="text-sm text-[#e2e8f0]"><strong>Item:</strong> {listingAsset?.asset.name}</p>
-              <p className="text-sm text-[#e2e8f0]"><strong>Owner:</strong> {listingAsset?.asset.ownerName}</p>
-              <p className="text-sm text-[#e2e8f0] mb-1"><strong>Available Quantity:</strong> {listingAsset?.asset.quantity.toLocaleString()}</p>
+              <p className="text-sm text-text-emphasis"><strong>Item:</strong> {listingAsset?.asset.name}</p>
+              <p className="text-sm text-text-emphasis"><strong>Owner:</strong> {listingAsset?.asset.ownerName}</p>
+              <p className="text-sm text-text-emphasis mb-1"><strong>Available Quantity:</strong> {listingAsset?.asset.quantity.toLocaleString()}</p>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="listing-qty" className="text-xs text-[#94a3b8]">Quantity to List *</Label>
+                <Label htmlFor="listing-qty" className="text-xs text-text-secondary">Quantity to List *</Label>
                 <Input
                   id="listing-qty"
                   type="text"
                   ref={listingQuantityRef}
                   onBlur={() => handleListingInputChange(listingQuantityRef)}
                   placeholder="0"
-                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                  className="bg-background-void border-overlay-strong text-text-emphasis"
                 />
-                <p className="text-xs text-[#64748b]">Max: {listingAsset?.asset.quantity.toLocaleString() || 0}</p>
+                <p className="text-xs text-text-muted">Max: {listingAsset?.asset.quantity.toLocaleString() || 0}</p>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="listing-price" className="text-xs text-[#94a3b8]">Price Per Unit (ISK) *</Label>
+                <Label htmlFor="listing-price" className="text-xs text-text-secondary">Price Per Unit (ISK) *</Label>
                 <Input
                   id="listing-price"
                   type="text"
                   ref={listingPriceRef}
                   onBlur={() => handleListingInputChange(listingPriceRef, true)}
                   placeholder="0"
-                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                  className="bg-background-void border-overlay-strong text-text-emphasis"
                 />
                 {listingTotalValue && (
-                  <p className="text-xs text-[#64748b]">Total Value: {listingTotalValue} ISK</p>
+                  <p className="text-xs text-text-muted">Total Value: {listingTotalValue} ISK</p>
                 )}
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="listing-notes" className="text-xs text-[#94a3b8]">Notes (optional)</Label>
+                <Label htmlFor="listing-notes" className="text-xs text-text-secondary">Notes (optional)</Label>
                 <Input
                   id="listing-notes"
                   type="text"
                   ref={listingNotesRef}
                   placeholder="Add any notes about this listing..."
-                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                  className="bg-background-void border-overlay-strong text-text-emphasis"
                 />
               </div>
             </div>
@@ -2120,13 +2120,13 @@ export default function AssetsList(props: AssetsListProps) {
                   variant="destructive"
                   onClick={handleDeleteListing}
                   disabled={submittingListing}
-                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-rose-danger hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
                 >
                   Delete
                 </Button>
               )}
               <Button variant="outline" onClick={() => setListingDialogOpen(false)}
-                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                className="border-overlay-strong text-text-emphasis hover:bg-overlay-subtle">
                 Cancel
               </Button>
               <Button
@@ -2142,9 +2142,9 @@ export default function AssetsList(props: AssetsListProps) {
 
         {/* Auto-Sell Configuration Dialog */}
         <Dialog open={autoSellDialogOpen} onOpenChange={(o) => { if (!o) setAutoSellDialogOpen(false); }}>
-          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+          <DialogContent className="sm:max-w-md bg-background-panel border border-overlay-medium text-text-emphasis">
             <DialogHeader>
-              <DialogTitle className="text-[#e2e8f0]">
+              <DialogTitle className="text-text-emphasis">
                 {autoSellContainer && getAutoSellForContainer(
                   autoSellContainer.containerId,
                   autoSellContainer.ownerType,
@@ -2155,21 +2155,21 @@ export default function AssetsList(props: AssetsListProps) {
               </DialogTitle>
             </DialogHeader>
             <div className="pt-1 flex flex-col gap-3">
-              <p className="text-sm text-[#e2e8f0]">
+              <p className="text-sm text-text-emphasis">
                 <strong>{autoSellContainer?.containerId ? 'Container' : 'Division'}:</strong> {autoSellContainer?.containerName}
               </p>
-              <p className="text-sm text-[#94a3b8] mb-1">
+              <p className="text-sm text-text-secondary mb-1">
                 All items in this {autoSellContainer?.containerId ? 'container' : 'hangar division'} will be automatically listed for sale at the specified percentage of the selected price source. Listings sync on asset refresh and market price updates.
               </p>
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-[#94a3b8]">Price Source</Label>
+                <Label className="text-xs text-text-secondary">Price Source</Label>
                 <Select value={autoSellPriceSource} onValueChange={setAutoSellPriceSource}>
-                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]">
+                  <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
                     {PRICE_SOURCE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[#e2e8f0] focus:bg-[rgba(0,212,255,0.08)]">
+                      <SelectItem key={option.value} value={option.value} className="text-text-emphasis focus:bg-interactive-hover">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -2177,7 +2177,7 @@ export default function AssetsList(props: AssetsListProps) {
                 </Select>
               </div>
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="auto-sell-pct" className="text-xs text-[#94a3b8]">
+                <Label htmlFor="auto-sell-pct" className="text-xs text-text-secondary">
                   Price Percentage of {getPriceSourceLabel(autoSellPriceSource)}
                 </Label>
                 <div className="relative">
@@ -2189,11 +2189,11 @@ export default function AssetsList(props: AssetsListProps) {
                     step={0.5}
                     value={autoSellPercentage}
                     onChange={(e) => setAutoSellPercentage(e.target.value)}
-                    className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] pr-8"
+                    className="bg-background-void border-overlay-strong text-text-emphasis pr-8"
                   />
-                  <span className="absolute right-3 top-2.5 text-sm text-[#64748b]">%</span>
+                  <span className="absolute right-3 top-2.5 text-sm text-text-muted">%</span>
                 </div>
-                <p className="text-xs text-[#64748b]">
+                <p className="text-xs text-text-muted">
                   Items will be listed at {autoSellPercentage}% of {getPriceSourceLabel(autoSellPriceSource).toLowerCase()}
                 </p>
               </div>
@@ -2210,13 +2210,13 @@ export default function AssetsList(props: AssetsListProps) {
                   variant="destructive"
                   onClick={handleDisableAutoSell}
                   disabled={submittingAutoSell}
-                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-rose-danger hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
                 >
                   Disable
                 </Button>
               )}
               <Button variant="outline" onClick={() => setAutoSellDialogOpen(false)}
-                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                className="border-overlay-strong text-text-emphasis hover:bg-overlay-subtle">
                 Cancel
               </Button>
               <Button
@@ -2232,9 +2232,9 @@ export default function AssetsList(props: AssetsListProps) {
 
         {/* Auto-Buy Configuration Dialog */}
         <Dialog open={autoBuyDialogOpen} onOpenChange={(o) => { if (!o) setAutoBuyDialogOpen(false); }}>
-          <DialogContent className="sm:max-w-md bg-[#12151f] border border-[rgba(148,163,184,0.15)] text-[#e2e8f0]">
+          <DialogContent className="sm:max-w-md bg-background-panel border border-overlay-medium text-text-emphasis">
             <DialogHeader>
-              <DialogTitle className="text-[#e2e8f0]">
+              <DialogTitle className="text-text-emphasis">
                 {autoBuyContainer && getAutoBuyForContainer(
                   autoBuyContainer.containerId,
                   autoBuyContainer.ownerType,
@@ -2245,21 +2245,21 @@ export default function AssetsList(props: AssetsListProps) {
               </DialogTitle>
             </DialogHeader>
             <div className="pt-1 flex flex-col gap-3">
-              <p className="text-sm text-[#e2e8f0]">
+              <p className="text-sm text-text-emphasis">
                 <strong>{autoBuyContainer?.containerId ? 'Container' : 'Division'}:</strong> {autoBuyContainer?.containerName}
               </p>
-              <p className="text-sm text-[#94a3b8] mb-1">
+              <p className="text-sm text-text-secondary mb-1">
                 Buy orders will be automatically created for understocked stockpile items in this {autoBuyContainer?.containerId ? 'container' : 'hangar division'} at the specified percentage of the selected price source. Orders sync on asset refresh and market price updates.
               </p>
               <div className="flex flex-col gap-1.5">
-                <Label className="text-xs text-[#94a3b8]">Price Source</Label>
+                <Label className="text-xs text-text-secondary">Price Source</Label>
                 <Select value={autoBuyPriceSource} onValueChange={setAutoBuyPriceSource}>
-                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1f2e] border-[rgba(148,163,184,0.15)]">
+                  <SelectContent className="bg-[#1a1f2e] border-overlay-medium">
                     {PRICE_SOURCE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value} className="text-[#e2e8f0] focus:bg-[rgba(0,212,255,0.08)]">
+                      <SelectItem key={option.value} value={option.value} className="text-text-emphasis focus:bg-interactive-hover">
                         {option.label}
                       </SelectItem>
                     ))}
@@ -2268,7 +2268,7 @@ export default function AssetsList(props: AssetsListProps) {
               </div>
               <div className="flex gap-3">
                 <div className="flex flex-col gap-1.5 flex-1">
-                  <Label htmlFor="auto-buy-min" className="text-xs text-[#94a3b8]">
+                  <Label htmlFor="auto-buy-min" className="text-xs text-text-secondary">
                     Min % of {getPriceSourceLabel(autoBuyPriceSource)}
                   </Label>
                   <div className="relative">
@@ -2280,14 +2280,14 @@ export default function AssetsList(props: AssetsListProps) {
                       step={0.5}
                       value={autoBuyMinPercentage}
                       onChange={(e) => setAutoBuyMinPercentage(e.target.value)}
-                      className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] pr-8"
+                      className="bg-background-void border-overlay-strong text-text-emphasis pr-8"
                     />
-                    <span className="absolute right-3 top-2.5 text-sm text-[#64748b]">%</span>
+                    <span className="absolute right-3 top-2.5 text-sm text-text-muted">%</span>
                   </div>
-                  <p className="text-xs text-[#64748b]">Floor price for auto-fulfill matching</p>
+                  <p className="text-xs text-text-muted">Floor price for auto-fulfill matching</p>
                 </div>
                 <div className="flex flex-col gap-1.5 flex-1">
-                  <Label htmlFor="auto-buy-max" className="text-xs text-[#94a3b8]">
+                  <Label htmlFor="auto-buy-max" className="text-xs text-text-secondary">
                     Max % of {getPriceSourceLabel(autoBuyPriceSource)}
                   </Label>
                   <div className="relative">
@@ -2299,11 +2299,11 @@ export default function AssetsList(props: AssetsListProps) {
                       step={0.5}
                       value={autoBuyMaxPercentage}
                       onChange={(e) => setAutoBuyMaxPercentage(e.target.value)}
-                      className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0] pr-8"
+                      className="bg-background-void border-overlay-strong text-text-emphasis pr-8"
                     />
-                    <span className="absolute right-3 top-2.5 text-sm text-[#64748b]">%</span>
+                    <span className="absolute right-3 top-2.5 text-sm text-text-muted">%</span>
                   </div>
-                  <p className="text-xs text-[#64748b]">Ceiling price for buy orders</p>
+                  <p className="text-xs text-text-muted">Ceiling price for buy orders</p>
                 </div>
               </div>
             </div>
@@ -2319,13 +2319,13 @@ export default function AssetsList(props: AssetsListProps) {
                   variant="destructive"
                   onClick={handleDisableAutoBuy}
                   disabled={submittingAutoBuy}
-                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-[#ef4444] hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
+                  className="mr-auto bg-[rgba(239,68,68,0.15)] text-rose-danger hover:bg-[rgba(239,68,68,0.25)] border border-[rgba(239,68,68,0.3)]"
                 >
                   Disable
                 </Button>
               )}
               <Button variant="outline" onClick={() => setAutoBuyDialogOpen(false)}
-                className="border-[rgba(148,163,184,0.2)] text-[#e2e8f0] hover:bg-[rgba(148,163,184,0.1)]">
+                className="border-overlay-strong text-text-emphasis hover:bg-overlay-subtle">
                 Cancel
               </Button>
               <Button

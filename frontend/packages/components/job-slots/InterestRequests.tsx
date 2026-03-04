@@ -42,9 +42,9 @@ const PRICING_UNIT_LABELS: Record<string, string> = {
 };
 
 const STATUS_CLASSES: Record<string, string> = {
-  pending: 'bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]',
-  accepted: 'bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981]',
-  declined: 'bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[#ef4444]',
+  pending: 'bg-amber-manufacturing/10 border-[rgba(245,158,11,0.3)] text-amber-manufacturing',
+  accepted: 'bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success',
+  declined: 'bg-rose-danger/10 border-[rgba(239,68,68,0.3)] text-rose-danger',
   withdrawn: 'bg-[rgba(107,114,128,0.1)] border-[rgba(107,114,128,0.3)] text-[#6b7280]',
 };
 
@@ -111,7 +111,7 @@ export default function InterestRequests() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -126,17 +126,17 @@ export default function InterestRequests() {
 
         <TabsContent value="sent">
           {sentRequests.length === 0 ? (
-            <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-              <h3 className="text-lg font-semibold text-[#94a3b8]">No sent interest requests</h3>
-              <p className="text-sm text-[#64748b] mt-1">
+            <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+              <h3 className="text-lg font-semibold text-text-secondary">No sent interest requests</h3>
+              <p className="text-sm text-text-muted mt-1">
                 Browse listings and express interest to get started.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219]">
+                  <TableRow className="bg-background-void">
                     <TableHead>Owner</TableHead>
                     <TableHead>Character</TableHead>
                     <TableHead>Activity</TableHead>
@@ -150,26 +150,26 @@ export default function InterestRequests() {
                 </TableHeader>
                 <TableBody>
                   {sentRequests.map((request) => (
-                    <TableRow key={request.id} className="hover:bg-[rgba(0,212,255,0.04)]">
-                      <TableCell className="text-[#e2e8f0]">{request.listingOwnerName || '-'}</TableCell>
-                      <TableCell className="text-[#e2e8f0]">{request.listingCharacterName || '-'}</TableCell>
+                    <TableRow key={request.id} className="hover:bg-interactive-hover">
+                      <TableCell className="text-text-emphasis">{request.listingOwnerName || '-'}</TableCell>
+                      <TableCell className="text-text-emphasis">{request.listingCharacterName || '-'}</TableCell>
                       <TableCell>
                         {request.listingActivityType && (
-                          <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                          <Badge className="bg-interactive-selected border border-border-active text-blue-science hover:bg-interactive-active cursor-default">
                             {ACTIVITY_LABELS[request.listingActivityType] || request.listingActivityType}
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-right text-[#e2e8f0]">{request.slotsRequested}</TableCell>
-                      <TableCell className="text-right text-[#94a3b8]">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
-                      <TableCell className="text-right text-[#94a3b8]">
+                      <TableCell className="text-right text-text-emphasis">{request.slotsRequested}</TableCell>
+                      <TableCell className="text-right text-text-secondary">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
+                      <TableCell className="text-right text-text-secondary">
                         {request.listingPriceAmount !== undefined && request.listingPricingUnit
                           ? `${formatISK(request.listingPriceAmount)} ${PRICING_UNIT_LABELS[request.listingPricingUnit] || request.listingPricingUnit}`
                           : '-'}
                       </TableCell>
                       <TableCell>
                         {request.message ? (
-                          <span className="text-xs text-[#94a3b8]">{request.message}</span>
+                          <span className="text-xs text-text-secondary">{request.message}</span>
                         ) : '-'}
                       </TableCell>
                       <TableCell>
@@ -182,7 +182,7 @@ export default function InterestRequests() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-[#ef4444] border-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                            className="text-rose-danger border-rose-danger hover:bg-rose-danger/10"
                             onClick={() => handleStatusUpdate(request.id, 'withdrawn', 'Withdraw')}
                           >
                             Withdraw
@@ -199,17 +199,17 @@ export default function InterestRequests() {
 
         <TabsContent value="received">
           {receivedRequests.length === 0 ? (
-            <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-              <h3 className="text-lg font-semibold text-[#94a3b8]">No received interest requests</h3>
-              <p className="text-sm text-[#64748b] mt-1">
+            <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+              <h3 className="text-lg font-semibold text-text-secondary">No received interest requests</h3>
+              <p className="text-sm text-text-muted mt-1">
                 Create listings to receive interest requests.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219]">
+                  <TableRow className="bg-background-void">
                     <TableHead>Requester</TableHead>
                     <TableHead className="text-right">Slots</TableHead>
                     <TableHead className="text-right">Duration</TableHead>
@@ -221,17 +221,17 @@ export default function InterestRequests() {
                 </TableHeader>
                 <TableBody>
                   {receivedRequests.map((request) => (
-                    <TableRow key={request.id} className="hover:bg-[rgba(0,212,255,0.04)]">
+                    <TableRow key={request.id} className="hover:bg-interactive-hover">
                       <TableCell>
-                        <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                        <Badge className="bg-interactive-selected border border-border-active text-blue-science hover:bg-interactive-active cursor-default">
                           {request.requesterName}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right text-[#e2e8f0]">{request.slotsRequested}</TableCell>
-                      <TableCell className="text-right text-[#94a3b8]">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
+                      <TableCell className="text-right text-text-emphasis">{request.slotsRequested}</TableCell>
+                      <TableCell className="text-right text-text-secondary">{request.durationDays ? `${request.durationDays} days` : '-'}</TableCell>
                       <TableCell>
                         {request.message ? (
-                          <span className="text-xs text-[#94a3b8]">{request.message}</span>
+                          <span className="text-xs text-text-secondary">{request.message}</span>
                         ) : '-'}
                       </TableCell>
                       <TableCell>
@@ -239,13 +239,13 @@ export default function InterestRequests() {
                           {request.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-[#94a3b8] text-sm">{new Date(request.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-text-secondary text-sm">{new Date(request.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-center">
                         {request.status === 'pending' && (
                           <div className="flex gap-1 justify-center">
                             <Button
                               size="sm"
-                              className="bg-[#10b981] hover:bg-[#059669]"
+                              className="bg-teal-success hover:bg-[#059669]"
                               onClick={() => handleStatusUpdate(request.id, 'accepted', 'Accept')}
                             >
                               Accept
@@ -253,7 +253,7 @@ export default function InterestRequests() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-[#ef4444] border-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                              className="text-rose-danger border-rose-danger hover:bg-rose-danger/10"
                               onClick={() => handleStatusUpdate(request.id, 'declined', 'Decline')}
                             >
                               Decline

@@ -21,7 +21,7 @@ const buttonVariants = cva(
           "text-[var(--color-text-secondary)] hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)]",
         link: "text-[var(--color-primary-cyan)] underline-offset-4 hover:underline",
         neocom:
-          "border border-[var(--color-primary-cyan)] bg-transparent text-[var(--color-primary-cyan)] shadow-[0_0_8px_rgba(0,212,255,0.25)] hover:bg-[var(--color-primary-cyan)]/10 hover:shadow-[0_0_12px_rgba(0,212,255,0.4)] font-semibold tracking-wide",
+          "border border-[var(--color-primary-cyan)] bg-transparent text-[var(--color-primary-cyan)] shadow-glow-sm hover:bg-[var(--color-primary-cyan)]/10 hover:shadow-[0_0_12px_rgba(0,212,255,0.4)] font-semibold tracking-wide",
       },
       size: {
         default: "h-9 px-4 py-2",

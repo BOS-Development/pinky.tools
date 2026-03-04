@@ -62,9 +62,9 @@ export function formatPercent(value: number, decimals: number = 2): string {
  * Get color based on value (for profit/loss, etc.)
  */
 export function getValueColor(value: number): string {
-  if (value > 0) return '#2dd4bf'; // teal (success)
-  if (value < 0) return '#f43f5e'; // rose (danger)
-  return '#94a3b8'; // gray
+  if (value > 0) return 'var(--color-success-teal)';
+  if (value < 0) return 'var(--color-danger-rose)';
+  return 'var(--color-text-secondary)';
 }
 
 /**

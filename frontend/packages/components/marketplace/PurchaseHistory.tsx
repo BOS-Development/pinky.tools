@@ -76,15 +76,15 @@ export default function PurchaseHistory() {
   const getStatusBadgeClass = (status: string): string => {
     switch (status) {
       case 'pending':
-        return 'bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)]';
+        return 'bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)]';
       case 'contract_created':
-        return 'bg-[rgba(59,130,246,0.15)] text-[#60a5fa] border border-[rgba(59,130,246,0.3)]';
+        return 'bg-[rgba(59,130,246,0.15)] text-blue-science border border-[rgba(59,130,246,0.3)]';
       case 'completed':
-        return 'bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)]';
+        return 'bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)]';
       case 'cancelled':
-        return 'bg-[rgba(239,68,68,0.15)] text-[#ef4444] border border-[rgba(239,68,68,0.3)]';
+        return 'bg-[rgba(239,68,68,0.15)] text-rose-danger border border-[rgba(239,68,68,0.3)]';
       default:
-        return 'bg-[rgba(148,163,184,0.1)] text-[#64748b] border border-[rgba(148,163,184,0.2)]';
+        return 'bg-overlay-subtle text-text-muted border border-overlay-strong';
     }
   };
 
@@ -152,9 +152,9 @@ export default function PurchaseHistory() {
   const renderTransactionsTable = (transactions: PurchaseTransaction[], isBuyer: boolean) => {
     if (transactions.length === 0) {
       return (
-        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-          <h3 className="text-lg font-semibold text-[#94a3b8]">No {isBuyer ? 'purchases' : 'sales'} yet</h3>
-          <p className="text-sm text-[#64748b] mt-1">
+        <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+          <h3 className="text-lg font-semibold text-text-secondary">No {isBuyer ? 'purchases' : 'sales'} yet</h3>
+          <p className="text-sm text-text-muted mt-1">
             {isBuyer
               ? 'Browse the marketplace to make your first purchase.'
               : 'List items for sale to start selling.'}
@@ -164,10 +164,10 @@ export default function PurchaseHistory() {
     }
 
     return (
-      <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+      <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219]">
+            <TableRow className="bg-background-void">
               <TableHead>Date</TableHead>
               <TableHead>Item</TableHead>
               <TableHead className="text-right">Quantity</TableHead>
@@ -180,22 +180,22 @@ export default function PurchaseHistory() {
           </TableHeader>
           <TableBody>
             {transactions.map((transaction) => (
-              <TableRow key={transaction.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
-                <TableCell className="text-[#94a3b8]">{formatDate(transaction.purchasedAt)}</TableCell>
-                <TableCell className="text-[#e2e8f0]">
+              <TableRow key={transaction.id} className="bg-background-panel hover:bg-interactive-hover">
+                <TableCell className="text-text-secondary">{formatDate(transaction.purchasedAt)}</TableCell>
+                <TableCell className="text-text-emphasis">
                   <div className="flex items-center gap-1.5">
                     {transaction.typeName}
                     {transaction.isAutoFulfilled && (
-                      <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
+                      <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
                         Auto
                       </Badge>
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-right text-[#e2e8f0]">{transaction.quantityPurchased.toLocaleString()}</TableCell>
-                <TableCell className="text-right text-[#e2e8f0]">{transaction.pricePerUnit.toLocaleString()} ISK</TableCell>
+                <TableCell className="text-right text-text-emphasis">{transaction.quantityPurchased.toLocaleString()}</TableCell>
+                <TableCell className="text-right text-text-emphasis">{transaction.pricePerUnit.toLocaleString()} ISK</TableCell>
                 <TableCell className="text-right">
-                  <span className={cn("font-semibold", isBuyer ? 'text-[#ef4444]' : 'text-[#10b981]')}>
+                  <span className={cn("font-semibold", isBuyer ? 'text-rose-danger' : 'text-teal-success')}>
                     {isBuyer ? '-' : '+'}
                     {transaction.totalPrice.toLocaleString()} ISK
                   </span>
@@ -208,7 +208,7 @@ export default function PurchaseHistory() {
                 {transactions.some(t => t.transactionNotes) && (
                   <TableCell>
                     {transaction.transactionNotes && (
-                      <span className="text-xs text-[#64748b]">{transaction.transactionNotes}</span>
+                      <span className="text-xs text-text-muted">{transaction.transactionNotes}</span>
                     )}
                   </TableCell>
                 )}
@@ -255,7 +255,7 @@ export default function PurchaseHistory() {
 
                     {/* No actions for completed/cancelled */}
                     {(transaction.status === 'completed' || transaction.status === 'cancelled') && (
-                      <span className="text-xs text-[#64748b]">-</span>
+                      <span className="text-xs text-text-muted">-</span>
                     )}
                   </div>
                 </TableCell>
@@ -270,7 +270,7 @@ export default function PurchaseHistory() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -278,16 +278,16 @@ export default function PurchaseHistory() {
   return (
     <div>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="border-b border-[rgba(148,163,184,0.15)] bg-transparent w-full justify-start rounded-none p-0 h-auto mb-6">
+        <TabsList className="border-b border-overlay-medium bg-transparent w-full justify-start rounded-none p-0 h-auto mb-6">
           <TabsTrigger
             value="purchases"
-            className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2"
+            className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2"
           >
             My Purchases ({buyerHistory.length})
           </TabsTrigger>
           <TabsTrigger
             value="sales"
-            className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2"
+            className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2"
           >
             My Sales ({sellerHistory.length})
           </TabsTrigger>

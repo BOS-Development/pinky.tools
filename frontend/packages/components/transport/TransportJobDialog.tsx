@@ -54,9 +54,9 @@ interface Props {
 }
 
 const getSecurityColor = (sec: number) => {
-  if (sec >= 0.5) return "#10b981";
-  if (sec > 0.0) return "#f59e0b";
-  return "#ef4444";
+  if (sec >= 0.5) return "var(--color-success-teal)";
+  if (sec > 0.0) return "var(--color-manufacturing-amber)";
+  return "var(--color-danger-rose)";
 };
 
 interface AsyncSearchDropdownProps {
@@ -116,21 +116,21 @@ function StationSearchDropdown({
           placeholder={placeholder}
         />
         {loading && (
-          <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-[#64748b]" />
+          <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-text-muted" />
         )}
       </div>
       {open && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-[rgba(148,163,184,0.15)] rounded-sm shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt.stationId}
               type="button"
-              className="w-full text-left px-3 py-2 hover:bg-[rgba(0,212,255,0.08)]"
+              className="w-full text-left px-3 py-2 hover:bg-interactive-hover"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleSelect(opt)}
             >
-              <p className="text-sm text-[#e2e8f0]">{opt.name}</p>
-              <p className="text-xs text-[#94a3b8]">
+              <p className="text-sm text-text-emphasis">{opt.name}</p>
+              <p className="text-xs text-text-secondary">
                 {opt.solarSystemName}{" "}
                 <span style={{ color: getSecurityColor(opt.security ?? 0) }}>
                   ({(opt.security ?? 0).toFixed(1)})
@@ -199,16 +199,16 @@ function ItemTypeSearchDropdown({
           placeholder="Search for an item..."
         />
         {loading && (
-          <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-[#64748b]" />
+          <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-text-muted" />
         )}
       </div>
       {open && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-[rgba(148,163,184,0.15)] rounded-sm shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt.TypeID}
               type="button"
-              className="w-full text-left px-3 py-2 hover:bg-[rgba(0,212,255,0.08)]"
+              className="w-full text-left px-3 py-2 hover:bg-interactive-hover"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleSelect(opt)}
             >
@@ -219,8 +219,8 @@ function ItemTypeSearchDropdown({
                   style={{ width: 24, height: 24 }}
                 />
                 <div>
-                  <p className="text-sm text-[#e2e8f0]">{opt.TypeName}</p>
-                  <p className="text-xs text-[#94a3b8]">{opt.Volume.toLocaleString()} m³</p>
+                  <p className="text-sm text-text-emphasis">{opt.TypeName}</p>
+                  <p className="text-xs text-text-secondary">{opt.Volume.toLocaleString()} m³</p>
                 </div>
               </div>
             </button>
@@ -439,7 +439,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
 
         <div className="flex flex-col gap-3 pt-1 max-h-[70vh] overflow-y-auto pr-1">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Origin Station</label>
+            <label className="text-xs text-text-secondary">Origin Station</label>
             <StationSearchDropdown
               value={originStation}
               onSelect={(opt) => setOriginStation(opt)}
@@ -451,14 +451,14 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
               setDisplayValue={setOriginDisplay}
             />
             {originStation && (
-              <span className="text-xs text-[#94a3b8]">
+              <span className="text-xs text-text-secondary">
                 System: {originStation.solarSystemName}
               </span>
             )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Destination Station</label>
+            <label className="text-xs text-text-secondary">Destination Station</label>
             <StationSearchDropdown
               value={destinationStation}
               onSelect={(opt) => setDestinationStation(opt)}
@@ -470,14 +470,14 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
               setDisplayValue={setDestDisplay}
             />
             {destinationStation && (
-              <span className="text-xs text-[#94a3b8]">
+              <span className="text-xs text-text-secondary">
                 System: {destinationStation.solarSystemName}
               </span>
             )}
           </div>
 
           {/* Items Section */}
-          <p className="text-sm font-medium text-[#e2e8f0] mt-1">Items to Transport</p>
+          <p className="text-sm font-medium text-text-emphasis mt-1">Items to Transport</p>
 
           <div className="flex gap-2 items-start">
             <ItemTypeSearchDropdown
@@ -512,7 +512,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
             <Button
               variant="ghost"
               size="icon"
-              className="text-[#00d4ff] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
+              className="text-primary hover:text-primary hover:bg-interactive-selected"
               onClick={handleAddItem}
               disabled={!selectedItemType || !itemQuantity}
             >
@@ -523,7 +523,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
           {items.length > 0 && (
             <Table>
               <TableHeader>
-                <TableRow className="[&>th]:text-[#94a3b8] [&>th]:border-[#1e2231]">
+                <TableRow className="[&>th]:text-text-secondary [&>th]:border-[#1e2231]">
                   <TableHead>Item</TableHead>
                   <TableHead className="text-right">Quantity</TableHead>
                   <TableHead className="text-right">Volume (m³)</TableHead>
@@ -553,7 +553,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                        className="h-6 w-6 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                         onClick={() => handleRemoveItem(item.itemType.TypeID)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -576,13 +576,13 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
           )}
 
           {items.length === 0 && (
-            <p className="text-sm text-[#64748b] text-center py-2">
+            <p className="text-sm text-text-muted text-center py-2">
               No items added yet. Search for items above and add them to this job.
             </p>
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Transport Method</label>
+            <label className="text-xs text-text-secondary">Transport Method</label>
             <Select
               value={transportMethod}
               onValueChange={(v) => {
@@ -604,7 +604,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Fulfillment Type</label>
+            <label className="text-xs text-text-secondary">Fulfillment Type</label>
             <Select
               value={fulfillmentType}
               onValueChange={(v) => setFulfillmentType(v)}
@@ -622,7 +622,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
 
           {filteredProfiles.length > 0 && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-[#94a3b8]">Transport Profile</label>
+              <label className="text-xs text-text-secondary">Transport Profile</label>
               <Select
                 value={transportProfileId}
                 onValueChange={(v) => setTransportProfileId(v)}
@@ -644,7 +644,7 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
 
           {isJF && jfRoutes.length > 0 && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-[#94a3b8]">JF Route</label>
+              <label className="text-xs text-text-secondary">JF Route</label>
               <Select
                 value={jfRouteId}
                 onValueChange={(v) => setJfRouteId(v)}
@@ -665,12 +665,12 @@ export function TransportJobDialog({ open, onClose, profiles, jfRoutes }: Props)
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Notes</label>
+            <label className="text-xs text-text-secondary">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={2}
-              className="w-full px-3 py-2 text-sm bg-transparent border border-[rgba(148,163,184,0.15)] rounded-sm text-[#e2e8f0] placeholder:text-[#64748b] focus:outline-none focus:ring-1 focus:ring-[#00d4ff] resize-none"
+              className="w-full px-3 py-2 text-sm bg-transparent border border-overlay-medium rounded-sm text-text-emphasis placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-primary resize-none"
               placeholder="Optional notes..."
             />
           </div>

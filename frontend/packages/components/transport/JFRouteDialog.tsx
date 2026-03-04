@@ -29,9 +29,9 @@ interface Props {
 }
 
 const getSecurityColor = (sec: number) => {
-  if (sec >= 0.5) return "#10b981";
-  if (sec > 0.0) return "#f59e0b";
-  return "#ef4444";
+  if (sec >= 0.5) return "var(--color-success-teal)";
+  if (sec > 0.0) return "var(--color-manufacturing-amber)";
+  return "var(--color-danger-rose)";
 };
 
 interface SystemSearchDropdownProps {
@@ -91,7 +91,7 @@ function SystemSearchDropdown({
   return (
     <div className="relative" ref={containerRef}>
       <div className="flex flex-col gap-1">
-        {label && <label className="text-xs text-[#94a3b8]">{label}</label>}
+        {label && <label className="text-xs text-text-secondary">{label}</label>}
         <div className="relative">
           <Input
             value={displayValue}
@@ -100,21 +100,21 @@ function SystemSearchDropdown({
             placeholder="Search for a system..."
           />
           {loading && (
-            <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-[#64748b]" />
+            <Loader2 className="absolute right-3 top-2.5 h-4 w-4 animate-spin text-text-muted" />
           )}
         </div>
       </div>
       {open && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-[rgba(148,163,184,0.15)] rounded-sm shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt.id}
               type="button"
-              className="w-full text-left px-3 py-2 hover:bg-[rgba(0,212,255,0.08)] flex items-center gap-2"
+              className="w-full text-left px-3 py-2 hover:bg-interactive-hover flex items-center gap-2"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => handleSelect(opt)}
             >
-              <span className="text-sm text-[#e2e8f0]">{opt.name}</span>
+              <span className="text-sm text-text-emphasis">{opt.name}</span>
               <span
                 className="text-xs"
                 style={{ color: getSecurityColor(opt.security ?? 0) }}
@@ -299,7 +299,7 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
 
         <div className="flex flex-col gap-3 pt-1 max-h-[70vh] overflow-y-auto pr-1">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Route Name</label>
+            <label className="text-xs text-text-secondary">Route Name</label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -331,11 +331,11 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-[#94a3b8]">Waypoints (cyno systems in order)</span>
+              <span className="text-sm text-text-secondary">Waypoints (cyno systems in order)</span>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6 text-[#00d4ff] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
+                className="h-6 w-6 text-primary hover:text-primary hover:bg-interactive-selected"
                 onClick={handleAddWaypoint}
               >
                 <Plus className="h-4 w-4" />
@@ -344,7 +344,7 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
 
             {waypoints.map((wp, index) => (
               <div key={index} className="flex gap-2 mb-2 items-end">
-                <span className="text-xs text-[#94a3b8] min-w-5 pb-2">{wp.sequence}</span>
+                <span className="text-xs text-text-secondary min-w-5 pb-2">{wp.sequence}</span>
                 <div className="flex-1">
                   <SystemSearchDropdown
                     label={`Waypoint #${wp.sequence}`}
@@ -367,7 +367,7 @@ export function JFRouteDialog({ open, onClose, route }: Props) {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)] mb-0.5"
+                    className="h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10 mb-0.5"
                     onClick={() => handleRemoveWaypoint(index)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />

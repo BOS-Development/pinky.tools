@@ -103,7 +103,7 @@ export default function ProductionPlansList() {
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="text-[#94a3b8] mb-2"
+            className="text-text-secondary mb-2"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Plans
@@ -119,7 +119,7 @@ export default function ProductionPlansList() {
       <Navbar />
       <div className="px-4 mt-2 mb-4">
         <div className="flex justify-between items-center mb-2">
-          <h2 className="text-xl font-semibold text-[#e2e8f0]">
+          <h2 className="text-xl font-semibold text-text-emphasis">
             Production Plans
           </h2>
           <Button onClick={() => setCreateDialogOpen(true)}>
@@ -138,10 +138,10 @@ export default function ProductionPlansList() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+          <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#0f1219]">
+                <TableRow className="bg-background-void">
                   <TableHead>Product</TableHead>
                   <TableHead>Plan Name</TableHead>
                   <TableHead className="text-right">Steps</TableHead>
@@ -153,7 +153,7 @@ export default function ProductionPlansList() {
                 {plans.map((plan, idx) => (
                   <TableRow
                     key={plan.id}
-                    className={`${idx % 2 === 0 ? "bg-[#12151f]" : "bg-[#0f1219]"} hover:bg-[#1a1d2e] cursor-pointer`}
+                    className={`${idx % 2 === 0 ? "bg-background-panel" : "bg-background-void"} hover:bg-[#1a1d2e] cursor-pointer`}
                     onClick={() => setSelectedPlanId(plan.id)}
                   >
                     <TableCell>
@@ -165,23 +165,23 @@ export default function ProductionPlansList() {
                           height={24}
                           className="rounded-sm"
                         />
-                        <span className="text-[#e2e8f0] text-sm">
+                        <span className="text-text-emphasis text-sm">
                           {plan.productName || `Type ${plan.productTypeId}`}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-[#cbd5e1] text-sm">
+                    <TableCell className="text-text-primary text-sm">
                       {plan.name}
                     </TableCell>
-                    <TableCell className="text-right text-[#cbd5e1] text-sm">
+                    <TableCell className="text-right text-text-primary text-sm">
                       {plan.steps?.length || 0}
                     </TableCell>
-                    <TableCell className="text-[#64748b] text-[13px]">
+                    <TableCell className="text-text-muted text-[13px]">
                       {new Date(plan.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-center">
                       <button
-                        className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+                        className="p-1 rounded hover:bg-interactive-selected text-primary"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPlanId(plan.id);
@@ -191,7 +191,7 @@ export default function ProductionPlansList() {
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
-                        className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                        className="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(plan.id);
@@ -326,14 +326,14 @@ function CreatePlanDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+      <DialogContent className="max-w-md bg-background-panel border-overlay-medium">
         <DialogHeader>
-          <DialogTitle className="text-[#e2e8f0]">Create Production Plan</DialogTitle>
+          <DialogTitle className="text-text-emphasis">Create Production Plan</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 pt-1">
           {/* Blueprint Search */}
           <div>
-            <Label className="text-sm text-[#94a3b8] mb-1 block">Product</Label>
+            <Label className="text-sm text-text-secondary mb-1 block">Product</Label>
             <Popover open={bpSearchOpen} onOpenChange={setBpSearchOpen}>
               <PopoverTrigger asChild>
                 <Button
@@ -364,21 +364,21 @@ function CreatePlanDialog({
                 />
                 <div className="max-h-[250px] overflow-y-auto mt-1">
                   {searchLoading && (
-                    <div className="flex items-center gap-2 p-2 text-sm text-[#94a3b8]">
+                    <div className="flex items-center gap-2 p-2 text-sm text-text-secondary">
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Searching...
                     </div>
                   )}
                   {!searchLoading && searchQuery.length < 2 && (
-                    <p className="text-sm text-[#64748b] p-2">Type to search...</p>
+                    <p className="text-sm text-text-muted p-2">Type to search...</p>
                   )}
                   {!searchLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
-                    <p className="text-sm text-[#64748b] p-2">No blueprints found</p>
+                    <p className="text-sm text-text-muted p-2">No blueprints found</p>
                   )}
                   {searchResults.map((option) => (
                     <button
                       key={`${option.BlueprintTypeID}-${option.Activity}`}
-                      className="w-full flex items-center gap-2 p-2 rounded hover:bg-[rgba(0,212,255,0.08)] text-left"
+                      className="w-full flex items-center gap-2 p-2 rounded hover:bg-interactive-hover text-left"
                       onClick={() => {
                         setSelectedBlueprint(option);
                         setBpSearchOpen(false);
@@ -391,10 +391,10 @@ function CreatePlanDialog({
                         height={24}
                       />
                       <div>
-                        <div className="text-sm text-[#e2e8f0]">
+                        <div className="text-sm text-text-emphasis">
                           {option.ProductName}
                         </div>
-                        <div className="text-xs text-[#64748b]">
+                        <div className="text-xs text-text-muted">
                           {option.BlueprintName} &middot; {option.Activity}
                         </div>
                       </div>
@@ -407,7 +407,7 @@ function CreatePlanDialog({
 
           {/* Manufacturing Station */}
           <div>
-            <Label htmlFor="default-mfg-station" className="text-sm text-[#94a3b8] mb-1 block">Default Manufacturing Station</Label>
+            <Label htmlFor="default-mfg-station" className="text-sm text-text-secondary mb-1 block">Default Manufacturing Station</Label>
             <Select
               value={defaultManufacturingStation ? String(defaultManufacturingStation.id) : "none"}
               onValueChange={(val) => {
@@ -435,7 +435,7 @@ function CreatePlanDialog({
 
           {/* Reaction Station */}
           <div>
-            <Label htmlFor="default-rxn-station" className="text-sm text-[#94a3b8] mb-1 block">Default Reaction Station</Label>
+            <Label htmlFor="default-rxn-station" className="text-sm text-text-secondary mb-1 block">Default Reaction Station</Label>
             <Select
               value={defaultReactionStation ? String(defaultReactionStation.id) : "none"}
               onValueChange={(val) => {

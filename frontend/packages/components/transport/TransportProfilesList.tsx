@@ -31,12 +31,12 @@ const getMethodLabel = (method: string) => {
 
 const getMethodColor = (method: string) => {
   const colors: Record<string, string> = {
-    freighter: "#00d4ff",
+    freighter: "var(--color-primary-cyan)",
     jump_freighter: "#8b5cf6",
     dst: "#06b6d4",
-    blockade_runner: "#f59e0b",
+    blockade_runner: "var(--color-manufacturing-amber)",
   };
-  return colors[method] || "#94a3b8";
+  return colors[method] || "var(--color-text-secondary)";
 };
 
 export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
@@ -71,7 +71,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -88,7 +88,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219] hover:bg-[#0f1219]">
+            <TableRow className="bg-background-void hover:bg-background-void">
               <TableHead>Name</TableHead>
               <TableHead>Method</TableHead>
               <TableHead>Character</TableHead>
@@ -105,7 +105,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
               <TableRow>
                 <TableCell
                   colSpan={9}
-                  className="text-center py-8 text-[#94a3b8]"
+                  className="text-center py-8 text-text-secondary"
                 >
                   No transport profiles configured
                 </TableCell>
@@ -113,7 +113,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
             ) : (
               profiles.map((p) => (
                 <TableRow key={p.id} className="hover:bg-[rgba(0,212,255,0.05)]">
-                  <TableCell className="font-medium text-[#e2e8f0]">{p.name}</TableCell>
+                  <TableCell className="font-medium text-text-emphasis">{p.name}</TableCell>
                   <TableCell>
                     <span
                       className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -125,14 +125,14 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
                       {getMethodLabel(p.transportMethod)}
                     </span>
                   </TableCell>
-                  <TableCell className="text-[#94a3b8]">{p.characterName || "—"}</TableCell>
+                  <TableCell className="text-text-secondary">{p.characterName || "—"}</TableCell>
                   <TableCell className="text-right">{formatNumber(p.cargoM3)}</TableCell>
                   <TableCell className="text-right">{formatNumber(p.ratePerM3PerJump)}</TableCell>
                   <TableCell className="text-right">{(p.collateralRate * 100).toFixed(1)}%</TableCell>
-                  <TableCell className="text-[#94a3b8]">{p.routePreference}</TableCell>
+                  <TableCell className="text-text-secondary">{p.routePreference}</TableCell>
                   <TableCell>
                     {p.isDefault && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[rgba(16,185,129,0.15)] text-[#10b981]">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[rgba(16,185,129,0.15)] text-teal-success">
                         Default
                       </span>
                     )}
@@ -141,7 +141,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      className="h-7 w-7 text-text-secondary hover:text-text-emphasis"
                       onClick={() => handleEdit(p)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -149,7 +149,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                      className="h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                       onClick={() => handleDelete(p)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

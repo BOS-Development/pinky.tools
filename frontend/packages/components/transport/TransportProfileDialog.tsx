@@ -112,7 +112,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
 
         <div className="flex flex-col gap-3 pt-1">
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Profile Name</label>
+            <label className="text-xs text-text-secondary">Profile Name</label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -121,7 +121,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Transport Method</label>
+            <label className="text-xs text-text-secondary">Transport Method</label>
             <Select
               value={transportMethod}
               onValueChange={(v) => setTransportMethod(v)}
@@ -139,7 +139,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Cargo Capacity (m3)</label>
+            <label className="text-xs text-text-secondary">Cargo Capacity (m3)</label>
             <Input
               type="number"
               value={cargoM3}
@@ -149,7 +149,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
 
           {!isJF && (
             <div className="flex flex-col gap-1">
-              <label className="text-xs text-[#94a3b8]">Rate per m3 per Jump (ISK)</label>
+              <label className="text-xs text-text-secondary">Rate per m3 per Jump (ISK)</label>
               <Input
                 type="number"
                 value={ratePerM3PerJump}
@@ -159,18 +159,18 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Collateral Rate</label>
+            <label className="text-xs text-text-secondary">Collateral Rate</label>
             <Input
               type="number"
               value={collateralRate}
               onChange={(e) => setCollateralRate(Number(e.target.value))}
               step={0.001}
             />
-            <span className="text-xs text-[#64748b]">e.g. 0.01 = 1%</span>
+            <span className="text-xs text-text-muted">e.g. 0.01 = 1%</span>
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Collateral Price Basis</label>
+            <label className="text-xs text-text-secondary">Collateral Price Basis</label>
             <Select
               value={collateralPriceBasis}
               onValueChange={(v) => setCollateralPriceBasis(v)}
@@ -189,7 +189,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
           {isJF && (
             <>
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-[#94a3b8]">Fuel per Light Year</label>
+                <label className="text-xs text-text-secondary">Fuel per Light Year</label>
                 <Input
                   type="number"
                   value={fuelPerLy}
@@ -198,7 +198,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
               </div>
 
               <div className="flex flex-col gap-1">
-                <label className="text-xs text-[#94a3b8]">Fuel Conservation Level</label>
+                <label className="text-xs text-text-secondary">Fuel Conservation Level</label>
                 <Select
                   value={String(fuelConservationLevel)}
                   onValueChange={(v) => setFuelConservationLevel(Number(v))}
@@ -219,7 +219,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
           )}
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-[#94a3b8]">Route Preference</label>
+            <label className="text-xs text-text-secondary">Route Preference</label>
             <Select
               value={routePreference}
               onValueChange={(v) => setRoutePreference(v)}
@@ -241,7 +241,7 @@ export function TransportProfileDialog({ open, onClose, profile }: Props) {
               checked={isDefault}
               onCheckedChange={(checked) => setIsDefault(checked === true)}
             />
-            <label htmlFor="is-default" className="text-sm text-[#94a3b8] cursor-pointer">
+            <label htmlFor="is-default" className="text-sm text-text-secondary cursor-pointer">
               Default profile for this method
             </label>
           </div>

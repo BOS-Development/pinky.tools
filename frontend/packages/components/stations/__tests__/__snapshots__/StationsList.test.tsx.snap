@@ -67,7 +67,7 @@ exports[`StationsList Component should match snapshot with empty stations 1`] = 
         class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
       >
         <tr
-          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[var(--color-bg-void)]"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[var(--color-bg-void)]"
         >
           <th
             class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -115,7 +115,7 @@ exports[`StationsList Component should match snapshot with empty stations 1`] = 
         class="[&_tr:last-child]:border-0"
       >
         <tr
-          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
         >
           <td
             class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-0 border-0"
@@ -208,7 +208,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
         class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
       >
         <tr
-          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[var(--color-bg-void)]"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[var(--color-bg-void)]"
         >
           <th
             class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -256,7 +256,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
         class="[&_tr:last-child]:border-0"
       >
         <tr
-          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
         >
           <td
             class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-emphasis)] font-medium"
@@ -272,7 +272,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
             class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30 capitalize font-semibold border"
+              class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-teal-success bg-teal-success/10 border-teal-success/30 capitalize font-semibold border"
             >
               high
             </div>
@@ -302,7 +302,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
               class="flex gap-1 flex-wrap"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#00d4ff] bg-[#00d4ff]/10 border-[#00d4ff]/30 text-[10px] border"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-primary bg-primary/10 border-primary/30 text-[10px] border"
               >
                 ship
                  
@@ -388,7 +388,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
           </td>
         </tr>
         <tr
-          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+          class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
         >
           <td
             class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[var(--color-text-emphasis)] font-medium"
@@ -404,7 +404,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
             class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           >
             <div
-              class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30 capitalize font-semibold border"
+              class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-amber-manufacturing bg-amber-manufacturing/10 border-amber-manufacturing/30 capitalize font-semibold border"
             >
               low
             </div>

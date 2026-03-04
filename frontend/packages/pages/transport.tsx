@@ -159,25 +159,25 @@ export default function TransportPage() {
     <>
       <Navbar />
       <div className="max-w-screen-xl mx-auto px-4 mt-4">
-        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-4">Transport</h2>
+        <h2 className="text-xl font-semibold text-text-emphasis mb-4">Transport</h2>
 
         <Tabs defaultValue="jobs">
           <TabsList className="w-full justify-start">
             <TabsTrigger
               value="jobs"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
             >
               Transport Jobs
             </TabsTrigger>
             <TabsTrigger
               value="profiles"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
             >
               Transport Profiles
             </TabsTrigger>
             <TabsTrigger
               value="routes"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none bg-transparent px-4 py-2"
             >
               JF Routes
             </TabsTrigger>

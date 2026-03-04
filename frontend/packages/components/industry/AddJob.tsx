@@ -206,7 +206,7 @@ export default function AddJob({ onJobAdded }: Props) {
       {/* Settings Row */}
       <div className="flex gap-2 flex-wrap mb-3">
         <div className="min-w-[300px] flex-grow relative">
-          <Label htmlFor="search-blueprint" className="text-xs text-[#94a3b8] mb-1 block">Search Blueprint</Label>
+          <Label htmlFor="search-blueprint" className="text-xs text-text-secondary mb-1 block">Search Blueprint</Label>
           <Popover open={searchOpen && blueprintOptions.length > 0} onOpenChange={setSearchOpen}>
             <PopoverTrigger asChild>
               <Input
@@ -228,7 +228,7 @@ export default function AddJob({ onJobAdded }: Props) {
             <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
               <div className="max-h-60 overflow-y-auto">
                 {searchLoading && (
-                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-[#94a3b8]">
+                  <div className="flex items-center gap-2 px-3 py-2 text-sm text-text-secondary">
                     <Loader2 className="h-4 w-4 animate-spin" /> Searching...
                   </div>
                 )}
@@ -238,8 +238,8 @@ export default function AddJob({ onJobAdded }: Props) {
                     className="flex flex-col w-full px-3 py-1.5 text-left text-sm hover:bg-[var(--color-surface-elevated)] cursor-pointer"
                     onClick={() => handleSelectBlueprint(opt)}
                   >
-                    <span className="text-[#e2e8f0]">{opt.ProductName}</span>
-                    <span className="text-xs text-[#64748b]">{opt.BlueprintName} - {opt.Activity}</span>
+                    <span className="text-text-emphasis">{opt.ProductName}</span>
+                    <span className="text-xs text-text-muted">{opt.BlueprintName} - {opt.Activity}</span>
                   </button>
                 ))}
               </div>
@@ -248,7 +248,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="min-w-[150px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Activity</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Activity</Label>
           <Select value={activity} onValueChange={setActivity}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -261,7 +261,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="w-[100px]">
-          <Label htmlFor="runs" className="text-xs text-[#94a3b8] mb-1 block">Runs</Label>
+          <Label htmlFor="runs" className="text-xs text-text-secondary mb-1 block">Runs</Label>
           <Input
             id="runs"
             type="number"
@@ -274,7 +274,7 @@ export default function AddJob({ onJobAdded }: Props) {
 
       <div className="flex gap-2 flex-wrap mb-3">
         <div className="w-[90px]">
-          <Label htmlFor="me-level" className="text-xs text-[#94a3b8] mb-1 block">ME Level</Label>
+          <Label htmlFor="me-level" className="text-xs text-text-secondary mb-1 block">ME Level</Label>
           <Input
             id="me-level"
             type="number"
@@ -285,7 +285,7 @@ export default function AddJob({ onJobAdded }: Props) {
           />
         </div>
         <div className="w-[90px]">
-          <Label htmlFor="te-level" className="text-xs text-[#94a3b8] mb-1 block">TE Level</Label>
+          <Label htmlFor="te-level" className="text-xs text-text-secondary mb-1 block">TE Level</Label>
           <Input
             id="te-level"
             type="number"
@@ -298,18 +298,18 @@ export default function AddJob({ onJobAdded }: Props) {
         {selectedBlueprint && detectedForBlueprintId === selectedBlueprint.BlueprintTypeID ? (
           detectedLevel ? (
             <div className="flex items-center gap-1 self-end pb-1">
-              <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#00d4ff] hover:bg-[rgba(0,212,255,0.15)] cursor-default text-[11px]">
+              <Badge className="bg-interactive-selected border border-border-active text-primary hover:bg-interactive-active cursor-default text-[11px]">
                 Detected: ME {detectedLevel.materialEfficiency} / TE {detectedLevel.timeEfficiency} from {detectedLevel.ownerName}{detectedLevel.isCopy ? " (BPC)" : ""}
               </Badge>
               {(meLevel !== detectedLevel.materialEfficiency || teLevel !== detectedLevel.timeEfficiency) && (
-                <Badge className="bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.3)] text-[#f59e0b] hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
+                <Badge className="bg-amber-manufacturing/10 border border-[rgba(245,158,11,0.3)] text-amber-manufacturing hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
                   Overridden
                 </Badge>
               )}
             </div>
           ) : (
             <div className="flex items-center gap-1 self-end pb-1">
-              <Badge className="bg-[rgba(245,158,11,0.1)] border border-[rgba(245,158,11,0.3)] text-[#f59e0b] hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
+              <Badge className="bg-amber-manufacturing/10 border border-[rgba(245,158,11,0.3)] text-amber-manufacturing hover:bg-[rgba(245,158,11,0.15)] cursor-default text-[11px]">
                 <AlertTriangle className="h-3 w-3 mr-1" />
                 No blueprint detected — using manual values
               </Badge>
@@ -317,7 +317,7 @@ export default function AddJob({ onJobAdded }: Props) {
           )
         ) : null}
         <div className="w-[120px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Industry Skill</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Industry Skill</Label>
           <Input
             type="number"
             value={industrySkill}
@@ -327,7 +327,7 @@ export default function AddJob({ onJobAdded }: Props) {
           />
         </div>
         <div className="w-[120px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Adv Industry</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Adv Industry</Label>
           <Input
             type="number"
             value={advIndustrySkill}
@@ -338,7 +338,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="min-w-[120px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Structure</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Structure</Label>
           <Select value={structure} onValueChange={setStructure}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -351,7 +351,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="min-w-[90px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Rig</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Rig</Label>
           <Select value={rig} onValueChange={setRig}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -363,7 +363,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="min-w-[100px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Security</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Security</Label>
           <Select value={security} onValueChange={setSecurity}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -375,7 +375,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="w-[120px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Facility Tax %</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Facility Tax %</Label>
           <Input
             type="number"
             value={facilityTax}
@@ -386,7 +386,7 @@ export default function AddJob({ onJobAdded }: Props) {
 
       <div className="flex gap-2 flex-wrap mb-3 items-end">
         <div className="min-w-[250px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">System (optional)</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">System (optional)</Label>
           <Popover open={systemSearchOpen} onOpenChange={setSystemSearchOpen}>
             <PopoverTrigger asChild>
               <button
@@ -428,7 +428,7 @@ export default function AddJob({ onJobAdded }: Props) {
         </div>
 
         <div className="flex-grow min-w-[200px]">
-          <Label className="text-xs text-[#94a3b8] mb-1 block">Notes</Label>
+          <Label className="text-xs text-text-secondary mb-1 block">Notes</Label>
           <Input
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -448,59 +448,59 @@ export default function AddJob({ onJobAdded }: Props) {
       {/* Calculation Result */}
       {calcLoading && (
         <div className="flex justify-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin text-[#00d4ff]" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
 
       {calcResult && !calcLoading && (
-        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-4">
-          <h3 className="text-sm font-semibold text-[#00d4ff] mb-2">
+        <div className="bg-background-panel rounded-sm border border-overlay-subtle p-4">
+          <h3 className="text-sm font-semibold text-primary mb-2">
             Cost Estimate: {calcResult.productName} x{formatNumber(calcResult.totalProducts)}
           </h3>
           <div className="flex gap-6 flex-wrap mb-3">
             <div>
-              <span className="text-xs text-[#64748b] block">Input Cost</span>
-              <span className="text-sm text-[#e2e8f0]">{formatISK(calcResult.inputCost)}</span>
+              <span className="text-xs text-text-muted block">Input Cost</span>
+              <span className="text-sm text-text-emphasis">{formatISK(calcResult.inputCost)}</span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Job Cost</span>
-              <span className="text-sm text-[#e2e8f0]">{formatISK(calcResult.jobCost)}</span>
+              <span className="text-xs text-text-muted block">Job Cost</span>
+              <span className="text-sm text-text-emphasis">{formatISK(calcResult.jobCost)}</span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Total Cost</span>
-              <span className="text-sm text-[#e2e8f0] font-semibold">{formatISK(calcResult.totalCost)}</span>
+              <span className="text-xs text-text-muted block">Total Cost</span>
+              <span className="text-sm text-text-emphasis font-semibold">{formatISK(calcResult.totalCost)}</span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Output Value</span>
-              <span className="text-sm text-[#e2e8f0]">{formatISK(calcResult.outputValue)}</span>
+              <span className="text-xs text-text-muted block">Output Value</span>
+              <span className="text-sm text-text-emphasis">{formatISK(calcResult.outputValue)}</span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Profit</span>
-              <span className={`text-sm ${calcResult.profit >= 0 ? "text-[#10b981]" : "text-[#ef4444]"}`}>
+              <span className="text-xs text-text-muted block">Profit</span>
+              <span className={`text-sm ${calcResult.profit >= 0 ? "text-teal-success" : "text-rose-danger"}`}>
                 {formatISK(calcResult.profit)}
               </span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Margin</span>
-              <span className={`text-sm ${calcResult.margin >= 0 ? "text-[#10b981]" : "text-[#ef4444]"}`}>
+              <span className="text-xs text-text-muted block">Margin</span>
+              <span className={`text-sm ${calcResult.margin >= 0 ? "text-teal-success" : "text-rose-danger"}`}>
                 {calcResult.margin.toFixed(1)}%
               </span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Per Run</span>
-              <span className="text-sm text-[#e2e8f0]">{formatDuration(calcResult.secsPerRun)}</span>
+              <span className="text-xs text-text-muted block">Per Run</span>
+              <span className="text-sm text-text-emphasis">{formatDuration(calcResult.secsPerRun)}</span>
             </div>
             <div>
-              <span className="text-xs text-[#64748b] block">Total Time</span>
-              <span className="text-sm text-[#e2e8f0]">{formatDuration(calcResult.totalDuration)}</span>
+              <span className="text-xs text-text-muted block">Total Time</span>
+              <span className="text-sm text-text-emphasis">{formatDuration(calcResult.totalDuration)}</span>
             </div>
           </div>
 
           {calcResult.materials.length > 0 && (
-            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219]">
+                  <TableRow className="bg-background-void">
                     <TableHead>Material</TableHead>
                     <TableHead className="text-right">Base Qty</TableHead>
                     <TableHead className="text-right">Required</TableHead>
@@ -511,11 +511,11 @@ export default function AddJob({ onJobAdded }: Props) {
                 <TableBody>
                   {calcResult.materials.map((mat) => (
                     <TableRow key={mat.typeId}>
-                      <TableCell className="text-[#e2e8f0]">{mat.name}</TableCell>
-                      <TableCell className="text-right text-[#94a3b8]">{formatNumber(mat.baseQty)}</TableCell>
-                      <TableCell className="text-right text-[#e2e8f0]">{formatNumber(mat.batchQty)}</TableCell>
-                      <TableCell className="text-right text-[#94a3b8]">{formatISK(mat.price)}</TableCell>
-                      <TableCell className="text-right text-[#cbd5e1]">{formatISK(mat.cost)}</TableCell>
+                      <TableCell className="text-text-emphasis">{mat.name}</TableCell>
+                      <TableCell className="text-right text-text-secondary">{formatNumber(mat.baseQty)}</TableCell>
+                      <TableCell className="text-right text-text-emphasis">{formatNumber(mat.batchQty)}</TableCell>
+                      <TableCell className="text-right text-text-secondary">{formatISK(mat.price)}</TableCell>
+                      <TableCell className="text-right text-text-primary">{formatISK(mat.cost)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

@@ -16,10 +16,10 @@ interface Props {
 
 const getSecurityColor = (security: string) => {
   switch (security) {
-    case "high": return "text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30";
-    case "low": return "text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30";
-    case "null": return "text-[#ef4444] bg-[#ef4444]/10 border-[#ef4444]/30";
-    default: return "text-[#94a3b8] bg-[#94a3b8]/10 border-[#94a3b8]/30";
+    case "high": return "text-teal-success bg-teal-success/10 border-teal-success/30";
+    case "low": return "text-amber-manufacturing bg-amber-manufacturing/10 border-amber-manufacturing/30";
+    case "null": return "text-rose-danger bg-rose-danger/10 border-rose-danger/30";
+    default: return "text-text-secondary bg-[#94a3b8]/10 border-[#94a3b8]/30";
   }
 };
 
@@ -31,15 +31,15 @@ const getActivityColor = (activity: string) => {
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
-    ship: "text-[#00d4ff] bg-[#00d4ff]/10 border-[#00d4ff]/30",
+    ship: "text-primary bg-primary/10 border-primary/30",
     component: "text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30",
-    equipment: "text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30",
-    ammo: "text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30",
+    equipment: "text-teal-success bg-teal-success/10 border-teal-success/30",
+    ammo: "text-amber-manufacturing bg-amber-manufacturing/10 border-amber-manufacturing/30",
     drone: "text-[#06b6d4] bg-[#06b6d4]/10 border-[#06b6d4]/30",
     reaction: "text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30",
     reprocessing: "text-[#f97316] bg-[#f97316]/10 border-[#f97316]/30",
   };
-  return colors[category] || "text-[#94a3b8] bg-[#94a3b8]/10 border-[#94a3b8]/30";
+  return colors[category] || "text-text-secondary bg-[#94a3b8]/10 border-[#94a3b8]/30";
 };
 
 export default function StationsList({ stations, loading, onRefresh }: Props) {

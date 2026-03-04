@@ -13,7 +13,7 @@ type IconProps = {
  *
  * Usage:
  *   import { Rocket } from 'lucide-react';
- *   <Icon icon={Rocket} size={20} color="#00d4ff" />
+ *   <Icon icon={Rocket} size={20} color="var(--color-primary-cyan)" />
  */
 export default function Icon({ icon: LucideIcon, size = 20, color, className }: IconProps) {
   return (

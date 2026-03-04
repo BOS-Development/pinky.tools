@@ -35,15 +35,15 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { color: string; bg: string }> = {
-    PLANNING: { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.1)' },
-    ACCUMULATING: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-    READY: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
+    PLANNING: { color: 'var(--color-primary-cyan)', bg: 'rgba(0, 212, 255, 0.1)' },
+    ACCUMULATING: { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' },
+    READY: { color: 'var(--color-success-teal)', bg: 'rgba(16, 185, 129, 0.1)' },
     IN_TRANSIT: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
-    SELLING: { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' },
-    COMPLETE: { color: '#10b981', bg: 'rgba(16, 185, 129, 0.1)' },
-    CANCELLED: { color: '#ef4444', bg: 'rgba(239, 68, 68, 0.1)' },
+    SELLING: { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' },
+    COMPLETE: { color: 'var(--color-success-teal)', bg: 'rgba(16, 185, 129, 0.1)' },
+    CANCELLED: { color: 'var(--color-danger-rose)', bg: 'rgba(239, 68, 68, 0.1)' },
   };
-  const c = config[status] || { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
+  const c = config[status] || { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -180,8 +180,8 @@ export default function HaulingRunsList() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
-            <Truck className="h-7 w-7 text-[#00d4ff]" />
-            <h1 className="text-2xl font-bold text-[#e2e8f0]">Hauling Runs</h1>
+            <Truck className="h-7 w-7 text-primary" />
+            <h1 className="text-2xl font-bold text-text-emphasis">Hauling Runs</h1>
           </div>
           <Button onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -205,18 +205,18 @@ export default function HaulingRunsList() {
             <p className="empty-state-title">No hauling runs yet. Create your first run to get started.</p>
           </div>
         ) : (
-          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <Card className="bg-background-panel border-overlay-subtle">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
-                    <TableHead className="font-bold text-[#e2e8f0]">Name</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0]">Status</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0]">Route</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Volume Used</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Items</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] w-40">Progress</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0]">Actions</TableHead>
+                  <TableRow className="bg-background-void border-overlay-subtle">
+                    <TableHead className="font-bold text-text-emphasis">Name</TableHead>
+                    <TableHead className="font-bold text-text-emphasis">Status</TableHead>
+                    <TableHead className="font-bold text-text-emphasis">Route</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Volume Used</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Items</TableHead>
+                    <TableHead className="font-bold text-text-emphasis w-40">Progress</TableHead>
+                    <TableHead className="font-bold text-text-emphasis">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -226,7 +226,7 @@ export default function HaulingRunsList() {
                     const fromName = EVE_REGIONS[run.fromRegionId] || `Region ${run.fromRegionId}`;
                     const toName = EVE_REGIONS[run.toRegionId] || `Region ${run.toRegionId}`;
                     const itemCount = (run.items || []).length;
-                    const progressColor = fillPercent >= 100 ? '#10b981' : fillPercent >= 50 ? '#00d4ff' : '#f59e0b';
+                    const progressColor = fillPercent >= 100 ? 'var(--color-success-teal)' : fillPercent >= 50 ? 'var(--color-primary-cyan)' : 'var(--color-manufacturing-amber)';
 
                     return (
                       <TableRow
@@ -235,7 +235,7 @@ export default function HaulingRunsList() {
                         style={{ backgroundColor: idx % 2 === 0 ? undefined : 'rgba(255,255,255,0.02)' }}
                         onClick={() => router.push(`/hauling/${run.id}`)}
                       >
-                        <TableCell className="font-semibold text-[#e2e8f0]">
+                        <TableCell className="font-semibold text-text-emphasis">
                           <Link href={`/hauling/${run.id}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                             {run.name}
                           </Link>
@@ -243,17 +243,17 @@ export default function HaulingRunsList() {
                         <TableCell>
                           <StatusBadge status={run.status} />
                         </TableCell>
-                        <TableCell className="text-sm text-[#94a3b8]">
+                        <TableCell className="text-sm text-text-secondary">
                           {fromName} &rarr; {toName}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                        <TableCell className="text-right text-sm text-text-secondary">
                           {total > 0
                             ? `${used.toLocaleString(undefined, { maximumFractionDigits: 1 })} / ${total.toLocaleString()} m³`
                             : used > 0
                             ? `${used.toLocaleString(undefined, { maximumFractionDigits: 1 })} m³`
                             : '—'}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">{itemCount}</TableCell>
+                        <TableCell className="text-right text-sm text-text-secondary">{itemCount}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="flex-1">
@@ -264,7 +264,7 @@ export default function HaulingRunsList() {
                                 />
                               </div>
                             </div>
-                            <span className="text-xs text-[#94a3b8] min-w-[36px] text-right">
+                            <span className="text-xs text-text-secondary min-w-[36px] text-right">
                               {fillPercent.toFixed(0)}%
                             </span>
                           </div>
@@ -296,33 +296,33 @@ export default function HaulingRunsList() {
 
       {/* New Run Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-md bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">New Hauling Run</DialogTitle>
+            <DialogTitle className="text-text-emphasis">New Hauling Run</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 mt-2">
             <div>
-              <label className="text-xs text-[#94a3b8] mb-1 block">Name *</label>
+              <label className="text-xs text-text-secondary mb-1 block">Name *</label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Run name"
                 autoFocus
-                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                className="bg-background-void border-overlay-strong text-text-emphasis"
               />
             </div>
             <div>
-              <label className="text-xs text-[#94a3b8] mb-1 block">From Region *</label>
+              <label className="text-xs text-text-secondary mb-1 block">From Region *</label>
               <Select
                 value={form.fromRegionId !== '' ? String(form.fromRegionId) : ''}
                 onValueChange={(v) => setForm({ ...form, fromRegionId: Number(v) })}
               >
-                <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                   <SelectValue placeholder="Select region" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                <SelectContent className="bg-background-panel border-overlay-medium">
                   {REGION_OPTIONS.map((r) => (
-                    <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                    <SelectItem key={r.id} value={r.id.toString()} className="text-text-emphasis">
                       {r.name}
                     </SelectItem>
                   ))}
@@ -330,17 +330,17 @@ export default function HaulingRunsList() {
               </Select>
             </div>
             <div>
-              <label className="text-xs text-[#94a3b8] mb-1 block">To Region *</label>
+              <label className="text-xs text-text-secondary mb-1 block">To Region *</label>
               <Select
                 value={form.toRegionId !== '' ? String(form.toRegionId) : ''}
                 onValueChange={(v) => setForm({ ...form, toRegionId: Number(v) })}
               >
-                <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                   <SelectValue placeholder="Select region" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                <SelectContent className="bg-background-panel border-overlay-medium">
                   {REGION_OPTIONS.map((r) => (
-                    <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                    <SelectItem key={r.id} value={r.id.toString()} className="text-text-emphasis">
                       {r.name}
                     </SelectItem>
                   ))}
@@ -348,29 +348,29 @@ export default function HaulingRunsList() {
               </Select>
             </div>
             <div>
-              <label className="text-xs text-[#94a3b8] mb-1 block">Max Volume (m³)</label>
+              <label className="text-xs text-text-secondary mb-1 block">Max Volume (m³)</label>
               <Input
                 type="number"
                 value={form.maxVolumeM3}
                 onChange={(e) => setForm({ ...form, maxVolumeM3: e.target.value })}
                 min={0}
-                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                className="bg-background-void border-overlay-strong text-text-emphasis"
               />
             </div>
             <div>
-              <label className="text-xs text-[#94a3b8] mb-1 block">Haul Threshold ISK</label>
+              <label className="text-xs text-text-secondary mb-1 block">Haul Threshold ISK</label>
               <Input
                 type="number"
                 value={form.haulThresholdIsk}
                 onChange={(e) => setForm({ ...form, haulThresholdIsk: e.target.value })}
                 min={0}
-                className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                className="bg-background-void border-overlay-strong text-text-emphasis"
               />
-              <p className="text-xs text-[#64748b] mt-1">Minimum net profit to consider hauling</p>
+              <p className="text-xs text-text-muted mt-1">Minimum net profit to consider hauling</p>
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#e2e8f0] mb-1">Discord Notifications</p>
-              <p className="text-xs text-[#64748b] mb-2">Requires Discord linked in Settings.</p>
+              <p className="text-sm font-semibold text-text-emphasis mb-1">Discord Notifications</p>
+              <p className="text-xs text-text-muted mb-2">Requires Discord linked in Settings.</p>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <Checkbox
@@ -378,7 +378,7 @@ export default function HaulingRunsList() {
                     checked={form.notifyTier2}
                     onCheckedChange={(checked) => setForm({ ...form, notifyTier2: Boolean(checked) })}
                   />
-                  <label htmlFor="notifyTier2" className="text-sm text-[#94a3b8] cursor-pointer">
+                  <label htmlFor="notifyTier2" className="text-sm text-text-secondary cursor-pointer">
                     Notify when fill crosses 80% (requires Discord)
                   </label>
                 </div>
@@ -388,7 +388,7 @@ export default function HaulingRunsList() {
                     checked={form.notifyTier3}
                     onCheckedChange={(checked) => setForm({ ...form, notifyTier3: Boolean(checked) })}
                   />
-                  <label htmlFor="notifyTier3" className="text-sm text-[#94a3b8] cursor-pointer">
+                  <label htmlFor="notifyTier3" className="text-sm text-text-secondary cursor-pointer">
                     Notify when items are slow to fill (requires Discord)
                   </label>
                 </div>
@@ -398,7 +398,7 @@ export default function HaulingRunsList() {
                     checked={form.dailyDigest}
                     onCheckedChange={(checked) => setForm({ ...form, dailyDigest: Boolean(checked) })}
                   />
-                  <label htmlFor="dailyDigest" className="text-sm text-[#94a3b8] cursor-pointer">
+                  <label htmlFor="dailyDigest" className="text-sm text-text-secondary cursor-pointer">
                     Daily digest in Discord
                   </label>
                 </div>
@@ -406,7 +406,7 @@ export default function HaulingRunsList() {
             </div>
           </div>
           <DialogFooter className="mt-4">
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="text-[#94a3b8]">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="text-text-secondary">
               Cancel
             </Button>
             <Button

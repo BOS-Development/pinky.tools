@@ -70,11 +70,31 @@ const config: Config = {
         },
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        interactive: {
+          hover: "var(--color-interactive-hover)",
+          active: "var(--color-interactive-active)",
+          selected: "var(--color-interactive-selected)",
+          disabled: "var(--color-interactive-disabled)",
+        },
+        overlay: {
+          subtle: "var(--color-overlay-subtle)",
+          medium: "var(--color-overlay-medium)",
+          strong: "var(--color-overlay-strong)",
+        },
       },
       borderRadius: {
+        none: "0",
+        DEFAULT: "var(--radius-default, 0.125rem)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        full: "9999px",
+      },
+      boxShadow: {
+        "glow-sm": "var(--glow-cyan-sm)",
+        "glow-md": "var(--glow-cyan-md)",
+        "glow-lg": "var(--glow-cyan-lg)",
+        "glow-text": "var(--glow-text-heading)",
       },
       fontFamily: {
         sans: ["var(--font-geist-sans)", "system-ui", "sans-serif"],
