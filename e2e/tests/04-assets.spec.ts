@@ -19,14 +19,8 @@ test.describe('Assets Page', () => {
   test('displays character assets grouped by station', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Jita station
+    // Jita station is auto-expanded on load (first station + first hangar)
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
-
-    // Expand Jita to see hangars
-    await page.getByText('Jita IV - Moon 4').click();
-
-    // Expand Personal Hangar to see items
-    await page.getByText('Personal Hangar').first().click();
 
     // Check for asset types from mock ESI
     await expect(page.getByText('Tritanium')).toBeVisible({ timeout: 5000 });
@@ -36,21 +30,16 @@ test.describe('Assets Page', () => {
 
   test('displays container with nested assets', async ({ page }) => {
     await page.goto('/inventory');
-
-    // Wait for assets to load, then expand Jita
+    // Jita is auto-expanded on load — no click needed
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
-    await page.getByText('Jita IV - Moon 4').click();
 
     // Container name from mock ESI
     await expect(page.getByText('Minerals Box')).toBeVisible({ timeout: 5000 });
   });
 
   test('displays corporation assets under station', async ({ page }) => {
-    await page.goto('/inventory');
-
-    // Expand Jita to see corp hangars
-    await page.getByText('Jita IV - Moon 4').click();
-
+    // Jita is auto-expanded on load — no click needed
+    await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
     // Corp hangars appear as sub-nodes (use .first() since multiple hangars match)
     await expect(page.getByText(/Stargazer Industries/).first()).toBeVisible({ timeout: 5000 });
   });

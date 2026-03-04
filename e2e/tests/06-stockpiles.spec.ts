@@ -18,12 +18,8 @@ test.describe('Stockpiles', () => {
   test('set stockpile marker on character asset', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Expand Jita station to see hangars
+    // Jita and Personal Hangar auto-expand on load
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
-    await page.getByText('Jita IV - Moon 4').click();
-
-    // Expand Personal Hangar to see items
-    await page.getByText('Personal Hangar').first().click();
     await expect(page.getByText('Tritanium')).toBeVisible({ timeout: 5000 });
 
     // Find the Tritanium row and click the first button (set stockpile)
@@ -77,9 +73,8 @@ test.describe('Stockpiles', () => {
   test('set stockpile marker on corporation asset', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Expand Jita station
+    // Jita auto-expands on load
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
-    await page.getByText('Jita IV - Moon 4').click();
 
     // Expand Stargazer Industries - Main Hangar (corp division 1 has Tritanium x100,000)
     await expect(page.getByText(/Stargazer Industries - Main Hangar/).first()).toBeVisible({ timeout: 5000 });
@@ -122,12 +117,8 @@ test.describe('Stockpiles', () => {
   test('edit stockpile marker changes desired quantity', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Expand Jita station
+    // Jita and Personal Hangar auto-expand on load
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
-    await page.getByText('Jita IV - Moon 4').click();
-
-    // Expand Personal Hangar to see items
-    await page.getByText('Personal Hangar').first().click();
     await expect(page.getByText('Tritanium')).toBeVisible({ timeout: 5000 });
 
     // Find Tritanium row and click the edit stockpile button (first button in row)
@@ -157,17 +148,13 @@ test.describe('Stockpiles', () => {
   test('below target filter shows only deficit items on assets page', async ({ page }) => {
     await page.goto('/inventory');
 
-    // Wait for assets to load
+    // Wait for assets to load (Jita and Personal Hangar auto-expand on load)
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
 
-    // Toggle the "Below target only" switch
+    // Toggle the "Below target only" switch (filter preserves expanded state)
     await page.getByText('Below target only').click();
 
-    // Expand Jita to see filtered results
-    await page.getByText('Jita IV - Moon 4').click();
-
-    // Personal Hangar should appear (Tritanium has a marker with deficit)
-    await page.getByText('Personal Hangar').first().click();
+    // Tritanium should be visible — it has a marker with a deficit
     await expect(page.getByText('Tritanium')).toBeVisible({ timeout: 5000 });
 
     // Pyerite should NOT be visible (no stockpile marker set on it)
@@ -205,12 +192,10 @@ test.describe('Stockpiles', () => {
     // Accept all confirm dialogs in this test
     page.on('dialog', dialog => dialog.accept());
 
-    // Expand Jita station
+    // Jita and Personal Hangar auto-expand on load
     await expect(page.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 10000 });
-    await page.getByText('Jita IV - Moon 4').click();
 
     // Delete the character Tritanium marker
-    await page.getByText('Personal Hangar').first().click();
     await expect(page.getByText('Tritanium')).toBeVisible({ timeout: 5000 });
 
     const tritaniumRow = page.getByRole('row').filter({ hasText: 'Tritanium' }).first();
