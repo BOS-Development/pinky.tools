@@ -21,13 +21,8 @@ test.describe('Marketplace', () => {
     // Assets are automatically updated by the background runner (10s interval in E2E)
     // and also triggered immediately when characters are added
     await bobPage.goto('/inventory');
+    // Jita and Personal Hangar auto-expand on load
     await expect(bobPage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
-
-    // Expand Jita station
-    await bobPage.getByText('Jita IV - Moon 4').click();
-
-    // Expand Personal Hangar to see items
-    await bobPage.getByText('Personal Hangar').first().click();
     await expect(bobPage.getByText('Rifter')).toBeVisible({ timeout: 5000 });
 
     // Click sell button on Rifter row (lucide tag icon button)

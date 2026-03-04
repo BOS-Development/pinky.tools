@@ -18,6 +18,7 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
     storageState: './auth-state.json',
+    blockedOrigins: ['https://images.evetech.net'],
   },
 
   globalSetup: './global-setup.ts',

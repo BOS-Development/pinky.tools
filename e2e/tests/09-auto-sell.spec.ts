@@ -7,13 +7,10 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/inventory');
 
-    // Wait for assets to load
+    // Jita auto-expands on load
     await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
 
-    // Expand Jita station
-    await alicePage.getByText('Jita IV - Moon 4').click();
-
-    // "Minerals Box" container should be visible after expanding
+    // "Minerals Box" container should be visible after auto-expand
     await expect(alicePage.getByText('Minerals Box')).toBeVisible({ timeout: 10000 });
 
     // Click the auto-sell toggle button on the Minerals Box container row
@@ -59,9 +56,8 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/inventory');
 
-    // Wait for assets and expand Jita
+    // Jita auto-expands on load
     await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
-    await alicePage.getByText('Jita IV - Moon 4').click();
 
     // The container should show auto-sell chip
     await expect(alicePage.getByText(/Auto-Sell @ 90% JBV/)).toBeVisible({ timeout: 10000 });
@@ -92,9 +88,8 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/inventory');
 
-    // Wait for assets and expand Jita
+    // Jita auto-expands on load
     await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
-    await alicePage.getByText('Jita IV - Moon 4').click();
 
     // The container should show auto-sell chip
     await expect(alicePage.getByText(/Auto-Sell @ 80% JBV/)).toBeVisible({ timeout: 10000 });
@@ -128,9 +123,8 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/inventory');
 
-    // Wait for assets and expand Jita
+    // Jita auto-expands on load
     await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
-    await alicePage.getByText('Jita IV - Moon 4').click();
     await expect(alicePage.getByText('Minerals Box')).toBeVisible({ timeout: 10000 });
 
     // Enable auto-sell on Minerals Box
@@ -167,9 +161,8 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/inventory');
 
-    // Wait for assets and expand Jita
+    // Jita auto-expands on load
     await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
-    await alicePage.getByText('Jita IV - Moon 4').click();
 
     // The container should show current auto-sell chip with JSV
     await expect(alicePage.getByText(/Auto-Sell @ 90% JSV/)).toBeVisible({ timeout: 10000 });
@@ -198,9 +191,8 @@ test.describe('Auto-Sell Containers', () => {
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/inventory');
 
-    // Wait for assets and expand Jita
+    // Jita auto-expands on load
     await expect(alicePage.getByText('Jita IV - Moon 4')).toBeVisible({ timeout: 30000 });
-    await alicePage.getByText('Jita IV - Moon 4').click();
 
     await expect(alicePage.getByText(/Auto-Sell @ 90% JSplit/)).toBeVisible({ timeout: 10000 });
 
