@@ -253,20 +253,45 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
-              <span
-                class="text-sm text-text-emphasis"
+              <div
+                class="flex items-center gap-1.5"
               >
-                Rifter Blueprint
-              </span>
+                <img
+                  alt=""
+                  class="flex-shrink-0"
+                  height="24"
+                  loading="lazy"
+                  src="https://images.evetech.net/types/787/icon?size=32"
+                  style="filter: sepia(1) saturate(3) hue-rotate(180deg);"
+                  width="24"
+                />
+                <span
+                  class="text-sm text-text-emphasis"
+                >
+                  Rifter Blueprint
+                </span>
+              </div>
             </td>
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
-              <span
-                class="text-sm text-text-primary"
+              <div
+                class="flex items-center gap-1.5"
               >
-                Rifter
-              </span>
+                <img
+                  alt=""
+                  class="flex-shrink-0"
+                  height="24"
+                  loading="lazy"
+                  src="https://images.evetech.net/types/587/icon?size=32"
+                  width="24"
+                />
+                <span
+                  class="text-sm text-text-primary"
+                >
+                  Rifter
+                </span>
+              </div>
             </td>
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -449,20 +474,37 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
-              <span
-                class="text-sm text-text-emphasis"
+              <div
+                class="flex items-center gap-1.5"
               >
-                Reaction Formula
-              </span>
+                <img
+                  alt=""
+                  class="flex-shrink-0"
+                  height="24"
+                  loading="lazy"
+                  src="https://images.evetech.net/types/46166/icon?size=32"
+                  style="filter: sepia(1) saturate(3) hue-rotate(180deg);"
+                  width="24"
+                />
+                <span
+                  class="text-sm text-text-emphasis"
+                >
+                  Reaction Formula
+                </span>
+              </div>
             </td>
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
-              <span
-                class="text-sm text-text-primary"
+              <div
+                class="flex items-center gap-1.5"
               >
-                -
-              </span>
+                <span
+                  class="text-sm text-text-primary"
+                >
+                  -
+                </span>
+              </div>
             </td>
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
