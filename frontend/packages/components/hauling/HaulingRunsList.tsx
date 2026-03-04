@@ -35,15 +35,15 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
 
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { color: string; bg: string }> = {
-    PLANNING: { color: 'var(--color-primary-cyan)', bg: 'rgba(0, 212, 255, 0.1)' },
-    ACCUMULATING: { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' },
-    READY: { color: 'var(--color-success-teal)', bg: 'rgba(16, 185, 129, 0.1)' },
-    IN_TRANSIT: { color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.1)' },
-    SELLING: { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' },
-    COMPLETE: { color: 'var(--color-success-teal)', bg: 'rgba(16, 185, 129, 0.1)' },
-    CANCELLED: { color: 'var(--color-danger-rose)', bg: 'rgba(239, 68, 68, 0.1)' },
+    PLANNING: { color: 'var(--color-primary-cyan)', bg: 'var(--color-info-tint)' },
+    ACCUMULATING: { color: 'var(--color-manufacturing-amber)', bg: 'var(--color-warning-tint)' },
+    READY: { color: 'var(--color-success-teal)', bg: 'var(--color-success-tint)' },
+    IN_TRANSIT: { color: 'var(--color-primary-cyan)', bg: 'var(--color-info-tint)' },
+    SELLING: { color: 'var(--color-manufacturing-amber)', bg: 'var(--color-warning-tint)' },
+    COMPLETE: { color: 'var(--color-success-teal)', bg: 'var(--color-success-tint)' },
+    CANCELLED: { color: 'var(--color-danger-rose)', bg: 'var(--color-error-tint)' },
   };
-  const c = config[status] || { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
+  const c = config[status] || { color: 'var(--color-text-secondary)', bg: 'var(--color-neutral-tint)' };
   return (
     <span
       className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
@@ -231,8 +231,8 @@ export default function HaulingRunsList() {
                     return (
                       <TableRow
                         key={run.id}
-                        className="cursor-pointer hover:bg-[rgba(0,212,255,0.03)] border-[rgba(148,163,184,0.07)]"
-                        style={{ backgroundColor: idx % 2 === 0 ? undefined : 'rgba(255,255,255,0.02)' }}
+                        className="cursor-pointer hover:bg-interactive-hover border-overlay-subtle"
+                        style={{ backgroundColor: idx % 2 === 0 ? undefined : 'var(--color-overlay-subtle)' }}
                         onClick={() => router.push(`/hauling/${run.id}`)}
                       >
                         <TableCell className="font-semibold text-text-emphasis">
@@ -257,7 +257,7 @@ export default function HaulingRunsList() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="flex-1">
-                              <div className="h-2 bg-[#1e2a3a] rounded-full overflow-hidden">
+                              <div className="h-2 bg-background-elevated rounded-full overflow-hidden">
                                 <div
                                   className="h-full rounded-full transition-all"
                                   style={{ width: `${fillPercent}%`, backgroundColor: progressColor }}
@@ -277,7 +277,7 @@ export default function HaulingRunsList() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="border-red-500 text-red-400 hover:bg-red-500/10 ml-1"
+                              className="border-rose-danger text-rose-danger hover:bg-rose-danger/10 ml-1"
                               onClick={() => handleDeleteRun(run.id)}
                             >
                               Delete

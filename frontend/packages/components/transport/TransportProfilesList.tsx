@@ -32,11 +32,21 @@ const getMethodLabel = (method: string) => {
 const getMethodColor = (method: string) => {
   const colors: Record<string, string> = {
     freighter: "var(--color-primary-cyan)",
-    jump_freighter: "#8b5cf6",
-    dst: "#06b6d4",
+    jump_freighter: "var(--color-category-violet)",
+    dst: "var(--color-category-teal)",
     blockade_runner: "var(--color-manufacturing-amber)",
   };
   return colors[method] || "var(--color-text-secondary)";
+};
+
+const getMethodBgColor = (method: string) => {
+  const colors: Record<string, string> = {
+    freighter: "var(--color-info-tint)",
+    jump_freighter: "var(--color-neutral-tint)",
+    dst: "var(--color-neutral-tint)",
+    blockade_runner: "var(--color-warning-tint)",
+  };
+  return colors[method] || "var(--color-neutral-tint)";
 };
 
 export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
@@ -112,13 +122,13 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
               </TableRow>
             ) : (
               profiles.map((p) => (
-                <TableRow key={p.id} className="hover:bg-[rgba(0,212,255,0.05)]">
+                <TableRow key={p.id} className="hover:bg-interactive-hover">
                   <TableCell className="font-medium text-text-emphasis">{p.name}</TableCell>
                   <TableCell>
                     <span
                       className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
                       style={{
-                        backgroundColor: `${getMethodColor(p.transportMethod)}20`,
+                        backgroundColor: getMethodBgColor(p.transportMethod),
                         color: getMethodColor(p.transportMethod),
                       }}
                     >
@@ -132,7 +142,7 @@ export function TransportProfilesList({ profiles, loading, onRefresh }: Props) {
                   <TableCell className="text-text-secondary">{p.routePreference}</TableCell>
                   <TableCell>
                     {p.isDefault && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[rgba(16,185,129,0.15)] text-teal-success">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-success/15 text-teal-success">
                         Default
                       </span>
                     )}

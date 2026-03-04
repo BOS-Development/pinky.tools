@@ -226,7 +226,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
             class="[&_tr:last-child]:border-0"
           >
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-[#1a1d2e] cursor-pointer"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-background-elevated cursor-pointer"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -329,7 +329,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
               </td>
             </tr>
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#1a1d2e] cursor-pointer"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-elevated cursor-pointer"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"

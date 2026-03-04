@@ -419,7 +419,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
     }
   }
 
-  const depthColors = ["var(--color-primary-cyan)", "var(--color-success-teal)", "var(--color-manufacturing-amber)", "#a78bfa", "#ec4899", "#06b6d4"];
+  const depthColors = ["var(--color-primary-cyan)", "var(--color-success-teal)", "var(--color-manufacturing-amber)", "var(--color-category-violet)", "var(--color-category-pink)", "var(--color-category-teal)"];
 
   const renderDepthIndicators = (colorPath: number[]) =>
     colorPath.map((colorIndex, i) => (
@@ -445,7 +445,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
     rows.push(
       <TableRow
         key={`step-${step.id}`}
-        className={`${depth === 0 ? "bg-[#1a1d2e]" : "bg-background-panel"} hover:bg-[#1e2235]`}
+        className={`${depth === 0 ? "bg-background-elevated" : "bg-background-panel"} hover:bg-background-elevated`}
       >
         <TableCell className="relative pl-0">
           {renderDepthIndicators(colorPath)}
@@ -473,8 +473,8 @@ export default function ProductionPlanEditor({ planId }: Props) {
             <Badge
               className={`ml-1 h-5 text-[11px] cursor-default ${
                 step.activity === "manufacturing"
-                  ? "bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
-                  : "bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
+                  ? "bg-bg-science text-blue-science hover:bg-bg-science"
+                  : "bg-category-violet/10 text-category-violet hover:bg-category-violet/10"
               }`}
             >
               {step.activity}
@@ -620,7 +620,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
             rows.push(
               <TableRow
                 key={`mat-${step.id}-${mat.typeId}`}
-                className="bg-background-void hover:bg-[#151825]"
+                className="bg-background-void hover:bg-background-panel"
               >
                 <TableCell className="relative pl-0">
                   {renderDepthIndicators(colorPath)}
@@ -642,11 +642,11 @@ export default function ProductionPlanEditor({ planId }: Props) {
                       x{mat.quantity}
                     </span>
                     {mat.isProduced ? (
-                      <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f] cursor-default">
+                      <Badge className="ml-1 h-[18px] text-[10px] bg-bg-science text-blue-science hover:bg-bg-science cursor-default">
                         Produce
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default">
+                      <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default">
                         Buy
                       </Badge>
                     )}
@@ -658,7 +658,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                       detectedLevels[mat.blueprintTypeId] ? (
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge className="h-[18px] text-[10px] bg-[#1a3a2a] text-teal-success hover:bg-[#1a3a2a] cursor-default">
+                            <Badge className="h-[18px] text-[10px] bg-teal-success/10 text-teal-success hover:bg-teal-success/10 cursor-default">
                               ME {detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE {detectedLevels[mat.blueprintTypeId].timeEfficiency}
                             </Badge>
                           </TooltipTrigger>
@@ -757,7 +757,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
           </div>
         </div>
         <Button
-          className="bg-teal-success hover:bg-[#059669]"
+          className="bg-teal-success hover:bg-teal-success/80"
           onClick={() => setGenerateDialogOpen(true)}
         >
           <Play className="h-4 w-4 mr-1" />
@@ -866,14 +866,14 @@ export default function ProductionPlanEditor({ planId }: Props) {
                     ? ` (${formatISK(job.estimatedCost)})`
                     : ""}
                   {generateResult.characterAssignments?.[job.id] && (
-                    <Badge className="ml-1 h-[18px] text-[11px] bg-[#1e3a5f] text-[#93c5fd] hover:bg-[#1e3a5f] cursor-default">
+                    <Badge className="ml-1 h-[18px] text-[11px] bg-bg-science text-blue-science hover:bg-bg-science cursor-default">
                       {generateResult.characterAssignments[job.id]}
                     </Badge>
                   )}
                 </p>
               ))}
               {generateResult.unassignedCount != null && generateResult.unassignedCount > 0 && (
-                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-amber-manufacturing text-sm flex items-center gap-2">
+                <div className="mt-2 p-3 rounded bg-bg-warning border border-amber-manufacturing/30 text-amber-manufacturing text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   {generateResult.unassignedCount} job(s) could not be assigned to a character
                 </div>
@@ -947,7 +947,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
               </div>
 
               {previewError && (
-                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-amber-manufacturing text-sm flex items-center gap-2">
+                <div className="mt-2 p-3 rounded bg-bg-warning border border-amber-manufacturing/30 text-amber-manufacturing text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   {previewError} — you can still generate without parallelism.
                 </div>
@@ -972,7 +972,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                       <TableBody>
                         {/* No-assignment row */}
                         <TableRow
-                          className={`cursor-pointer hover:bg-[#161c2c] ${selectedParallelism === 0 ? "bg-[#1e293b]" : ""}`}
+                          className={`cursor-pointer hover:bg-background-panel ${selectedParallelism === 0 ? "bg-background-elevated" : ""}`}
                           onClick={() => setSelectedParallelism(0)}
                         >
                           <TableCell>
@@ -1004,7 +1004,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                           return (
                             <TableRow
                               key={option.parallelism}
-                              className={`cursor-pointer hover:bg-[#161c2c] ${isSelected ? "bg-[#1e293b]" : ""}`}
+                              className={`cursor-pointer hover:bg-background-panel ${isSelected ? "bg-background-elevated" : ""}`}
                               onClick={() => setSelectedParallelism(option.parallelism)}
                             >
                               <TableCell>
@@ -1060,7 +1060,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 <Button
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="bg-teal-success hover:bg-[#059669]"
+                  className="bg-teal-success hover:bg-teal-success/80"
                 >
                   {generating ? "Generating..." : "Generate Jobs"}
                 </Button>
@@ -1547,7 +1547,7 @@ function EditStepDialog({
           {/* Detected Blueprint Info */}
           {detectedLevel ? (
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-[11px] border-[#0ea5e9] text-[#38bdf8]">
+              <Badge variant="outline" className="text-[11px] border-[var(--color-cyan-muted)] text-primary">
                 {step?.activity === "reaction"
                   ? `Blueprint detected from ${detectedLevel.ownerName}${detectedLevel.isCopy ? " (BPC)" : ""}`
                   : `Blueprint detected: ME ${detectedLevel.materialEfficiency} / TE ${detectedLevel.timeEfficiency} (${detectedLevel.ownerName}${detectedLevel.isCopy ? ", BPC" : ""})`}
@@ -1576,7 +1576,7 @@ function EditStepDialog({
           {/* Input Location Section */}
           {hasStation && (
             <>
-              <Separator className="border-[#1e293b] mt-1" />
+              <Separator className="border-background-elevated mt-1" />
               <p className="text-text-secondary text-sm font-semibold">Input Location</p>
               <p className="text-text-muted text-xs">
                 Where should materials for this step be pulled from?
@@ -1651,7 +1651,7 @@ function EditStepDialog({
                 </div>
               )}
 
-              <Separator className="border-[#1e293b] mt-1" />
+              <Separator className="border-background-elevated mt-1" />
               <p className="text-text-secondary text-sm font-semibold">Output Location</p>
               <p className="text-text-muted text-xs">
                 Where should completed items from this job be delivered?

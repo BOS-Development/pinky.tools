@@ -190,9 +190,9 @@ export default function LaunchpadDetail({
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       {/* Panel */}
-      <div className="absolute right-0 top-0 h-full w-[450px] max-w-full bg-[#0a0e1a] border-l border-[rgba(0,212,255,0.15)] flex flex-col overflow-hidden">
+      <div className="absolute right-0 top-0 h-full w-[450px] max-w-full bg-background-void border-l border-dim flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-overlay-subtle bg-[#0a0e1a]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-overlay-subtle bg-background-void">
           <div className="flex items-center gap-3 min-w-0 flex-1">
             <Rocket className="w-5 h-5 text-primary flex-shrink-0" />
             <div className="min-w-0 flex-1">
@@ -267,7 +267,7 @@ export default function LaunchpadDetail({
                 </div>
               )}
 
-              <Separator className="bg-[rgba(148,163,184,0.08)] mb-4" />
+              <Separator className="bg-overlay-subtle mb-4" />
 
               {/* Current Contents */}
               <SectionHeader
@@ -314,7 +314,7 @@ function InputRow({ input }: { input: AggregatedInput }) {
   const color = depletionColor(input.depletionHours);
 
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-[rgba(148,163,184,0.05)] last:border-b-0">
+    <div className="flex items-center justify-between py-1.5 border-b border-overlay-subtle last:border-b-0">
       <div className="flex items-center gap-1.5 min-w-0 flex-1">
         <img
           src={`https://images.evetech.net/types/${input.typeId}/icon?size=32`}
@@ -342,7 +342,7 @@ function InputRow({ input }: { input: AggregatedInput }) {
 
 function ContentRow({ item }: { item: PiPinContent }) {
   return (
-    <div className="flex items-center justify-between py-1.5 border-b border-[rgba(148,163,184,0.05)] last:border-b-0">
+    <div className="flex items-center justify-between py-1.5 border-b border-overlay-subtle last:border-b-0">
       <div className="flex items-center gap-1.5 min-w-0">
         <img
           src={`https://images.evetech.net/types/${item.typeId}/icon?size=32`}

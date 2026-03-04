@@ -105,7 +105,7 @@ function SystemSearchDropdown({
         </div>
       </div>
       {open && options.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-[#1a1f2e] border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-background-elevated border border-overlay-medium rounded-sm shadow-lg max-h-48 overflow-y-auto">
           {options.map((opt) => (
             <button
               key={opt.id}

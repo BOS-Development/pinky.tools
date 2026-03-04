@@ -29,15 +29,15 @@ export default function Home() {
     <>
       <Navbar />
 
-      <div className="flex flex-col items-center justify-between h-screen -mt-16 pt-16 bg-[#0a0e1a] text-center px-3 pb-4">
+      <div className="flex flex-col items-center justify-between h-screen -mt-16 pt-16 bg-background-void text-center px-3 pb-4">
         <div className="flex-1 flex flex-col justify-center w-full">
           <div className="max-w-2xl mx-auto">
             <img
               src="https://images.evetech.net/types/23773/render?size=512"
               alt="Ragnarok Titan"
-              className="w-[100px] h-auto mb-2 rounded drop-shadow-[0_0_24px_rgba(0,212,255,0.3)]"
+              className="w-[100px] h-auto mb-2 rounded shadow-glow-lg"
             />
-            <h1 className="text-3xl font-bold tracking-tight text-[#f1f5f9] mb-1">
+            <h1 className="text-3xl font-bold tracking-tight text-text-emphasis mb-1">
               pinky.tools
             </h1>
             <p className="text-[0.9375rem] leading-relaxed text-text-secondary mb-4 max-w-[480px] mx-auto">
@@ -74,7 +74,7 @@ export default function Home() {
 
                 <a
                   href="/inventory"
-                  className="inline-block px-8 py-3 bg-primary text-[#0a0a0f] font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
+                  className="inline-block px-8 py-3 bg-primary text-background-void font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
                 >
                   Open Dashboard
                 </a>
@@ -82,7 +82,7 @@ export default function Home() {
             ) : (
               <a
                 href="/api/auth/login"
-                className="inline-block px-8 py-3 bg-primary text-[#0a0a0f] font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
+                className="inline-block px-8 py-3 bg-primary text-background-void font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
               >
                 Sign In with EVE Online
               </a>
@@ -92,7 +92,7 @@ export default function Home() {
 
         {/* Footer */}
         <div className="py-2 text-center">
-          <p className="text-xs text-[rgba(148,163,184,0.6)]">
+          <p className="text-xs text-text-muted">
             pinky.tools is not affiliated with CCP Games. EVE Online and the EVE logo
             are the intellectual property of CCP hf.
           </p>

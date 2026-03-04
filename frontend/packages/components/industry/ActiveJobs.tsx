@@ -12,12 +12,12 @@ type Props = {
 
 function getStatusClasses(status: string): string {
   switch (status) {
-    case "active": return "bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success";
+    case "active": return "bg-teal-success/10 border-teal-success/30 text-teal-success";
     case "ready": return "bg-interactive-selected border-border-active text-primary";
-    case "paused": return "bg-amber-manufacturing/10 border-[rgba(245,158,11,0.3)] text-amber-manufacturing";
-    case "delivered": return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
-    case "cancelled": return "bg-rose-danger/10 border-[rgba(239,68,68,0.3)] text-rose-danger";
-    default: return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
+    case "paused": return "bg-amber-manufacturing/10 border-amber-manufacturing/30 text-amber-manufacturing";
+    case "delivered": return "bg-overlay-subtle border-overlay-strong text-text-secondary";
+    case "cancelled": return "bg-rose-danger/10 border-rose-danger/30 text-rose-danger";
+    default: return "bg-overlay-subtle border-overlay-strong text-text-secondary";
   }
 }
 
@@ -92,7 +92,7 @@ export default function ActiveJobs({ jobs, loading }: Props) {
               jobs.map((job, idx) => (
                 <TableRow
                   key={job.jobId}
-                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-background-panel"}
+                  className={idx % 2 === 0 ? "bg-background-void" : "bg-background-panel"}
                 >
                   <TableCell className="text-center">
                     <Tooltip>

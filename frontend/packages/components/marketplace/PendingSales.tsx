@@ -326,10 +326,10 @@ export default function PendingSales() {
                           handleCopyTotal(group.totalValue);
                         }}
                       >
-                        <span className="text-lg font-semibold text-teal-success group-hover:text-[#34d399] group-hover:underline">
+                        <span className="text-lg font-semibold text-teal-success group-hover:text-teal-success group-hover:underline">
                           {group.totalValue.toLocaleString()} ISK
                         </span>
-                        <Copy className="h-3.5 w-3.5 text-teal-success group-hover:text-[#34d399]" />
+                        <Copy className="h-3.5 w-3.5 text-teal-success group-hover:text-teal-success" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>Click to copy total value</TooltipContent>
@@ -351,7 +351,7 @@ export default function PendingSales() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-sm bg-primary text-[#0a0e1a] hover:bg-[#00bfdf] font-mono font-bold text-sm"
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-sm bg-primary text-background-void hover:bg-primary-muted font-mono font-bold text-sm"
                               onClick={() => handleCopyContractKey(group.contractKey!)}
                             >
                               {group.contractKey}
@@ -395,7 +395,7 @@ export default function PendingSales() {
                             <div className="flex items-center gap-1.5">
                               {agg.typeName}
                               {agg.hasAutoFulfilled && (
-                                <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
+                                <Badge className="text-[0.65rem] font-semibold h-5 bg-teal-success/15 text-teal-success border border-teal-success/30 hover:bg-teal-success/20 cursor-default">
                                   Auto
                                 </Badge>
                               )}

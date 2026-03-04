@@ -25,11 +25,11 @@ const PLANET_TYPE_COLORS: Record<string, string> = {
   temperate: 'var(--color-success-teal)',
   barren: 'var(--color-text-secondary)',
   oceanic: 'var(--color-primary-cyan)',
-  ice: '#67e8f9',
+  ice: 'var(--color-primary-cyan)',
   gas: 'var(--color-manufacturing-amber)',
   lava: 'var(--color-danger-rose)',
-  storm: '#8b5cf6',
-  plasma: '#ec4899',
+  storm: 'var(--color-category-violet)',
+  plasma: 'var(--color-category-pink)',
 };
 
 function getStatusColor(status: string): string {
@@ -105,7 +105,7 @@ function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpa
       className={cn(
         'h-full',
         hasIssues
-          ? 'border-[rgba(244,63,94,0.2)]'
+          ? 'border-rose-danger/20'
           : 'border-border-dim'
       )}
       style={{ background: 'var(--color-bg-panel)' }}
@@ -221,7 +221,7 @@ function PlanetCard({ planet, onLaunchpadClick }: { planet: PiPlanet; onLaunchpa
                   pinId: lp.pinId,
                   planetName: `${planet.solarSystemName} - ${planet.planetType.charAt(0).toUpperCase() + planet.planetType.slice(1)}`,
                 })}
-                className="mt-1 px-1.5 py-1 rounded cursor-pointer border border-transparent hover:bg-[rgba(0,212,255,0.06)] hover:border-[rgba(0,212,255,0.15)] transition-colors"
+                className="mt-1 px-1.5 py-1 rounded cursor-pointer border border-transparent hover:bg-interactive-hover hover:border-border-dim transition-colors"
               >
                 <span className={cn("text-xs", lp.label ? 'text-text-secondary font-medium' : 'text-text-muted italic')}>
                   {lp.label || 'Launchpad'}
@@ -335,7 +335,7 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
         {stats.stalled > 0 && <StatChip label="Issues" value={stats.stalled} color="var(--color-danger-rose)" />}
         {stats.stale > 0 && <StatChip label="Stale" value={stats.stale} color="var(--color-text-secondary)" />}
         <StatChip label="Extractors" value={stats.totalExtractors} color="var(--color-manufacturing-amber)" />
-        <StatChip label="Factories" value={stats.totalFactories} color="#8b5cf6" />
+        <StatChip label="Factories" value={stats.totalFactories} color="var(--color-category-violet)" />
       </div>
 
       {/* Search */}

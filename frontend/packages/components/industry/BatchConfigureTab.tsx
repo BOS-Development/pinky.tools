@@ -136,7 +136,7 @@ type GroupMaterial = PlanMaterial & {
 };
 
 const MixedBadge = () => (
-  <Badge className="h-[18px] text-[10px] bg-[#422006] text-amber-manufacturing hover:bg-[#422006] cursor-default">
+  <Badge className="h-[18px] text-[10px] bg-bg-manufacturing text-amber-manufacturing hover:bg-bg-manufacturing cursor-default">
     Mixed
   </Badge>
 );
@@ -467,7 +467,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                 return [
                   <TableRow
                     key={key}
-                    className="bg-background-panel hover:bg-[#1e2235]"
+                    className="bg-background-panel hover:bg-background-elevated"
                   >
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -497,15 +497,15 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                       <Badge
                         className={`h-5 text-[11px] cursor-default ${
                           group.activity === "manufacturing"
-                            ? "bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
-                            : "bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
+                            ? "bg-bg-science text-blue-science hover:bg-bg-science"
+                            : "bg-category-violet/10 text-category-violet hover:bg-category-violet/10"
                         }`}
                       >
                         {group.activity}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className="h-5 text-[11px] bg-[#1e293b] text-text-secondary hover:bg-[#1e293b] cursor-default">
+                      <Badge className="h-5 text-[11px] bg-background-elevated text-text-secondary hover:bg-background-elevated cursor-default">
                         {group.stepIds.length}
                       </Badge>
                     </TableCell>
@@ -514,18 +514,18 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                         <Loader2 className="h-4 w-4 animate-spin text-text-muted mx-auto" />
                       ) : (
                         <div className="flex items-center justify-center gap-1 flex-wrap">
-                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 ${buildCount > 0 ? "bg-[#1e3a5f] text-blue-science" : "bg-[#1e293b] text-text-muted"} hover:bg-[#1e3a5f]`}>
+                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 ${buildCount > 0 ? "bg-bg-science text-blue-science" : "bg-background-elevated text-text-muted"} hover:bg-bg-science`}>
                             <Wrench className="h-3 w-3" data-testid="BuildIcon" />
                             {buildCount}
                           </Badge>
-                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] ${buyCount && buyCount > 0 ? "text-text-secondary" : "text-text-muted"} hover:bg-[#1e293b]`}>
+                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-background-elevated ${buyCount && buyCount > 0 ? "text-text-secondary" : "text-text-muted"} hover:bg-background-elevated`}>
                             <ShoppingCart className="h-3 w-3" data-testid="ShoppingCartIcon" />
                             {buyCount ?? "?"}
                           </Badge>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                className={`p-0.5 rounded ${buyCount && buyCount > 0 ? "text-teal-success hover:bg-teal-success/10" : "text-[#334155]"}`}
+                                className={`p-0.5 rounded ${buyCount && buyCount > 0 ? "text-teal-success hover:bg-teal-success/10" : "text-text-muted"}`}
                                 onClick={() => handleSetAllBuild(group)}
                                 disabled={buyCount === 0}
                               >
@@ -537,7 +537,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                className={`p-0.5 rounded ${buildCount > 0 ? "text-rose-danger hover:bg-rose-danger/10" : "text-[#334155]"}`}
+                                className={`p-0.5 rounded ${buildCount > 0 ? "text-rose-danger hover:bg-rose-danger/10" : "text-text-muted"}`}
                                 onClick={() => handleSetAllBuy(group)}
                                 disabled={buildCount === 0}
                               >
@@ -590,7 +590,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
-                                  className={`p-1 rounded ${hasDetected ? "text-teal-success hover:bg-teal-success/10" : "text-[#334155]"}`}
+                                  className={`p-1 rounded ${hasDetected ? "text-teal-success hover:bg-teal-success/10" : "text-text-muted"}`}
                                   onClick={() => handleApplyBlueprintLevels(group)}
                                   disabled={!hasDetected || applyingBlueprintGroup === groupKey(group)}
                                 >
@@ -629,7 +629,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           return (
                             <TableRow
                               key={`${key}-mat-${mat.typeId}`}
-                              className="bg-background-void hover:bg-[#151825]"
+                              className="bg-background-void hover:bg-background-panel"
                             >
                               <TableCell>
                                 <div className="flex items-center gap-1 pl-10">
@@ -647,15 +647,15 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                                     x{mat.quantity}
                                   </span>
                                   {mat.produceStatus === "all" ? (
-                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f] cursor-default">
+                                    <Badge className="ml-1 h-[18px] text-[10px] bg-bg-science text-blue-science hover:bg-bg-science cursor-default">
                                       Produce
                                     </Badge>
                                   ) : mat.produceStatus === "mixed" ? (
-                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#422006] text-amber-manufacturing hover:bg-[#422006] cursor-default">
+                                    <Badge className="ml-1 h-[18px] text-[10px] bg-bg-manufacturing text-amber-manufacturing hover:bg-bg-manufacturing cursor-default">
                                       Mixed
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default">
+                                    <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-overlay-medium text-text-muted cursor-default">
                                       Buy
                                     </Badge>
                                   )}
@@ -1006,7 +1006,7 @@ function BatchEditStepDialog({
             Batch Edit: {group.productName}
           </DialogTitle>
         </DialogHeader>
-        <div className="p-3 rounded bg-[rgba(0,140,255,0.08)] border border-[rgba(59,130,246,0.3)] text-[#93c5fd] text-sm mb-2">
+        <div className="p-3 rounded bg-accent-blue/8 border border-accent-blue/30 text-blue-science text-sm mb-2">
           Changes will apply to all {group.stepIds.length} {group.productName} ({group.activity}) step(s).
         </div>
 
@@ -1136,7 +1136,7 @@ function BatchEditStepDialog({
           {/* Detected Blueprint Info */}
           {detectedLevel && (
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className="text-[11px] border-[#0ea5e9] text-[#38bdf8]">
+              <Badge variant="outline" className="text-[11px] border-[var(--color-cyan-muted)] text-primary">
                 Blueprint detected: ME {detectedLevel.materialEfficiency} / TE {detectedLevel.timeEfficiency} ({detectedLevel.ownerName}{detectedLevel.isCopy ? ", BPC" : ""})
               </Badge>
               <Button
@@ -1156,7 +1156,7 @@ function BatchEditStepDialog({
           {/* Input Location Section */}
           {hasStation && (
             <>
-              <Separator className="border-[#1e293b] mt-1" />
+              <Separator className="border-background-elevated mt-1" />
               <p className="text-text-secondary text-sm font-semibold">Input Location</p>
               <p className="text-text-muted text-xs">
                 Where should materials for these steps be pulled from?
@@ -1231,7 +1231,7 @@ function BatchEditStepDialog({
                 </div>
               )}
 
-              <Separator className="border-[#1e293b] mt-1" />
+              <Separator className="border-background-elevated mt-1" />
               <p className="text-text-secondary text-sm font-semibold">Output Location</p>
               <p className="text-text-muted text-xs">
                 Where should completed items from these jobs be delivered?

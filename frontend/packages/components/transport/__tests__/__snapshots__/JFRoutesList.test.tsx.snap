@@ -206,7 +206,7 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-[rgba(0,212,255,0.05)]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-interactive-hover"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-medium text-text-emphasis"
@@ -236,17 +236,17 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
                 class="flex gap-1 justify-end flex-wrap"
               >
                 <span
-                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(139,92,246,0.15)] text-[#8b5cf6]"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-category-violet/15 text-category-violet"
                 >
                   Jita
                 </span>
                 <span
-                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(139,92,246,0.15)] text-[#8b5cf6]"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-category-violet/15 text-category-violet"
                 >
                   Ignoitton
                 </span>
                 <span
-                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-[rgba(139,92,246,0.15)] text-[#8b5cf6]"
+                  class="inline-flex items-center px-1.5 py-0.5 rounded text-[0.7rem] font-medium bg-category-violet/15 text-category-violet"
                 >
                   Amarr
                 </span>

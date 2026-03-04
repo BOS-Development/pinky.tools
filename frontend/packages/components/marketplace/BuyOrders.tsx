@@ -145,7 +145,7 @@ function ItemSearchCombobox({
                 <button
                   key={option.TypeID}
                   className={cn(
-                    "flex w-full items-center gap-2 px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-[rgba(148,163,184,0.08)]",
+                    "flex w-full items-center gap-2 px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-status-neutral-tint",
                     value?.TypeID === option.TypeID && "bg-interactive-hover text-primary"
                   )}
                   onClick={() => {
@@ -249,7 +249,7 @@ function StationSearchCombobox({
                 <button
                   key={option.stationId}
                   className={cn(
-                    "flex w-full flex-col items-start px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-[rgba(148,163,184,0.08)]",
+                    "flex w-full flex-col items-start px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-status-neutral-tint",
                     value?.stationId === option.stationId && "bg-interactive-hover"
                   )}
                   onClick={() => {
@@ -450,14 +450,14 @@ export default function BuyOrders() {
                             className={cn(
                               "text-xs font-semibold",
                               order.isActive
-                                ? "bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)]"
+                                ? "bg-teal-success/15 text-teal-success border border-teal-success/30 hover:bg-teal-success/20"
                                 : "bg-overlay-subtle text-text-muted border border-overlay-strong hover:bg-overlay-medium"
                             )}
                           >
                             {order.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                           {order.autoBuyConfigId && (
-                            <Badge className="text-[0.7rem] font-semibold bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)] hover:bg-[rgba(245,158,11,0.2)] cursor-default">
+                            <Badge className="text-[0.7rem] font-semibold bg-amber-manufacturing/15 text-amber-manufacturing border border-amber-manufacturing/30 hover:bg-amber-manufacturing/20 cursor-default">
                               Auto
                             </Badge>
                           )}
@@ -471,7 +471,7 @@ export default function BuyOrders() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-blue-science hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
+                              className="h-8 w-8 text-blue-science hover:text-blue-science hover:bg-blue-science/10"
                               onClick={() => handleEdit(order)}
                               title="Edit"
                             >
@@ -480,7 +480,7 @@ export default function BuyOrders() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-rose-danger hover:text-[#f87171] hover:bg-rose-danger/10"
+                              className="h-8 w-8 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                               onClick={() => handleDelete(order.id)}
                               title="Cancel"
                             >

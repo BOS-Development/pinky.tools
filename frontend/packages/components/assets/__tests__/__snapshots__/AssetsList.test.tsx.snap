@@ -62,7 +62,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
     class="mt-2 mb-2 px-6"
   >
     <div
-      class="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3"
+      class="sticky top-16 z-[100] bg-background-void pb-3 mb-3"
     >
       <div
         class="flex items-center justify-between mb-3 pt-1"
@@ -78,7 +78,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
           class="flex gap-2.5 items-center flex-wrap"
         >
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-primary/20"
           >
             <svg
               aria-hidden="true"
@@ -120,11 +120,11 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-category-violet/8 border border-category-violet/20"
           >
             <svg
               aria-hidden="true"
-              class="lucide lucide-layers h-5 w-5 text-[#8b5cf6]"
+              class="lucide lucide-layers h-5 w-5 text-category-violet"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -159,7 +159,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-manufacturing/8 border border-amber-manufacturing/20"
           >
             <svg
               aria-hidden="true"
@@ -197,7 +197,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-success/8 border border-teal-success/20"
           >
             <svg
               aria-hidden="true"
@@ -335,11 +335,11 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
         class="p-0"
       >
         <div
-          class="divide-y divide-[rgba(148,163,184,0.05)]"
+          class="divide-y divide-overlay-subtle"
         >
           <div>
             <button
-              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left"
+              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left"
             >
               <svg
                 aria-hidden="true"
@@ -360,7 +360,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
               </svg>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-map-pin h-4 w-4 text-[#3b82f6] flex-shrink-0"
+                class="lucide lucide-map-pin h-4 w-4 text-accent-blue flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -460,7 +460,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
           </div>
           <div>
             <button
-              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left"
+              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left"
             >
               <svg
                 aria-hidden="true"
@@ -481,7 +481,7 @@ exports[`AssetsList Component Multiple Structures should match snapshot with mul
               </svg>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-map-pin h-4 w-4 text-[#3b82f6] flex-shrink-0"
+                class="lucide lucide-map-pin h-4 w-4 text-accent-blue flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -597,7 +597,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
     class="mt-2 mb-2 px-6"
   >
     <div
-      class="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3"
+      class="sticky top-16 z-[100] bg-background-void pb-3 mb-3"
     >
       <div
         class="flex items-center justify-between mb-3 pt-1"
@@ -613,7 +613,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
           class="flex gap-2.5 items-center flex-wrap"
         >
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-primary/20"
           >
             <svg
               aria-hidden="true"
@@ -655,11 +655,11 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-category-violet/8 border border-category-violet/20"
           >
             <svg
               aria-hidden="true"
-              class="lucide lucide-layers h-5 w-5 text-[#8b5cf6]"
+              class="lucide lucide-layers h-5 w-5 text-category-violet"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -694,7 +694,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-manufacturing/8 border border-amber-manufacturing/20"
           >
             <svg
               aria-hidden="true"
@@ -732,7 +732,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-success/8 border border-teal-success/20"
           >
             <svg
               aria-hidden="true"
@@ -870,11 +870,11 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
         class="p-0"
       >
         <div
-          class="divide-y divide-[rgba(148,163,184,0.05)]"
+          class="divide-y divide-overlay-subtle"
         >
           <div>
             <button
-              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left"
+              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left"
             >
               <svg
                 aria-hidden="true"
@@ -895,7 +895,7 @@ exports[`AssetsList Component With Basic Assets should match snapshot with basic
               </svg>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-map-pin h-4 w-4 text-[#3b82f6] flex-shrink-0"
+                class="lucide lucide-map-pin h-4 w-4 text-accent-blue flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1011,7 +1011,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
     class="mt-2 mb-2 px-6"
   >
     <div
-      class="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3"
+      class="sticky top-16 z-[100] bg-background-void pb-3 mb-3"
     >
       <div
         class="flex items-center justify-between mb-3 pt-1"
@@ -1027,7 +1027,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
           class="flex gap-2.5 items-center flex-wrap"
         >
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-primary/20"
           >
             <svg
               aria-hidden="true"
@@ -1069,11 +1069,11 @@ exports[`AssetsList Component With Containers should match snapshot with contain
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-category-violet/8 border border-category-violet/20"
           >
             <svg
               aria-hidden="true"
-              class="lucide lucide-layers h-5 w-5 text-[#8b5cf6]"
+              class="lucide lucide-layers h-5 w-5 text-category-violet"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -1108,7 +1108,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-manufacturing/8 border border-amber-manufacturing/20"
           >
             <svg
               aria-hidden="true"
@@ -1146,7 +1146,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-success/8 border border-teal-success/20"
           >
             <svg
               aria-hidden="true"
@@ -1284,11 +1284,11 @@ exports[`AssetsList Component With Containers should match snapshot with contain
         class="p-0"
       >
         <div
-          class="divide-y divide-[rgba(148,163,184,0.05)]"
+          class="divide-y divide-overlay-subtle"
         >
           <div>
             <button
-              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left"
+              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left"
             >
               <svg
                 aria-hidden="true"
@@ -1309,7 +1309,7 @@ exports[`AssetsList Component With Containers should match snapshot with contain
               </svg>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-map-pin h-4 w-4 text-[#3b82f6] flex-shrink-0"
+                class="lucide lucide-map-pin h-4 w-4 text-accent-blue flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1425,7 +1425,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
     class="mt-2 mb-2 px-6"
   >
     <div
-      class="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3"
+      class="sticky top-16 z-[100] bg-background-void pb-3 mb-3"
     >
       <div
         class="flex items-center justify-between mb-3 pt-1"
@@ -1441,7 +1441,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
           class="flex gap-2.5 items-center flex-wrap"
         >
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-primary/20"
           >
             <svg
               aria-hidden="true"
@@ -1483,11 +1483,11 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-category-violet/8 border border-category-violet/20"
           >
             <svg
               aria-hidden="true"
-              class="lucide lucide-layers h-5 w-5 text-[#8b5cf6]"
+              class="lucide lucide-layers h-5 w-5 text-category-violet"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -1522,7 +1522,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-manufacturing/8 border border-amber-manufacturing/20"
           >
             <svg
               aria-hidden="true"
@@ -1560,7 +1560,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-success/8 border border-teal-success/20"
           >
             <svg
               aria-hidden="true"
@@ -1698,11 +1698,11 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
         class="p-0"
       >
         <div
-          class="divide-y divide-[rgba(148,163,184,0.05)]"
+          class="divide-y divide-overlay-subtle"
         >
           <div>
             <button
-              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left"
+              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left"
             >
               <svg
                 aria-hidden="true"
@@ -1723,7 +1723,7 @@ exports[`AssetsList Component With Corporation Hangars should match snapshot wit
               </svg>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-map-pin h-4 w-4 text-[#3b82f6] flex-shrink-0"
+                class="lucide lucide-map-pin h-4 w-4 text-accent-blue flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1839,7 +1839,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
     class="mt-2 mb-2 px-6"
   >
     <div
-      class="sticky top-16 z-[100] bg-[#0a0e1a] pb-3 mb-3"
+      class="sticky top-16 z-[100] bg-background-void pb-3 mb-3"
     >
       <div
         class="flex items-center justify-between mb-3 pt-1"
@@ -1855,7 +1855,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
           class="flex gap-2.5 items-center flex-wrap"
         >
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-[rgba(0,212,255,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-interactive-hover border border-primary/20"
           >
             <svg
               aria-hidden="true"
@@ -1897,11 +1897,11 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(139,92,246,0.08)] border border-[rgba(139,92,246,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-category-violet/8 border border-category-violet/20"
           >
             <svg
               aria-hidden="true"
-              class="lucide lucide-layers h-5 w-5 text-[#8b5cf6]"
+              class="lucide lucide-layers h-5 w-5 text-category-violet"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -1936,7 +1936,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(245,158,11,0.08)] border border-[rgba(245,158,11,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-manufacturing/8 border border-amber-manufacturing/20"
           >
             <svg
               aria-hidden="true"
@@ -1974,7 +1974,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
             </div>
           </div>
           <div
-            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)]"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-success/8 border border-teal-success/20"
           >
             <svg
               aria-hidden="true"
@@ -2112,11 +2112,11 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
         class="p-0"
       >
         <div
-          class="divide-y divide-[rgba(148,163,184,0.05)]"
+          class="divide-y divide-overlay-subtle"
         >
           <div>
             <button
-              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-[rgba(148,163,184,0.04)] text-left"
+              class="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-interactive-hover text-left"
             >
               <svg
                 aria-hidden="true"
@@ -2137,7 +2137,7 @@ exports[`AssetsList Component With Stockpile Markers should match snapshot with 
               </svg>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-map-pin h-4 w-4 text-[#3b82f6] flex-shrink-0"
+                class="lucide lucide-map-pin h-4 w-4 text-accent-blue flex-shrink-0"
                 fill="none"
                 height="24"
                 stroke="currentColor"

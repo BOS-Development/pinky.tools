@@ -35,17 +35,17 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
 
 function getIndicatorStyle(indicator: HaulingArbitrageRow['indicator']): { color: string; bg: string } {
   switch (indicator) {
-    case 'gap': return { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' };
-    case 'markup': return { color: 'var(--color-primary-cyan)', bg: 'rgba(0, 212, 255, 0.1)' };
-    case 'thin': return { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
-    default: return { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
+    case 'gap': return { color: 'var(--color-manufacturing-amber)', bg: 'var(--color-warning-tint)' };
+    case 'markup': return { color: 'var(--color-primary-cyan)', bg: 'var(--color-info-tint)' };
+    case 'thin': return { color: 'var(--color-text-secondary)', bg: 'var(--color-neutral-tint)' };
+    default: return { color: 'var(--color-text-secondary)', bg: 'var(--color-neutral-tint)' };
   }
 }
 
 function getRowBgColor(indicator: HaulingArbitrageRow['indicator']): string | undefined {
   switch (indicator) {
-    case 'gap': return 'rgba(245, 158, 11, 0.06)';
-    case 'markup': return 'rgba(0, 212, 255, 0.04)';
+    case 'gap': return 'var(--color-warning-tint)';
+    case 'markup': return 'var(--color-info-tint)';
     case 'thin': return undefined;
     default: return undefined;
   }
@@ -287,10 +287,10 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                 </TableHeader>
                 <TableBody>
                   {Array.from({ length: 8 }).map((_, i) => (
-                    <TableRow key={i} className="border-[rgba(148,163,184,0.07)]">
+                    <TableRow key={i} className="border-overlay-subtle">
                       {Array.from({ length: 9 }).map((__, j) => (
                         <TableCell key={j}>
-                          <Skeleton className="h-4 w-full bg-[#1e2a3a]" />
+                          <Skeleton className="h-4 w-full bg-background-elevated" />
                         </TableCell>
                       ))}
                     </TableRow>
@@ -338,9 +338,9 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                     return (
                       <TableRow
                         key={row.typeId}
-                        className="cursor-pointer border-[rgba(148,163,184,0.07)]"
+                        className="cursor-pointer border-overlay-subtle"
                         style={{
-                          backgroundColor: isSelected ? 'rgba(0, 212, 255, 0.12)' : rowBg,
+                          backgroundColor: isSelected ? 'var(--color-interactive-selected)' : rowBg,
                         }}
                         onClick={() => setSelectedRowIndex(idx)}
                       >

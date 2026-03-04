@@ -152,7 +152,7 @@ export default function DemandViewer() {
                           </span>
                         </TableCell>
                         <TableCell className="text-center">
-                          <Badge className="bg-[rgba(59,130,246,0.15)] text-blue-science border border-[rgba(59,130,246,0.3)] hover:bg-[rgba(59,130,246,0.2)] cursor-default">
+                          <Badge className="bg-accent-blue-muted text-blue-science border border-accent-blue/30 hover:bg-accent-blue/20 cursor-default">
                             {item.orderCount}
                           </Badge>
                         </TableCell>

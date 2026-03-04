@@ -293,7 +293,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-[rgba(0,212,255,0.05)]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-interactive-hover"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] px-1"
@@ -325,7 +325,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
             >
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                style="background-color: var(--color-primary-cyan)20; color: var(--color-primary-cyan);"
+                style="background-color: var(--color-info-tint); color: var(--color-primary-cyan);"
               >
                 Planned
               </span>
@@ -395,7 +395,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
                   Start
                 </button>
                 <button
-                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-[0.65rem] py-0 h-6 border-red-500 text-red-400 hover:bg-red-500/10"
+                  class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-[0.65rem] py-0 h-6 border-rose-danger text-rose-danger hover:bg-rose-danger/10"
                 >
                   Cancel
                 </button>
@@ -403,7 +403,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
             </td>
           </tr>
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-[rgba(0,212,255,0.05)]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-interactive-hover"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] px-1"
@@ -435,7 +435,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
             >
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                style="background-color: var(--color-manufacturing-amber)20; color: var(--color-manufacturing-amber);"
+                style="background-color: var(--color-warning-tint); color: var(--color-manufacturing-amber);"
               >
                 In Transit
               </span>
@@ -497,7 +497,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-[0.65rem] py-0 h-6 border-emerald-500 text-emerald-400 hover:bg-emerald-500/10"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border bg-transparent shadow-sm hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-[0.65rem] py-0 h-6 border-teal-success text-teal-success hover:bg-teal-success/10"
               >
                 Delivered
               </button>

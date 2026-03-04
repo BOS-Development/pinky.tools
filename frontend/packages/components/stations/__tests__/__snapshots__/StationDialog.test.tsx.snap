@@ -70,7 +70,7 @@ exports[`StationDialog Component should match snapshot when open for adding 1`] 
           Structure Fitting Scan
         </label>
         <textarea
-          class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] resize-none"
+          class="flex w-full rounded-sm border border-dim bg-background-void px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary resize-none"
           id="structure-fitting-scan"
           placeholder="Paste structure fitting scan here..."
           rows="4"
@@ -143,7 +143,7 @@ exports[`StationDialog Component should match snapshot when open for adding 1`] 
           class="flex justify-between items-center mb-2"
         >
           <label
-            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--color-text-muted)]"
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-text-muted"
           >
             Rigs
           </label>
@@ -174,7 +174,7 @@ exports[`StationDialog Component should match snapshot when open for adding 1`] 
           </button>
         </div>
         <p
-          class="text-[var(--color-text-muted)] text-xs"
+          class="text-text-muted text-xs"
         >
           No rigs. Paste a scan or add manually.
         </p>
@@ -305,7 +305,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
           Structure Fitting Scan
         </label>
         <textarea
-          class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] resize-none"
+          class="flex w-full rounded-sm border border-dim bg-background-void px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary resize-none"
           id="structure-fitting-scan"
           placeholder="Paste structure fitting scan here..."
           rows="4"
@@ -375,7 +375,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
       </div>
       <div>
         <label
-          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--color-text-muted)]"
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-text-muted"
         >
           Services
         </label>
@@ -383,7 +383,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
           class="flex gap-1 flex-wrap mt-1"
         >
           <div
-            class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[11px] border bg-[var(--color-primary-cyan)]/10 text-[var(--color-primary-cyan)] border-[var(--color-primary-cyan)]/30"
+            class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[11px] border bg-primary/10 text-primary border-primary/30"
           >
             Standup Manufacturing Plant I
           </div>
@@ -394,7 +394,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
           class="flex justify-between items-center mb-2"
         >
           <label
-            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-[var(--color-text-muted)]"
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-text-muted"
           >
             Rigs
           </label>
@@ -505,13 +505,13 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
             </svg>
           </button>
           <span
-            class="text-[var(--color-text-muted)] text-xs flex-1 truncate"
+            class="text-text-muted text-xs flex-1 truncate"
             title="Standup XL-Set Ship Manufacturing Efficiency I"
           >
             Standup XL-Set Ship Manufacturing Efficiency I
           </span>
           <button
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)] h-8 w-8"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] text-rose-danger hover:text-rose-danger h-8 w-8"
           >
             <svg
               aria-hidden="true"
@@ -564,7 +564,7 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
                 class="flex items-center gap-1.5"
               >
                 <span
-                  class="inline-block w-2 h-2 rounded-full text-[#8b5cf6]"
+                  class="inline-block w-2 h-2 rounded-full text-category-violet"
                 />
                 <span
                   class="capitalize"
@@ -625,13 +625,13 @@ exports[`StationDialog Component should match snapshot when open for editing 1`]
             </svg>
           </button>
           <span
-            class="text-[var(--color-text-muted)] text-xs flex-1 truncate"
+            class="text-text-muted text-xs flex-1 truncate"
             title="Standup XL-Set Structure and Component Manufacturing Efficiency I"
           >
             Standup XL-Set Structure and Component Manufacturing Efficiency I
           </span>
           <button
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] text-[var(--color-danger-rose)] hover:text-[var(--color-danger-rose)] h-8 w-8"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] text-rose-danger hover:text-rose-danger h-8 w-8"
           >
             <svg
               aria-hidden="true"

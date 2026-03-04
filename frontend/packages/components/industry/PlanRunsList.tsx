@@ -16,9 +16,9 @@ import {
 import { toast } from "@/components/ui/sonner";
 
 const STATUS_CLASSES: Record<string, string> = {
-  pending: "bg-[rgba(59,130,246,0.1)] border-[rgba(59,130,246,0.3)] text-[#3b82f6]",
-  in_progress: "bg-amber-manufacturing/10 border-[rgba(245,158,11,0.3)] text-amber-manufacturing",
-  completed: "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary",
+  pending: "bg-accent-blue/10 border-accent-blue/30 text-accent-blue",
+  in_progress: "bg-amber-manufacturing/10 border-amber-manufacturing/30 text-amber-manufacturing",
+  completed: "bg-overlay-subtle border-overlay-strong text-text-secondary",
 };
 
 function formatStatus(status: string): string {
@@ -131,7 +131,7 @@ export default function PlanRunsList() {
                 {runs.map((run, idx) => (
                   <TableRow
                     key={run.id}
-                    className={`${idx % 2 === 0 ? "bg-background-panel" : "bg-background-void"} hover:bg-[#1a1d2e]`}
+                    className={`${idx % 2 === 0 ? "bg-background-panel" : "bg-background-void"} hover:bg-background-elevated`}
                   >
                     <TableCell className="text-text-emphasis text-sm">
                       {run.productName || "\u2014"}

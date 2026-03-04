@@ -289,7 +289,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
               class="flex gap-1 flex-wrap"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[var(--color-primary-cyan)] bg-[var(--color-primary-cyan)]/10 border-[var(--color-primary-cyan)]/30 capitalize text-[10px] border"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-primary bg-primary/10 border-primary/30 capitalize text-[10px] border"
               >
                 manufacturing
               </div>
@@ -309,7 +309,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
                 T1
               </div>
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/30 text-[10px] border"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-category-violet bg-category-violet/10 border-category-violet/30 text-[10px] border"
               >
                 component
                  
@@ -421,7 +421,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
               class="flex gap-1 flex-wrap"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30 capitalize text-[10px] border"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-category-pink bg-category-pink/10 border-category-pink/30 capitalize text-[10px] border"
               >
                 reaction
               </div>
@@ -434,7 +434,7 @@ exports[`StationsList Component should match snapshot with stations 1`] = `
               class="flex gap-1 flex-wrap"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-[#ec4899] bg-[#ec4899]/10 border-[#ec4899]/30 text-[10px] border"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 text-category-pink bg-category-pink/10 border-category-pink/30 text-[10px] border"
               >
                 reaction
                  
