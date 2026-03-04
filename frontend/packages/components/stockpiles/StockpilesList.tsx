@@ -10,6 +10,7 @@ import {
   Table, TableHeader, TableBody, TableRow, TableHead, TableCell,
 } from '@/components/ui/table';
 import { toast } from '@/components/ui/sonner';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 
 export type StockpileItem = {
   name: string;
@@ -196,16 +197,40 @@ export default function StockpilesList() {
           </div>
 
           {/* Actions */}
-          <div className="flex gap-3 mb-3">
-            <Button variant="outline" onClick={handleCopyForJanice} disabled={filteredItems.length === 0}>
-              <Copy className="h-4 w-4 mr-2" />
-              Copy for Janice
-            </Button>
-            <Button onClick={handleOpenJanice} disabled={filteredItems.length === 0 || creatingAppraisal}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              {creatingAppraisal ? 'Creating...' : 'Create Janice Appraisal'}
-            </Button>
-          </div>
+          {stockpileItems.length > 0 && (
+            <div className="flex gap-3 mb-3">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button variant="outline" onClick={handleCopyForJanice} disabled={filteredItems.length === 0}>
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy for Janice
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {filteredItems.length === 0 && (
+                    <TooltipContent>No matching items to copy</TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button onClick={handleOpenJanice} disabled={filteredItems.length === 0 || creatingAppraisal}>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        {creatingAppraisal ? 'Creating...' : 'Create Janice Appraisal'}
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {filteredItems.length === 0 && (
+                    <TooltipContent>No matching items to copy</TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          )}
 
           {/* Search */}
           <div className="relative">

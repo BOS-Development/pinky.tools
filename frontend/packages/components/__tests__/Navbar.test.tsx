@@ -32,7 +32,7 @@ describe('Navbar Component', () => {
     });
 
     render(<Navbar />);
-    expect(screen.getByText('EVE Industry Tool')).toBeInTheDocument();
+    expect(screen.getByText('pinky.tools')).toBeInTheDocument();
   });
 
   it('should have all navigation links', () => {
@@ -105,7 +105,7 @@ describe('Navbar Component', () => {
 
     render(<Navbar />);
     // New Navbar renders a logo link instead of a hamburger menu button
-    const logoLink = screen.getByRole('link', { name: /eve industry tool/i });
+    const logoLink = screen.getByRole('link', { name: /pinky\.tools/i });
     expect(logoLink).toBeInTheDocument();
   });
 
@@ -258,7 +258,7 @@ describe('Navbar Component', () => {
     });
 
     // Should not crash on error
-    expect(screen.getByText('EVE Industry Tool')).toBeInTheDocument();
+    expect(screen.getByText('pinky.tools')).toBeInTheDocument();
 
     consoleErrorSpy.mockRestore();
   });
