@@ -8,29 +8,37 @@ import {
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
 import ProductionPlanEditor from "./ProductionPlanEditor";
-import Container from "@mui/material/Container";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
-import AddIcon from "@mui/icons-material/Add";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
-import CircularProgress from "@mui/material/CircularProgress";
+import { ArrowLeft, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 
 export default function ProductionPlansList() {
   const { data: session } = useSession();
@@ -91,16 +99,17 @@ export default function ProductionPlansList() {
     return (
       <>
         <Navbar />
-        <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+        <div className="px-4 mt-2 mb-4">
           <Button
-            startIcon={<ArrowBackIcon />}
+            variant="ghost"
             onClick={handleBack}
-            sx={{ color: "#94a3b8", mb: 2 }}
+            className="text-[#94a3b8] mb-2"
           >
+            <ArrowLeft className="h-4 w-4 mr-1" />
             Back to Plans
           </Button>
           <ProductionPlanEditor planId={selectedPlanId} />
-        </Container>
+        </div>
       </>
     );
   }
@@ -108,147 +117,95 @@ export default function ProductionPlansList() {
   return (
     <>
       <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            mb: 2,
-          }}
-        >
-          <Typography
-            variant="h5"
-            sx={{ color: "#e2e8f0", fontWeight: 600 }}
-          >
+      <div className="px-4 mt-2 mb-4">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-semibold text-[#e2e8f0]">
             Production Plans
-          </Typography>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={() => setCreateDialogOpen(true)}
-            sx={{
-              backgroundColor: "#00d4ff",
-              "&:hover": { backgroundColor: "#2563eb" },
-            }}
-          >
+          </h2>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-1" />
             New Plan
           </Button>
-        </Box>
+        </div>
 
         {loading ? (
           <Loading />
         ) : plans.length === 0 ? (
-          <Paper
-            sx={{
-              backgroundColor: "#12151f",
-              p: 4,
-              textAlign: "center",
-            }}
-          >
-            <Typography sx={{ color: "#64748b" }}>
+          <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+            <p className="text-[#64748b]">
               No production plans yet. Create one to define how items should be
               produced.
-            </Typography>
-          </Paper>
+            </p>
+          </div>
         ) : (
-          <TableContainer
-            component={Paper}
-            sx={{ backgroundColor: "#12151f" }}
-          >
-            <Table size="small">
-              <TableHead>
-                <TableRow sx={{ backgroundColor: "#0f1219" }}>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Product
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Plan Name
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#94a3b8", fontWeight: 600 }}
-                    align="right"
-                  >
-                    Steps
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Created
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#94a3b8", fontWeight: 600 }}
-                    align="center"
-                  >
-                    Actions
-                  </TableCell>
+          <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-[#0f1219]">
+                  <TableHead>Product</TableHead>
+                  <TableHead>Plan Name</TableHead>
+                  <TableHead className="text-right">Steps</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {plans.map((plan, idx) => (
                   <TableRow
                     key={plan.id}
-                    sx={{
-                      backgroundColor:
-                        idx % 2 === 0 ? "#12151f" : "#0f1219",
-                      "&:hover": { backgroundColor: "#1a1d2e" },
-                      cursor: "pointer",
-                    }}
+                    className={`${idx % 2 === 0 ? "bg-[#12151f]" : "bg-[#0f1219]"} hover:bg-[#1a1d2e] cursor-pointer`}
                     onClick={() => setSelectedPlanId(plan.id)}
                   >
                     <TableCell>
-                      <Box
-                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
-                      >
+                      <div className="flex items-center gap-1">
                         <img
                           src={`https://images.evetech.net/types/${plan.productTypeId}/icon?size=32`}
                           alt=""
                           width={24}
                           height={24}
-                          style={{ borderRadius: 2 }}
+                          className="rounded-sm"
                         />
-                        <Typography sx={{ color: "#e2e8f0", fontSize: 14 }}>
+                        <span className="text-[#e2e8f0] text-sm">
                           {plan.productName || `Type ${plan.productTypeId}`}
-                        </Typography>
-                      </Box>
+                        </span>
+                      </div>
                     </TableCell>
-                    <TableCell sx={{ color: "#cbd5e1", fontSize: 14 }}>
+                    <TableCell className="text-[#cbd5e1] text-sm">
                       {plan.name}
                     </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ color: "#cbd5e1", fontSize: 14 }}
-                    >
+                    <TableCell className="text-right text-[#cbd5e1] text-sm">
                       {plan.steps?.length || 0}
                     </TableCell>
-                    <TableCell sx={{ color: "#64748b", fontSize: 13 }}>
+                    <TableCell className="text-[#64748b] text-[13px]">
                       {new Date(plan.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell align="center">
-                      <IconButton
-                        size="small"
+                    <TableCell className="text-center">
+                      <button
+                        className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedPlanId(plan.id);
                         }}
-                        sx={{ color: "#00d4ff" }}
+                        aria-label="Edit"
                       >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDelete(plan.id);
                         }}
-                        sx={{ color: "#ef4444" }}
+                        aria-label="Delete"
                       >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
 
         <CreatePlanDialog
@@ -256,7 +213,7 @@ export default function ProductionPlansList() {
           onClose={() => setCreateDialogOpen(false)}
           onCreated={handlePlanCreated}
         />
-      </Container>
+      </div>
     </>
   );
 }
@@ -286,6 +243,7 @@ function CreatePlanDialog({
     useState<UserStation | null>(null);
   const [defaultReactionStation, setDefaultReactionStation] =
     useState<UserStation | null>(null);
+  const [bpSearchOpen, setBpSearchOpen] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -367,146 +325,154 @@ function CreatePlanDialog({
   };
 
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-      PaperProps={{ sx: { backgroundColor: "#12151f", color: "#e2e8f0" } }}
-    >
-      <DialogTitle>Create Production Plan</DialogTitle>
-      <DialogContent>
-        <Autocomplete
-          sx={{ mt: 1 }}
-          options={searchResults}
-          getOptionLabel={(option) =>
-            `${option.ProductName} (${option.Activity})`
-          }
-          renderOption={(props, option) => (
-            <Box
-              component="li"
-              {...props}
-              key={`${option.BlueprintTypeID}-${option.Activity}`}
-              sx={{ display: "flex", alignItems: "center", gap: 1 }}
-            >
-              <img
-                src={`https://images.evetech.net/types/${option.ProductTypeID}/icon?size=32`}
-                alt=""
-                width={24}
-                height={24}
-              />
-              <Box>
-                <Typography sx={{ fontSize: 14 }}>
-                  {option.ProductName}
-                </Typography>
-                <Typography sx={{ fontSize: 12, color: "#64748b" }}>
-                  {option.BlueprintName} &middot; {option.Activity}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-          loading={searchLoading}
-          onInputChange={(_, value) => handleSearch(value)}
-          onChange={(_, value) => setSelectedBlueprint(value)}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Search for a product"
-              placeholder="e.g. Rifter, Damage Control II..."
-              InputProps={{
-                ...params.InputProps,
-                endAdornment: (
-                  <>
-                    {searchLoading ? (
-                      <CircularProgress color="inherit" size={20} />
-                    ) : null}
-                    {params.InputProps.endAdornment}
-                  </>
-                ),
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogHeader>
+          <DialogTitle className="text-[#e2e8f0]">Create Production Plan</DialogTitle>
+        </DialogHeader>
+        <div className="flex flex-col gap-3 pt-1">
+          {/* Blueprint Search */}
+          <div>
+            <Label className="text-sm text-[#94a3b8] mb-1 block">Product</Label>
+            <Popover open={bpSearchOpen} onOpenChange={setBpSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start font-normal"
+                >
+                  {selectedBlueprint ? (
+                    <div className="flex items-center gap-1">
+                      <img
+                        src={`https://images.evetech.net/types/${selectedBlueprint.ProductTypeID}/icon?size=32`}
+                        alt=""
+                        width={20}
+                        height={20}
+                      />
+                      <span>{selectedBlueprint.ProductName} ({selectedBlueprint.Activity})</span>
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground">Search for a product...</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[400px] p-2" align="start">
+                <Input
+                  placeholder="e.g. Rifter, Damage Control II..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  autoFocus
+                />
+                <div className="max-h-[250px] overflow-y-auto mt-1">
+                  {searchLoading && (
+                    <div className="flex items-center gap-2 p-2 text-sm text-[#94a3b8]">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Searching...
+                    </div>
+                  )}
+                  {!searchLoading && searchQuery.length < 2 && (
+                    <p className="text-sm text-[#64748b] p-2">Type to search...</p>
+                  )}
+                  {!searchLoading && searchQuery.length >= 2 && searchResults.length === 0 && (
+                    <p className="text-sm text-[#64748b] p-2">No blueprints found</p>
+                  )}
+                  {searchResults.map((option) => (
+                    <button
+                      key={`${option.BlueprintTypeID}-${option.Activity}`}
+                      className="w-full flex items-center gap-2 p-2 rounded hover:bg-[rgba(0,212,255,0.08)] text-left"
+                      onClick={() => {
+                        setSelectedBlueprint(option);
+                        setBpSearchOpen(false);
+                      }}
+                    >
+                      <img
+                        src={`https://images.evetech.net/types/${option.ProductTypeID}/icon?size=32`}
+                        alt=""
+                        width={24}
+                        height={24}
+                      />
+                      <div>
+                        <div className="text-sm text-[#e2e8f0]">
+                          {option.ProductName}
+                        </div>
+                        <div className="text-xs text-[#64748b]">
+                          {option.BlueprintName} &middot; {option.Activity}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {/* Manufacturing Station */}
+          <div>
+            <Label className="text-sm text-[#94a3b8] mb-1 block">Default Manufacturing Station</Label>
+            <Select
+              value={defaultManufacturingStation ? String(defaultManufacturingStation.id) : "none"}
+              onValueChange={(val) => {
+                if (val === "none") {
+                  setDefaultManufacturingStation(null);
+                } else {
+                  const station = manufacturingStations.find((s) => String(s.id) === val);
+                  setDefaultManufacturingStation(station || null);
+                }
               }}
-            />
-          )}
-          noOptionsText={
-            searchQuery.length < 2
-              ? "Type to search..."
-              : "No blueprints found"
-          }
-        />
-        <Autocomplete
-          sx={{ mt: 2 }}
-          value={defaultManufacturingStation}
-          onChange={(_, newValue) => setDefaultManufacturingStation(newValue)}
-          options={manufacturingStations}
-          getOptionLabel={(option) =>
-            `${option.stationName || "Unknown"} (${option.solarSystemName || ""})`
-          }
-          isOptionEqualToValue={(option, value) => option.id === value.id}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} key={option.id}>
-              <Box>
-                <Typography variant="body2">
-                  {option.stationName || "Unknown"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {option.solarSystemName} &middot; {option.structure}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Default Manufacturing Station"
-              placeholder="Optional"
-            />
-          )}
-        />
-        <Autocomplete
-          sx={{ mt: 2 }}
-          value={defaultReactionStation}
-          onChange={(_, newValue) => setDefaultReactionStation(newValue)}
-          options={reactionStations}
-          getOptionLabel={(option) =>
-            `${option.stationName || "Unknown"} (${option.solarSystemName || ""})`
-          }
-          isOptionEqualToValue={(option, value) => option.id === value.id}
-          renderOption={(props, option) => (
-            <Box component="li" {...props} key={option.id}>
-              <Box>
-                <Typography variant="body2">
-                  {option.stationName || "Unknown"}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {option.solarSystemName} &middot; {option.structure}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Default Reaction Station"
-              placeholder="Optional"
-            />
-          )}
-        />
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Optional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {manufacturingStations.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.stationName || "Unknown"} ({s.solarSystemName})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Reaction Station */}
+          <div>
+            <Label className="text-sm text-[#94a3b8] mb-1 block">Default Reaction Station</Label>
+            <Select
+              value={defaultReactionStation ? String(defaultReactionStation.id) : "none"}
+              onValueChange={(val) => {
+                if (val === "none") {
+                  setDefaultReactionStation(null);
+                } else {
+                  const station = reactionStations.find((s) => String(s.id) === val);
+                  setDefaultReactionStation(station || null);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Optional" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">None</SelectItem>
+                {reactionStations.map((s) => (
+                  <SelectItem key={s.id} value={String(s.id)}>
+                    {s.stationName || "Unknown"} ({s.solarSystemName})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={!selectedBlueprint || creating}
+          >
+            {creating ? "Creating..." : "Create Plan"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} sx={{ color: "#94a3b8" }}>
-          Cancel
-        </Button>
-        <Button
-          onClick={handleCreate}
-          disabled={!selectedBlueprint || creating}
-          variant="contained"
-          sx={{
-            backgroundColor: "#00d4ff",
-            "&:hover": { backgroundColor: "#2563eb" },
-          }}
-        >
-          {creating ? "Creating..." : "Create Plan"}
-        </Button>
-      </DialogActions>
     </Dialog>
   );
 }
