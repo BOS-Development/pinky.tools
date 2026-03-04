@@ -16,17 +16,19 @@ test.describe('Landing Page', () => {
     await expect(page.getByText('Active Jobs')).toBeVisible();
   });
 
-  test('shows Open Dashboard button for authenticated user', async ({ page }) => {
+  test('shows quick-access navigation grid for authenticated user', async ({ page }) => {
     await page.goto('/');
 
-    // The new landing page has a single "Open Dashboard" CTA linking to /inventory
-    await expect(page.getByRole('link', { name: 'Open Dashboard' })).toBeVisible();
+    // Quick-access grid replaces the old "Open Dashboard" CTA
+    await expect(page.getByRole('link', { name: /Inventory/ }).filter({ hasText: 'View all assets' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Stockpiles/ }).filter({ hasText: 'Track targets' })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Industry/ }).filter({ hasText: 'Manage jobs' })).toBeVisible();
   });
 
-  test('Open Dashboard navigates to inventory page', async ({ page }) => {
+  test('Inventory quick-link navigates to inventory page', async ({ page }) => {
     await page.goto('/');
 
-    await page.getByRole('link', { name: 'Open Dashboard' }).click();
+    await page.getByRole('link', { name: /Inventory/ }).filter({ hasText: 'View all assets' }).click();
     await page.waitForURL('**/inventory');
     await expect(page).toHaveURL(/\/inventory/);
   });

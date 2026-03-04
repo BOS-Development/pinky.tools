@@ -1675,6 +1675,33 @@ func Test_AssetsShouldGetUserAssetsSummary(t *testing.T) {
 	err = stockpileMarkersRepo.Upsert(context.Background(), stockpileMarker)
 	assert.NoError(t, err)
 
+	// Insert active industry jobs (3 active, 1 delivered — only active should be counted)
+	now := time.Now()
+	end := now.Add(24 * time.Hour)
+	for i := 0; i < 3; i++ {
+		_, err = db.ExecContext(context.Background(), `
+			INSERT INTO esi_industry_jobs
+				(job_id, installer_id, user_id, facility_id, station_id, activity_id,
+				 blueprint_id, blueprint_type_id, blueprint_location_id, output_location_id,
+				 runs, status, duration, start_date, end_date)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+		`, int64(9000+i), testCharacter.ID, testUser.ID, int64(60003760), int64(60003760), 1,
+			int64(8000+i), int64(34), int64(60003760), int64(60003760),
+			1, "active", 3600, now, end)
+		assert.NoError(t, err)
+	}
+	// Insert one delivered job — should NOT be counted
+	_, err = db.ExecContext(context.Background(), `
+		INSERT INTO esi_industry_jobs
+			(job_id, installer_id, user_id, facility_id, station_id, activity_id,
+			 blueprint_id, blueprint_type_id, blueprint_location_id, output_location_id,
+			 runs, status, duration, start_date, end_date)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+	`, int64(9003), testCharacter.ID, testUser.ID, int64(60003760), int64(60003760), 1,
+		int64(8003), int64(34), int64(60003760), int64(60003760),
+		1, "delivered", 3600, now, end)
+	assert.NoError(t, err)
+
 	// Get summary
 	summary, err := assetsRepository.GetUserAssetsSummary(context.Background(), testUser.ID)
 	assert.NoError(t, err)
@@ -1689,9 +1716,11 @@ func Test_AssetsShouldGetUserAssetsSummary(t *testing.T) {
 	//   - Tritanium deficit: (2000 - 1000) * 5.0 = 5000
 	//   - Pyerite has no marker, so no deficit
 	//   Total = 5000
+	// Active Jobs: 3 (delivered job excluded)
 
 	assert.Equal(t, 10000.0, summary.TotalValue, "Total value should be 10000 ISK")
 	assert.Equal(t, 5000.0, summary.TotalDeficit, "Total deficit should be 5000 ISK")
+	assert.Equal(t, 3, summary.ActiveJobs, "Active jobs should be 3")
 }
 
 func Test_AssetsShouldReturnZeroSummaryForNoAssets(t *testing.T) {
@@ -1717,6 +1746,7 @@ func Test_AssetsShouldReturnZeroSummaryForNoAssets(t *testing.T) {
 
 	assert.Equal(t, 0.0, summary.TotalValue, "Total value should be 0 for user with no assets")
 	assert.Equal(t, 0.0, summary.TotalDeficit, "Total deficit should be 0 for user with no assets")
+	assert.Equal(t, 0, summary.ActiveJobs, "Active jobs should be 0 for user with no jobs")
 }
 
 func Test_AssetsShouldAggregateMultipleStacksInHangar(t *testing.T) {

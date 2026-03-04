@@ -13,7 +13,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 | Background Updates | [background-asset-updates.md](core/background-asset-updates.md) | Asset refresh runners (1h), concurrency |
 | SDE Import | [sde-import.md](core/sde-import.md) | Static data pipeline, all `sde_*` tables, background runners |
 | NPC Station Names | [npc-station-names.md](core/npc-station-names.md) | Station name resolution via ESI bulk endpoint |
-| Landing Page | [landing-page.md](core/landing-page.md) | Hero section, asset value metrics |
+| Landing Page | [landing-page.md](core/landing-page.md) | Hero, asset metrics, active jobs, Quick Access nav grid |
 
 ## Market & Pricing
 
