@@ -1,24 +1,12 @@
 import { useState } from "react";
 import { CharacterSlotInfo, IndustryJobQueueEntry } from "@industry-tool/client/data/models";
 import { formatISK, formatNumber } from "@industry-tool/utils/formatting";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Divider from "@mui/material/Divider";
-import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Typography from "@mui/material/Typography";
-import CircularProgress from "@mui/material/CircularProgress";
-import CancelIcon from "@mui/icons-material/Cancel";
-import Tooltip from "@mui/material/Tooltip";
-import PersonIcon from "@mui/icons-material/Person";
-import CorporateFareIcon from "@mui/icons-material/CorporateFare";
+import { Loader2, XCircle, User, Building2 } from "lucide-react";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Separator } from "@/components/ui/separator";
 
 type Props = {
   entries: IndustryJobQueueEntry[];
@@ -27,15 +15,13 @@ type Props = {
   onRefresh?: () => void;
 };
 
-const headerStyle = { color: "#94a3b8", fontWeight: 600 };
-
-function getStatusColor(status: string): "success" | "warning" | "info" | "error" | "default" {
+function getStatusClasses(status: string): string {
   switch (status) {
-    case "planned": return "info";
-    case "active": return "success";
-    case "completed": return "default";
-    case "cancelled": return "error";
-    default: return "default";
+    case "planned": return "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]";
+    case "active": return "bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981]";
+    case "completed": return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
+    case "cancelled": return "bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[#ef4444]";
+    default: return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
   }
 }
 
@@ -103,15 +89,10 @@ function formatEndDate(endDateStr: string): string {
 }
 
 export default function JobQueue({ entries, loading, onCancel, onRefresh }: Props) {
-  const [reassignAnchorEl, setReassignAnchorEl] = useState<null | HTMLElement>(null);
-  const [reassignEntryId, setReassignEntryId] = useState<number | null>(null);
   const [eligibleCharacters, setEligibleCharacters] = useState<CharacterSlotInfo[]>([]);
   const [reassignLoading, setReassignLoading] = useState(false);
 
-  const handleOpenReassign = async (event: React.MouseEvent<HTMLElement>, entryId: number) => {
-    setReassignEntryId(entryId);
-    setReassignAnchorEl(event.currentTarget);
-
+  const handleOpenReassign = async () => {
     if (eligibleCharacters.length === 0) {
       try {
         const res = await fetch("/api/industry/character-slots");
@@ -125,16 +106,10 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
     }
   };
 
-  const handleCloseReassign = () => {
-    setReassignAnchorEl(null);
-    setReassignEntryId(null);
-  };
-
-  const handleReassign = async (characterId: number | null) => {
-    if (!reassignEntryId) return;
+  const handleReassign = async (entryId: number, characterId: number | null) => {
     setReassignLoading(true);
     try {
-      await fetch(`/api/industry/queue/${reassignEntryId}/character`, {
+      await fetch(`/api/industry/queue/${entryId}/character`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ characterId }),
@@ -144,239 +119,254 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
       console.error("Failed to reassign character:", err);
     } finally {
       setReassignLoading(false);
-      setReassignAnchorEl(null);
-      setReassignEntryId(null);
     }
   };
 
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <>
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#0f1219" }}>
-              <TableCell sx={headerStyle}>Blueprint</TableCell>
-              <TableCell sx={headerStyle}>Product</TableCell>
-              <TableCell sx={headerStyle}>Activity</TableCell>
-              <TableCell sx={headerStyle} align="right">Runs</TableCell>
-              <TableCell sx={headerStyle} align="right">ME/TE</TableCell>
-              <TableCell sx={headerStyle}>Station</TableCell>
-              <TableCell sx={headerStyle}>Input</TableCell>
-              <TableCell sx={headerStyle}>Output</TableCell>
-              <TableCell sx={headerStyle}>Character</TableCell>
-              <TableCell sx={headerStyle} align="right">Est. Cost</TableCell>
-              <TableCell sx={headerStyle}>Duration</TableCell>
-              <TableCell sx={headerStyle}>Finishes</TableCell>
-              <TableCell sx={headerStyle} align="center">Source</TableCell>
-              <TableCell sx={headerStyle}>Status</TableCell>
-              <TableCell sx={headerStyle}>Notes</TableCell>
-              <TableCell sx={headerStyle} align="center">Actions</TableCell>
+    <TooltipProvider>
+      <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219]">
+              <TableHead>Blueprint</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Activity</TableHead>
+              <TableHead className="text-right">Runs</TableHead>
+              <TableHead className="text-right">ME/TE</TableHead>
+              <TableHead>Station</TableHead>
+              <TableHead>Input</TableHead>
+              <TableHead>Output</TableHead>
+              <TableHead>Character</TableHead>
+              <TableHead className="text-right">Est. Cost</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead>Finishes</TableHead>
+              <TableHead className="text-center">Source</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Notes</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
             </TableRow>
-          </TableHead>
+          </TableHeader>
           <TableBody>
             {entries.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={16} align="center" sx={{ py: 4, color: "#64748b" }}>
+                <TableCell colSpan={16} className="text-center py-4 text-[#64748b]">
                   No jobs in queue
                 </TableCell>
               </TableRow>
             ) : (
-              entries.map((entry) => (
+              entries.map((entry, idx) => (
                 <TableRow
                   key={entry.id}
-                  sx={{
-                    "&:nth-of-type(odd)": { backgroundColor: "#0d1117" },
-                    "&:nth-of-type(even)": { backgroundColor: "#12151f" },
-                  }}
+                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-[#12151f]"}
                 >
                   {entry.activity === "transport" ? (
                     <>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+                        <span className="text-sm text-[#e2e8f0]">
                           {entry.transportOriginName && entry.transportDestName
                             ? `${entry.transportOriginName} → ${entry.transportDestName}`
                             : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Tooltip title={entry.transportItemsSummary || ""} placement="top">
-                          <Typography variant="body2" sx={{ color: "#cbd5e1", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {entry.transportItemsSummary || "-"}
-                          </Typography>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="text-sm text-[#cbd5e1] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap block">
+                              {entry.transportItemsSummary || "-"}
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>{entry.transportItemsSummary || ""}</TooltipContent>
                         </Tooltip>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                        <span className="text-sm text-[#cbd5e1]">
                           {entry.transportMethod ? formatTransportMethod(entry.transportMethod) : "Transport"}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                      <TableCell className="text-right">
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.transportJumps ? `${formatNumber(entry.transportJumps)} jumps` : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                      <TableCell className="text-right">
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.transportVolumeM3 ? `${formatNumber(entry.transportVolumeM3)} m³` : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
+                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
+                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
+                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.transportFulfillment ? formatFulfillment(entry.transportFulfillment) : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                      <TableCell className="text-right">
+                        <span className="text-sm text-[#cbd5e1]">
                           {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
-                      </TableCell>
+                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
+                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
+                      <TableCell className="text-center"><span className="text-sm text-[#64748b]">-</span></TableCell>
                     </>
                   ) : (
                     <>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+                        <span className="text-sm text-[#e2e8f0]">
                           {entry.blueprintName || `Type ${entry.blueprintTypeId}`}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                        <span className="text-sm text-[#cbd5e1]">
                           {entry.productName || "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#cbd5e1", textTransform: "capitalize" }}>
+                        <span className="text-sm text-[#cbd5e1] capitalize">
                           {entry.activity}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
+                      <TableCell className="text-right">
+                        <span className="text-sm text-[#e2e8f0]">
                           {formatNumber(entry.runs)}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                      <TableCell className="text-right">
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.meLevel}/{entry.teLevel}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.stationName || "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.inputLocation || "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.outputLocation || "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
                         {entry.status === "planned" ? (
-                          <Chip
-                            label={entry.characterName || "Assign"}
-                            size="small"
-                            variant={entry.characterName ? "filled" : "outlined"}
-                            onClick={(e) => handleOpenReassign(e, entry.id)}
-                            disabled={reassignLoading}
-                            sx={{ cursor: "pointer" }}
-                          />
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer ${
+                                  entry.characterName
+                                    ? "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#60a5fa]"
+                                    : "bg-transparent border-[#334155] text-[#94a3b8]"
+                                }`}
+                                onClick={handleOpenReassign}
+                                disabled={reassignLoading}
+                              >
+                                {entry.characterName || "Assign"}
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {eligibleCharacters.map((char) => (
+                                <DropdownMenuItem key={char.characterId} onClick={() => handleReassign(entry.id, char.characterId)}>
+                                  {char.characterName}
+                                  <span className="ml-1 text-xs text-[#64748b]">
+                                    ({char.mfgSlotsUsed}/{char.mfgSlotsMax} mfg)
+                                  </span>
+                                </DropdownMenuItem>
+                              ))}
+                              {eligibleCharacters.length === 0 && (
+                                <DropdownMenuItem disabled>
+                                  <span className="text-[#64748b]">No characters available</span>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleReassign(entry.id, null)}>
+                                <em>Unassign</em>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         ) : (
-                          <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                          <span className="text-sm text-[#94a3b8]">
                             {entry.characterName || "-"}
-                          </Typography>
+                          </span>
                         )}
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
+                      <TableCell className="text-right">
+                        <span className="text-sm text-[#cbd5e1]">
                           {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ color: "#94a3b8" }}>
+                        <span className="text-sm text-[#94a3b8]">
                           {entry.estimatedDuration ? formatDuration(entry.estimatedDuration) : "-"}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
                         {entry.esiJobEndDate ? (
-                          <Box>
-                            <Typography variant="body2" sx={{ color: "#00d4ff", fontFamily: "monospace", fontWeight: 600 }}>
+                          <div>
+                            <span className="text-sm text-[#00d4ff] font-mono font-semibold">
                               {formatTimeRemaining(entry.esiJobEndDate)}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: "#64748b" }}>
+                            </span>
+                            <span className="block text-xs text-[#64748b]">
                               {formatEndDate(entry.esiJobEndDate)}
-                            </Typography>
-                          </Box>
+                            </span>
+                          </div>
                         ) : (
-                          <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                          <span className="text-sm text-[#64748b]">-</span>
                         )}
                       </TableCell>
-                      <TableCell align="center">
+                      <TableCell className="text-center">
                         {entry.esiJobSource ? (
-                          <Tooltip title={entry.esiJobSource === "corporation" ? "Corporation Job" : "Character Job"}>
-                            {entry.esiJobSource === "corporation" ? (
-                              <CorporateFareIcon sx={{ color: "#f59e0b", fontSize: 18 }} />
-                            ) : (
-                              <PersonIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
-                            )}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex">
+                                {entry.esiJobSource === "corporation" ? (
+                                  <Building2 className="h-[18px] w-[18px] text-[#f59e0b]" />
+                                ) : (
+                                  <User className="h-[18px] w-[18px] text-[#94a3b8]" />
+                                )}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {entry.esiJobSource === "corporation" ? "Corporation Job" : "Character Job"}
+                            </TooltipContent>
                           </Tooltip>
                         ) : (
-                          <Typography variant="body2" sx={{ color: "#64748b" }}>-</Typography>
+                          <span className="text-sm text-[#64748b]">-</span>
                         )}
                       </TableCell>
                     </>
                   )}
                   <TableCell>
-                    <Chip
-                      label={entry.status}
-                      color={getStatusColor(entry.status)}
-                      size="small"
-                      variant="outlined"
-                    />
+                    <Badge className={`border ${getStatusClasses(entry.status)} cursor-default`}>
+                      {entry.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2" sx={{ color: "#94a3b8", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span className="text-sm text-[#94a3b8] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block">
                       {entry.notes || "-"}
-                    </Typography>
+                    </span>
                   </TableCell>
-                  <TableCell align="center">
+                  <TableCell className="text-center">
                     {(entry.status === "planned" || entry.status === "active") && (
-                      <IconButton
-                        size="small"
+                      <button
+                        className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
                         onClick={() => onCancel(entry.id)}
-                        sx={{ color: "#ef4444" }}
                         title="Cancel job"
                       >
-                        <CancelIcon fontSize="small" />
-                      </IconButton>
+                        <XCircle className="h-4 w-4" />
+                      </button>
                     )}
                   </TableCell>
                 </TableRow>
@@ -384,31 +374,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
             )}
           </TableBody>
         </Table>
-      </TableContainer>
-
-      <Menu
-        anchorEl={reassignAnchorEl}
-        open={Boolean(reassignAnchorEl)}
-        onClose={handleCloseReassign}
-      >
-        {eligibleCharacters.map((char) => (
-          <MenuItem key={char.characterId} onClick={() => handleReassign(char.characterId)}>
-            {char.characterName}
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-              ({char.mfgSlotsUsed}/{char.mfgSlotsMax} mfg)
-            </Typography>
-          </MenuItem>
-        ))}
-        {eligibleCharacters.length === 0 && (
-          <MenuItem disabled>
-            <Typography variant="body2" sx={{ color: "#64748b" }}>No characters available</Typography>
-          </MenuItem>
-        )}
-        <Divider />
-        <MenuItem onClick={() => handleReassign(null)}>
-          <em>Unassign</em>
-        </MenuItem>
-      </Menu>
-    </>
+      </div>
+    </TooltipProvider>
   );
 }

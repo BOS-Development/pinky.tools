@@ -1,32 +1,23 @@
 import { IndustryJob } from "@industry-tool/client/data/models";
 import { formatISK, formatNumber } from "@industry-tool/utils/formatting";
-import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Typography from "@mui/material/Typography";
-import CircularProgress from "@mui/material/CircularProgress";
-import Tooltip from "@mui/material/Tooltip";
-import PersonIcon from "@mui/icons-material/Person";
-import CorporateFareIcon from "@mui/icons-material/CorporateFare";
+import { Loader2, User, Building2 } from "lucide-react";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
 
 type Props = {
   jobs: IndustryJob[];
   loading: boolean;
 };
 
-function getStatusColor(status: string): "success" | "warning" | "info" | "error" | "default" {
+function getStatusClasses(status: string): string {
   switch (status) {
-    case "active": return "success";
-    case "ready": return "info";
-    case "paused": return "warning";
-    case "delivered": return "default";
-    case "cancelled": return "error";
-    default: return "default";
+    case "active": return "bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981]";
+    case "ready": return "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]";
+    case "paused": return "bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]";
+    case "delivered": return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
+    case "cancelled": return "bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[#ef4444]";
+    default: return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
   }
 }
 
@@ -65,113 +56,116 @@ function formatDuration(seconds: number): string {
 export default function ActiveJobs({ jobs, loading }: Props) {
   if (loading) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", py: 8 }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+      </div>
     );
   }
 
   return (
-    <TableContainer>
-      <Table size="small">
-        <TableHead>
-          <TableRow sx={{ backgroundColor: "#0f1219" }}>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="center">Source</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Blueprint</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Product</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Activity</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Runs</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Character</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Status</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Time Left</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>Duration</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }} align="right">Cost</TableCell>
-            <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>System</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {jobs.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={11} align="center" sx={{ py: 4, color: "#64748b" }}>
-                No active industry jobs
-              </TableCell>
+    <TooltipProvider>
+      <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-[#0f1219]">
+              <TableHead className="text-center">Source</TableHead>
+              <TableHead>Blueprint</TableHead>
+              <TableHead>Product</TableHead>
+              <TableHead>Activity</TableHead>
+              <TableHead className="text-right">Runs</TableHead>
+              <TableHead>Character</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Time Left</TableHead>
+              <TableHead>Duration</TableHead>
+              <TableHead className="text-right">Cost</TableHead>
+              <TableHead>System</TableHead>
             </TableRow>
-          ) : (
-            jobs.map((job) => (
-              <TableRow
-                key={job.jobId}
-                sx={{
-                  "&:nth-of-type(odd)": { backgroundColor: "#0d1117" },
-                  "&:nth-of-type(even)": { backgroundColor: "#12151f" },
-                }}
-              >
-                <TableCell align="center">
-                  <Tooltip title={job.source === "corporation" ? "Corporation Job" : "Character Job"}>
-                    {job.source === "corporation" ? (
-                      <CorporateFareIcon sx={{ color: "#f59e0b", fontSize: 18 }} />
-                    ) : (
-                      <PersonIcon sx={{ color: "#94a3b8", fontSize: 18 }} />
-                    )}
-                  </Tooltip>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
-                    {job.blueprintName || `Type ${job.blueprintTypeId}`}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
-                    {job.productName || "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
-                    {job.activityName || `Activity ${job.activityId}`}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: "#e2e8f0" }}>
-                    {formatNumber(job.runs)}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                    {job.installerName || "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Chip
-                    label={job.status}
-                    color={getStatusColor(job.status)}
-                    size="small"
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: job.status === "active" ? "#00d4ff" : "#94a3b8" }}>
-                    {formatTimeRemaining(job.endDate)}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                    {formatDuration(job.duration)}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: "#cbd5e1" }}>
-                    {job.cost ? formatISK(job.cost) : "-"}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" sx={{ color: "#94a3b8" }}>
-                    {job.systemName || "-"}
-                  </Typography>
+          </TableHeader>
+          <TableBody>
+            {jobs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={11} className="text-center py-4 text-[#64748b]">
+                  No active industry jobs
                 </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </TableContainer>
+            ) : (
+              jobs.map((job, idx) => (
+                <TableRow
+                  key={job.jobId}
+                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-[#12151f]"}
+                >
+                  <TableCell className="text-center">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex">
+                          {job.source === "corporation" ? (
+                            <Building2 className="h-[18px] w-[18px] text-[#f59e0b]" />
+                          ) : (
+                            <User className="h-[18px] w-[18px] text-[#94a3b8]" />
+                          )}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {job.source === "corporation" ? "Corporation Job" : "Character Job"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-[#e2e8f0]">
+                      {job.blueprintName || `Type ${job.blueprintTypeId}`}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-[#cbd5e1]">
+                      {job.productName || "-"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-[#cbd5e1]">
+                      {job.activityName || `Activity ${job.activityId}`}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-sm text-[#e2e8f0]">
+                      {formatNumber(job.runs)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-[#94a3b8]">
+                      {job.installerName || "-"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={`border ${getStatusClasses(job.status)} cursor-default`}>
+                      {job.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`text-sm ${job.status === "active" ? "text-[#00d4ff]" : "text-[#94a3b8]"}`}>
+                      {formatTimeRemaining(job.endDate)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-[#94a3b8]">
+                      {formatDuration(job.duration)}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-sm text-[#cbd5e1]">
+                      {job.cost ? formatISK(job.cost) : "-"}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm text-[#94a3b8]">
+                      {job.systemName || "-"}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </TooltipProvider>
   );
 }
