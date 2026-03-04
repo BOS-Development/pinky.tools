@@ -1,11 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
-import Box from '@mui/material/Box';
-import Container from '@mui/material/Container';
-import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import Card from '@mui/material/Card';
 import { FONT_NUMERIC } from "@industry-tool/utils/formatting";
 
 export default function Home() {
@@ -34,51 +29,26 @@ export default function Home() {
     <>
       <Navbar />
 
-      <Box sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        height: '100vh',
-        mt: '-64px',
-        pt: '64px',
-        background: '#0a0e1a',
-        textAlign: 'center',
-        px: 3,
-        pb: 4,
-      }}>
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%' }}>
-          <Container maxWidth="md">
-            <Box
-              component="img"
+      <div className="flex flex-col items-center justify-between h-screen -mt-16 pt-16 bg-[#0a0e1a] text-center px-3 pb-4">
+        <div className="flex-1 flex flex-col justify-center w-full">
+          <div className="max-w-2xl mx-auto">
+            <img
               src="https://images.evetech.net/types/23773/render?size=512"
               alt="Ragnarok Titan"
-              sx={{
-                width: 100,
-                height: 'auto',
-                mb: 2,
-                borderRadius: 2,
-                filter: 'drop-shadow(0 0 24px rgba(0, 212, 255, 0.3))'
-              }}
+              className="w-[100px] h-auto mb-2 rounded drop-shadow-[0_0_24px_rgba(0,212,255,0.3)]"
             />
-            <Typography variant="h1" sx={{ color: '#f1f5f9', mb: 1 }}>
+            <h1 className="text-3xl font-bold tracking-tight text-[#f1f5f9] mb-1">
               EVE Industry Tool
-            </Typography>
-            <Typography variant="body1" sx={{ color: '#94a3b8', mb: 4, maxWidth: 480, mx: 'auto' }}>
+            </h1>
+            <p className="text-[0.9375rem] leading-relaxed text-[#94a3b8] mb-4 max-w-[480px] mx-auto">
               Real-time asset tracking, stockpile management, and market intelligence
               for EVE Online industrialists
-            </Typography>
+            </p>
 
             {isAuthenticated ? (
               <>
                 {/* Live Metric Strip */}
-                <Box sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  gap: 2,
-                  mb: 4,
-                  flexWrap: 'wrap',
-                }}>
+                <div className="flex justify-center gap-2 mb-4 flex-wrap">
                   <MetricCard
                     label="Asset Value"
                     value={assetMetrics.totalValue === 0
@@ -100,63 +70,47 @@ export default function Home() {
                     value={assetMetrics.activeJobs > 0 ? String(assetMetrics.activeJobs) : '—'}
                     color="#fbbf24"
                   />
-                </Box>
+                </div>
 
-                <Button
-                  variant="contained"
-                  size="large"
+                <a
                   href="/inventory"
-                  sx={{
-                    px: 4,
-                    py: 1.5,
-                  }}
+                  className="inline-block px-8 py-3 bg-[#00d4ff] text-[#0a0a0f] font-medium text-sm rounded-sm shadow-[0_0_8px_rgba(0,212,255,0.25)] hover:shadow-[0_0_12px_rgba(0,212,255,0.35)] transition-shadow"
                 >
                   Open Dashboard
-                </Button>
+                </a>
               </>
             ) : (
-              <Button
-                variant="contained"
-                size="large"
+              <a
                 href="/api/auth/login"
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                }}
+                className="inline-block px-8 py-3 bg-[#00d4ff] text-[#0a0a0f] font-medium text-sm rounded-sm shadow-[0_0_8px_rgba(0,212,255,0.25)] hover:shadow-[0_0_12px_rgba(0,212,255,0.35)] transition-shadow"
               >
                 Sign In with EVE Online
-              </Button>
+              </a>
             )}
-          </Container>
-        </Box>
+          </div>
+        </div>
 
         {/* Footer */}
-        <Box sx={{ py: 2, textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: 'rgba(148, 163, 184, 0.6)' }}>
+        <div className="py-2 text-center">
+          <p className="text-xs text-[rgba(148,163,184,0.6)]">
             EVE Industry Tool is not affiliated with CCP Games. EVE Online and the EVE logo
             are the intellectual property of CCP hf.
-          </Typography>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
     </>
   );
 }
 
 function MetricCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <Card sx={{
-      px: 3,
-      py: 2,
-      background: '#12151f',
-      border: '1px solid rgba(0, 212, 255, 0.08)',
-      minWidth: 180,
-    }}>
-      <Typography variant="caption" sx={{ color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>
+    <div className="px-3 py-2 bg-[#12151f] border border-[rgba(0,212,255,0.08)] rounded-sm min-w-[180px]">
+      <p className="text-xs text-[#64748b] uppercase tracking-wider font-semibold">
         {label}
-      </Typography>
-      <Typography variant="h5" sx={{ color, fontWeight: 700, fontFamily: FONT_NUMERIC, mt: 0.5 }}>
+      </p>
+      <p className="text-lg font-bold mt-0.5" style={{ color, fontFamily: FONT_NUMERIC }}>
         {value}
-      </Typography>
-    </Card>
+      </p>
+    </div>
   );
 }
