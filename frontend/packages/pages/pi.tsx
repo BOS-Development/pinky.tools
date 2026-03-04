@@ -29,7 +29,7 @@ export default function PlanetaryIndustry() {
     <>
       <Navbar />
       <div className="max-w-screen-xl mx-auto px-4 mt-2 mb-8">
-        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-4">
+        <h2 className="text-xl font-semibold text-text-emphasis mb-4">
           Planetary Industry
         </h2>
         <Tabs
@@ -42,19 +42,19 @@ export default function PlanetaryIndustry() {
           <TabsList className="w-full justify-start mb-4">
             <TabsTrigger
               value="overview"
-              className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
+              className="text-text-muted data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="profit"
-              className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
+              className="text-text-muted data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
             >
               Profit
             </TabsTrigger>
             <TabsTrigger
               value="supply"
-              className="text-[#64748b] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
+              className="text-text-muted data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 font-medium data-[state=active]:shadow-none"
             >
               Supply Chain
             </TabsTrigger>

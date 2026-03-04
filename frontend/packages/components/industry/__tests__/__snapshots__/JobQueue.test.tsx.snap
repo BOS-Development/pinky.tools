@@ -7,7 +7,7 @@ exports[`JobQueue Component should match snapshot when loading 1`] = `
   >
     <svg
       aria-hidden="true"
-      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-[#00d4ff]"
+      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-primary"
       fill="none"
       height="24"
       stroke="currentColor"
@@ -29,7 +29,7 @@ exports[`JobQueue Component should match snapshot when loading 1`] = `
 exports[`JobQueue Component should match snapshot with empty queue 1`] = `
 <div>
   <div
-    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
+    class="overflow-x-auto rounded-sm border border-overlay-subtle"
   >
     <div
       class="relative w-full overflow-auto"
@@ -41,7 +41,7 @@ exports[`JobQueue Component should match snapshot with empty queue 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -129,10 +129,10 @@ exports[`JobQueue Component should match snapshot with empty queue 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
           >
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-4 text-[#64748b]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-4 text-text-muted"
               colspan="16"
             >
               No jobs in queue
@@ -148,7 +148,7 @@ exports[`JobQueue Component should match snapshot with empty queue 1`] = `
 exports[`JobQueue Component should match snapshot with entries 1`] = `
 <div>
   <div
-    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
+    class="overflow-x-auto rounded-sm border border-overlay-subtle"
   >
     <div
       class="relative w-full overflow-auto"
@@ -160,7 +160,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -248,13 +248,13 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0d1117]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[#0d1117]"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 Rifter Blueprint
               </span>
@@ -263,7 +263,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 Rifter
               </span>
@@ -272,7 +272,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1] capitalize"
+                class="text-sm text-text-primary capitalize"
               >
                 manufacturing
               </span>
@@ -281,7 +281,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 10
               </span>
@@ -290,7 +290,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 10
                 /
@@ -301,7 +301,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 Jita IV - Moon 4 - Caldari Navy Assembly Plant
               </span>
@@ -310,7 +310,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 CharOwner &gt; Big Container
               </span>
@@ -319,7 +319,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 CorpOwner &gt; Hangar 1
               </span>
@@ -329,7 +329,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             >
               <div>
                 <button
-                  class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer bg-transparent border-[#334155] text-[#94a3b8]"
+                  class="inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer bg-transparent border-[#334155] text-text-secondary"
                 >
                   Assign
                 </button>
@@ -338,7 +338,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
                     role="menuitem"
                   >
                     <span
-                      class="text-[#64748b]"
+                      class="text-text-muted"
                     >
                       No characters available
                     </span>
@@ -358,7 +358,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 5.00M ISK
               </span>
@@ -367,7 +367,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 1h 0m
               </span>
@@ -376,7 +376,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -385,7 +385,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -394,7 +394,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff] cursor-default"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-interactive-selected border-border-active text-primary cursor-default"
               >
                 planned
               </div>
@@ -403,7 +403,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block"
+                class="text-sm text-text-secondary max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block"
               >
                 Test note
               </span>
@@ -412,7 +412,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <button
-                class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                class="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                 title="Cancel job"
               >
                 <svg
@@ -444,13 +444,13 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             </td>
           </tr>
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#12151f]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-panel"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 Reaction Formula
               </span>
@@ -459,7 +459,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 -
               </span>
@@ -468,7 +468,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1] capitalize"
+                class="text-sm text-text-primary capitalize"
               >
                 reaction
               </span>
@@ -477,7 +477,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 100
               </span>
@@ -486,7 +486,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 0
                 /
@@ -497,7 +497,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 -
               </span>
@@ -506,7 +506,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 -
               </span>
@@ -515,7 +515,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 -
               </span>
@@ -524,7 +524,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 -
               </span>
@@ -533,7 +533,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 -
               </span>
@@ -542,7 +542,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 -
               </span>
@@ -552,12 +552,12 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
             >
               <div>
                 <span
-                  class="text-sm text-[#00d4ff] font-mono font-semibold"
+                  class="text-sm text-primary font-mono font-semibold"
                 >
                   3D 16:33:00
                 </span>
                 <span
-                  class="block text-xs text-[#64748b]"
+                  class="block text-xs text-text-muted"
                 >
                   2026.02.26 04:33
                 </span>
@@ -567,7 +567,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -576,7 +576,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981] cursor-default"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success cursor-default"
               >
                 active
               </div>
@@ -585,7 +585,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block"
+                class="text-sm text-text-secondary max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block"
               >
                 -
               </span>
@@ -594,7 +594,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <button
-                class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                class="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                 title="Cancel job"
               >
                 <svg
@@ -635,7 +635,7 @@ exports[`JobQueue Component should match snapshot with entries 1`] = `
 exports[`JobQueue Component should match snapshot with transport entry 1`] = `
 <div>
   <div
-    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
+    class="overflow-x-auto rounded-sm border border-overlay-subtle"
   >
     <div
       class="relative w-full overflow-auto"
@@ -647,7 +647,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -735,13 +735,13 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0d1117]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[#0d1117]"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 Jita IV - Moon 4 - Caldari Navy Assembly Plant → Amarr VIII - Oris - Emperor Family Academy
               </span>
@@ -750,7 +750,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap block"
+                class="text-sm text-text-primary max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap block"
                 data-state="closed"
               >
                 Hydrogen Fuel Block x500, Oxygen Fuel Block x300
@@ -760,7 +760,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 Jump Freighter
               </span>
@@ -769,7 +769,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 12 jumps
               </span>
@@ -778,7 +778,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 125,000 m³
               </span>
@@ -787,7 +787,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -796,7 +796,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -805,7 +805,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -814,7 +814,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 Self Haul
               </span>
@@ -823,7 +823,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 12.50M ISK
               </span>
@@ -832,7 +832,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -841,7 +841,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -850,7 +850,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <span
-                class="text-sm text-[#64748b]"
+                class="text-sm text-text-muted"
               >
                 -
               </span>
@@ -859,7 +859,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff] cursor-default"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-interactive-selected border-border-active text-primary cursor-default"
               >
                 planned
               </div>
@@ -868,7 +868,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block"
+                class="text-sm text-text-secondary max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block"
               >
                 -
               </span>
@@ -877,7 +877,7 @@ exports[`JobQueue Component should match snapshot with transport entry 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <button
-                class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                class="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                 title="Cancel job"
               >
                 <svg

@@ -23,12 +23,12 @@ interface Props {
 
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
-    planned: "#00d4ff",
-    in_transit: "#f59e0b",
-    delivered: "#10b981",
-    cancelled: "#ef4444",
+    planned: "var(--color-primary-cyan)",
+    in_transit: "var(--color-manufacturing-amber)",
+    delivered: "var(--color-success-teal)",
+    cancelled: "var(--color-danger-rose)",
   };
-  return colors[status] || "#94a3b8";
+  return colors[status] || "var(--color-text-secondary)";
 };
 
 const getStatusLabel = (status: string) => {
@@ -93,7 +93,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -112,7 +112,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219] hover:bg-[#0f1219]">
+            <TableRow className="bg-background-void hover:bg-background-void">
               <TableHead className="w-10" />
               <TableHead>Status</TableHead>
               <TableHead>Route</TableHead>
@@ -146,7 +146,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6 text-[#94a3b8]"
+                        className="h-6 w-6 text-text-secondary"
                         onClick={() => toggleExpand(job.id)}
                       >
                         {expandedJobId === job.id ? (
@@ -168,22 +168,22 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                       </span>
                     </TableCell>
                     <TableCell>
-                      <p className="text-sm font-medium text-[#e2e8f0]">
+                      <p className="text-sm font-medium text-text-emphasis">
                         {job.originSystemName || "?"} → {job.destinationSystemName || "?"}
                       </p>
-                      <span className="text-xs text-[#94a3b8]">
+                      <span className="text-xs text-text-secondary">
                         {job.originStationName || ""} → {job.destinationStationName || ""}
                       </span>
                     </TableCell>
-                    <TableCell className="text-[#94a3b8]">{getMethodLabel(job.transportMethod)}</TableCell>
-                    <TableCell className="text-[#94a3b8]">{getFulfillmentLabel(job.fulfillmentType)}</TableCell>
+                    <TableCell className="text-text-secondary">{getMethodLabel(job.transportMethod)}</TableCell>
+                    <TableCell className="text-text-secondary">{getFulfillmentLabel(job.fulfillmentType)}</TableCell>
                     <TableCell className="text-right">{formatNumber(job.totalVolumeM3)}</TableCell>
                     <TableCell className="text-right">{formatISK(job.totalCollateral)}</TableCell>
-                    <TableCell className="text-right text-[#ef4444]">
+                    <TableCell className="text-right text-rose-danger">
                       {formatISK(job.estimatedCost)}
                     </TableCell>
                     <TableCell className="text-right">{job.jumps}</TableCell>
-                    <TableCell className="text-[#94a3b8]">{job.transportProfileName || "—"}</TableCell>
+                    <TableCell className="text-text-secondary">{job.transportProfileName || "—"}</TableCell>
                     <TableCell className="text-center">
                       {job.status === "planned" && (
                         <div className="flex gap-1 justify-center">
@@ -224,7 +224,7 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                           {job.items && job.items.length > 0 ? (
                             <Table>
                               <TableHeader>
-                                <TableRow className="[&>th]:text-[#94a3b8] [&>th]:border-[#1e2231] [&>th]:py-1">
+                                <TableRow className="[&>th]:text-text-secondary [&>th]:border-[#1e2231] [&>th]:py-1">
                                   <TableHead>Item</TableHead>
                                   <TableHead className="text-right">Quantity</TableHead>
                                   <TableHead className="text-right">Volume (m³)</TableHead>
@@ -250,10 +250,10 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
                               </TableBody>
                             </Table>
                           ) : (
-                            <p className="text-sm text-[#64748b]">No items in this transport job.</p>
+                            <p className="text-sm text-text-muted">No items in this transport job.</p>
                           )}
                           {job.notes && (
-                            <p className="text-sm text-[#94a3b8] mt-2">Notes: {job.notes}</p>
+                            <p className="text-sm text-text-secondary mt-2">Notes: {job.notes}</p>
                           )}
                         </div>
                       </TableCell>

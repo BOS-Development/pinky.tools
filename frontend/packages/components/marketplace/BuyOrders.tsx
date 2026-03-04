@@ -100,9 +100,9 @@ function ItemSearchCombobox({
           role="combobox"
           disabled={disabled}
           className={cn(
-            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#00d4ff]",
+            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-overlay-strong bg-background-void px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary",
             disabled && "opacity-50 cursor-not-allowed",
-            !value && "text-[#64748b]"
+            !value && "text-text-muted"
           )}
         >
           <span className="flex items-center gap-2 min-w-0">
@@ -134,10 +134,10 @@ function ItemSearchCombobox({
           <div className="max-h-60 overflow-y-auto">
             {loading ? (
               <div className="flex justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-[#00d4ff]" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
               </div>
             ) : options.length === 0 ? (
-              <div className="py-6 text-center text-sm text-[#64748b]">
+              <div className="py-6 text-center text-sm text-text-muted">
                 {search.length < 2 ? 'Type at least 2 characters' : 'No items found'}
               </div>
             ) : (
@@ -146,7 +146,7 @@ function ItemSearchCombobox({
                   key={option.TypeID}
                   className={cn(
                     "flex w-full items-center gap-2 px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-[rgba(148,163,184,0.08)]",
-                    value?.TypeID === option.TypeID && "bg-[rgba(0,212,255,0.08)] text-[#00d4ff]"
+                    value?.TypeID === option.TypeID && "bg-interactive-hover text-primary"
                   )}
                   onClick={() => {
                     onChange(option);
@@ -216,8 +216,8 @@ function StationSearchCombobox({
         <button
           role="combobox"
           className={cn(
-            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#00d4ff]",
-            !value && "text-[#64748b]"
+            "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border border-overlay-strong bg-background-void px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary",
+            !value && "text-text-muted"
           )}
         >
           <span className="truncate">{value ? value.name : 'Search for a station...'}</span>
@@ -238,10 +238,10 @@ function StationSearchCombobox({
           <div className="max-h-60 overflow-y-auto">
             {loading ? (
               <div className="flex justify-center py-4">
-                <Loader2 className="h-4 w-4 animate-spin text-[#00d4ff]" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
               </div>
             ) : options.length === 0 ? (
-              <div className="py-6 text-center text-sm text-[#64748b]">
+              <div className="py-6 text-center text-sm text-text-muted">
                 {search.length < 2 ? 'Type at least 2 characters' : 'No stations found'}
               </div>
             ) : (
@@ -250,7 +250,7 @@ function StationSearchCombobox({
                   key={option.stationId}
                   className={cn(
                     "flex w-full flex-col items-start px-3 py-1.5 text-sm outline-none cursor-pointer hover:bg-[rgba(148,163,184,0.08)]",
-                    value?.stationId === option.stationId && "bg-[rgba(0,212,255,0.08)]"
+                    value?.stationId === option.stationId && "bg-interactive-hover"
                   )}
                   onClick={() => {
                     onChange(option);
@@ -258,8 +258,8 @@ function StationSearchCombobox({
                     setSearch('');
                   }}
                 >
-                  <span className="text-[#e2e8f0]">{option.name}</span>
-                  <span className="text-xs text-[#64748b]">{option.solarSystemName}</span>
+                  <span className="text-text-emphasis">{option.name}</span>
+                  <span className="text-xs text-text-muted">{option.solarSystemName}</span>
                 </button>
               ))
             )}
@@ -400,10 +400,10 @@ export default function BuyOrders() {
 
   return (
     <div className="max-w-[1280px] my-4">
-      <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+      <Card className="bg-background-panel border-overlay-subtle">
         <CardContent className="p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-[#e2e8f0]">My Buy Orders</h2>
+            <h2 className="text-xl font-semibold text-text-emphasis">My Buy Orders</h2>
             <Button onClick={handleCreate}>
               <Plus className="h-4 w-4 mr-1" />
               Create Buy Order
@@ -411,14 +411,14 @@ export default function BuyOrders() {
           </div>
 
           {orders.length === 0 ? (
-            <p className="text-[#94a3b8] text-center py-8">
+            <p className="text-text-secondary text-center py-8">
               No buy orders yet. Create one to let sellers know what you&apos;re looking for!
             </p>
           ) : (
-            <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219]">
+                  <TableRow className="bg-background-void">
                     <TableHead>Item</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead className="text-right">Quantity Desired</TableHead>
@@ -432,16 +432,16 @@ export default function BuyOrders() {
                 </TableHeader>
                 <TableBody>
                   {orders.map((order) => (
-                    <TableRow key={order.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
-                      <TableCell className="text-[#e2e8f0]">{order.typeName}</TableCell>
-                      <TableCell className="text-[#94a3b8]">{order.locationName || '-'}</TableCell>
-                      <TableCell className="text-right text-[#e2e8f0]">{formatNumber(order.quantityDesired)}</TableCell>
-                      <TableCell className="text-right text-[#e2e8f0]">
+                    <TableRow key={order.id} className="bg-background-panel hover:bg-interactive-hover">
+                      <TableCell className="text-text-emphasis">{order.typeName}</TableCell>
+                      <TableCell className="text-text-secondary">{order.locationName || '-'}</TableCell>
+                      <TableCell className="text-right text-text-emphasis">{formatNumber(order.quantityDesired)}</TableCell>
+                      <TableCell className="text-right text-text-emphasis">
                         {order.minPricePerUnit > 0
                           ? `${formatISK(order.minPricePerUnit)} - ${formatISK(order.maxPricePerUnit)}`
                           : formatISK(order.maxPricePerUnit)}
                       </TableCell>
-                      <TableCell className="text-right text-[#e2e8f0]">
+                      <TableCell className="text-right text-text-emphasis">
                         {formatISK(order.quantityDesired * order.maxPricePerUnit)}
                       </TableCell>
                       <TableCell>
@@ -450,28 +450,28 @@ export default function BuyOrders() {
                             className={cn(
                               "text-xs font-semibold",
                               order.isActive
-                                ? "bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)]"
-                                : "bg-[rgba(148,163,184,0.1)] text-[#64748b] border border-[rgba(148,163,184,0.2)] hover:bg-[rgba(148,163,184,0.15)]"
+                                ? "bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)]"
+                                : "bg-overlay-subtle text-text-muted border border-overlay-strong hover:bg-overlay-medium"
                             )}
                           >
                             {order.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                           {order.autoBuyConfigId && (
-                            <Badge className="text-[0.7rem] font-semibold bg-[rgba(245,158,11,0.15)] text-[#f59e0b] border border-[rgba(245,158,11,0.3)] hover:bg-[rgba(245,158,11,0.2)] cursor-default">
+                            <Badge className="text-[0.7rem] font-semibold bg-[rgba(245,158,11,0.15)] text-amber-manufacturing border border-[rgba(245,158,11,0.3)] hover:bg-[rgba(245,158,11,0.2)] cursor-default">
                               Auto
                             </Badge>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell className="text-[#94a3b8]">{order.notes || '-'}</TableCell>
-                      <TableCell className="text-[#94a3b8]">{formatDate(order.createdAt)}</TableCell>
+                      <TableCell className="text-text-secondary">{order.notes || '-'}</TableCell>
+                      <TableCell className="text-text-secondary">{formatDate(order.createdAt)}</TableCell>
                       <TableCell className="text-right">
                         {!order.autoBuyConfigId && (
                           <>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-[#60a5fa] hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
+                              className="h-8 w-8 text-blue-science hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
                               onClick={() => handleEdit(order)}
                               title="Edit"
                             >
@@ -480,7 +480,7 @@ export default function BuyOrders() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-[#ef4444] hover:text-[#f87171] hover:bg-[rgba(239,68,68,0.1)]"
+                              className="h-8 w-8 text-rose-danger hover:text-[#f87171] hover:bg-rose-danger/10"
                               onClick={() => handleDelete(order.id)}
                               title="Cancel"
                             >
@@ -500,15 +500,15 @@ export default function BuyOrders() {
 
       {/* Create/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-sm bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-sm bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">
+            <DialogTitle className="text-text-emphasis">
               {selectedOrder ? 'Edit Buy Order' : 'Create Buy Order'}
             </DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-4 mt-2">
             <div>
-              <label className="text-sm text-[#94a3b8] mb-1 block">Item Name *</label>
+              <label className="text-sm text-text-secondary mb-1 block">Item Name *</label>
               <ItemSearchCombobox
                 value={selectedItem}
                 onChange={(item) => {
@@ -521,13 +521,13 @@ export default function BuyOrders() {
                 }}
                 disabled={!!selectedOrder}
               />
-              <p className="text-xs text-[#64748b] mt-1">
+              <p className="text-xs text-text-muted mt-1">
                 {selectedOrder ? 'Cannot change item type' : 'Search for an item by name'}
               </p>
             </div>
 
             <div>
-              <label className="text-sm text-[#94a3b8] mb-1 block">Station *</label>
+              <label className="text-sm text-text-secondary mb-1 block">Station *</label>
               <StationSearchCombobox
                 value={selectedStation}
                 onChange={(station) => {
@@ -535,11 +535,11 @@ export default function BuyOrders() {
                   setFormData({ ...formData, locationId: station ? station.stationId : 0 });
                 }}
               />
-              <p className="text-xs text-[#64748b] mt-1">Where you want items delivered</p>
+              <p className="text-xs text-text-muted mt-1">Where you want items delivered</p>
             </div>
 
             <div>
-              <label className="text-sm text-[#94a3b8] mb-1 block">Quantity Desired *</label>
+              <label className="text-sm text-text-secondary mb-1 block">Quantity Desired *</label>
               <Input
                 type="number"
                 value={formData.quantityDesired || ''}
@@ -549,30 +549,30 @@ export default function BuyOrders() {
 
             <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-sm text-[#94a3b8] mb-1 block">Min Price Per Unit (ISK)</label>
+                <label className="text-sm text-text-secondary mb-1 block">Min Price Per Unit (ISK)</label>
                 <Input
                   type="number"
                   value={formData.minPricePerUnit || ''}
                   onChange={(e) => setFormData({ ...formData, minPricePerUnit: parseFloat(e.target.value) || 0 })}
                 />
-                <p className="text-xs text-[#64748b] mt-1">Floor price for auto-fulfill (optional)</p>
+                <p className="text-xs text-text-muted mt-1">Floor price for auto-fulfill (optional)</p>
               </div>
               <div className="flex-1">
-                <label className="text-sm text-[#94a3b8] mb-1 block">Max Price Per Unit (ISK) *</label>
+                <label className="text-sm text-text-secondary mb-1 block">Max Price Per Unit (ISK) *</label>
                 <Input
                   type="number"
                   value={formData.maxPricePerUnit || ''}
                   onChange={(e) => setFormData({ ...formData, maxPricePerUnit: parseFloat(e.target.value) || 0 })}
                 />
-                <p className="text-xs text-[#64748b] mt-1">Maximum you&apos;re willing to pay</p>
+                <p className="text-xs text-text-muted mt-1">Maximum you&apos;re willing to pay</p>
               </div>
             </div>
 
             <div>
-              <label className="text-sm text-[#94a3b8] mb-1 block">Notes</label>
+              <label className="text-sm text-text-secondary mb-1 block">Notes</label>
               <textarea
                 rows={3}
-                className="w-full rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] text-[#e2e8f0] text-sm px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#00d4ff] focus:border-[#00d4ff]"
+                className="w-full rounded-sm border border-overlay-strong bg-background-void text-text-emphasis text-sm px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                 value={formData.notes || ''}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 placeholder="Optional notes about this buy order..."
@@ -580,7 +580,7 @@ export default function BuyOrders() {
             </div>
 
             {formData.quantityDesired && formData.maxPricePerUnit !== undefined && (
-              <p className="text-sm text-[#94a3b8]">
+              <p className="text-sm text-text-secondary">
                 Total Budget: {formatISK(formData.quantityDesired * formData.maxPricePerUnit)}
               </p>
             )}

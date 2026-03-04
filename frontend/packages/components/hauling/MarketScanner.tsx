@@ -35,10 +35,10 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
 
 function getIndicatorStyle(indicator: HaulingArbitrageRow['indicator']): { color: string; bg: string } {
   switch (indicator) {
-    case 'gap': return { color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.1)' };
-    case 'markup': return { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.1)' };
-    case 'thin': return { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
-    default: return { color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.1)' };
+    case 'gap': return { color: 'var(--color-manufacturing-amber)', bg: 'rgba(245, 158, 11, 0.1)' };
+    case 'markup': return { color: 'var(--color-primary-cyan)', bg: 'rgba(0, 212, 255, 0.1)' };
+    case 'thin': return { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
+    default: return { color: 'var(--color-text-secondary)', bg: 'rgba(148, 163, 184, 0.1)' };
   }
 }
 
@@ -204,26 +204,26 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
       <div className="w-full px-4 mt-8 mb-8">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-          <ScanSearch className="h-7 w-7 text-[#00d4ff]" />
-          <h1 className="text-2xl font-bold text-[#e2e8f0]">Market Scanner</h1>
+          <ScanSearch className="h-7 w-7 text-primary" />
+          <h1 className="text-2xl font-bold text-text-emphasis">Market Scanner</h1>
         </div>
 
         {/* Controls */}
-        <Card className="mb-6 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+        <Card className="mb-6 bg-background-panel border-overlay-subtle">
           <CardContent className="pt-4">
             <div className="flex gap-4 items-center flex-wrap">
               <div className="min-w-[180px]">
-                <label className="text-xs text-[#94a3b8] mb-1 block">Source Region</label>
+                <label className="text-xs text-text-secondary mb-1 block">Source Region</label>
                 <Select
                   value={String(sourceRegionId)}
                   onValueChange={(v) => setSourceRegionId(Number(v))}
                 >
-                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  <SelectContent className="bg-background-panel border-overlay-medium">
                     {REGION_OPTIONS.map((r) => (
-                      <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                      <SelectItem key={r.id} value={r.id.toString()} className="text-text-emphasis">
                         {r.name}
                       </SelectItem>
                     ))}
@@ -231,17 +231,17 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                 </Select>
               </div>
               <div className="min-w-[180px]">
-                <label className="text-xs text-[#94a3b8] mb-1 block">Destination Region</label>
+                <label className="text-xs text-text-secondary mb-1 block">Destination Region</label>
                 <Select
                   value={String(destRegionId)}
                   onValueChange={(v) => setDestRegionId(Number(v))}
                 >
-                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  <SelectContent className="bg-background-panel border-overlay-medium">
                     {REGION_OPTIONS.map((r) => (
-                      <SelectItem key={r.id} value={r.id.toString()} className="text-[#e2e8f0]">
+                      <SelectItem key={r.id} value={r.id.toString()} className="text-text-emphasis">
                         {r.name}
                       </SelectItem>
                     ))}
@@ -265,7 +265,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                 </Button>
               </div>
               {lastUpdated && (
-                <span className="text-xs text-[#64748b] ml-1">
+                <span className="text-xs text-text-muted ml-1">
                   Last updated: {new Date(lastUpdated).toLocaleString()}
                 </span>
               )}
@@ -275,13 +275,13 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
 
         {/* Results Table */}
         {loading ? (
-          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <Card className="bg-background-panel border-overlay-subtle">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
+                  <TableRow className="bg-background-void border-overlay-subtle">
                     {['Item', 'Indicator', 'Net Profit/unit', 'm³', 'Days to Sell', 'Buy Price', 'Sell Price', 'Volume Available', 'Add to Run'].map((h) => (
-                      <TableHead key={h} className="font-bold text-[#e2e8f0]">{h}</TableHead>
+                      <TableHead key={h} className="font-bold text-text-emphasis">{h}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
@@ -300,15 +300,15 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
             </div>
           </Card>
         ) : results.length === 0 ? (
-          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <Card className="bg-background-panel border-overlay-subtle">
             <CardContent className="py-8">
-              <p className="text-center text-[#94a3b8] text-base">
+              <p className="text-center text-text-secondary text-base">
                 No arbitrage opportunities found. Try scanning to refresh data.
               </p>
             </CardContent>
           </Card>
         ) : (
-          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <Card className="bg-background-panel border-overlay-subtle">
             <div
               className="overflow-x-auto outline-none"
               ref={tableRef}
@@ -317,16 +317,16 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
             >
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#0f1219] border-[rgba(148,163,184,0.1)]">
-                    <TableHead className="font-bold text-[#e2e8f0]">Item</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0]">Indicator</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Net Profit/unit</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">m³</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Days to Sell</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Buy Price</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Sell Price</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0] text-right">Volume Available</TableHead>
-                    <TableHead className="font-bold text-[#e2e8f0]">Add to Run</TableHead>
+                  <TableRow className="bg-background-void border-overlay-subtle">
+                    <TableHead className="font-bold text-text-emphasis">Item</TableHead>
+                    <TableHead className="font-bold text-text-emphasis">Indicator</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Net Profit/unit</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">m³</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Days to Sell</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Buy Price</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Sell Price</TableHead>
+                    <TableHead className="font-bold text-text-emphasis text-right">Volume Available</TableHead>
+                    <TableHead className="font-bold text-text-emphasis">Add to Run</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -353,7 +353,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                               height={24}
                               style={{ borderRadius: 2 }}
                             />
-                            <span className="text-sm font-semibold text-[#e2e8f0]">{row.typeName}</span>
+                            <span className="text-sm font-semibold text-text-emphasis">{row.typeName}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -372,25 +372,25 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                           {row.netProfitIsk !== undefined ? (
                             <span
                               className="text-sm font-semibold"
-                              style={{ color: (row.netProfitIsk || 0) >= 0 ? '#10b981' : '#ef4444' }}
+                              style={{ color: (row.netProfitIsk || 0) >= 0 ? 'var(--color-success-teal)' : 'var(--color-danger-rose)' }}
                             >
                               {formatISK(row.netProfitIsk || 0)}
                             </span>
                           ) : '—'}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                        <TableCell className="text-right text-sm text-text-secondary">
                           {row.volumeM3 !== undefined ? formatNumber(row.volumeM3, 2) : '—'}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                        <TableCell className="text-right text-sm text-text-secondary">
                           {row.daysToSell !== undefined ? formatNumber(row.daysToSell, 1) : '—'}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                        <TableCell className="text-right text-sm text-text-secondary">
                           {row.buyPrice !== undefined ? formatISK(row.buyPrice) : '—'}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                        <TableCell className="text-right text-sm text-text-secondary">
                           {row.sellPrice !== undefined ? formatISK(row.sellPrice) : '—'}
                         </TableCell>
-                        <TableCell className="text-right text-sm text-[#94a3b8]">
+                        <TableCell className="text-right text-sm text-text-secondary">
                           {row.volumeAvailable !== undefined ? formatNumber(row.volumeAvailable) : '—'}
                         </TableCell>
                         <TableCell>
@@ -428,24 +428,24 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
             if (!open) setAddToRun({ row: null, open: false, selectedRunId: '', quantity: '1' });
           }}
         >
-          <DialogContent className="max-w-xs bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+          <DialogContent className="max-w-xs bg-background-panel border-overlay-medium">
             <DialogHeader>
-              <DialogTitle className="text-[#e2e8f0]">Add to Run</DialogTitle>
+              <DialogTitle className="text-text-emphasis">Add to Run</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-4 mt-2">
-              <p className="text-sm font-semibold text-[#e2e8f0]">{addToRun.row?.typeName}</p>
+              <p className="text-sm font-semibold text-text-emphasis">{addToRun.row?.typeName}</p>
               <div>
-                <label className="text-xs text-[#94a3b8] mb-1 block">Hauling Run</label>
+                <label className="text-xs text-text-secondary mb-1 block">Hauling Run</label>
                 <Select
                   value={addToRun.selectedRunId !== '' ? String(addToRun.selectedRunId) : ''}
                   onValueChange={(v) => setAddToRun({ ...addToRun, selectedRunId: Number(v) })}
                 >
-                  <SelectTrigger className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]">
+                  <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue placeholder="Select run" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+                  <SelectContent className="bg-background-panel border-overlay-medium">
                     {runs.map((run) => (
-                      <SelectItem key={run.id} value={String(run.id)} className="text-[#e2e8f0]">
+                      <SelectItem key={run.id} value={String(run.id)} className="text-text-emphasis">
                         {run.name}
                       </SelectItem>
                     ))}
@@ -453,13 +453,13 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                 </Select>
               </div>
               <div>
-                <label className="text-xs text-[#94a3b8] mb-1 block">Quantity</label>
+                <label className="text-xs text-text-secondary mb-1 block">Quantity</label>
                 <Input
                   type="number"
                   value={addToRun.quantity}
                   onChange={(e) => setAddToRun({ ...addToRun, quantity: e.target.value })}
                   min={1}
-                  className="bg-[#0f1219] border-[rgba(148,163,184,0.2)] text-[#e2e8f0]"
+                  className="bg-background-void border-overlay-strong text-text-emphasis"
                 />
               </div>
             </div>

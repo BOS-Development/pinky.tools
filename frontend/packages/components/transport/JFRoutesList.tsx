@@ -50,7 +50,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -67,7 +67,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219] hover:bg-[#0f1219]">
+            <TableRow className="bg-background-void hover:bg-background-void">
               <TableHead>Name</TableHead>
               <TableHead>Origin</TableHead>
               <TableHead>Destination</TableHead>
@@ -81,7 +81,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="text-center py-8 text-[#94a3b8]"
+                  className="text-center py-8 text-text-secondary"
                 >
                   No JF routes configured
                 </TableCell>
@@ -89,9 +89,9 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
             ) : (
               routes.map((r) => (
                 <TableRow key={r.id} className="hover:bg-[rgba(0,212,255,0.05)]">
-                  <TableCell className="font-medium text-[#e2e8f0]">{r.name}</TableCell>
-                  <TableCell className="text-[#94a3b8]">{r.originSystemName || r.originSystemId}</TableCell>
-                  <TableCell className="text-[#94a3b8]">{r.destinationSystemName || r.destinationSystemId}</TableCell>
+                  <TableCell className="font-medium text-text-emphasis">{r.name}</TableCell>
+                  <TableCell className="text-text-secondary">{r.originSystemName || r.originSystemId}</TableCell>
+                  <TableCell className="text-text-secondary">{r.destinationSystemName || r.destinationSystemId}</TableCell>
                   <TableCell className="text-right">{r.totalDistanceLy.toFixed(2)} LY</TableCell>
                   <TableCell className="text-right">
                     <div className="flex gap-1 justify-end flex-wrap">
@@ -109,7 +109,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                      className="h-7 w-7 text-text-secondary hover:text-text-emphasis"
                       onClick={() => handleEdit(r)}
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -117,7 +117,7 @@ export function JFRoutesList({ routes, loading, onRefresh }: Props) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                      className="h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
                       onClick={() => handleDelete(r)}
                     >
                       <Trash2 className="h-3.5 w-3.5" />

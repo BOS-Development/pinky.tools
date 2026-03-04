@@ -10,7 +10,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="min-w-[300px] flex-grow relative"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
           for="search-blueprint"
         >
           Search Blueprint
@@ -31,7 +31,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="min-w-[150px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Activity
         </label>
@@ -73,7 +73,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="w-[100px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
           for="runs"
         >
           Runs
@@ -94,7 +94,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="w-[90px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
           for="me-level"
         >
           ME Level
@@ -112,7 +112,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="w-[90px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
           for="te-level"
         >
           TE Level
@@ -130,7 +130,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="w-[120px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Industry Skill
         </label>
@@ -146,7 +146,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="w-[120px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Adv Industry
         </label>
@@ -162,7 +162,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="min-w-[120px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Structure
         </label>
@@ -204,7 +204,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="min-w-[90px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Rig
         </label>
@@ -246,7 +246,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="min-w-[100px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Security
         </label>
@@ -288,7 +288,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="w-[120px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Facility Tax %
         </label>
@@ -306,7 +306,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="min-w-[250px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           System (optional)
         </label>
@@ -329,7 +329,7 @@ exports[`AddJob Component should match snapshot 1`] = `
         class="flex-grow min-w-[200px]"
       >
         <label
-          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-[#94a3b8] mb-1 block"
+          class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary mb-1 block"
         >
           Notes
         </label>

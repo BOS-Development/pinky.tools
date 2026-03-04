@@ -114,7 +114,7 @@ export default function MarketplaceBrowser() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -130,19 +130,19 @@ export default function MarketplaceBrowser() {
       </div>
 
       {filteredListings.length === 0 ? (
-        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-          <h3 className="text-lg font-semibold text-[#94a3b8]">No listings available</h3>
-          <p className="text-sm text-[#64748b] mt-1">
+        <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+          <h3 className="text-lg font-semibold text-text-secondary">No listings available</h3>
+          <p className="text-sm text-text-muted mt-1">
             {listings.length === 0
               ? "Your contacts haven't listed any items for sale, or they haven't granted you browse permission."
               : "No listings match your search."}
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#0f1219]">
+              <TableRow className="bg-background-void">
                 <TableHead>Item</TableHead>
                 <TableHead>Seller</TableHead>
                 <TableHead>Location</TableHead>
@@ -155,32 +155,32 @@ export default function MarketplaceBrowser() {
             </TableHeader>
             <TableBody>
               {filteredListings.map((listing) => (
-                <TableRow key={listing.id} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
+                <TableRow key={listing.id} className="bg-background-panel hover:bg-interactive-hover">
                   <TableCell>
-                    <span className="font-medium text-[#e2e8f0]">{listing.typeName}</span>
+                    <span className="font-medium text-text-emphasis">{listing.typeName}</span>
                   </TableCell>
                   <TableCell>
-                    <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                    <Badge className="bg-interactive-selected border border-border-active text-blue-science hover:bg-interactive-active cursor-default">
                       {listing.ownerName}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#94a3b8]">{listing.locationName}</span>
+                    <span className="text-sm text-text-secondary">{listing.locationName}</span>
                   </TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">
+                  <TableCell className="text-right text-text-emphasis">
                     <span className="text-sm">{formatNumber(listing.quantityAvailable)}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="text-sm font-medium text-[#e2e8f0]">{formatISK(listing.pricePerUnit)}</span>
+                    <span className="text-sm font-medium text-text-emphasis">{formatISK(listing.pricePerUnit)}</span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="text-sm font-semibold text-[#10b981]">
+                    <span className="text-sm font-semibold text-teal-success">
                       {formatISK(listing.quantityAvailable * listing.pricePerUnit)}
                     </span>
                   </TableCell>
                   <TableCell>
                     {listing.notes && (
-                      <span className="text-xs text-[#94a3b8]">{listing.notes}</span>
+                      <span className="text-xs text-text-secondary">{listing.notes}</span>
                     )}
                   </TableCell>
                   <TableCell className="text-center">
@@ -201,37 +201,37 @@ export default function MarketplaceBrowser() {
 
       {/* Purchase Dialog */}
       <Dialog open={purchaseDialogOpen} onOpenChange={setPurchaseDialogOpen}>
-        <DialogContent className="max-w-sm bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-sm bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">Purchase Item</DialogTitle>
+            <DialogTitle className="text-text-emphasis">Purchase Item</DialogTitle>
           </DialogHeader>
           {selectedListing && (
             <div className="flex flex-col gap-2 pt-1">
-              <p className="text-sm text-[#e2e8f0]">
+              <p className="text-sm text-text-emphasis">
                 <strong>Item:</strong> {selectedListing.typeName}
               </p>
-              <p className="text-sm text-[#e2e8f0]">
+              <p className="text-sm text-text-emphasis">
                 <strong>Seller:</strong> {selectedListing.ownerName}
               </p>
-              <p className="text-sm text-[#e2e8f0]">
+              <p className="text-sm text-text-emphasis">
                 <strong>Location:</strong> {selectedListing.locationName}
               </p>
-              <p className="text-sm text-[#e2e8f0]">
+              <p className="text-sm text-text-emphasis">
                 <strong>Price per Unit:</strong> {selectedListing.pricePerUnit.toLocaleString()} ISK
               </p>
-              <p className="text-sm text-[#e2e8f0] mb-2">
+              <p className="text-sm text-text-emphasis mb-2">
                 <strong>Available:</strong> {selectedListing.quantityAvailable.toLocaleString()}
               </p>
 
               <div>
-                <label className="text-sm text-[#94a3b8] mb-1 block">Quantity to Purchase</label>
+                <label className="text-sm text-text-secondary mb-1 block">Quantity to Purchase</label>
                 <Input
                   type="text"
                   value={purchaseQuantity}
                   onChange={(e) => handlePurchaseQuantityChange(e.target.value)}
                   placeholder="0"
                 />
-                <p className="text-xs text-[#64748b] mt-1">
+                <p className="text-xs text-text-muted mt-1">
                   {purchaseQuantity
                     ? `Total Cost: ${(
                         parseInt(purchaseQuantity.replace(/,/g, '')) * selectedListing.pricePerUnit

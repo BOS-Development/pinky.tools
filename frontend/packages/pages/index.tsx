@@ -40,7 +40,7 @@ export default function Home() {
             <h1 className="text-3xl font-bold tracking-tight text-[#f1f5f9] mb-1">
               pinky.tools
             </h1>
-            <p className="text-[0.9375rem] leading-relaxed text-[#94a3b8] mb-4 max-w-[480px] mx-auto">
+            <p className="text-[0.9375rem] leading-relaxed text-text-secondary mb-4 max-w-[480px] mx-auto">
               Real-time asset tracking, stockpile management, and market intelligence
               for EVE Online industrialists
             </p>
@@ -55,7 +55,7 @@ export default function Home() {
                       ? '—'
                       : `${assetMetrics.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
                     }
-                    color="#00d4ff"
+                    color="var(--color-primary-cyan)"
                   />
                   <MetricCard
                     label="Stockpile Deficit"
@@ -63,18 +63,18 @@ export default function Home() {
                       ? `${assetMetrics.totalDeficit.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
                       : 'None'
                     }
-                    color={assetMetrics.totalDeficit > 0 ? '#f43f5e' : '#2dd4bf'}
+                    color={assetMetrics.totalDeficit > 0 ? 'var(--color-danger-rose)' : 'var(--color-success-teal)'}
                   />
                   <MetricCard
                     label="Active Jobs"
                     value={assetMetrics.activeJobs > 0 ? String(assetMetrics.activeJobs) : '—'}
-                    color="#fbbf24"
+                    color="var(--color-manufacturing-amber)"
                   />
                 </div>
 
                 <a
                   href="/inventory"
-                  className="inline-block px-8 py-3 bg-[#00d4ff] text-[#0a0a0f] font-medium text-sm rounded-sm shadow-[0_0_8px_rgba(0,212,255,0.25)] hover:shadow-[0_0_12px_rgba(0,212,255,0.35)] transition-shadow"
+                  className="inline-block px-8 py-3 bg-primary text-[#0a0a0f] font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
                 >
                   Open Dashboard
                 </a>
@@ -82,7 +82,7 @@ export default function Home() {
             ) : (
               <a
                 href="/api/auth/login"
-                className="inline-block px-8 py-3 bg-[#00d4ff] text-[#0a0a0f] font-medium text-sm rounded-sm shadow-[0_0_8px_rgba(0,212,255,0.25)] hover:shadow-[0_0_12px_rgba(0,212,255,0.35)] transition-shadow"
+                className="inline-block px-8 py-3 bg-primary text-[#0a0a0f] font-medium text-sm rounded-sm shadow-glow-sm hover:shadow-glow-md transition-shadow"
               >
                 Sign In with EVE Online
               </a>
@@ -104,8 +104,8 @@ export default function Home() {
 
 function MetricCard({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <div className="px-3 py-2 bg-[#12151f] border border-[rgba(0,212,255,0.08)] rounded-sm min-w-[180px]">
-      <p className="text-xs text-[#64748b] uppercase tracking-wider font-semibold">
+    <div className="px-3 py-2 bg-background-panel border border-border-dim rounded-sm min-w-[180px]">
+      <p className="text-xs text-text-muted uppercase tracking-wider font-semibold">
         {label}
       </p>
       <p className="text-lg font-bold mt-0.5" style={{ color, fontFamily: FONT_NUMERIC }}>

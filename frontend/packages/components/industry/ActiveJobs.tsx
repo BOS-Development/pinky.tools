@@ -12,12 +12,12 @@ type Props = {
 
 function getStatusClasses(status: string): string {
   switch (status) {
-    case "active": return "bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981]";
-    case "ready": return "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]";
-    case "paused": return "bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]";
-    case "delivered": return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
-    case "cancelled": return "bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[#ef4444]";
-    default: return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
+    case "active": return "bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success";
+    case "ready": return "bg-interactive-selected border-border-active text-primary";
+    case "paused": return "bg-amber-manufacturing/10 border-[rgba(245,158,11,0.3)] text-amber-manufacturing";
+    case "delivered": return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
+    case "cancelled": return "bg-rose-danger/10 border-[rgba(239,68,68,0.3)] text-rose-danger";
+    default: return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
   }
 }
 
@@ -57,17 +57,17 @@ export default function ActiveJobs({ jobs, loading }: Props) {
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <TooltipProvider>
-      <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+      <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219]">
+            <TableRow className="bg-background-void">
               <TableHead className="text-center">Source</TableHead>
               <TableHead>Blueprint</TableHead>
               <TableHead>Product</TableHead>
@@ -84,7 +84,7 @@ export default function ActiveJobs({ jobs, loading }: Props) {
           <TableBody>
             {jobs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center py-4 text-[#64748b]">
+                <TableCell colSpan={11} className="text-center py-4 text-text-muted">
                   No active industry jobs
                 </TableCell>
               </TableRow>
@@ -92,16 +92,16 @@ export default function ActiveJobs({ jobs, loading }: Props) {
               jobs.map((job, idx) => (
                 <TableRow
                   key={job.jobId}
-                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-[#12151f]"}
+                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-background-panel"}
                 >
                   <TableCell className="text-center">
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <span className="inline-flex">
                           {job.source === "corporation" ? (
-                            <Building2 className="h-[18px] w-[18px] text-[#f59e0b]" />
+                            <Building2 className="h-[18px] w-[18px] text-amber-manufacturing" />
                           ) : (
-                            <User className="h-[18px] w-[18px] text-[#94a3b8]" />
+                            <User className="h-[18px] w-[18px] text-text-secondary" />
                           )}
                         </span>
                       </TooltipTrigger>
@@ -111,27 +111,27 @@ export default function ActiveJobs({ jobs, loading }: Props) {
                     </Tooltip>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#e2e8f0]">
+                    <span className="text-sm text-text-emphasis">
                       {job.blueprintName || `Type ${job.blueprintTypeId}`}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#cbd5e1]">
+                    <span className="text-sm text-text-primary">
                       {job.productName || "-"}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#cbd5e1]">
+                    <span className="text-sm text-text-primary">
                       {job.activityName || `Activity ${job.activityId}`}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="text-sm text-[#e2e8f0]">
+                    <span className="text-sm text-text-emphasis">
                       {formatNumber(job.runs)}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#94a3b8]">
+                    <span className="text-sm text-text-secondary">
                       {job.installerName || "-"}
                     </span>
                   </TableCell>
@@ -141,22 +141,22 @@ export default function ActiveJobs({ jobs, loading }: Props) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className={`text-sm ${job.status === "active" ? "text-[#00d4ff]" : "text-[#94a3b8]"}`}>
+                    <span className={`text-sm ${job.status === "active" ? "text-primary" : "text-text-secondary"}`}>
                       {formatTimeRemaining(job.endDate)}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#94a3b8]">
+                    <span className="text-sm text-text-secondary">
                       {formatDuration(job.duration)}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">
-                    <span className="text-sm text-[#cbd5e1]">
+                    <span className="text-sm text-text-primary">
                       {job.cost ? formatISK(job.cost) : "-"}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#94a3b8]">
+                    <span className="text-sm text-text-secondary">
                       {job.systemName || "-"}
                     </span>
                   </TableCell>

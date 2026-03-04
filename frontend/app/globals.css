@@ -59,6 +59,12 @@ body {
   --glow-cyan-md: 0 0 12px rgba(0, 212, 255, 0.35);
   --glow-cyan-lg: 0 0 20px rgba(0, 212, 255, 0.3), 0 0 40px rgba(0, 212, 255, 0.1);
 
+  /* Interactive tints — hover/active/selected states */
+  --color-interactive-hover: rgba(0, 212, 255, 0.08);
+  --color-interactive-active: rgba(0, 212, 255, 0.15);
+  --color-interactive-selected: rgba(0, 212, 255, 0.12);
+  --color-interactive-disabled: rgba(100, 116, 139, 0.30);
+
   /* Semantic status */
   --color-manufacturing-amber: #fbbf24;
   --color-science-blue: #60a5fa;
@@ -70,6 +76,68 @@ body {
   --color-text-secondary: #808898;
   --color-text-muted: #64748b;
   --color-text-emphasis: #e0e4eb;
+
+  /* Neutral overlays — structural backgrounds & borders */
+  --color-overlay-subtle: rgba(148, 163, 184, 0.10);
+  --color-overlay-medium: rgba(148, 163, 184, 0.15);
+  --color-overlay-strong: rgba(148, 163, 184, 0.20);
+
+  /* Heading text glow */
+  --glow-text-heading: 0 0 12px rgba(0, 212, 255, 0.3);
+
+  /* Typography — size scale (8 steps, 10px–30px) */
+  --font-size-xs: 0.625rem;
+  --font-size-sm: 0.75rem;
+  --font-size-base: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  /* Typography — weights */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Typography — line heights */
+  --line-height-tight: 1.2;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.8;
+
+  /* Typography — letter spacing */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.02em;
+  --letter-spacing-wider: 0.05em;
+  --letter-spacing-widest: 0.08em;
+
+  /* Spacing — 4px base, 12-step scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  /* Layout */
+  --layout-page-px: 1.5rem;
+  --layout-card-padding: 1.25rem;
+  --layout-navbar-height: 4rem;
+  --layout-section-gap: 1.5rem;
+  --layout-sidebar-width: 16rem;
+
+  /* Border radii */
+  --radius-none: 0;
+  --radius-default: 0.125rem;
+  --radius-full: 9999px;
 
   /* ============================================================
      shadcn/ui HSL semantic tokens — Neocom Dark mapping
@@ -132,7 +200,7 @@ h1, h2, h3, h4, h5, h6 {
 
 h1, h2 {
   color: var(--color-primary-cyan);
-  text-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+  text-shadow: var(--glow-text-heading);
 }
 
 h3 {

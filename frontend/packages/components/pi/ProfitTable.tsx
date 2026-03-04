@@ -36,9 +36,9 @@ type FactoryWithPlanet = PiFactoryProfit & {
 };
 
 function profitColor(value: number): string {
-  if (value > 0) return '#10b981';
-  if (value < 0) return '#ef4444';
-  return '#94a3b8';
+  if (value > 0) return 'var(--color-success-teal)';
+  if (value < 0) return 'var(--color-danger-rose)';
+  return 'var(--color-text-secondary)';
 }
 
 const TIER_ORDER: Record<string, number> = { R0: 0, P1: 1, P2: 2, P3: 3, P4: 4 };
@@ -54,17 +54,17 @@ function ProductGroupRow({ group, expanded, onToggle }: {
     <>
       <TableRow
         className={cn(
-          'cursor-pointer hover:bg-[rgba(0,212,255,0.04)]',
+          'cursor-pointer hover:bg-interactive-hover',
           expanded ? 'bg-[rgba(0,212,255,0.03)]' : ''
         )}
         onClick={onToggle}
       >
-        <TableCell className="border-[rgba(148,163,184,0.1)] w-10 p-1">
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-[#64748b] p-0">
+        <TableCell className="border-overlay-subtle w-10 p-1">
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-text-muted p-0">
             {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </Button>
         </TableCell>
-        <TableCell className="border-[rgba(148,163,184,0.1)]">
+        <TableCell className="border-overlay-subtle">
           <div className="flex items-center gap-2">
             {group.outputTypeId > 0 && (
               <img
@@ -73,29 +73,29 @@ function ProductGroupRow({ group, expanded, onToggle }: {
               />
             )}
             <div>
-              <p className="text-sm text-[#e2e8f0] font-medium leading-tight">
+              <p className="text-sm text-text-emphasis font-medium leading-tight">
                 {group.outputName}
               </p>
-              <span className="text-xs text-[#64748b]">
+              <span className="text-xs text-text-muted">
                 {group.outputTier} &middot; {group.factories.length} {group.factories.length === 1 ? 'factory' : 'factories'}
               </span>
             </div>
           </div>
         </TableCell>
-        <TableCell className="text-right text-[#94a3b8] border-[rgba(148,163,184,0.1)]">
+        <TableCell className="text-right text-text-secondary border-overlay-subtle">
           {formatNumber(Math.round(group.totalRatePerHour))}/hr
         </TableCell>
-        <TableCell className="text-right text-[#10b981] border-[rgba(148,163,184,0.1)]">
+        <TableCell className="text-right text-teal-success border-overlay-subtle">
           {formatISK(group.totalOutputValue)}
         </TableCell>
-        <TableCell className="text-right text-[#ef4444] border-[rgba(148,163,184,0.1)]">
+        <TableCell className="text-right text-rose-danger border-overlay-subtle">
           {formatISK(group.totalInputCost)}
         </TableCell>
-        <TableCell className="text-right text-[#f59e0b] border-[rgba(148,163,184,0.1)]">
+        <TableCell className="text-right text-amber-manufacturing border-overlay-subtle">
           {formatISK(totalTax)}
         </TableCell>
         <TableCell
-          className="text-right font-semibold border-[rgba(148,163,184,0.1)]"
+          className="text-right font-semibold border-overlay-subtle"
           style={{ color: profitColor(group.totalProfit) }}
         >
           {formatISK(group.totalProfit)}
@@ -113,20 +113,20 @@ function FactoryDetailRow({ factory }: { factory: FactoryWithPlanet }) {
     <TableRow className="bg-[rgba(15,18,25,0.5)]">
       <TableCell className="border-[rgba(148,163,184,0.05)]" />
       <TableCell className="border-[rgba(148,163,184,0.05)] pl-12">
-        <span className="text-xs text-[#cbd5e1]">{factory.solarSystemName}</span>
-        <span className="text-xs text-[#475569] ml-1">({factory.characterName})</span>
+        <span className="text-xs text-text-primary">{factory.solarSystemName}</span>
+        <span className="text-xs text-text-muted ml-1">({factory.characterName})</span>
       </TableCell>
       <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
-        <span className="text-xs text-[#64748b]">{formatNumber(Math.round(factory.ratePerHour))}/hr</span>
+        <span className="text-xs text-text-muted">{formatNumber(Math.round(factory.ratePerHour))}/hr</span>
       </TableCell>
       <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
-        <span className="text-xs text-[#10b981]">{formatISK(factory.outputValuePerHour)}</span>
+        <span className="text-xs text-teal-success">{formatISK(factory.outputValuePerHour)}</span>
       </TableCell>
       <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
-        <span className="text-xs text-[#ef4444]">{formatISK(factory.inputCostPerHour)}</span>
+        <span className="text-xs text-rose-danger">{formatISK(factory.inputCostPerHour)}</span>
       </TableCell>
       <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
-        <span className="text-xs text-[#f59e0b]">{formatISK(factory.exportTaxPerHour + factory.importTaxPerHour)}</span>
+        <span className="text-xs text-amber-manufacturing">{formatISK(factory.exportTaxPerHour + factory.importTaxPerHour)}</span>
       </TableCell>
       <TableCell className="text-right border-[rgba(148,163,184,0.05)]">
         <span className="text-xs font-semibold" style={{ color: profitColor(factory.profitPerHour) }}>
@@ -254,19 +254,19 @@ export default function ProfitTable() {
           <SummaryCard
             label="Revenue / hr"
             value={formatISK(totals.output)}
-            color="#10b981"
-            icon={<TrendingUp className="w-4 h-4 text-[#10b981]" />}
+            color="var(--color-success-teal)"
+            icon={<TrendingUp className="w-4 h-4 text-teal-success" />}
           />
           <SummaryCard
             label="Costs / hr"
             value={formatISK(totals.input)}
-            color="#ef4444"
-            icon={<TrendingDown className="w-4 h-4 text-[#ef4444]" />}
+            color="var(--color-danger-rose)"
+            icon={<TrendingDown className="w-4 h-4 text-rose-danger" />}
           />
           <SummaryCard
             label="Taxes / hr"
             value={formatISK(totals.totalTax)}
-            color="#f59e0b"
+            color="var(--color-manufacturing-amber)"
           />
           <SummaryCard
             label="Profit / hr"
@@ -276,7 +276,7 @@ export default function ProfitTable() {
           />
         </div>
         {/* Price source toggle */}
-        <div className="flex rounded overflow-hidden border border-[rgba(148,163,184,0.2)]">
+        <div className="flex rounded overflow-hidden border border-overlay-strong">
           {(['sell', 'buy', 'split'] as const).map((source) => (
             <button
               key={source}
@@ -284,8 +284,8 @@ export default function ProfitTable() {
               className={cn(
                 'px-3 py-1 text-xs font-medium capitalize transition-colors',
                 priceSource === source
-                  ? 'bg-[rgba(0,212,255,0.1)] text-[#00d4ff] border-[rgba(0,212,255,0.3)]'
-                  : 'text-[#64748b] hover:text-[#94a3b8] hover:bg-[rgba(148,163,184,0.05)]'
+                  ? 'bg-interactive-selected text-primary border-border-active'
+                  : 'text-text-muted hover:text-text-secondary hover:bg-[rgba(148,163,184,0.05)]'
               )}
             >
               {source.charAt(0).toUpperCase() + source.slice(1)}
@@ -299,19 +299,19 @@ export default function ProfitTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219] w-10" />
-              <TableHead className="text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Product</TableHead>
-              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Rate</TableHead>
-              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Revenue/hr</TableHead>
-              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Costs/hr</TableHead>
-              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Taxes/hr</TableHead>
-              <TableHead className="text-right text-[#64748b] border-[rgba(148,163,184,0.1)] bg-[#0f1219]">Profit/hr</TableHead>
+              <TableHead className="text-text-muted border-overlay-subtle bg-background-void w-10" />
+              <TableHead className="text-text-muted border-overlay-subtle bg-background-void">Product</TableHead>
+              <TableHead className="text-right text-text-muted border-overlay-subtle bg-background-void">Rate</TableHead>
+              <TableHead className="text-right text-text-muted border-overlay-subtle bg-background-void">Revenue/hr</TableHead>
+              <TableHead className="text-right text-text-muted border-overlay-subtle bg-background-void">Costs/hr</TableHead>
+              <TableHead className="text-right text-text-muted border-overlay-subtle bg-background-void">Taxes/hr</TableHead>
+              <TableHead className="text-right text-text-muted border-overlay-subtle bg-background-void">Profit/hr</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {productGroups.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-[#64748b] border-[rgba(148,163,184,0.1)] py-8">
+                <TableCell colSpan={7} className="text-center text-text-muted border-overlay-subtle py-8">
                   No PI profit data available
                 </TableCell>
               </TableRow>
@@ -326,23 +326,23 @@ export default function ProfitTable() {
               ))
             )}
             {productGroups.length > 0 && (
-              <TableRow className="bg-[#0f1219]">
-                <TableCell className="border-[rgba(148,163,184,0.1)]" />
-                <TableCell className="text-[#e2e8f0] font-semibold border-[rgba(148,163,184,0.1)]">
+              <TableRow className="bg-background-void">
+                <TableCell className="border-overlay-subtle" />
+                <TableCell className="text-text-emphasis font-semibold border-overlay-subtle">
                   Total ({productGroups.length} products)
                 </TableCell>
-                <TableCell className="border-[rgba(148,163,184,0.1)]" />
-                <TableCell className="text-right text-[#10b981] font-semibold border-[rgba(148,163,184,0.1)]">
+                <TableCell className="border-overlay-subtle" />
+                <TableCell className="text-right text-teal-success font-semibold border-overlay-subtle">
                   {formatISK(totals.output)}
                 </TableCell>
-                <TableCell className="text-right text-[#ef4444] font-semibold border-[rgba(148,163,184,0.1)]">
+                <TableCell className="text-right text-rose-danger font-semibold border-overlay-subtle">
                   {formatISK(totals.input)}
                 </TableCell>
-                <TableCell className="text-right text-[#f59e0b] font-semibold border-[rgba(148,163,184,0.1)]">
+                <TableCell className="text-right text-amber-manufacturing font-semibold border-overlay-subtle">
                   {formatISK(totals.totalTax)}
                 </TableCell>
                 <TableCell
-                  className="text-right font-bold border-[rgba(148,163,184,0.1)]"
+                  className="text-right font-bold border-overlay-subtle"
                   style={{ color: profitColor(totals.profit) }}
                 >
                   {formatISK(totals.profit)}
@@ -367,14 +367,14 @@ function SummaryCard({ label, value, color, icon, bold }: {
     <Card
       className="min-w-[140px] rounded-lg"
       style={{
-        background: '#12151f',
+        background: 'var(--color-bg-panel)',
         border: `1px solid ${color}25`,
       }}
     >
       <CardContent className="p-3 pb-3">
         <div className="flex items-center gap-1 mb-1">
           {icon}
-          <span className="text-xs text-[#64748b]">{label}</span>
+          <span className="text-xs text-text-muted">{label}</span>
         </div>
         <p
           className={cn('text-sm', bold ? 'font-bold' : 'font-semibold')}

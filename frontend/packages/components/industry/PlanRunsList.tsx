@@ -17,8 +17,8 @@ import { toast } from "@/components/ui/sonner";
 
 const STATUS_CLASSES: Record<string, string> = {
   pending: "bg-[rgba(59,130,246,0.1)] border-[rgba(59,130,246,0.3)] text-[#3b82f6]",
-  in_progress: "bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]",
-  completed: "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]",
+  in_progress: "bg-amber-manufacturing/10 border-[rgba(245,158,11,0.3)] text-amber-manufacturing",
+  completed: "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary",
 };
 
 function formatStatus(status: string): string {
@@ -99,7 +99,7 @@ export default function PlanRunsList() {
       <Navbar />
       <div className="px-4 mt-2 mb-4">
         <div className="mb-2">
-          <h2 className="text-xl font-semibold text-[#e2e8f0]">
+          <h2 className="text-xl font-semibold text-text-emphasis">
             Plan Runs
           </h2>
         </div>
@@ -114,10 +114,10 @@ export default function PlanRunsList() {
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+          <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#0f1219]">
+                <TableRow className="bg-background-void">
                   <TableHead>Product</TableHead>
                   <TableHead>Plan</TableHead>
                   <TableHead className="text-right">Qty</TableHead>
@@ -131,15 +131,15 @@ export default function PlanRunsList() {
                 {runs.map((run, idx) => (
                   <TableRow
                     key={run.id}
-                    className={`${idx % 2 === 0 ? "bg-[#12151f]" : "bg-[#0f1219]"} hover:bg-[#1a1d2e]`}
+                    className={`${idx % 2 === 0 ? "bg-background-panel" : "bg-background-void"} hover:bg-[#1a1d2e]`}
                   >
-                    <TableCell className="text-[#e2e8f0] text-sm">
+                    <TableCell className="text-text-emphasis text-sm">
                       {run.productName || "\u2014"}
                     </TableCell>
-                    <TableCell className="text-[#cbd5e1] text-sm">
+                    <TableCell className="text-text-primary text-sm">
                       {run.planName || `Plan #${run.planId}`}
                     </TableCell>
-                    <TableCell className="text-right text-[#cbd5e1] text-sm">
+                    <TableCell className="text-right text-text-primary text-sm">
                       {run.quantity}
                     </TableCell>
                     <TableCell>
@@ -150,10 +150,10 @@ export default function PlanRunsList() {
                         {formatStatus(run.status)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-[#94a3b8] text-[13px]">
+                    <TableCell className="text-text-secondary text-[13px]">
                       {formatJobProgress(run)}
                     </TableCell>
-                    <TableCell className="text-[#94a3b8] text-[13px]">
+                    <TableCell className="text-text-secondary text-[13px]">
                       {new Date(run.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="text-center">
@@ -161,7 +161,7 @@ export default function PlanRunsList() {
                         run.jobSummary &&
                         run.jobSummary.planned > 0 && (
                           <button
-                            className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                            className="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                             onClick={() => handleCancel(run.id)}
                             title="Cancel planned jobs"
                           >

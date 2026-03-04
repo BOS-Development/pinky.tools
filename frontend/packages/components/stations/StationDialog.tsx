@@ -44,16 +44,16 @@ const getRigTiersForCategory = (category: string): string[] => {
 
 const getCategoryColor = (category: string) => {
   const colors: Record<string, string> = {
-    ship: "bg-[#00d4ff]/10 text-[#00d4ff] border-[#00d4ff]/30",
+    ship: "bg-primary/10 text-primary border-primary/30",
     component: "bg-[#8b5cf6]/10 text-[#8b5cf6] border-[#8b5cf6]/30",
-    equipment: "bg-[#10b981]/10 text-[#10b981] border-[#10b981]/30",
-    ammo: "bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30",
+    equipment: "bg-teal-success/10 text-teal-success border-teal-success/30",
+    ammo: "bg-amber-manufacturing/10 text-amber-manufacturing border-amber-manufacturing/30",
     drone: "bg-[#06b6d4]/10 text-[#06b6d4] border-[#06b6d4]/30",
     reaction: "bg-[#ec4899]/10 text-[#ec4899] border-[#ec4899]/30",
     reprocessing: "bg-[#f97316]/10 text-[#f97316] border-[#f97316]/30",
     thukker: "bg-[#d97706]/10 text-[#d97706] border-[#d97706]/30",
   };
-  return colors[category] || "bg-[#94a3b8]/10 text-[#94a3b8] border-[#94a3b8]/30";
+  return colors[category] || "bg-[#94a3b8]/10 text-text-secondary border-[#94a3b8]/30";
 };
 
 export default function StationDialog({ open, station, onClose }: Props) {

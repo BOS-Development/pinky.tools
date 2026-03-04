@@ -128,7 +128,7 @@ export default function ListingsBrowser() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -136,7 +136,7 @@ export default function ListingsBrowser() {
   return (
     <div>
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-xl font-semibold text-[#e2e8f0]">Browse Listings</h2>
+        <h2 className="text-xl font-semibold text-text-emphasis">Browse Listings</h2>
         <div className="min-w-[200px]">
           <Select value={activityFilter} onValueChange={setActivityFilter}>
             <SelectTrigger><SelectValue placeholder="Filter by Activity" /></SelectTrigger>
@@ -153,19 +153,19 @@ export default function ListingsBrowser() {
       </div>
 
       {filteredListings.length === 0 ? (
-        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-          <h3 className="text-lg font-semibold text-[#94a3b8]">No listings available</h3>
-          <p className="text-sm text-[#64748b] mt-1">
+        <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+          <h3 className="text-lg font-semibold text-text-secondary">No listings available</h3>
+          <p className="text-sm text-text-muted mt-1">
             {listings.length === 0
               ? "Your contacts haven't listed any slots for rent, or they haven't granted you browse permission."
               : "No listings match your selected filter."}
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#0f1219]">
+              <TableRow className="bg-background-void">
                 <TableHead>Owner</TableHead>
                 <TableHead>Character</TableHead>
                 <TableHead>Activity</TableHead>
@@ -179,25 +179,25 @@ export default function ListingsBrowser() {
             </TableHeader>
             <TableBody>
               {filteredListings.map((listing) => (
-                <TableRow key={listing.id} className="hover:bg-[rgba(0,212,255,0.04)]">
+                <TableRow key={listing.id} className="hover:bg-interactive-hover">
                   <TableCell>
-                    <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                    <Badge className="bg-interactive-selected border border-border-active text-blue-science hover:bg-interactive-active cursor-default">
                       {listing.ownerName}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-[#e2e8f0]">{listing.characterName}</TableCell>
+                  <TableCell className="text-text-emphasis">{listing.characterName}</TableCell>
                   <TableCell>
-                    <Badge className="bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.3)] text-[#10b981] hover:bg-[rgba(16,185,129,0.15)] cursor-default">
+                    <Badge className="bg-teal-success/10 border border-[rgba(16,185,129,0.3)] text-teal-success hover:bg-[rgba(16,185,129,0.15)] cursor-default">
                       {ACTIVITY_LABELS[listing.activityType] || listing.activityType}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">{listing.slotsListed}</TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">{formatISK(listing.priceAmount)}</TableCell>
-                  <TableCell className="text-[#cbd5e1]">{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
-                  <TableCell className="text-[#94a3b8]">{listing.locationName || '-'}</TableCell>
+                  <TableCell className="text-right text-text-emphasis">{listing.slotsListed}</TableCell>
+                  <TableCell className="text-right text-text-emphasis">{formatISK(listing.priceAmount)}</TableCell>
+                  <TableCell className="text-text-primary">{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
+                  <TableCell className="text-text-secondary">{listing.locationName || '-'}</TableCell>
                   <TableCell>
                     {listing.notes ? (
-                      <span className="text-xs text-[#94a3b8]">{listing.notes}</span>
+                      <span className="text-xs text-text-secondary">{listing.notes}</span>
                     ) : '-'}
                   </TableCell>
                   <TableCell className="text-center">
@@ -213,20 +213,20 @@ export default function ListingsBrowser() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-md bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">Express Interest</DialogTitle>
+            <DialogTitle className="text-text-emphasis">Express Interest</DialogTitle>
           </DialogHeader>
           {selectedListing && (
             <div className="flex flex-col gap-2 pt-1">
-              <p className="text-sm text-[#e2e8f0]"><strong>Owner:</strong> {selectedListing.ownerName}</p>
-              <p className="text-sm text-[#e2e8f0]"><strong>Character:</strong> {selectedListing.characterName}</p>
-              <p className="text-sm text-[#e2e8f0]"><strong>Activity:</strong> {ACTIVITY_LABELS[selectedListing.activityType] || selectedListing.activityType}</p>
-              <p className="text-sm text-[#e2e8f0]"><strong>Price:</strong> {formatISK(selectedListing.priceAmount)} {PRICING_UNIT_LABELS[selectedListing.pricingUnit]}</p>
-              <p className="text-sm text-[#e2e8f0] mb-2"><strong>Slots Available:</strong> {selectedListing.slotsListed}</p>
+              <p className="text-sm text-text-emphasis"><strong>Owner:</strong> {selectedListing.ownerName}</p>
+              <p className="text-sm text-text-emphasis"><strong>Character:</strong> {selectedListing.characterName}</p>
+              <p className="text-sm text-text-emphasis"><strong>Activity:</strong> {ACTIVITY_LABELS[selectedListing.activityType] || selectedListing.activityType}</p>
+              <p className="text-sm text-text-emphasis"><strong>Price:</strong> {formatISK(selectedListing.priceAmount)} {PRICING_UNIT_LABELS[selectedListing.pricingUnit]}</p>
+              <p className="text-sm text-text-emphasis mb-2"><strong>Slots Available:</strong> {selectedListing.slotsListed}</p>
 
               <div>
-                <Label className="text-sm text-[#94a3b8] mb-1 block">Slots Requested</Label>
+                <Label className="text-sm text-text-secondary mb-1 block">Slots Requested</Label>
                 <Input
                   type="number"
                   value={interestData.slotsRequested}
@@ -234,22 +234,22 @@ export default function ListingsBrowser() {
                   min={1}
                   max={selectedListing.slotsListed}
                 />
-                <span className="text-xs text-[#64748b] mt-0.5 block">Max: {selectedListing.slotsListed}</span>
+                <span className="text-xs text-text-muted mt-0.5 block">Max: {selectedListing.slotsListed}</span>
               </div>
 
               <div>
-                <Label className="text-sm text-[#94a3b8] mb-1 block">Duration (days) - optional</Label>
+                <Label className="text-sm text-text-secondary mb-1 block">Duration (days) - optional</Label>
                 <Input
                   type="number"
                   value={interestData.durationDays || ''}
                   onChange={(e) => setInterestData({ ...interestData, durationDays: e.target.value ? parseInt(e.target.value) : null })}
                   min={1}
                 />
-                <span className="text-xs text-[#64748b] mt-0.5 block">Leave empty if flexible</span>
+                <span className="text-xs text-text-muted mt-0.5 block">Leave empty if flexible</span>
               </div>
 
               <div>
-                <Label className="text-sm text-[#94a3b8] mb-1 block">Message (optional)</Label>
+                <Label className="text-sm text-text-secondary mb-1 block">Message (optional)</Label>
                 <textarea
                   className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)]"
                   rows={3}

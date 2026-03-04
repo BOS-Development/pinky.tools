@@ -211,7 +211,7 @@ export default function MyListings() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -219,7 +219,7 @@ export default function MyListings() {
   return (
     <div>
       <div className="flex justify-between items-center mb-3">
-        <h2 className="text-xl font-semibold text-[#e2e8f0]">My Slot Listings</h2>
+        <h2 className="text-xl font-semibold text-text-emphasis">My Slot Listings</h2>
         <Button onClick={handleCreate}>
           <Plus className="h-4 w-4 mr-1" />
           Create Listing
@@ -227,17 +227,17 @@ export default function MyListings() {
       </div>
 
       {listings.length === 0 ? (
-        <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-          <h3 className="text-lg font-semibold text-[#94a3b8]">No listings yet</h3>
-          <p className="text-sm text-[#64748b] mt-1">
+        <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+          <h3 className="text-lg font-semibold text-text-secondary">No listings yet</h3>
+          <p className="text-sm text-text-muted mt-1">
             Create your first listing to rent out idle job slots.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#0f1219]">
+              <TableRow className="bg-background-void">
                 <TableHead>Character</TableHead>
                 <TableHead>Activity</TableHead>
                 <TableHead className="text-right">Slots Listed</TableHead>
@@ -250,23 +250,23 @@ export default function MyListings() {
             </TableHeader>
             <TableBody>
               {listings.map((listing) => (
-                <TableRow key={listing.id} className="hover:bg-[rgba(0,212,255,0.04)]">
-                  <TableCell className="text-[#e2e8f0]">{listing.characterName}</TableCell>
+                <TableRow key={listing.id} className="hover:bg-interactive-hover">
+                  <TableCell className="text-text-emphasis">{listing.characterName}</TableCell>
                   <TableCell>
-                    <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
+                    <Badge className="bg-interactive-selected border border-border-active text-blue-science hover:bg-interactive-active cursor-default">
                       {ACTIVITY_LABELS[listing.activityType] || listing.activityType}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">{listing.slotsListed}</TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">{formatISK(listing.priceAmount)}</TableCell>
-                  <TableCell className="text-[#cbd5e1]">{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
-                  <TableCell className="text-[#94a3b8]">{listing.locationName || '-'}</TableCell>
-                  <TableCell className="text-[#94a3b8]">{listing.notes || '-'}</TableCell>
+                  <TableCell className="text-right text-text-emphasis">{listing.slotsListed}</TableCell>
+                  <TableCell className="text-right text-text-emphasis">{formatISK(listing.priceAmount)}</TableCell>
+                  <TableCell className="text-text-primary">{PRICING_UNIT_LABELS[listing.pricingUnit] || listing.pricingUnit}</TableCell>
+                  <TableCell className="text-text-secondary">{listing.locationName || '-'}</TableCell>
+                  <TableCell className="text-text-secondary">{listing.notes || '-'}</TableCell>
                   <TableCell className="text-center">
-                    <button className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]" onClick={() => handleEdit(listing)} aria-label="Edit">
+                    <button className="p-1 rounded hover:bg-interactive-selected text-primary" onClick={() => handleEdit(listing)} aria-label="Edit">
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]" onClick={() => handleDelete(listing.id)} aria-label="Delete">
+                    <button className="p-1 rounded hover:bg-rose-danger/10 text-rose-danger" onClick={() => handleDelete(listing.id)} aria-label="Delete">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </TableCell>
@@ -278,13 +278,13 @@ export default function MyListings() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-md bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">{selectedListing ? 'Edit Listing' : 'Create Listing'}</DialogTitle>
+            <DialogTitle className="text-text-emphasis">{selectedListing ? 'Edit Listing' : 'Create Listing'}</DialogTitle>
           </DialogHeader>
           <div className="flex flex-col gap-3 pt-1">
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Character</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Character</Label>
               <Select
                 value={formData.characterId ? String(formData.characterId) : ""}
                 onValueChange={(val) => setFormData({ ...formData, characterId: parseInt(val), activityType: '' })}
@@ -302,7 +302,7 @@ export default function MyListings() {
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Activity Type</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Activity Type</Label>
               <Select
                 value={formData.activityType}
                 onValueChange={(val) => setFormData({ ...formData, activityType: val })}
@@ -320,7 +320,7 @@ export default function MyListings() {
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Slots to List</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Slots to List</Label>
               <Input
                 type="number"
                 value={formData.slotsListed}
@@ -329,11 +329,11 @@ export default function MyListings() {
                 max={getMaxSlots()}
                 disabled={!formData.activityType}
               />
-              <span className="text-xs text-[#64748b] mt-0.5 block">Max available: {getMaxSlots()}</span>
+              <span className="text-xs text-text-muted mt-0.5 block">Max available: {getMaxSlots()}</span>
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Price Amount (ISK)</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Price Amount (ISK)</Label>
               <Input
                 type="number"
                 value={formData.priceAmount}
@@ -343,7 +343,7 @@ export default function MyListings() {
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Pricing Unit</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Pricing Unit</Label>
               <Select value={formData.pricingUnit} onValueChange={(val) => setFormData({ ...formData, pricingUnit: val })}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -355,7 +355,7 @@ export default function MyListings() {
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Location (optional)</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Location (optional)</Label>
               <Input
                 value={formData.locationName}
                 onChange={(e) => setFormData({ ...formData, locationName: e.target.value })}
@@ -364,7 +364,7 @@ export default function MyListings() {
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Notes (optional)</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Notes (optional)</Label>
               <textarea
                 className="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)]"
                 rows={3}

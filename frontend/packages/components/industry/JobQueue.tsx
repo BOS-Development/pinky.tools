@@ -17,11 +17,11 @@ type Props = {
 
 function getStatusClasses(status: string): string {
   switch (status) {
-    case "planned": return "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff]";
-    case "active": return "bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981]";
-    case "completed": return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
-    case "cancelled": return "bg-[rgba(239,68,68,0.1)] border-[rgba(239,68,68,0.3)] text-[#ef4444]";
-    default: return "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]";
+    case "planned": return "bg-interactive-selected border-border-active text-primary";
+    case "active": return "bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success";
+    case "completed": return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
+    case "cancelled": return "bg-rose-danger/10 border-[rgba(239,68,68,0.3)] text-rose-danger";
+    default: return "bg-overlay-subtle border-[rgba(148,163,184,0.3)] text-text-secondary";
   }
 }
 
@@ -125,17 +125,17 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
   if (loading) {
     return (
       <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <TooltipProvider>
-      <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+      <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
         <Table>
           <TableHeader>
-            <TableRow className="bg-[#0f1219]">
+            <TableRow className="bg-background-void">
               <TableHead>Blueprint</TableHead>
               <TableHead>Product</TableHead>
               <TableHead>Activity</TableHead>
@@ -157,7 +157,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
           <TableBody>
             {entries.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={16} className="text-center py-4 text-[#64748b]">
+                <TableCell colSpan={16} className="text-center py-4 text-text-muted">
                   No jobs in queue
                 </TableCell>
               </TableRow>
@@ -165,12 +165,12 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
               entries.map((entry, idx) => (
                 <TableRow
                   key={entry.id}
-                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-[#12151f]"}
+                  className={idx % 2 === 0 ? "bg-[#0d1117]" : "bg-background-panel"}
                 >
                   {entry.activity === "transport" ? (
                     <>
                       <TableCell>
-                        <span className="text-sm text-[#e2e8f0]">
+                        <span className="text-sm text-text-emphasis">
                           {entry.transportOriginName && entry.transportDestName
                             ? `${entry.transportOriginName} → ${entry.transportDestName}`
                             : "-"}
@@ -179,7 +179,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                       <TableCell>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="text-sm text-[#cbd5e1] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap block">
+                            <span className="text-sm text-text-primary max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap block">
                               {entry.transportItemsSummary || "-"}
                             </span>
                           </TooltipTrigger>
@@ -187,76 +187,76 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                         </Tooltip>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#cbd5e1]">
+                        <span className="text-sm text-text-primary">
                           {entry.transportMethod ? formatTransportMethod(entry.transportMethod) : "Transport"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.transportJumps ? `${formatNumber(entry.transportJumps)} jumps` : "-"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.transportVolumeM3 ? `${formatNumber(entry.transportVolumeM3)} m³` : "-"}
                         </span>
                       </TableCell>
-                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
-                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
-                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
+                      <TableCell><span className="text-sm text-text-muted">-</span></TableCell>
+                      <TableCell><span className="text-sm text-text-muted">-</span></TableCell>
+                      <TableCell><span className="text-sm text-text-muted">-</span></TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.transportFulfillment ? formatFulfillment(entry.transportFulfillment) : "-"}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-sm text-[#cbd5e1]">
+                        <span className="text-sm text-text-primary">
                           {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
                         </span>
                       </TableCell>
-                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
-                      <TableCell><span className="text-sm text-[#64748b]">-</span></TableCell>
-                      <TableCell className="text-center"><span className="text-sm text-[#64748b]">-</span></TableCell>
+                      <TableCell><span className="text-sm text-text-muted">-</span></TableCell>
+                      <TableCell><span className="text-sm text-text-muted">-</span></TableCell>
+                      <TableCell className="text-center"><span className="text-sm text-text-muted">-</span></TableCell>
                     </>
                   ) : (
                     <>
                       <TableCell>
-                        <span className="text-sm text-[#e2e8f0]">
+                        <span className="text-sm text-text-emphasis">
                           {entry.blueprintName || `Type ${entry.blueprintTypeId}`}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#cbd5e1]">
+                        <span className="text-sm text-text-primary">
                           {entry.productName || "-"}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#cbd5e1] capitalize">
+                        <span className="text-sm text-text-primary capitalize">
                           {entry.activity}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-sm text-[#e2e8f0]">
+                        <span className="text-sm text-text-emphasis">
                           {formatNumber(entry.runs)}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.meLevel}/{entry.teLevel}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.stationName || "-"}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.inputLocation || "-"}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.outputLocation || "-"}
                         </span>
                       </TableCell>
@@ -267,8 +267,8 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                               <button
                                 className={`inline-flex items-center rounded-sm px-2 py-0.5 text-xs border cursor-pointer ${
                                   entry.characterName
-                                    ? "bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#60a5fa]"
-                                    : "bg-transparent border-[#334155] text-[#94a3b8]"
+                                    ? "bg-interactive-selected border-border-active text-blue-science"
+                                    : "bg-transparent border-[#334155] text-text-secondary"
                                 }`}
                                 onClick={handleOpenReassign}
                                 disabled={reassignLoading}
@@ -280,14 +280,14 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                               {eligibleCharacters.map((char) => (
                                 <DropdownMenuItem key={char.characterId} onClick={() => handleReassign(entry.id, char.characterId)}>
                                   {char.characterName}
-                                  <span className="ml-1 text-xs text-[#64748b]">
+                                  <span className="ml-1 text-xs text-text-muted">
                                     ({char.mfgSlotsUsed}/{char.mfgSlotsMax} mfg)
                                   </span>
                                 </DropdownMenuItem>
                               ))}
                               {eligibleCharacters.length === 0 && (
                                 <DropdownMenuItem disabled>
-                                  <span className="text-[#64748b]">No characters available</span>
+                                  <span className="text-text-muted">No characters available</span>
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuSeparator />
@@ -297,33 +297,33 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                             </DropdownMenuContent>
                           </DropdownMenu>
                         ) : (
-                          <span className="text-sm text-[#94a3b8]">
+                          <span className="text-sm text-text-secondary">
                             {entry.characterName || "-"}
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="text-sm text-[#cbd5e1]">
+                        <span className="text-sm text-text-primary">
                           {entry.estimatedCost ? formatISK(entry.estimatedCost) : "-"}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-[#94a3b8]">
+                        <span className="text-sm text-text-secondary">
                           {entry.estimatedDuration ? formatDuration(entry.estimatedDuration) : "-"}
                         </span>
                       </TableCell>
                       <TableCell>
                         {entry.esiJobEndDate ? (
                           <div>
-                            <span className="text-sm text-[#00d4ff] font-mono font-semibold">
+                            <span className="text-sm text-primary font-mono font-semibold">
                               {formatTimeRemaining(entry.esiJobEndDate)}
                             </span>
-                            <span className="block text-xs text-[#64748b]">
+                            <span className="block text-xs text-text-muted">
                               {formatEndDate(entry.esiJobEndDate)}
                             </span>
                           </div>
                         ) : (
-                          <span className="text-sm text-[#64748b]">-</span>
+                          <span className="text-sm text-text-muted">-</span>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
@@ -332,9 +332,9 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                             <TooltipTrigger asChild>
                               <span className="inline-flex">
                                 {entry.esiJobSource === "corporation" ? (
-                                  <Building2 className="h-[18px] w-[18px] text-[#f59e0b]" />
+                                  <Building2 className="h-[18px] w-[18px] text-amber-manufacturing" />
                                 ) : (
-                                  <User className="h-[18px] w-[18px] text-[#94a3b8]" />
+                                  <User className="h-[18px] w-[18px] text-text-secondary" />
                                 )}
                               </span>
                             </TooltipTrigger>
@@ -343,7 +343,7 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                             </TooltipContent>
                           </Tooltip>
                         ) : (
-                          <span className="text-sm text-[#64748b]">-</span>
+                          <span className="text-sm text-text-muted">-</span>
                         )}
                       </TableCell>
                     </>
@@ -354,14 +354,14 @@ export default function JobQueue({ entries, loading, onCancel, onRefresh }: Prop
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className="text-sm text-[#94a3b8] max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block">
+                    <span className="text-sm text-text-secondary max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap block">
                       {entry.notes || "-"}
                     </span>
                   </TableCell>
                   <TableCell className="text-center">
                     {(entry.status === "planned" || entry.status === "active") && (
                       <button
-                        className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                        className="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                         onClick={() => onCancel(entry.id)}
                         title="Cancel job"
                       >

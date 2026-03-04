@@ -7,7 +7,7 @@ exports[`JFRoutesList should match snapshot while loading 1`] = `
   >
     <svg
       aria-hidden="true"
-      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-[#00d4ff]"
+      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-primary"
       fill="none"
       height="24"
       stroke="currentColor"
@@ -70,7 +70,7 @@ exports[`JFRoutesList should match snapshot with empty routes 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -108,10 +108,10 @@ exports[`JFRoutesList should match snapshot with empty routes 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
           >
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-8 text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-8 text-text-secondary"
               colspan="6"
             >
               No JF routes configured
@@ -168,7 +168,7 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -209,17 +209,17 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
             class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted hover:bg-[rgba(0,212,255,0.05)]"
           >
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-medium text-[#e2e8f0]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-medium text-text-emphasis"
             >
               Jita to Amarr
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Jita
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Amarr
             </td>
@@ -256,7 +256,7 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
             >
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-7 w-7 text-[#94a3b8] hover:text-[#e2e8f0]"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-7 w-7 text-text-secondary hover:text-text-emphasis"
               >
                 <svg
                   aria-hidden="true"
@@ -280,7 +280,7 @@ exports[`JFRoutesList should match snapshot with routes 1`] = `
                 </svg>
               </button>
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-[#ef4444] hover:text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
               >
                 <svg
                   aria-hidden="true"

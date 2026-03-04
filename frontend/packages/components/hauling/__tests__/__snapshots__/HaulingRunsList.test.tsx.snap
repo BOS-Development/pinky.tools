@@ -28,7 +28,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
       >
         <svg
           aria-hidden="true"
-          class="lucide lucide-truck h-7 w-7 text-[#00d4ff]"
+          class="lucide lucide-truck h-7 w-7 text-primary"
           fill="none"
           height="24"
           stroke="currentColor"
@@ -60,7 +60,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
           />
         </svg>
         <h1
-          class="text-2xl font-bold text-[#e2e8f0]"
+          class="text-2xl font-bold text-text-emphasis"
         >
           Hauling Runs
         </h1>
@@ -96,19 +96,19 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
     >
       <span
         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-        style="background-color: rgba(148, 163, 184, 0.1); color: rgb(148, 163, 184);"
+        style="background-color: rgba(148, 163, 184, 0.1); color: var(--color-text-secondary);"
       >
         PLANNING: 1
       </span>
       <span
         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-        style="background-color: rgba(148, 163, 184, 0.1); color: rgb(148, 163, 184);"
+        style="background-color: rgba(148, 163, 184, 0.1); color: var(--color-text-secondary);"
       >
         IN_TRANSIT: 1
       </span>
     </div>
     <div
-      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-[#12151f] border-[rgba(148,163,184,0.1)]"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
     >
       <div
         class="overflow-x-auto"
@@ -123,40 +123,40 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
               class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
             >
               <tr
-                class="border-b transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219] border-[rgba(148,163,184,0.1)]"
+                class="border-b transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void border-overlay-subtle"
               >
                 <th
-                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
                 >
                   Name
                 </th>
                 <th
-                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
                 >
                   Status
                 </th>
                 <th
-                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
                 >
                   Route
                 </th>
                 <th
-                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis text-right"
                 >
                   Volume Used
                 </th>
                 <th
-                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] text-right"
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis text-right"
                 >
                   Items
                 </th>
                 <th
-                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0] w-40"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis w-40"
                 >
                   Progress
                 </th>
                 <th
-                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-[#e2e8f0]"
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
                 >
                   Actions
                 </th>
@@ -169,7 +169,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                 class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-[rgba(0,212,255,0.03)] border-[rgba(148,163,184,0.07)]"
               >
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-semibold text-[#e2e8f0]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-semibold text-text-emphasis"
                 >
                   <a
                     href="/hauling/1"
@@ -182,25 +182,25 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                 >
                   <span
                     class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                    style="background-color: rgba(0, 212, 255, 0.1); color: rgb(0, 212, 255);"
+                    style="background-color: rgba(0, 212, 255, 0.1); color: var(--color-primary-cyan);"
                   >
                     PLANNING
                   </span>
                 </td>
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm text-[#94a3b8]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm text-text-secondary"
                 >
                   The Forge
                    → 
                   Domain
                 </td>
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-text-secondary"
                 >
                   100 / 300,000 m³
                 </td>
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-text-secondary"
                 >
                   1
                 </td>
@@ -218,12 +218,12 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                       >
                         <div
                           class="h-full rounded-full transition-all"
-                          style="width: 50%; background-color: rgb(0, 212, 255);"
+                          style="width: 50%; background-color: var(--color-primary-cyan);"
                         />
                       </div>
                     </div>
                     <span
-                      class="text-xs text-[#94a3b8] min-w-[36px] text-right"
+                      class="text-xs text-text-secondary min-w-[36px] text-right"
                     >
                       50
                       %
@@ -254,7 +254,7 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                 style="background-color: rgba(255, 255, 255, 0.02);"
               >
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-semibold text-[#e2e8f0]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-semibold text-text-emphasis"
                 >
                   <a
                     href="/hauling/2"
@@ -273,19 +273,19 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                   </span>
                 </td>
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm text-[#94a3b8]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-sm text-text-secondary"
                 >
                   The Forge
                    → 
                   Sinq Laison
                 </td>
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-text-secondary"
                 >
                   —
                 </td>
                 <td
-                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-[#94a3b8]"
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-text-secondary"
                 >
                   0
                 </td>
@@ -303,12 +303,12 @@ exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
                       >
                         <div
                           class="h-full rounded-full transition-all"
-                          style="width: 0%; background-color: rgb(245, 158, 11);"
+                          style="width: 0%; background-color: var(--color-manufacturing-amber);"
                         />
                       </div>
                     </div>
                     <span
-                      class="text-xs text-[#94a3b8] min-w-[36px] text-right"
+                      class="text-xs text-text-secondary min-w-[36px] text-right"
                     >
                       0
                       %

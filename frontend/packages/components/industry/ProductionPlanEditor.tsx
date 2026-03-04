@@ -398,7 +398,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
   if (loading || !plan) {
     return (
       <div className="text-center py-4">
-        <p className="text-[#64748b]">Loading plan...</p>
+        <p className="text-text-muted">Loading plan...</p>
       </div>
     );
   }
@@ -419,7 +419,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
     }
   }
 
-  const depthColors = ["#00d4ff", "#10b981", "#f59e0b", "#a78bfa", "#ec4899", "#06b6d4"];
+  const depthColors = ["var(--color-primary-cyan)", "var(--color-success-teal)", "var(--color-manufacturing-amber)", "#a78bfa", "#ec4899", "#06b6d4"];
 
   const renderDepthIndicators = (colorPath: number[]) =>
     colorPath.map((colorIndex, i) => (
@@ -445,13 +445,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
     rows.push(
       <TableRow
         key={`step-${step.id}`}
-        className={`${depth === 0 ? "bg-[#1a1d2e]" : "bg-[#12151f]"} hover:bg-[#1e2235]`}
+        className={`${depth === 0 ? "bg-[#1a1d2e]" : "bg-background-panel"} hover:bg-[#1e2235]`}
       >
         <TableCell className="relative pl-0">
           {renderDepthIndicators(colorPath)}
           <div className="flex items-center gap-1" style={{ paddingLeft: `${depth * 32 + 20}px` }}>
             <button
-              className="p-0.5 rounded text-[#94a3b8] hover:bg-[rgba(148,163,184,0.1)]"
+              className="p-0.5 rounded text-text-secondary hover:bg-overlay-subtle"
               onClick={() => toggleExpand(step.id)}
             >
               {isExpanded ? (
@@ -467,13 +467,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
               height={20}
               className="rounded-sm"
             />
-            <span className={`text-[#e2e8f0] text-sm ${depth === 0 ? "font-semibold" : ""}`}>
+            <span className={`text-text-emphasis text-sm ${depth === 0 ? "font-semibold" : ""}`}>
               {step.productName || `Type ${step.productTypeId}`}
             </span>
             <Badge
               className={`ml-1 h-5 text-[11px] cursor-default ${
                 step.activity === "manufacturing"
-                  ? "bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f]"
+                  ? "bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
                   : "bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
               }`}
             >
@@ -481,7 +481,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
             </Badge>
           </div>
         </TableCell>
-        <TableCell className="text-[#94a3b8] text-[13px]">
+        <TableCell className="text-text-secondary text-[13px]">
           <TooltipProvider>
             <div className="flex items-center gap-1">
               ME {step.meLevel} / TE {step.teLevel}
@@ -491,7 +491,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   detectedLevels[step.blueprintTypeId].timeEfficiency !== step.teLevel)) ? (
                   <Tooltip>
                     <TooltipTrigger>
-                      <Info className="h-3.5 w-3.5 text-[#00d4ff]" data-testid="InfoIcon" />
+                      <Info className="h-3.5 w-3.5 text-primary" data-testid="InfoIcon" />
                     </TooltipTrigger>
                     <TooltipContent>
                       Detected: ME {detectedLevels[step.blueprintTypeId].materialEfficiency} / TE {detectedLevels[step.blueprintTypeId].timeEfficiency} from {detectedLevels[step.blueprintTypeId].ownerName}
@@ -500,7 +500,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 ) : (
                   <Tooltip>
                     <TooltipTrigger>
-                      <CheckCircle className="h-3.5 w-3.5 text-[#10b981]" data-testid="CheckCircleOutlineIcon" />
+                      <CheckCircle className="h-3.5 w-3.5 text-teal-success" data-testid="CheckCircleOutlineIcon" />
                     </TooltipTrigger>
                     <TooltipContent>
                       Blueprint detected from {detectedLevels[step.blueprintTypeId].ownerName}
@@ -510,7 +510,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
               ) : Object.keys(detectedLevels).length > 0 && (
                 <Tooltip>
                   <TooltipTrigger>
-                    <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" data-testid="WarningAmberIcon" />
+                    <AlertTriangle className="h-3.5 w-3.5 text-amber-manufacturing" data-testid="WarningAmberIcon" />
                   </TooltipTrigger>
                   <TooltipContent>
                     No blueprint detected — ME/TE values are manual
@@ -520,26 +520,26 @@ export default function ProductionPlanEditor({ planId }: Props) {
             </div>
           </TooltipProvider>
         </TableCell>
-        <TableCell className="text-[#94a3b8] text-[13px]">
+        <TableCell className="text-text-secondary text-[13px]">
           {step.structure} / {step.rig} / {step.security}
         </TableCell>
-        <TableCell className="text-[#94a3b8] text-[13px]">
+        <TableCell className="text-text-secondary text-[13px]">
           {step.stationName || "\u2014"}
           {step.sourceOwnerName && (
-            <span className="block text-[#64748b] text-[11px]">
+            <span className="block text-text-muted text-[11px]">
               In: {step.sourceOwnerName}
               {step.sourceDivisionName ? ` / ${step.sourceDivisionName}` : ""}
               {step.sourceContainerName ? ` / ${step.sourceContainerName}` : ""}
             </span>
           )}
           {step.outputOwnerName ? (
-            <span className="block text-[#64748b] text-[11px]">
+            <span className="block text-text-muted text-[11px]">
               Out: {step.outputOwnerName}
               {step.outputDivisionName ? ` / ${step.outputDivisionName}` : ""}
               {step.outputContainerName ? ` / ${step.outputContainerName}` : ""}
             </span>
           ) : !step.parentStepId ? (
-            <span className="block text-[#475569] text-[11px] italic">
+            <span className="block text-text-muted text-[11px] italic">
               Out: set at build time
             </span>
           ) : null}
@@ -550,8 +550,8 @@ export default function ProductionPlanEditor({ planId }: Props) {
               <Tooltip>
                 <TooltipTrigger>
                   <div className="flex items-center gap-1 mt-0.5">
-                    <ArrowLeftRight className="h-3.5 w-3.5 text-[#f59e0b]" />
-                    <span className="text-[#f59e0b] text-[11px]">Transfer</span>
+                    <ArrowLeftRight className="h-3.5 w-3.5 text-amber-manufacturing" />
+                    <span className="text-amber-manufacturing text-[11px]">Transfer</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>Items must be moved between stations</TooltipContent>
@@ -561,7 +561,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
         </TableCell>
         <TableCell className="text-center">
           <button
-            className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+            className="p-1 rounded hover:bg-interactive-selected text-primary"
             onClick={() => setEditStepId(step.id)}
             aria-label="Edit"
           >
@@ -569,7 +569,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
           </button>
           {depth > 0 && (
             <button
-              className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+              className="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
               onClick={async () => {
                 await fetch(
                   `/api/industry/plans/${planId}/steps/${step.id}`,
@@ -594,7 +594,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
           <TableRow key={`loading-${step.id}`}>
             <TableCell
               colSpan={5}
-              className="relative pl-0 text-[#64748b] text-[13px]"
+              className="relative pl-0 text-text-muted text-[13px]"
             >
               {renderDepthIndicators(colorPath)}
               <div style={{ paddingLeft: `${(depth + 1) * 32 + 20}px` }}>Loading materials...</div>
@@ -620,7 +620,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
             rows.push(
               <TableRow
                 key={`mat-${step.id}-${mat.typeId}`}
-                className="bg-[#0f1219] hover:bg-[#151825]"
+                className="bg-background-void hover:bg-[#151825]"
               >
                 <TableCell className="relative pl-0">
                   {renderDepthIndicators(colorPath)}
@@ -635,30 +635,30 @@ export default function ProductionPlanEditor({ planId }: Props) {
                       height={18}
                       className="rounded-sm"
                     />
-                    <span className="text-[#cbd5e1] text-[13px]">
+                    <span className="text-text-primary text-[13px]">
                       {mat.typeName}
                     </span>
-                    <span className="text-[#64748b] text-xs ml-1">
+                    <span className="text-text-muted text-xs ml-1">
                       x{mat.quantity}
                     </span>
                     {mat.isProduced ? (
-                      <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f] cursor-default">
+                      <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f] cursor-default">
                         Produce
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-[#64748b] cursor-default">
+                      <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default">
                         Buy
                       </Badge>
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="text-[#64748b] text-xs">
+                <TableCell className="text-text-muted text-xs">
                   <TooltipProvider>
                     {mat.hasBlueprint && mat.blueprintTypeId && (
                       detectedLevels[mat.blueprintTypeId] ? (
                         <Tooltip>
                           <TooltipTrigger>
-                            <Badge className="h-[18px] text-[10px] bg-[#1a3a2a] text-[#10b981] hover:bg-[#1a3a2a] cursor-default">
+                            <Badge className="h-[18px] text-[10px] bg-[#1a3a2a] text-teal-success hover:bg-[#1a3a2a] cursor-default">
                               ME {detectedLevels[mat.blueprintTypeId].materialEfficiency} / TE {detectedLevels[mat.blueprintTypeId].timeEfficiency}
                             </Badge>
                           </TooltipTrigger>
@@ -669,7 +669,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                       ) : Object.keys(detectedLevels).length > 0 ? (
                         <Tooltip>
                           <TooltipTrigger>
-                            <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" data-testid="WarningAmberIcon" />
+                            <AlertTriangle className="h-3.5 w-3.5 text-amber-manufacturing" data-testid="WarningAmberIcon" />
                           </TooltipTrigger>
                           <TooltipContent>No blueprint detected</TooltipContent>
                         </Tooltip>
@@ -682,7 +682,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 <TableCell className="text-center">
                   {mat.hasBlueprint && (
                     <button
-                      className={`p-1 rounded hover:bg-[rgba(148,163,184,0.1)] ${mat.isProduced ? "text-[#ef4444]" : "text-[#10b981]"}`}
+                      className={`p-1 rounded hover:bg-overlay-subtle ${mat.isProduced ? "text-rose-danger" : "text-teal-success"}`}
                       onClick={() => handleToggleProduce(step.id, mat)}
                       title={mat.isProduced ? "Switch to Buy" : "Switch to Produce"}
                     >
@@ -728,20 +728,20 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   autoFocus
                   className="min-w-[250px]"
                 />
-                <button className="p-1 rounded text-[#10b981] hover:bg-[rgba(16,185,129,0.1)]" onClick={handleSaveName}>
+                <button className="p-1 rounded text-teal-success hover:bg-teal-success/10" onClick={handleSaveName}>
                   <Check className="h-4 w-4" />
                 </button>
-                <button className="p-1 rounded text-[#94a3b8] hover:bg-[rgba(148,163,184,0.1)]" onClick={() => setEditingName(false)}>
+                <button className="p-1 rounded text-text-secondary hover:bg-overlay-subtle" onClick={() => setEditingName(false)}>
                   <X className="h-4 w-4" />
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-1">
-                <h2 className="text-xl font-semibold text-[#e2e8f0]">
+                <h2 className="text-xl font-semibold text-text-emphasis">
                   {plan.name}
                 </h2>
                 <button
-                  className="p-1 rounded text-[#64748b] hover:text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
+                  className="p-1 rounded text-text-muted hover:text-primary hover:bg-interactive-selected"
                   onClick={() => {
                     setNameValue(plan.name);
                     setEditingName(true);
@@ -751,13 +751,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 </button>
               </div>
             )}
-            <p className="text-[#64748b] text-[13px]">
+            <p className="text-text-muted text-[13px]">
               {plan.steps?.length || 0} production step(s)
             </p>
           </div>
         </div>
         <Button
-          className="bg-[#10b981] hover:bg-[#059669]"
+          className="bg-teal-success hover:bg-[#059669]"
           onClick={() => setGenerateDialogOpen(true)}
         >
           <Play className="h-4 w-4 mr-1" />
@@ -776,10 +776,10 @@ export default function ProductionPlanEditor({ planId }: Props) {
         </TabsList>
 
         <TabsContent value="step-tree">
-          <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+          <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#0f1219]">
+                <TableRow className="bg-background-void">
                   <TableHead>Item / Material</TableHead>
                   <TableHead>ME / TE</TableHead>
                   <TableHead>Structure / Rig / Sec</TableHead>
@@ -793,7 +793,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center">
-                      <p className="text-[#64748b]">No steps in this plan</p>
+                      <p className="text-text-muted">No steps in this plan</p>
                     </TableCell>
                   </TableRow>
                 )}
@@ -846,19 +846,19 @@ export default function ProductionPlanEditor({ planId }: Props) {
           }
         }}
       >
-        <DialogContent className="max-w-2xl bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-2xl bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">Generate Production Jobs</DialogTitle>
+            <DialogTitle className="text-text-emphasis">Generate Production Jobs</DialogTitle>
           </DialogHeader>
           {generateResult ? (
             <div>
-              <p className="text-[#10b981] mb-1">
+              <p className="text-teal-success mb-1">
                 Created {generateResult.created.length} job(s)
               </p>
               {generateResult.created.map((job) => (
                 <p
                   key={job.id}
-                  className="text-[#cbd5e1] text-[13px] ml-4"
+                  className="text-text-primary text-[13px] ml-4"
                 >
                   {job.blueprintName || `BP ${job.blueprintTypeId}`} &mdash;{" "}
                   {job.runs} runs
@@ -873,21 +873,21 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 </p>
               ))}
               {generateResult.unassignedCount != null && generateResult.unassignedCount > 0 && (
-                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-[#fbbf24] text-sm flex items-center gap-2">
+                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-amber-manufacturing text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   {generateResult.unassignedCount} job(s) could not be assigned to a character
                 </div>
               )}
               {generateResult.transportJobs?.length > 0 && (
                 <>
-                  <p className="text-[#00d4ff] mt-2 mb-1 flex items-center gap-1">
+                  <p className="text-primary mt-2 mb-1 flex items-center gap-1">
                     <Truck className="h-4 w-4" />
                     Created {generateResult.transportJobs.length} transport job(s)
                   </p>
                   {generateResult.transportJobs.map((tj) => (
                     <p
                       key={tj.id}
-                      className="text-[#cbd5e1] text-[13px] ml-4"
+                      className="text-text-primary text-[13px] ml-4"
                     >
                       {tj.originStationName} &rarr; {tj.destinationStationName}
                       {" "}&mdash; {tj.items.length} item type(s), {formatNumber(tj.totalVolumeM3)} m&sup3;
@@ -898,13 +898,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
               )}
               {generateResult.skipped.length > 0 && (
                 <>
-                  <p className="text-[#f59e0b] mt-2 mb-1">
+                  <p className="text-amber-manufacturing mt-2 mb-1">
                     Skipped {generateResult.skipped.length} item(s)
                   </p>
                   {generateResult.skipped.map((skip, i) => (
                     <p
                       key={i}
-                      className="text-[#94a3b8] text-[13px] ml-4"
+                      className="text-text-secondary text-[13px] ml-4"
                     >
                       {skip.typeName} &mdash; {skip.reason}
                     </p>
@@ -914,7 +914,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
             </div>
           ) : (
             <div className="mt-1">
-              <p className="text-[#94a3b8] mb-2">
+              <p className="text-text-secondary mb-2">
                 How many {plan.productName || "units"} do you want to produce?
                 Job queue entries will be created for each step in the
                 production chain.
@@ -933,7 +933,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                   variant="outline"
                   onClick={() => handlePreview(generateQuantity)}
                   disabled={previewLoading}
-                  className="text-[#00d4ff] border-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)]"
+                  className="text-primary border-primary hover:bg-interactive-selected"
                 >
                   {previewLoading ? (
                     <span className="flex items-center gap-1">
@@ -947,7 +947,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
               </div>
 
               {previewError && (
-                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-[#fbbf24] text-sm flex items-center gap-2">
+                <div className="mt-2 p-3 rounded bg-[#2d2000] border border-[rgba(251,191,36,0.3)] text-amber-manufacturing text-sm flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 shrink-0" />
                   {previewError} — you can still generate without parallelism.
                 </div>
@@ -955,13 +955,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
 
               {previewResult && (
                 <div className="mt-2">
-                  <p className="text-[#94a3b8] text-[13px] mb-1">
+                  <p className="text-text-secondary text-[13px] mb-1">
                     Select how many characters to spread jobs across ({previewResult.eligibleCharacters} eligible character{previewResult.eligibleCharacters !== 1 ? "s" : ""}, {previewResult.totalJobs} total job{previewResult.totalJobs !== 1 ? "s" : ""})
                   </p>
-                  <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+                  <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-[#0f1219]">
+                        <TableRow className="bg-background-void">
                           <TableHead className="w-10" />
                           <TableHead>Characters</TableHead>
                           <TableHead>Est. Time</TableHead>
@@ -982,13 +982,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
                               value="0"
                               checked={selectedParallelism === 0}
                               onChange={() => setSelectedParallelism(0)}
-                              className="accent-[#00d4ff]"
+                              className="accent-primary"
                             />
                           </TableCell>
-                          <TableCell className="text-[#94a3b8]">No assignment</TableCell>
-                          <TableCell className="text-[#94a3b8]">&mdash;</TableCell>
-                          <TableCell className="text-[#94a3b8] text-right">{previewResult.totalJobs}</TableCell>
-                          <TableCell className="text-[#64748b] text-xs">Jobs created without character assignment</TableCell>
+                          <TableCell className="text-text-secondary">No assignment</TableCell>
+                          <TableCell className="text-text-secondary">&mdash;</TableCell>
+                          <TableCell className="text-text-secondary text-right">{previewResult.totalJobs}</TableCell>
+                          <TableCell className="text-text-muted text-xs">Jobs created without character assignment</TableCell>
                         </TableRow>
                         {/* Parallelism options */}
                         {previewResult.options.map((option) => {
@@ -1014,13 +1014,13 @@ export default function ProductionPlanEditor({ planId }: Props) {
                                   value={String(option.parallelism)}
                                   checked={isSelected}
                                   onChange={() => setSelectedParallelism(option.parallelism)}
-                                  className="accent-[#00d4ff]"
+                                  className="accent-primary"
                                 />
                               </TableCell>
-                              <TableCell className="text-[#e2e8f0]">{option.parallelism}</TableCell>
-                              <TableCell className="text-[#10b981]">{option.estimatedDurationLabel}</TableCell>
-                              <TableCell className="text-[#e2e8f0] text-right">{previewResult.totalJobs}</TableCell>
-                              <TableCell className="text-[#94a3b8] text-xs">{detailsText}</TableCell>
+                              <TableCell className="text-text-emphasis">{option.parallelism}</TableCell>
+                              <TableCell className="text-teal-success">{option.estimatedDurationLabel}</TableCell>
+                              <TableCell className="text-text-emphasis text-right">{previewResult.totalJobs}</TableCell>
+                              <TableCell className="text-text-secondary text-xs">{detailsText}</TableCell>
                             </TableRow>
                           );
                         })}
@@ -1060,7 +1060,7 @@ export default function ProductionPlanEditor({ planId }: Props) {
                 <Button
                   onClick={handleGenerate}
                   disabled={generating}
-                  className="bg-[#10b981] hover:bg-[#059669]"
+                  className="bg-teal-success hover:bg-[#059669]"
                 >
                   {generating ? "Generating..." : "Generate Jobs"}
                 </Button>
@@ -1415,16 +1415,16 @@ function EditStepDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-md bg-background-panel border-overlay-medium max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-[#e2e8f0]">
+          <DialogTitle className="text-text-emphasis">
             Edit Step: {step.productName || `Type ${step.productTypeId}`}
           </DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-3 pt-1">
           {/* Preferred Station Selection */}
           <div>
-            <Label className="text-sm text-[#94a3b8] mb-1 block">Preferred Station</Label>
+            <Label className="text-sm text-text-secondary mb-1 block">Preferred Station</Label>
             <Select
               value={selectedUserStation ? String(selectedUserStation.id) : "none"}
               onValueChange={handleStationSelect}
@@ -1445,7 +1445,7 @@ function EditStepDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="edit-me-level" className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
+              <Label htmlFor="edit-me-level" className="text-sm text-text-secondary mb-1 block">ME Level</Label>
               <Input
                 id="edit-me-level"
                 type="number"
@@ -1456,7 +1456,7 @@ function EditStepDialog({
               />
             </div>
             <div>
-              <Label htmlFor="edit-te-level" className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
+              <Label htmlFor="edit-te-level" className="text-sm text-text-secondary mb-1 block">TE Level</Label>
               <Input
                 id="edit-te-level"
                 type="number"
@@ -1467,7 +1467,7 @@ function EditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Industry Skill</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Industry Skill</Label>
               <Input
                 type="number"
                 value={industrySkill}
@@ -1477,7 +1477,7 @@ function EditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Adv. Industry Skill</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Adv. Industry Skill</Label>
               <Input
                 type="number"
                 value={advIndustrySkill}
@@ -1487,7 +1487,7 @@ function EditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Structure</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Structure</Label>
               <Select value={structure} onValueChange={setStructure} disabled={hasStation}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1501,7 +1501,7 @@ function EditStepDialog({
               </Select>
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Rig</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Rig</Label>
               <Select value={rig} onValueChange={setRig} disabled={hasStation}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1512,7 +1512,7 @@ function EditStepDialog({
               </Select>
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Security</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Security</Label>
               <Select value={security} onValueChange={setSecurity} disabled={hasStation}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1523,7 +1523,7 @@ function EditStepDialog({
               </Select>
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Facility Tax %</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Facility Tax %</Label>
               <Input
                 type="number"
                 value={facilityTax}
@@ -1534,7 +1534,7 @@ function EditStepDialog({
               />
             </div>
             <div className="col-span-2">
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Station Name</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Station Name</Label>
               <Input
                 value={stationName}
                 onChange={(e) => setStationName(e.target.value)}
@@ -1556,7 +1556,7 @@ function EditStepDialog({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="text-[11px] py-0.5 px-2 h-auto text-[#00d4ff] border-[#00d4ff]"
+                  className="text-[11px] py-0.5 px-2 h-auto text-primary border-primary"
                   onClick={() => {
                     setMeLevel(detectedLevel.materialEfficiency);
                     setTeLevel(detectedLevel.timeEfficiency);
@@ -1568,8 +1568,8 @@ function EditStepDialog({
             </div>
           ) : (
             <div className="flex items-center gap-1">
-              <AlertTriangle className="h-3.5 w-3.5 text-[#f59e0b]" />
-              <span className="text-[11px] text-[#f59e0b]">No blueprint detected — using manual values</span>
+              <AlertTriangle className="h-3.5 w-3.5 text-amber-manufacturing" />
+              <span className="text-[11px] text-amber-manufacturing">No blueprint detected — using manual values</span>
             </div>
           )}
 
@@ -1577,17 +1577,17 @@ function EditStepDialog({
           {hasStation && (
             <>
               <Separator className="border-[#1e293b] mt-1" />
-              <p className="text-[#94a3b8] text-sm font-semibold">Input Location</p>
-              <p className="text-[#64748b] text-xs">
+              <p className="text-text-secondary text-sm font-semibold">Input Location</p>
+              <p className="text-text-muted text-xs">
                 Where should materials for this step be pulled from?
               </p>
 
               {!hangarsLoaded ? (
-                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
+                <p className="text-text-muted text-[13px]">Loading hangars...</p>
               ) : (
                 <div className="flex flex-col gap-3">
                   <div>
-                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Label className="text-sm text-text-secondary mb-1 block">Owner</Label>
                     <Select
                       value={selectedOwner ? `${selectedOwner.type}-${selectedOwner.id}` : "none"}
                       onValueChange={handleOwnerSelect}
@@ -1606,7 +1606,7 @@ function EditStepDialog({
 
                   {selectedOwner?.type === "corporation" && divisionOptions.length > 0 && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Hangar Division</Label>
                       <Select
                         value={selectedDivision ? String(selectedDivision.number) : "none"}
                         onValueChange={handleDivisionSelect}
@@ -1626,7 +1626,7 @@ function EditStepDialog({
 
                   {selectedOwner && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Container (optional)</Label>
                       <Select
                         value={selectedContainer ? String(selectedContainer.id) : "none"}
                         onValueChange={(val) => {
@@ -1652,17 +1652,17 @@ function EditStepDialog({
               )}
 
               <Separator className="border-[#1e293b] mt-1" />
-              <p className="text-[#94a3b8] text-sm font-semibold">Output Location</p>
-              <p className="text-[#64748b] text-xs">
+              <p className="text-text-secondary text-sm font-semibold">Output Location</p>
+              <p className="text-text-muted text-xs">
                 Where should completed items from this job be delivered?
               </p>
 
               {!hangarsLoaded ? (
-                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
+                <p className="text-text-muted text-[13px]">Loading hangars...</p>
               ) : (
                 <div className="flex flex-col gap-3">
                   <div>
-                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Label className="text-sm text-text-secondary mb-1 block">Owner</Label>
                     <Select
                       value={selectedOutputOwner ? `${selectedOutputOwner.type}-${selectedOutputOwner.id}` : "none"}
                       onValueChange={handleOutputOwnerSelect}
@@ -1681,7 +1681,7 @@ function EditStepDialog({
 
                   {selectedOutputOwner?.type === "corporation" && outputDivisionOptions.length > 0 && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Hangar Division</Label>
                       <Select
                         value={selectedOutputDivision ? String(selectedOutputDivision.number) : "none"}
                         onValueChange={handleOutputDivisionSelect}
@@ -1701,7 +1701,7 @@ function EditStepDialog({
 
                   {selectedOutputOwner && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Container (optional)</Label>
                       <Select
                         value={selectedOutputContainer ? String(selectedOutputContainer.id) : "none"}
                         onValueChange={(val) => {
@@ -1807,19 +1807,19 @@ function TransportSettingsTab({
   };
 
   return (
-    <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-4">
-      <h3 className="text-lg font-semibold text-[#e2e8f0] mb-2 flex items-center gap-2">
+    <div className="bg-background-panel rounded-sm border border-overlay-subtle p-4">
+      <h3 className="text-lg font-semibold text-text-emphasis mb-2 flex items-center gap-2">
         <Truck className="h-5 w-5" />
         Transport Settings
       </h3>
-      <p className="text-[#64748b] text-[13px] mb-3">
+      <p className="text-text-muted text-[13px] mb-3">
         Configure how items should be transported between stations when generating jobs.
         Leave fulfillment type as &ldquo;None&rdquo; to skip transport job generation.
       </p>
 
       <div className="flex flex-col gap-3 max-w-[500px]">
         <div>
-          <Label className="text-sm text-[#94a3b8] mb-1 block">Fulfillment Type</Label>
+          <Label className="text-sm text-text-secondary mb-1 block">Fulfillment Type</Label>
           <Select
             value={fulfillment}
             onValueChange={(val) => {
@@ -1843,7 +1843,7 @@ function TransportSettingsTab({
         {fulfillment === "self_haul" && (
           <>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Transport Method</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Transport Method</Label>
               <Select
                 value={method}
                 onValueChange={(val) => {
@@ -1863,7 +1863,7 @@ function TransportSettingsTab({
             </div>
 
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Transport Profile</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Transport Profile</Label>
               <Select value={profileId} onValueChange={setProfileId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1882,7 +1882,7 @@ function TransportSettingsTab({
         {(fulfillment === "courier_contract" || fulfillment === "contact_haul") && (
           <>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Rate per m3 (ISK)</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Rate per m3 (ISK)</Label>
               <Input
                 type="number"
                 value={courierRate}
@@ -1892,7 +1892,7 @@ function TransportSettingsTab({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Collateral Rate (%)</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Collateral Rate (%)</Label>
               <Input
                 type="number"
                 value={collateralRate * 100}

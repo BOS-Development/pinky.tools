@@ -46,43 +46,43 @@ export default function Marketplace() {
           <TabsList className="w-full justify-start mb-6 overflow-x-auto">
             <TabsTrigger
               value="listings"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               My Listings
             </TabsTrigger>
             <TabsTrigger
               value="browse"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               Browse
             </TabsTrigger>
             <TabsTrigger
               value="pending"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               Pending Sales
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               History
             </TabsTrigger>
             <TabsTrigger
               value="buy-orders"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               My Buy Orders
             </TabsTrigger>
             <TabsTrigger
               value="demand"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               Demand
             </TabsTrigger>
             <TabsTrigger
               value="analytics"
-              className="text-[#94a3b8] data-[state=active]:text-[#00d4ff] data-[state=active]:border-b-2 data-[state=active]:border-[#00d4ff] rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
+              className="text-text-secondary data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none bg-transparent px-4 py-2 whitespace-nowrap"
             >
               Analytics
             </TabsTrigger>

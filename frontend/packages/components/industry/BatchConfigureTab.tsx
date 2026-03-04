@@ -136,7 +136,7 @@ type GroupMaterial = PlanMaterial & {
 };
 
 const MixedBadge = () => (
-  <Badge className="h-[18px] text-[10px] bg-[#422006] text-[#f59e0b] hover:bg-[#422006] cursor-default">
+  <Badge className="h-[18px] text-[10px] bg-[#422006] text-amber-manufacturing hover:bg-[#422006] cursor-default">
     Mixed
   </Badge>
 );
@@ -416,7 +416,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
   if (steps.length === 0) {
     return (
       <div className="text-center py-4">
-        <p className="text-[#64748b]">No steps in this plan</p>
+        <p className="text-text-muted">No steps in this plan</p>
       </div>
     );
   }
@@ -424,14 +424,14 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
   return (
     <TooltipProvider>
       <div>
-        <p className="text-[#94a3b8] text-[13px] mb-2">
+        <p className="text-text-secondary text-[13px] mb-2">
           Steps producing the same item are grouped together. Edit a group to configure all instances at once. Expand a group to toggle materials between buy and produce.
         </p>
 
-        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#0f1219]">
+              <TableRow className="bg-background-void">
                 <TableHead>Product</TableHead>
                 <TableHead>Activity</TableHead>
                 <TableHead className="text-center">Count</TableHead>
@@ -467,12 +467,12 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                 return [
                   <TableRow
                     key={key}
-                    className="bg-[#12151f] hover:bg-[#1e2235]"
+                    className="bg-background-panel hover:bg-[#1e2235]"
                   >
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <button
-                          className="p-0.5 rounded text-[#94a3b8] hover:bg-[rgba(148,163,184,0.1)]"
+                          className="p-0.5 rounded text-text-secondary hover:bg-overlay-subtle"
                           onClick={() => toggleExpand(group)}
                         >
                           {isExpanded ? (
@@ -488,7 +488,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           height={24}
                           className="rounded-sm"
                         />
-                        <span className="text-[#e2e8f0] text-sm">
+                        <span className="text-text-emphasis text-sm">
                           {group.productName}
                         </span>
                       </div>
@@ -497,7 +497,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                       <Badge
                         className={`h-5 text-[11px] cursor-default ${
                           group.activity === "manufacturing"
-                            ? "bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f]"
+                            ? "bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f]"
                             : "bg-[#3a1e5f] text-[#a78bfa] hover:bg-[#3a1e5f]"
                         }`}
                       >
@@ -505,27 +505,27 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className="h-5 text-[11px] bg-[#1e293b] text-[#94a3b8] hover:bg-[#1e293b] cursor-default">
+                      <Badge className="h-5 text-[11px] bg-[#1e293b] text-text-secondary hover:bg-[#1e293b] cursor-default">
                         {group.stepIds.length}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       {togglingAllGroup === key ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-[#64748b] mx-auto" />
+                        <Loader2 className="h-4 w-4 animate-spin text-text-muted mx-auto" />
                       ) : (
                         <div className="flex items-center justify-center gap-1 flex-wrap">
-                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 ${buildCount > 0 ? "bg-[#1e3a5f] text-[#60a5fa]" : "bg-[#1e293b] text-[#475569]"} hover:bg-[#1e3a5f]`}>
+                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 ${buildCount > 0 ? "bg-[#1e3a5f] text-blue-science" : "bg-[#1e293b] text-text-muted"} hover:bg-[#1e3a5f]`}>
                             <Wrench className="h-3 w-3" data-testid="BuildIcon" />
                             {buildCount}
                           </Badge>
-                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] ${buyCount && buyCount > 0 ? "text-[#94a3b8]" : "text-[#475569]"} hover:bg-[#1e293b]`}>
+                          <Badge className={`h-5 text-[11px] cursor-default flex items-center gap-0.5 bg-[#1e293b] ${buyCount && buyCount > 0 ? "text-text-secondary" : "text-text-muted"} hover:bg-[#1e293b]`}>
                             <ShoppingCart className="h-3 w-3" data-testid="ShoppingCartIcon" />
                             {buyCount ?? "?"}
                           </Badge>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                className={`p-0.5 rounded ${buyCount && buyCount > 0 ? "text-[#10b981] hover:bg-[rgba(16,185,129,0.1)]" : "text-[#334155]"}`}
+                                className={`p-0.5 rounded ${buyCount && buyCount > 0 ? "text-teal-success hover:bg-teal-success/10" : "text-[#334155]"}`}
                                 onClick={() => handleSetAllBuild(group)}
                                 disabled={buyCount === 0}
                               >
@@ -537,7 +537,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
-                                className={`p-0.5 rounded ${buildCount > 0 ? "text-[#ef4444] hover:bg-[rgba(239,68,68,0.1)]" : "text-[#334155]"}`}
+                                className={`p-0.5 rounded ${buildCount > 0 ? "text-rose-danger hover:bg-rose-danger/10" : "text-[#334155]"}`}
                                 onClick={() => handleSetAllBuy(group)}
                                 disabled={buildCount === 0}
                               >
@@ -549,35 +549,35 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="text-[#94a3b8] text-[13px]">
+                    <TableCell className="text-text-secondary text-[13px]">
                       {group.meLevel === "mixed" ? <MixedBadge /> : `ME ${group.meLevel}`}
                       {" / "}
                       {group.teLevel === "mixed" ? <MixedBadge /> : `TE ${group.teLevel}`}
                     </TableCell>
-                    <TableCell className="text-[#94a3b8] text-[13px]">
+                    <TableCell className="text-text-secondary text-[13px]">
                       {group.structure === "mixed" ? <MixedBadge /> : group.structure}
                       {" / "}
                       {group.rig === "mixed" ? <MixedBadge /> : group.rig}
                       {" / "}
                       {group.security === "mixed" ? <MixedBadge /> : group.security}
                     </TableCell>
-                    <TableCell className="text-[#94a3b8] text-[13px]">
+                    <TableCell className="text-text-secondary text-[13px]">
                       {group.stationName === "mixed" ? <MixedBadge /> : (group.stationName || "\u2014")}
                       {group.inputLocation === "mixed" ? (
-                        <span className="block text-[#64748b] text-[11px]">
+                        <span className="block text-text-muted text-[11px]">
                           In: <MixedBadge />
                         </span>
                       ) : group.inputLocation ? (
-                        <span className="block text-[#64748b] text-[11px]">
+                        <span className="block text-text-muted text-[11px]">
                           In: {group.inputLocation}
                         </span>
                       ) : null}
                       {group.outputLocation === "mixed" ? (
-                        <span className="block text-[#64748b] text-[11px]">
+                        <span className="block text-text-muted text-[11px]">
                           Out: <MixedBadge />
                         </span>
                       ) : group.outputLocation ? (
-                        <span className="block text-[#64748b] text-[11px]">
+                        <span className="block text-text-muted text-[11px]">
                           Out: {group.outputLocation}
                         </span>
                       ) : null}
@@ -590,7 +590,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <button
-                                  className={`p-1 rounded ${hasDetected ? "text-[#10b981] hover:bg-[rgba(16,185,129,0.1)]" : "text-[#334155]"}`}
+                                  className={`p-1 rounded ${hasDetected ? "text-teal-success hover:bg-teal-success/10" : "text-[#334155]"}`}
                                   onClick={() => handleApplyBlueprintLevels(group)}
                                   disabled={!hasDetected || applyingBlueprintGroup === groupKey(group)}
                                 >
@@ -602,7 +602,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           );
                         })()}
                         <button
-                          className="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+                          className="p-1 rounded hover:bg-interactive-selected text-primary"
                           onClick={() => setEditGroup(group)}
                         >
                           <Pencil className="h-4 w-4" data-testid="EditIcon" />
@@ -617,7 +617,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           <TableRow key={`${key}-loading`}>
                             <TableCell
                               colSpan={8}
-                              className="text-[#64748b] text-[13px] pl-10"
+                              className="text-text-muted text-[13px] pl-10"
                             >
                               Loading materials...
                             </TableCell>
@@ -629,7 +629,7 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                           return (
                             <TableRow
                               key={`${key}-mat-${mat.typeId}`}
-                              className="bg-[#0f1219] hover:bg-[#151825]"
+                              className="bg-background-void hover:bg-[#151825]"
                             >
                               <TableCell>
                                 <div className="flex items-center gap-1 pl-10">
@@ -640,22 +640,22 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                                     height={18}
                                     className="rounded-sm"
                                   />
-                                  <span className="text-[#cbd5e1] text-[13px]">
+                                  <span className="text-text-primary text-[13px]">
                                     {mat.typeName}
                                   </span>
-                                  <span className="text-[#64748b] text-xs ml-1">
+                                  <span className="text-text-muted text-xs ml-1">
                                     x{mat.quantity}
                                   </span>
                                   {mat.produceStatus === "all" ? (
-                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-[#60a5fa] hover:bg-[#1e3a5f] cursor-default">
+                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#1e3a5f] text-blue-science hover:bg-[#1e3a5f] cursor-default">
                                       Produce
                                     </Badge>
                                   ) : mat.produceStatus === "mixed" ? (
-                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#422006] text-[#f59e0b] hover:bg-[#422006] cursor-default">
+                                    <Badge className="ml-1 h-[18px] text-[10px] bg-[#422006] text-amber-manufacturing hover:bg-[#422006] cursor-default">
                                       Mixed
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-[#64748b] cursor-default">
+                                    <Badge variant="outline" className="ml-1 h-[18px] text-[10px] border-[#334155] text-text-muted cursor-default">
                                       Buy
                                     </Badge>
                                   )}
@@ -670,10 +670,10 @@ export default function BatchConfigureTab({ plan, planId, onUpdate, detectedLeve
                               <TableCell className="text-center">
                                 {mat.hasBlueprint && (
                                   <button
-                                    className={`p-1 rounded hover:bg-[rgba(148,163,184,0.1)] ${
+                                    className={`p-1 rounded hover:bg-overlay-subtle ${
                                       mat.produceStatus === "none"
-                                        ? "text-[#10b981]"
-                                        : "text-[#ef4444]"
+                                        ? "text-teal-success"
+                                        : "text-rose-danger"
                                     }`}
                                     disabled={isToggling}
                                     onClick={() => handleToggleProduce(group, mat)}
@@ -993,9 +993,9 @@ function BatchEditStepDialog({
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-md bg-[#12151f] border-[rgba(148,163,184,0.15)] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-md bg-background-panel border-overlay-medium max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-[#e2e8f0] flex items-center gap-2">
+          <DialogTitle className="text-text-emphasis flex items-center gap-2">
             <img
               src={`https://images.evetech.net/types/${group.productTypeId}/icon?size=32`}
               alt=""
@@ -1013,7 +1013,7 @@ function BatchEditStepDialog({
         <div className="flex flex-col gap-3">
           {/* Preferred Station Selection */}
           <div>
-            <Label className="text-sm text-[#94a3b8] mb-1 block">Preferred Station</Label>
+            <Label className="text-sm text-text-secondary mb-1 block">Preferred Station</Label>
             <Select
               value={selectedUserStation ? String(selectedUserStation.id) : "none"}
               onValueChange={handleStationSelect}
@@ -1034,7 +1034,7 @@ function BatchEditStepDialog({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="batch-me-level" className="text-sm text-[#94a3b8] mb-1 block">ME Level</Label>
+              <Label htmlFor="batch-me-level" className="text-sm text-text-secondary mb-1 block">ME Level</Label>
               <Input
                 id="batch-me-level"
                 type="number"
@@ -1045,7 +1045,7 @@ function BatchEditStepDialog({
               />
             </div>
             <div>
-              <Label htmlFor="batch-te-level" className="text-sm text-[#94a3b8] mb-1 block">TE Level</Label>
+              <Label htmlFor="batch-te-level" className="text-sm text-text-secondary mb-1 block">TE Level</Label>
               <Input
                 id="batch-te-level"
                 type="number"
@@ -1056,7 +1056,7 @@ function BatchEditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Industry Skill</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Industry Skill</Label>
               <Input
                 type="number"
                 value={industrySkill}
@@ -1066,7 +1066,7 @@ function BatchEditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Adv. Industry Skill</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Adv. Industry Skill</Label>
               <Input
                 type="number"
                 value={advIndustrySkill}
@@ -1076,7 +1076,7 @@ function BatchEditStepDialog({
               />
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Structure</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Structure</Label>
               <Select value={structure} onValueChange={setStructure} disabled={hasStation}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1090,7 +1090,7 @@ function BatchEditStepDialog({
               </Select>
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Rig</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Rig</Label>
               <Select value={rig} onValueChange={setRig} disabled={hasStation}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1101,7 +1101,7 @@ function BatchEditStepDialog({
               </Select>
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Security</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Security</Label>
               <Select value={security} onValueChange={setSecurity} disabled={hasStation}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -1112,7 +1112,7 @@ function BatchEditStepDialog({
               </Select>
             </div>
             <div>
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Facility Tax %</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Facility Tax %</Label>
               <Input
                 type="number"
                 value={facilityTax}
@@ -1123,7 +1123,7 @@ function BatchEditStepDialog({
               />
             </div>
             <div className="col-span-2">
-              <Label className="text-sm text-[#94a3b8] mb-1 block">Station Name</Label>
+              <Label className="text-sm text-text-secondary mb-1 block">Station Name</Label>
               <Input
                 value={stationName}
                 onChange={(e) => setStationName(e.target.value)}
@@ -1142,7 +1142,7 @@ function BatchEditStepDialog({
               <Button
                 size="sm"
                 variant="outline"
-                className="text-[11px] py-0.5 px-2 h-auto text-[#00d4ff] border-[#00d4ff]"
+                className="text-[11px] py-0.5 px-2 h-auto text-primary border-primary"
                 onClick={() => {
                   setMeLevel(detectedLevel.materialEfficiency);
                   setTeLevel(detectedLevel.timeEfficiency);
@@ -1157,17 +1157,17 @@ function BatchEditStepDialog({
           {hasStation && (
             <>
               <Separator className="border-[#1e293b] mt-1" />
-              <p className="text-[#94a3b8] text-sm font-semibold">Input Location</p>
-              <p className="text-[#64748b] text-xs">
+              <p className="text-text-secondary text-sm font-semibold">Input Location</p>
+              <p className="text-text-muted text-xs">
                 Where should materials for these steps be pulled from?
               </p>
 
               {!hangarsLoaded ? (
-                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
+                <p className="text-text-muted text-[13px]">Loading hangars...</p>
               ) : (
                 <div className="flex flex-col gap-3">
                   <div>
-                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Label className="text-sm text-text-secondary mb-1 block">Owner</Label>
                     <Select
                       value={selectedOwner ? `${selectedOwner.type}-${selectedOwner.id}` : "none"}
                       onValueChange={handleOwnerSelect}
@@ -1186,7 +1186,7 @@ function BatchEditStepDialog({
 
                   {selectedOwner?.type === "corporation" && divisionOptions.length > 0 && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Hangar Division</Label>
                       <Select
                         value={selectedDivision ? String(selectedDivision.number) : "none"}
                         onValueChange={handleDivisionSelect}
@@ -1206,7 +1206,7 @@ function BatchEditStepDialog({
 
                   {selectedOwner && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Container (optional)</Label>
                       <Select
                         value={selectedContainer ? String(selectedContainer.id) : "none"}
                         onValueChange={(val) => {
@@ -1232,17 +1232,17 @@ function BatchEditStepDialog({
               )}
 
               <Separator className="border-[#1e293b] mt-1" />
-              <p className="text-[#94a3b8] text-sm font-semibold">Output Location</p>
-              <p className="text-[#64748b] text-xs">
+              <p className="text-text-secondary text-sm font-semibold">Output Location</p>
+              <p className="text-text-muted text-xs">
                 Where should completed items from these jobs be delivered?
               </p>
 
               {!hangarsLoaded ? (
-                <p className="text-[#64748b] text-[13px]">Loading hangars...</p>
+                <p className="text-text-muted text-[13px]">Loading hangars...</p>
               ) : (
                 <div className="flex flex-col gap-3">
                   <div>
-                    <Label className="text-sm text-[#94a3b8] mb-1 block">Owner</Label>
+                    <Label className="text-sm text-text-secondary mb-1 block">Owner</Label>
                     <Select
                       value={selectedOutputOwner ? `${selectedOutputOwner.type}-${selectedOutputOwner.id}` : "none"}
                       onValueChange={handleOutputOwnerSelect}
@@ -1261,7 +1261,7 @@ function BatchEditStepDialog({
 
                   {selectedOutputOwner?.type === "corporation" && outputDivisionOptions.length > 0 && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Hangar Division</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Hangar Division</Label>
                       <Select
                         value={selectedOutputDivision ? String(selectedOutputDivision.number) : "none"}
                         onValueChange={handleOutputDivisionSelect}
@@ -1281,7 +1281,7 @@ function BatchEditStepDialog({
 
                   {selectedOutputOwner && (
                     <div>
-                      <Label className="text-sm text-[#94a3b8] mb-1 block">Container (optional)</Label>
+                      <Label className="text-sm text-text-secondary mb-1 block">Container (optional)</Label>
                       <Select
                         value={selectedOutputContainer ? String(selectedOutputContainer.id) : "none"}
                         onValueChange={(val) => {

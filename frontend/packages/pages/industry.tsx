@@ -94,7 +94,7 @@ export default function Industry() {
     <>
       <Navbar />
       <div className="px-4 mt-2 mb-4">
-        <h2 className="text-xl font-semibold text-[#e2e8f0] mb-2">
+        <h2 className="text-xl font-semibold text-text-emphasis mb-2">
           Industry Jobs
         </h2>
         <Tabs value={tab} onValueChange={handleTabChange}>

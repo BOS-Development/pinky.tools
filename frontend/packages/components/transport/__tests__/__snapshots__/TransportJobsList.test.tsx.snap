@@ -7,7 +7,7 @@ exports[`TransportJobsList should match snapshot while loading 1`] = `
   >
     <svg
       aria-hidden="true"
-      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-[#00d4ff]"
+      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-primary"
       fill="none"
       height="24"
       stroke="currentColor"
@@ -70,7 +70,7 @@ exports[`TransportJobsList should match snapshot with empty jobs 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-10"
@@ -131,7 +131,7 @@ exports[`TransportJobsList should match snapshot with empty jobs 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
           >
             <td
               class="align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] p-0 border-0"
@@ -232,7 +232,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-background-void"
           >
             <th
               class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-10"
@@ -299,7 +299,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] px-1"
             >
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)] h-6 w-6 text-[#94a3b8]"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)] h-6 w-6 text-text-secondary"
               >
                 <svg
                   aria-hidden="true"
@@ -325,7 +325,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
             >
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                style="background-color: rgba(0, 212, 255, 0.125); color: rgb(0, 212, 255);"
+                style="background-color: var(--color-primary-cyan)20; color: var(--color-primary-cyan);"
               >
                 Planned
               </span>
@@ -334,14 +334,14 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <p
-                class="text-sm font-medium text-[#e2e8f0]"
+                class="text-sm font-medium text-text-emphasis"
               >
                 Jita
                  → 
                 Amarr
               </p>
               <span
-                class="text-xs text-[#94a3b8]"
+                class="text-xs text-text-secondary"
               >
                 Jita IV - Moon 4 - Caldari Navy
                  → 
@@ -349,12 +349,12 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               </span>
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Freighter
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Self Haul
             </td>
@@ -369,7 +369,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               1.00B ISK
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#ef4444]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-rose-danger"
             >
               5.00M ISK
             </td>
@@ -379,7 +379,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               9
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Charon
             </td>
@@ -409,7 +409,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] px-1"
             >
               <button
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)] h-6 w-6 text-[#94a3b8]"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] hover:text-[var(--color-text-primary)] h-6 w-6 text-text-secondary"
               >
                 <svg
                   aria-hidden="true"
@@ -435,7 +435,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
             >
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                style="background-color: rgba(245, 158, 11, 0.125); color: rgb(245, 158, 11);"
+                style="background-color: var(--color-manufacturing-amber)20; color: var(--color-manufacturing-amber);"
               >
                 In Transit
               </span>
@@ -444,14 +444,14 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <p
-                class="text-sm font-medium text-[#e2e8f0]"
+                class="text-sm font-medium text-text-emphasis"
               >
                 Jita
                  → 
                 Amarr
               </p>
               <span
-                class="text-xs text-[#94a3b8]"
+                class="text-xs text-text-secondary"
               >
                 Jita IV - Moon 4 - Caldari Navy
                  → 
@@ -459,12 +459,12 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               </span>
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Jump Freighter
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               Self Haul
             </td>
@@ -479,7 +479,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               500.00M ISK
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#ef4444]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-rose-danger"
             >
               25.00M ISK
             </td>
@@ -489,7 +489,7 @@ exports[`TransportJobsList should match snapshot with jobs 1`] = `
               2
             </td>
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#94a3b8]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-secondary"
             >
               —
             </td>

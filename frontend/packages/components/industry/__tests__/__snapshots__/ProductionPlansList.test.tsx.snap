@@ -14,7 +14,7 @@ exports[`ProductionPlansList Component should match snapshot while loading 1`] =
       class="flex justify-between items-center mb-2"
     >
       <h2
-        class="text-xl font-semibold text-[#e2e8f0]"
+        class="text-xl font-semibold text-text-emphasis"
       >
         Production Plans
       </h2>
@@ -67,7 +67,7 @@ exports[`ProductionPlansList Component should match snapshot with empty plans 1`
       class="flex justify-between items-center mb-2"
     >
       <h2
-        class="text-xl font-semibold text-[#e2e8f0]"
+        class="text-xl font-semibold text-text-emphasis"
       >
         Production Plans
       </h2>
@@ -150,7 +150,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
       class="flex justify-between items-center mb-2"
     >
       <h2
-        class="text-xl font-semibold text-[#e2e8f0]"
+        class="text-xl font-semibold text-text-emphasis"
       >
         Production Plans
       </h2>
@@ -181,7 +181,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
       </button>
     </div>
     <div
-      class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
+      class="overflow-x-auto rounded-sm border border-overlay-subtle"
     >
       <div
         class="relative w-full overflow-auto"
@@ -193,7 +193,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
             class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
           >
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
+              class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
             >
               <th
                 class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -226,7 +226,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
             class="[&_tr:last-child]:border-0"
           >
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#12151f] hover:bg-[#1a1d2e] cursor-pointer"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-panel hover:bg-[#1a1d2e] cursor-pointer"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -242,24 +242,24 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
                     width="24"
                   />
                   <span
-                    class="text-[#e2e8f0] text-sm"
+                    class="text-text-emphasis text-sm"
                   >
                     Rifter
                   </span>
                 </div>
               </td>
               <td
-                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#cbd5e1] text-sm"
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-primary text-sm"
               >
                 Rifter Production
               </td>
               <td
-                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#cbd5e1] text-sm"
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-primary text-sm"
               >
                 1
               </td>
               <td
-                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#64748b] text-[13px]"
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-muted text-[13px]"
               >
                 2/22/2026
               </td>
@@ -268,7 +268,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
               >
                 <button
                   aria-label="Edit"
-                  class="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+                  class="p-1 rounded hover:bg-interactive-selected text-primary"
                 >
                   <svg
                     aria-hidden="true"
@@ -293,7 +293,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
                 </button>
                 <button
                   aria-label="Delete"
-                  class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                  class="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                 >
                   <svg
                     aria-hidden="true"
@@ -329,7 +329,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
               </td>
             </tr>
             <tr
-              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-[#0f1219] hover:bg-[#1a1d2e] cursor-pointer"
+              class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted bg-background-void hover:bg-[#1a1d2e] cursor-pointer"
             >
               <td
                 class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -345,24 +345,24 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
                     width="24"
                   />
                   <span
-                    class="text-[#e2e8f0] text-sm"
+                    class="text-text-emphasis text-sm"
                   >
                     Muninn
                   </span>
                 </div>
               </td>
               <td
-                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#cbd5e1] text-sm"
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-primary text-sm"
               >
                 Muninn Production
               </td>
               <td
-                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-[#cbd5e1] text-sm"
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-primary text-sm"
               >
                 2
               </td>
               <td
-                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-[#64748b] text-[13px]"
+                class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-text-muted text-[13px]"
               >
                 2/22/2026
               </td>
@@ -371,7 +371,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
               >
                 <button
                   aria-label="Edit"
-                  class="p-1 rounded hover:bg-[rgba(0,212,255,0.1)] text-[#00d4ff]"
+                  class="p-1 rounded hover:bg-interactive-selected text-primary"
                 >
                   <svg
                     aria-hidden="true"
@@ -396,7 +396,7 @@ exports[`ProductionPlansList Component should match snapshot with plans 1`] = `
                 </button>
                 <button
                   aria-label="Delete"
-                  class="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
+                  class="p-1 rounded hover:bg-rose-danger/10 text-rose-danger"
                 >
                   <svg
                     aria-hidden="true"

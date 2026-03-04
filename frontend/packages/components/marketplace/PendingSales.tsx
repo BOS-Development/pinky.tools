@@ -253,16 +253,16 @@ export default function PendingSales() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-[#00d4ff]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   if (pendingSales.length === 0) {
     return (
-      <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-        <h3 className="text-lg font-semibold text-[#94a3b8]">No pending sales</h3>
-        <p className="text-sm text-[#64748b] mt-1">
+      <div className="bg-background-panel rounded-sm border border-overlay-subtle p-8 text-center">
+        <h3 className="text-lg font-semibold text-text-secondary">No pending sales</h3>
+        <p className="text-sm text-text-muted mt-1">
           When buyers request to purchase your items, they will appear here.
         </p>
       </div>
@@ -273,10 +273,10 @@ export default function PendingSales() {
 
   return (
     <div>
-      <h3 className="text-lg font-semibold text-[#e2e8f0] mb-1">
+      <h3 className="text-lg font-semibold text-text-emphasis mb-1">
         Pending Sales ({pendingSales.length} items in {groupedSales.length} groups)
       </h3>
-      <p className="text-sm text-[#94a3b8] mb-4">
+      <p className="text-sm text-text-secondary mb-4">
         Sales are grouped by purchaser and station. Copy the contract key, create the in-game contract with the key in the description, then mark as &quot;Contract Created&quot;.
       </p>
 
@@ -288,11 +288,11 @@ export default function PendingSales() {
             key={key}
             open={isOpen}
             onOpenChange={() => toggleGroup(key)}
-            className="border border-[rgba(148,163,184,0.1)] rounded-sm mb-2 bg-[#12151f]"
+            className="border border-overlay-subtle rounded-sm mb-2 bg-background-panel"
           >
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-[rgba(0,212,255,0.04)] text-left">
+            <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 hover:bg-interactive-hover text-left">
               <div className="flex items-center gap-3 flex-1 flex-wrap">
-                <User className="h-4 w-4 text-[#64748b] shrink-0" />
+                <User className="h-4 w-4 text-text-muted shrink-0" />
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -303,19 +303,19 @@ export default function PendingSales() {
                           handleCopyBuyerName(group.buyerName);
                         }}
                       >
-                        <span className="font-semibold text-[#e2e8f0] group-hover:text-[#00d4ff] group-hover:underline">
+                        <span className="font-semibold text-text-emphasis group-hover:text-primary group-hover:underline">
                           {group.buyerName}
                         </span>
-                        <Copy className="h-3.5 w-3.5 text-[#64748b] group-hover:text-[#00d4ff]" />
+                        <Copy className="h-3.5 w-3.5 text-text-muted group-hover:text-primary" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>Click to copy buyer name</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <span className="text-[#64748b]">•</span>
-                <MapPin className="h-4 w-4 text-[#64748b] shrink-0" />
-                <span className="text-[#e2e8f0]">{group.locationName}</span>
-                <span className="text-[#64748b]">•</span>
+                <span className="text-text-muted">•</span>
+                <MapPin className="h-4 w-4 text-text-muted shrink-0" />
+                <span className="text-text-emphasis">{group.locationName}</span>
+                <span className="text-text-muted">•</span>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -326,32 +326,32 @@ export default function PendingSales() {
                           handleCopyTotal(group.totalValue);
                         }}
                       >
-                        <span className="text-lg font-semibold text-[#10b981] group-hover:text-[#34d399] group-hover:underline">
+                        <span className="text-lg font-semibold text-teal-success group-hover:text-[#34d399] group-hover:underline">
                           {group.totalValue.toLocaleString()} ISK
                         </span>
-                        <Copy className="h-3.5 w-3.5 text-[#10b981] group-hover:text-[#34d399]" />
+                        <Copy className="h-3.5 w-3.5 text-teal-success group-hover:text-[#34d399]" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>Click to copy total value</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
-                <span className="text-sm text-[#64748b]">
+                <span className="text-sm text-text-muted">
                   {group.aggregatedItems.length} item{group.aggregatedItems.length !== 1 ? 's' : ''}
                 </span>
               </div>
-              <ChevronDown className={cn("h-4 w-4 text-[#64748b] transition-transform shrink-0 ml-2", isOpen && "rotate-180")} />
+              <ChevronDown className={cn("h-4 w-4 text-text-muted transition-transform shrink-0 ml-2", isOpen && "rotate-180")} />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-4 pb-4">
                 <div className="mb-4 flex gap-4 items-start flex-wrap">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-[#94a3b8]">Contract Key:</span>
+                      <span className="text-sm font-medium text-text-secondary">Contract Key:</span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
-                              className="flex items-center gap-1 px-3 py-1.5 rounded-sm bg-[#00d4ff] text-[#0a0e1a] hover:bg-[#00bfdf] font-mono font-bold text-sm"
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-sm bg-primary text-[#0a0e1a] hover:bg-[#00bfdf] font-mono font-bold text-sm"
                               onClick={() => handleCopyContractKey(group.contractKey!)}
                             >
                               {group.contractKey}
@@ -362,7 +362,7 @@ export default function PendingSales() {
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <span className="text-xs text-[#64748b] italic ml-1">
+                    <span className="text-xs text-text-muted italic ml-1">
                       Copy this and paste into the in-game contract description
                     </span>
                   </div>
@@ -376,10 +376,10 @@ export default function PendingSales() {
                   </Button>
                 </div>
 
-                <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+                <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-[#0f1219]">
+                      <TableRow className="bg-background-void">
                         <TableHead>Item</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                         <TableHead className="text-right">Price/Unit</TableHead>
@@ -390,28 +390,28 @@ export default function PendingSales() {
                     </TableHeader>
                     <TableBody>
                       {group.aggregatedItems.map((agg) => (
-                        <TableRow key={agg.typeId} className="bg-[#12151f] hover:bg-[rgba(0,212,255,0.04)]">
-                          <TableCell className="text-[#e2e8f0]">
+                        <TableRow key={agg.typeId} className="bg-background-panel hover:bg-interactive-hover">
+                          <TableCell className="text-text-emphasis">
                             <div className="flex items-center gap-1.5">
                               {agg.typeName}
                               {agg.hasAutoFulfilled && (
-                                <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-[#10b981] border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
+                                <Badge className="text-[0.65rem] font-semibold h-5 bg-[rgba(16,185,129,0.15)] text-teal-success border border-[rgba(16,185,129,0.3)] hover:bg-[rgba(16,185,129,0.2)] cursor-default">
                                   Auto
                                 </Badge>
                               )}
                             </div>
                           </TableCell>
-                          <TableCell className="text-right text-[#e2e8f0]">{agg.totalQuantity.toLocaleString()}</TableCell>
-                          <TableCell className="text-right text-[#e2e8f0]">{agg.pricePerUnit.toLocaleString()} ISK</TableCell>
+                          <TableCell className="text-right text-text-emphasis">{agg.totalQuantity.toLocaleString()}</TableCell>
+                          <TableCell className="text-right text-text-emphasis">{agg.pricePerUnit.toLocaleString()} ISK</TableCell>
                           <TableCell className="text-right">
-                            <span className="font-semibold text-[#10b981]">
+                            <span className="font-semibold text-teal-success">
                               {agg.totalPrice.toLocaleString()} ISK
                             </span>
                           </TableCell>
                           {group.aggregatedItems.some(a => a.notes.length > 0) && (
                             <TableCell>
                               {agg.notes.length > 0 && (
-                                <span className="text-xs text-[#64748b]">{agg.notes.join('; ')}</span>
+                                <span className="text-xs text-text-muted">{agg.notes.join('; ')}</span>
                               )}
                             </TableCell>
                           )}

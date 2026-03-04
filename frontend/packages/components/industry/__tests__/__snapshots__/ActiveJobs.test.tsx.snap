@@ -7,7 +7,7 @@ exports[`ActiveJobs Component should match snapshot when loading 1`] = `
   >
     <svg
       aria-hidden="true"
-      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-[#00d4ff]"
+      class="lucide lucide-loader-circle h-8 w-8 animate-spin text-primary"
       fill="none"
       height="24"
       stroke="currentColor"
@@ -29,7 +29,7 @@ exports[`ActiveJobs Component should match snapshot when loading 1`] = `
 exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
 <div>
   <div
-    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
+    class="overflow-x-auto rounded-sm border border-overlay-subtle"
   >
     <div
       class="relative w-full overflow-auto"
@@ -41,7 +41,7 @@ exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <th
               class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
@@ -104,10 +104,10 @@ exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted"
           >
             <td
-              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-4 text-[#64748b]"
+              class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center py-4 text-text-muted"
               colspan="11"
             >
               No active industry jobs
@@ -123,7 +123,7 @@ exports[`ActiveJobs Component should match snapshot with empty jobs 1`] = `
 exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
 <div>
   <div
-    class="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]"
+    class="overflow-x-auto rounded-sm border border-overlay-subtle"
   >
     <div
       class="relative w-full overflow-auto"
@@ -135,7 +135,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
           class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0f1219]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
           >
             <th
               class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
@@ -198,7 +198,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
           class="[&_tr:last-child]:border-0"
         >
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#0d1117]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-[#0d1117]"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
@@ -209,7 +209,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  class="lucide lucide-user h-[18px] w-[18px] text-[#94a3b8]"
+                  class="lucide lucide-user h-[18px] w-[18px] text-text-secondary"
                   fill="none"
                   height="24"
                   stroke="currentColor"
@@ -235,7 +235,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 Rifter Blueprint
               </span>
@@ -244,7 +244,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 Rifter
               </span>
@@ -253,7 +253,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 Manufacturing
               </span>
@@ -262,7 +262,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 10
               </span>
@@ -271,7 +271,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 Test Pilot
               </span>
@@ -280,7 +280,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(16,185,129,0.1)] border-[rgba(16,185,129,0.3)] text-[#10b981] cursor-default"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-teal-success/10 border-[rgba(16,185,129,0.3)] text-teal-success cursor-default"
               >
                 active
               </div>
@@ -289,7 +289,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#00d4ff]"
+                class="text-sm text-primary"
               >
                 Ready
               </span>
@@ -298,7 +298,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 1h 0m
               </span>
@@ -307,7 +307,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 1.50M ISK
               </span>
@@ -316,14 +316,14 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 Jita
               </span>
             </td>
           </tr>
           <tr
-            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-[rgba(0,212,255,0.04)] data-[state=selected]:bg-muted bg-[#12151f]"
+            class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-panel"
           >
             <td
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
@@ -334,7 +334,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               >
                 <svg
                   aria-hidden="true"
-                  class="lucide lucide-building2 lucide-building-2 h-[18px] w-[18px] text-[#f59e0b]"
+                  class="lucide lucide-building2 lucide-building-2 h-[18px] w-[18px] text-amber-manufacturing"
                   fill="none"
                   height="24"
                   stroke="currentColor"
@@ -367,7 +367,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 Reaction Blueprint
               </span>
@@ -376,7 +376,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 -
               </span>
@@ -385,7 +385,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 Reaction
               </span>
@@ -394,7 +394,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#e2e8f0]"
+                class="text-sm text-text-emphasis"
               >
                 100
               </span>
@@ -403,7 +403,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 Corp Alt
               </span>
@@ -412,7 +412,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <div
-                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-[rgba(0,212,255,0.1)] border-[rgba(0,212,255,0.3)] text-[#00d4ff] cursor-default"
+                class="inline-flex items-center rounded-sm px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] shadow hover:bg-[var(--color-primary-cyan)]/20 border bg-interactive-selected border-border-active text-primary cursor-default"
               >
                 ready
               </div>
@@ -421,7 +421,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 Ready
               </span>
@@ -430,7 +430,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 2h 0m
               </span>
@@ -439,7 +439,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
             >
               <span
-                class="text-sm text-[#cbd5e1]"
+                class="text-sm text-text-primary"
               >
                 -
               </span>
@@ -448,7 +448,7 @@ exports[`ActiveJobs Component should match snapshot with jobs 1`] = `
               class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
             >
               <span
-                class="text-sm text-[#94a3b8]"
+                class="text-sm text-text-secondary"
               >
                 -
               </span>

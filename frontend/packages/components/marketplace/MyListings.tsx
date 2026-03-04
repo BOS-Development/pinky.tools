@@ -171,20 +171,20 @@ export default function MyListings() {
   return (
     <div className="w-full mt-4 mb-4">
       <div className="mb-3">
-        <h1 className="text-2xl font-bold text-[#e2e8f0] mb-4">My Listings</h1>
+        <h1 className="text-2xl font-bold text-text-emphasis mb-4">My Listings</h1>
 
         {/* Summary Stats */}
         <div className="flex gap-4 mb-6">
-          <Card className="flex-1 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <Card className="flex-1 bg-background-panel border-overlay-subtle">
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-[#94a3b8] mb-1">Active Listings</h3>
-              <p className="text-3xl font-bold text-[#e2e8f0]">{filteredListings.length}</p>
+              <h3 className="text-lg font-semibold text-text-secondary mb-1">Active Listings</h3>
+              <p className="text-3xl font-bold text-text-emphasis">{filteredListings.length}</p>
             </CardContent>
           </Card>
-          <Card className="flex-1 bg-[#12151f] border-[rgba(148,163,184,0.1)]">
+          <Card className="flex-1 bg-background-panel border-overlay-subtle">
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold text-[#94a3b8] mb-1">Total Value</h3>
-              <p className="text-3xl font-bold text-[#e2e8f0]">
+              <h3 className="text-lg font-semibold text-text-secondary mb-1">Total Value</h3>
+              <p className="text-3xl font-bold text-text-emphasis">
                 {totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK
               </p>
             </CardContent>
@@ -193,7 +193,7 @@ export default function MyListings() {
 
         {/* Search */}
         <div className="mb-4 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#64748b]" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-muted" />
           <Input
             className="pl-9"
             placeholder="Search items, owners, or locations..."
@@ -214,10 +214,10 @@ export default function MyListings() {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+        <div className="overflow-x-auto rounded-sm border border-overlay-subtle">
           <Table>
             <TableHeader>
-              <TableRow className="bg-[#0f1219]">
+              <TableRow className="bg-background-void">
                 <TableHead>Item</TableHead>
                 <TableHead>Owner</TableHead>
                 <TableHead>Location</TableHead>
@@ -232,9 +232,9 @@ export default function MyListings() {
               {filteredListings.map((item, idx) => (
                 <TableRow
                   key={item.id}
-                  className={cn(idx % 2 === 0 ? 'bg-[#12151f]' : 'bg-[#0f1219]', 'hover:bg-[rgba(0,212,255,0.04)]')}
+                  className={cn(idx % 2 === 0 ? 'bg-background-panel' : 'bg-background-void', 'hover:bg-interactive-hover')}
                 >
-                  <TableCell className="font-semibold text-[#e2e8f0]">
+                  <TableCell className="font-semibold text-text-emphasis">
                     <div className="flex items-center gap-2">
                       {item.typeName}
                       {item.autoSellContainerId && (
@@ -242,7 +242,7 @@ export default function MyListings() {
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge
-                                className="text-[0.65rem] font-semibold h-[22px] bg-[rgba(0,212,255,0.15)] text-[#00d4ff] border border-[rgba(0,212,255,0.3)] hover:bg-[rgba(0,212,255,0.2)] cursor-default flex items-center gap-1"
+                                className="text-[0.65rem] font-semibold h-[22px] bg-interactive-active text-primary border border-border-active hover:bg-[rgba(0,212,255,0.2)] cursor-default flex items-center gap-1"
                               >
                                 <AutoSellIcon />
                                 Auto
@@ -254,21 +254,21 @@ export default function MyListings() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-[#94a3b8]">{item.ownerName}</TableCell>
-                  <TableCell className="text-[#94a3b8]">{item.locationName}</TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">{item.quantityAvailable.toLocaleString()}</TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">
+                  <TableCell className="text-text-secondary">{item.ownerName}</TableCell>
+                  <TableCell className="text-text-secondary">{item.locationName}</TableCell>
+                  <TableCell className="text-right text-text-emphasis">{item.quantityAvailable.toLocaleString()}</TableCell>
+                  <TableCell className="text-right text-text-emphasis">
                     {item.pricePerUnit.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </TableCell>
-                  <TableCell className="text-right text-[#e2e8f0]">
+                  <TableCell className="text-right text-text-emphasis">
                     {(item.quantityAvailable * item.pricePerUnit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </TableCell>
-                  <TableCell className="text-[#94a3b8]">{item.notes || '-'}</TableCell>
+                  <TableCell className="text-text-secondary">{item.notes || '-'}</TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-[#60a5fa] hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
+                      className="h-8 w-8 text-blue-science hover:text-[#93c5fd] hover:bg-[rgba(96,165,250,0.1)]"
                       onClick={() => handleEditClick(item)}
                       aria-label="edit"
                     >
@@ -277,7 +277,7 @@ export default function MyListings() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-[#ef4444] hover:text-[#f87171] hover:bg-[rgba(239,68,68,0.1)]"
+                      className="h-8 w-8 text-rose-danger hover:text-[#f87171] hover:bg-rose-danger/10"
                       onClick={() => handleDelete(item.id)}
                       aria-label="delete"
                     >
@@ -293,21 +293,21 @@ export default function MyListings() {
 
       {/* Edit Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-sm bg-[#12151f] border-[rgba(148,163,184,0.15)]">
+        <DialogContent className="max-w-sm bg-background-panel border-overlay-medium">
           <DialogHeader>
-            <DialogTitle className="text-[#e2e8f0]">Edit Listing</DialogTitle>
+            <DialogTitle className="text-text-emphasis">Edit Listing</DialogTitle>
           </DialogHeader>
           {selectedListing && (
             <div className="flex flex-col gap-4 mt-1">
-              <p className="text-sm text-[#94a3b8]">
-                Item: <strong className="text-[#e2e8f0]">{selectedListing.typeName}</strong>
+              <p className="text-sm text-text-secondary">
+                Item: <strong className="text-text-emphasis">{selectedListing.typeName}</strong>
               </p>
-              <p className="text-sm text-[#94a3b8]">
-                Location: <strong className="text-[#e2e8f0]">{selectedListing.locationName}</strong>
+              <p className="text-sm text-text-secondary">
+                Location: <strong className="text-text-emphasis">{selectedListing.locationName}</strong>
               </p>
 
               <div>
-                <label className="text-sm text-[#94a3b8] mb-1 block">Quantity Available</label>
+                <label className="text-sm text-text-secondary mb-1 block">Quantity Available</label>
                 <Input
                   type="number"
                   value={formData.quantityAvailable || ''}
@@ -317,7 +317,7 @@ export default function MyListings() {
               </div>
 
               <div>
-                <label className="text-sm text-[#94a3b8] mb-1 block">Price Per Unit (ISK)</label>
+                <label className="text-sm text-text-secondary mb-1 block">Price Per Unit (ISK)</label>
                 <Input
                   type="number"
                   value={formData.pricePerUnit || ''}
@@ -327,10 +327,10 @@ export default function MyListings() {
               </div>
 
               <div>
-                <label className="text-sm text-[#94a3b8] mb-1 block">Notes (optional)</label>
+                <label className="text-sm text-text-secondary mb-1 block">Notes (optional)</label>
                 <textarea
                   rows={3}
-                  className="w-full rounded-sm border border-[rgba(148,163,184,0.2)] bg-[#0f1219] text-[#e2e8f0] text-sm px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-[#00d4ff] focus:border-[#00d4ff]"
+                  className="w-full rounded-sm border border-overlay-strong bg-background-void text-text-emphasis text-sm px-3 py-2 resize-none focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                   value={formData.notes || ''}
                   onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 />
