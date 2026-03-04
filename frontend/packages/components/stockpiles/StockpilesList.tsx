@@ -166,7 +166,7 @@ export default function StockpilesList() {
             <Card>
               <CardContent className="p-4">
                 <p className="text-sm text-[var(--color-text-secondary)] mb-1">Items Below Target</p>
-                <p className="text-3xl font-bold text-[var(--color-text-emphasis)]">{filteredItems.length}</p>
+                <p className="text-3xl font-bold text-[var(--color-data-value)]">{filteredItems.length}</p>
               </CardContent>
             </Card>
             <Card>
@@ -178,7 +178,7 @@ export default function StockpilesList() {
             <Card>
               <CardContent className="p-4">
                 <p className="text-sm text-[var(--color-text-secondary)] mb-1">Total Volume</p>
-                <p className="text-3xl font-bold text-[var(--color-text-emphasis)]">
+                <p className="text-3xl font-bold text-[var(--color-data-value)]">
                   {totalVolume.toLocaleString(undefined, { maximumFractionDigits: 2 })} m&sup3;
                 </p>
               </CardContent>

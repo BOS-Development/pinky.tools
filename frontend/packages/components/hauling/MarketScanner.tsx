@@ -204,7 +204,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
       <div className="w-full px-4 mt-8 mb-8">
         {/* Header */}
         <div className="flex items-center gap-2 mb-6">
-          <ScanSearch className="h-7 w-7 text-primary" />
+          <ScanSearch className="h-7 w-7 text-text-secondary" />
           <h1 className="text-2xl font-bold text-text-emphasis">Market Scanner</h1>
         </div>
 

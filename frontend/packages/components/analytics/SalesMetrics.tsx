@@ -153,7 +153,7 @@ export default function SalesMetrics() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Total Revenue</span>
-              <DollarSign className="h-5 w-5 text-primary" />
+              <DollarSign className="h-5 w-5 text-text-secondary" />
             </div>
             <p className="text-2xl font-bold text-teal-success" style={{ fontFamily: FONT_NUMERIC }}>
               {formatISK(metrics.totalRevenue)}
@@ -167,7 +167,7 @@ export default function SalesMetrics() {
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Transactions</span>
               <ShoppingCart className="h-5 w-5 text-category-violet" />
             </div>
-            <p className="text-2xl font-bold text-text-emphasis" style={{ fontFamily: FONT_NUMERIC }}>
+            <p className="text-2xl font-bold text-[var(--color-data-value)]" style={{ fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.totalTransactions)}
             </p>
           </CardContent>
@@ -177,9 +177,9 @@ export default function SalesMetrics() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Items Sold</span>
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <TrendingUp className="h-5 w-5 text-text-secondary" />
             </div>
-            <p className="text-2xl font-bold text-text-emphasis" style={{ fontFamily: FONT_NUMERIC }}>
+            <p className="text-2xl font-bold text-[var(--color-data-value)]" style={{ fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.totalQuantitySold)}
             </p>
           </CardContent>
@@ -191,7 +191,7 @@ export default function SalesMetrics() {
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Unique Items</span>
               <Box className="h-5 w-5 text-amber-manufacturing" />
             </div>
-            <p className="text-2xl font-bold text-text-emphasis" style={{ fontFamily: FONT_NUMERIC }}>
+            <p className="text-2xl font-bold text-[var(--color-data-value)]" style={{ fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.uniqueItemTypes)}
             </p>
           </CardContent>
@@ -203,7 +203,7 @@ export default function SalesMetrics() {
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Unique Buyers</span>
               <Users className="h-5 w-5 text-teal-success" />
             </div>
-            <p className="text-2xl font-bold text-text-emphasis" style={{ fontFamily: FONT_NUMERIC }}>
+            <p className="text-2xl font-bold text-[var(--color-data-value)]" style={{ fontFamily: FONT_NUMERIC }}>
               {formatNumber(metrics.uniqueBuyers)}
             </p>
           </CardContent>
@@ -213,9 +213,9 @@ export default function SalesMetrics() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between mb-3">
               <span className="text-text-secondary uppercase text-xs font-semibold tracking-wide">Avg / Transaction</span>
-              <DollarSign className="h-5 w-5 text-primary" />
+              <DollarSign className="h-5 w-5 text-text-secondary" />
             </div>
-            <p className="text-2xl font-bold text-text-emphasis" style={{ fontFamily: FONT_NUMERIC }}>
+            <p className="text-2xl font-bold text-[var(--color-data-value)]" style={{ fontFamily: FONT_NUMERIC }}>
               {metrics.totalTransactions > 0
                 ? formatISK(metrics.totalRevenue / metrics.totalTransactions)
                 : '0 ISK'}

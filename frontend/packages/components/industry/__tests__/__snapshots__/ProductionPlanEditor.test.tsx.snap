@@ -111,7 +111,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
         <button
           aria-controls="radix-_r_0_-content-step-tree"
           aria-selected="true"
-          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-primary-cyan)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary-cyan)] -mb-px"
+          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-cyan-muted)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-cyan-muted)] -mb-px"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="active"
@@ -125,7 +125,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
         <button
           aria-controls="radix-_r_0_-content-batch-configure"
           aria-selected="false"
-          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-primary-cyan)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary-cyan)] -mb-px"
+          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-cyan-muted)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-cyan-muted)] -mb-px"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
@@ -139,7 +139,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
         <button
           aria-controls="radix-_r_0_-content-transport"
           aria-selected="false"
-          class="justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-primary-cyan)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary-cyan)] -mb-px flex items-center gap-1"
+          class="justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-cyan-muted)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-cyan-muted)] -mb-px flex items-center gap-1"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
@@ -210,27 +210,27 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                   class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
                 >
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     Item / Material
                   </th>
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     ME / TE
                   </th>
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     Structure / Rig / Sec
                   </th>
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     Station
                   </th>
                   <th
-                    class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+                    class="h-10 px-2 align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
                   >
                     Actions
                   </th>
@@ -287,7 +287,7 @@ exports[`ProductionPlanEditor Component should match snapshot with loaded plan 1
                         Rifter
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-text-secondary)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
                       >
                         manufacturing
                       </div>
@@ -661,7 +661,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
         <button
           aria-controls="radix-_r_2q_-content-step-tree"
           aria-selected="true"
-          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-primary-cyan)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary-cyan)] -mb-px"
+          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-cyan-muted)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-cyan-muted)] -mb-px"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="active"
@@ -675,7 +675,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
         <button
           aria-controls="radix-_r_2q_-content-batch-configure"
           aria-selected="false"
-          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-primary-cyan)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary-cyan)] -mb-px"
+          class="inline-flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-cyan-muted)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-cyan-muted)] -mb-px"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
@@ -689,7 +689,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
         <button
           aria-controls="radix-_r_2q_-content-transport"
           aria-selected="false"
-          class="justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-primary-cyan)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-primary-cyan)] -mb-px flex items-center gap-1"
+          class="justify-center whitespace-nowrap px-3 py-2 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 text-muted-foreground data-[state=active]:text-[var(--color-cyan-muted)] data-[state=active]:border-b-2 data-[state=active]:border-[var(--color-cyan-muted)] -mb-px flex items-center gap-1"
           data-orientation="horizontal"
           data-radix-collection-item=""
           data-state="inactive"
@@ -760,27 +760,27 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                   class="border-b border-[var(--color-border-dim)] transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void"
                 >
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     Item / Material
                   </th>
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     ME / TE
                   </th>
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     Structure / Rig / Sec
                   </th>
                   <th
-                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                   >
                     Station
                   </th>
                   <th
-                    class="h-10 px-2 align-middle font-semibold text-[var(--color-primary-cyan)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+                    class="h-10 px-2 align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
                   >
                     Actions
                   </th>
@@ -837,7 +837,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                         Rifter
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-text-secondary)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-bg-science text-blue-science hover:bg-bg-science"
                       >
                         manufacturing
                       </div>
@@ -957,7 +957,7 @@ exports[`ProductionPlanEditor Component should match snapshot with multi-step pl
                         Morphite
                       </span>
                       <div
-                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-primary-cyan)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-category-violet/10 text-category-violet hover:bg-category-violet/10"
+                        class="inline-flex items-center rounded-sm px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border border-[var(--color-text-secondary)]/30 shadow ml-1 h-5 text-[11px] cursor-default bg-category-violet/10 text-category-violet hover:bg-category-violet/10"
                       >
                         reaction
                       </div>

@@ -173,6 +173,13 @@ try {
 **Accent blue (secondary actions):** `accent-blue`, `accent-blue-hover`, `accent-blue-muted`
 **Semantic backgrounds:** `bg-manufacturing`, `bg-science`, `bg-warning`
 
+**Visual hierarchy — 3 tiers:**
+- **Interactive** (`text-primary` / `--color-primary-cyan`): buttons, links, nav items, focus rings, spinners
+- **Headings** (`text-text-heading` / `--color-heading`): h1/h2, dialog titles, table headers, section headings
+- **Data values** (`text-text-data-value` / `--color-data-value`): KPI numbers, quantities, statistics (warm gold)
+- Active tab indicators use `--color-cyan-muted` (dimmed), not primary cyan
+- Default badges are neutral (overlay-subtle), not cyan
+
 **Text hierarchy:** `text-text-emphasis` → `text-text-primary` → `text-text-secondary` → `text-text-muted`
 **Borders:** `border-dim` (cyan subtle), `border-active` (cyan visible), `border-overlay-subtle/medium/strong` (neutral)
 **Interactive:** `interactive-hover`, `interactive-active`, `interactive-selected`

@@ -63,6 +63,8 @@ const config: Config = {
           secondary: "var(--color-text-secondary)",
           muted: "var(--color-text-muted)",
           emphasis: "var(--color-text-emphasis)",
+          heading: "var(--color-heading)",
+          "data-value": "var(--color-data-value)",
         },
         // shadcn/ui semantic tokens
         foreground: "hsl(var(--foreground))",

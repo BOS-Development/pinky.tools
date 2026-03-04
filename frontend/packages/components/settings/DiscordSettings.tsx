@@ -298,7 +298,7 @@ export default function DiscordSettings() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Bell className="h-5 w-5 text-[var(--color-primary-cyan)]" />
+            <Bell className="h-5 w-5 text-[var(--color-text-secondary)]" />
             <h3 className="text-lg font-semibold text-[var(--color-text-emphasis)]">Discord Notifications</h3>
           </div>
 

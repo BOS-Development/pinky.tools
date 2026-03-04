@@ -38,7 +38,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
       value: `${summary.total_slots}`,
       subtitle: `${summary.intermediate_slots} intermediate + ${summary.complex_slots} complex`,
       icon: <LayoutGrid className="h-5 w-5" />,
-      color: 'var(--color-primary-cyan)',
+      color: 'var(--color-data-value)',
     },
     {
       label: 'Investment',
@@ -93,7 +93,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
 
       {planData.intermediates.length > 0 && (
         <>
-          <h3 className="text-sm font-bold mb-2 text-[var(--color-primary-cyan)] uppercase tracking-wider">Intermediate Reactions</h3>
+          <h3 className="text-sm font-bold mb-2 text-[var(--color-heading)] uppercase tracking-wider">Intermediate Reactions</h3>
           <div className="mb-6">
             <Table>
               <TableHeader>
@@ -141,7 +141,7 @@ export default function PlanSummary({ planData, reactionsData, selections, loadi
 
       {selectedReactions.length > 0 && (
         <>
-          <h3 className="text-sm font-bold mb-2 text-[var(--color-primary-cyan)] uppercase tracking-wider">Complex Reactions</h3>
+          <h3 className="text-sm font-bold mb-2 text-[var(--color-heading)] uppercase tracking-wider">Complex Reactions</h3>
           <Table>
             <TableHeader>
               <TableRow className="bg-[var(--color-bg-panel)]">

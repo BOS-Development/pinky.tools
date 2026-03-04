@@ -55,7 +55,7 @@ export default function Home() {
                       ? '0 ISK'
                       : `${assetMetrics.totalValue.toLocaleString(undefined, { maximumFractionDigits: 0 })} ISK`
                     }
-                    color="var(--color-primary-cyan)"
+                    color="var(--color-data-value)"
                   />
                   <MetricCard
                     label="Stockpile Deficit"
