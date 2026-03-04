@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { Rocket, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Rocket, ChevronDown, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -83,6 +83,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [pendingCount, setPendingCount] = useState(0);
   const [scopeWarning, setScopeWarning] = useState(false);
+  const [scopeDismissed, setScopeDismissed] = useState(false);
 
   useEffect(() => {
     if (!session?.providerAccountId) return;
@@ -137,7 +138,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 mr-4 text-[var(--color-primary-cyan)] hover:text-[var(--color-primary-cyan)] transition-colors">
             <Rocket className="h-5 w-5" />
-            <span className="font-display font-semibold text-lg hidden sm:inline">EVE Industry Tool</span>
+            <span className="font-display font-semibold text-lg hidden sm:inline">pinky.tools</span>
           </Link>
 
           {/* Nav Items */}
@@ -229,16 +230,26 @@ export default function Navbar() {
       <div className="h-16" />
 
       {/* Scope warning banner */}
-      {scopeWarning && (
+      {scopeWarning && !scopeDismissed && (
         <Alert className="rounded-none border-x-0 border-t-0 border-[var(--color-manufacturing-amber)]/30 bg-[var(--color-manufacturing-amber)]/10">
           <AlertTriangle className="h-4 w-4 text-[var(--color-manufacturing-amber)]" />
           <AlertDescription className="flex items-center justify-between w-full">
             <span className="text-[var(--color-manufacturing-amber)]">
               Some characters or corporations need to be re-authorized with updated permissions.
             </span>
-            <Button variant="ghost" size="sm" asChild className="text-[var(--color-manufacturing-amber)] hover:text-[var(--color-manufacturing-amber)]">
-              <a href="/characters">View</a>
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" asChild className="text-[var(--color-manufacturing-amber)] hover:text-[var(--color-manufacturing-amber)]">
+                <a href="/characters">View</a>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setScopeDismissed(true)}
+                className="text-[var(--color-manufacturing-amber)] hover:text-[var(--color-manufacturing-amber)] h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
           </AlertDescription>
         </Alert>
       )}

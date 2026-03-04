@@ -25,8 +25,8 @@ const exo2 = Exo_2({
 });
 
 export const metadata: Metadata = {
-  title: "Eve Inventory Tool",
-  description: "Created by Omega Security",
+  title: "pinky.tools",
+  description: "Real-time asset tracking and market intelligence for EVE Online",
 };
 
 export default function RootLayout({

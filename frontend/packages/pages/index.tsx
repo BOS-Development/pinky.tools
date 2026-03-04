@@ -38,7 +38,7 @@ export default function Home() {
               className="w-[100px] h-auto mb-2 rounded drop-shadow-[0_0_24px_rgba(0,212,255,0.3)]"
             />
             <h1 className="text-3xl font-bold tracking-tight text-[#f1f5f9] mb-1">
-              EVE Industry Tool
+              pinky.tools
             </h1>
             <p className="text-[0.9375rem] leading-relaxed text-[#94a3b8] mb-4 max-w-[480px] mx-auto">
               Real-time asset tracking, stockpile management, and market intelligence
@@ -93,7 +93,7 @@ export default function Home() {
         {/* Footer */}
         <div className="py-2 text-center">
           <p className="text-xs text-[rgba(148,163,184,0.6)]">
-            EVE Industry Tool is not affiliated with CCP Games. EVE Online and the EVE logo
+            pinky.tools is not affiliated with CCP Games. EVE Online and the EVE logo
             are the intellectual property of CCP hf.
           </p>
         </div>
