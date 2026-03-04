@@ -351,9 +351,9 @@ export default function PlanetOverview({ embedded }: { embedded?: boolean }) {
 
       {/* Planet Grid */}
       {filteredPlanets.length === 0 ? (
-        <div className="text-center py-16">
-          <Globe className="w-12 h-12 text-[#475569] mx-auto mb-2" />
-          <p className="text-[#64748b]">
+        <div className="empty-state">
+          <Globe className="empty-state-icon" />
+          <p className="empty-state-title">
             {planets.length === 0
               ? 'No planets found. Make sure your characters have the PI scope and data has been refreshed.'
               : 'No planets match your search.'}

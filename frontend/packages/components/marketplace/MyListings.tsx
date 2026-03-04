@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useSession } from "next-auth/react";
-import { Edit, Trash2, Search, Repeat, Tag } from 'lucide-react';
+import { Edit, Trash2, Search, Repeat, Tag, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -205,15 +205,14 @@ export default function MyListings() {
 
       {/* Listings Table */}
       {filteredListings.length === 0 ? (
-        <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-semibold text-center text-[#94a3b8]">
-              {listings.length === 0
-                ? 'No active listings. Create your first listing to get started!'
-                : 'No items match your search.'}
-            </h3>
-          </CardContent>
-        </Card>
+        <div className="empty-state">
+          <ShoppingBag className="empty-state-icon" />
+          <p className="empty-state-title">
+            {listings.length === 0
+              ? 'No active listings. Create your first listing to get started!'
+              : 'No items match your search.'}
+          </p>
+        </div>
       ) : (
         <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
           <Table>

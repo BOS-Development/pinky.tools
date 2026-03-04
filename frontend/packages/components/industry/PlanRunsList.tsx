@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import { PlanRun } from "@industry-tool/client/data/models";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import { XCircle } from "lucide-react";
+import { XCircle, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -107,10 +107,10 @@ export default function PlanRunsList() {
         {loading ? (
           <Loading />
         ) : runs.length === 0 ? (
-          <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-            <p className="text-[#64748b]">
-              No plan runs yet. Generate jobs from a production plan to create a
-              run.
+          <div className="empty-state">
+            <Play className="empty-state-icon" />
+            <p className="empty-state-title">
+              No plan runs yet. Generate jobs from a production plan to create a run.
             </p>
           </div>
         ) : (

@@ -8,7 +8,7 @@ import {
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
 import ProductionPlanEditor from "./ProductionPlanEditor";
-import { ArrowLeft, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Loader2, Factory } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -131,10 +131,10 @@ export default function ProductionPlansList() {
         {loading ? (
           <Loading />
         ) : plans.length === 0 ? (
-          <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
-            <p className="text-[#64748b]">
-              No production plans yet. Create one to define how items should be
-              produced.
+          <div className="empty-state">
+            <Factory className="empty-state-icon" />
+            <p className="empty-state-title">
+              No production plans yet. Create one to define how items should be produced.
             </p>
           </div>
         ) : (

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import { AlertTriangle, DollarSign, Copy, ExternalLink, Search } from 'lucide-react';
+import { AlertTriangle, DollarSign, Copy, ExternalLink, Search, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -246,15 +246,14 @@ export default function StockpilesList() {
 
         {/* Items Table */}
         {filteredItems.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <p className="text-lg text-[var(--color-text-secondary)]">
-                {stockpileItems.length === 0
-                  ? 'No stockpiles need replenishment!'
-                  : 'No items match your search.'}
-              </p>
-            </CardContent>
-          </Card>
+          <div className="empty-state">
+            <Package className="empty-state-icon" />
+            <p className="empty-state-title">
+              {stockpileItems.length === 0
+                ? 'No stockpiles need replenishment!'
+                : 'No items match your search.'}
+            </p>
+          </div>
         ) : (
           <Card>
             <CardContent className="p-0">

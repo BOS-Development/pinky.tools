@@ -200,13 +200,10 @@ export default function HaulingRunsList() {
 
         {/* Runs Table */}
         {runs.length === 0 ? (
-          <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
-            <CardContent className="py-8">
-              <p className="text-center text-[#94a3b8] text-base">
-                No hauling runs yet. Create your first run to get started.
-              </p>
-            </CardContent>
-          </Card>
+          <div className="empty-state">
+            <Truck className="empty-state-icon" />
+            <p className="empty-state-title">No hauling runs yet. Create your first run to get started.</p>
+          </div>
         ) : (
           <Card className="bg-[#12151f] border-[rgba(148,163,184,0.1)]">
             <div className="overflow-x-auto">

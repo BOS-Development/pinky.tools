@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
+import { Plus, ChevronDown, ChevronUp, Loader2, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -129,11 +129,11 @@ export function TransportJobsList({ jobs, loading, profiles, jfRoutes, onRefresh
           <TableBody>
             {jobs.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={colCount}
-                  className="text-center py-8 text-[#94a3b8]"
-                >
-                  No transport jobs
+                <TableCell colSpan={colCount} className="p-0 border-0">
+                  <div className="empty-state">
+                    <Truck className="empty-state-icon" />
+                    <p className="empty-state-title">No transport jobs</p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
