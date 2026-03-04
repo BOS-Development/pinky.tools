@@ -298,7 +298,7 @@ export default function DiscordSettings() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Bell className="h-5 w-5 text-[#5865F2]" />
+            <Bell className="h-5 w-5 text-[var(--color-primary-cyan)]" />
             <h3 className="text-lg font-semibold text-[var(--color-text-emphasis)]">Discord Notifications</h3>
           </div>
 
@@ -307,7 +307,7 @@ export default function DiscordSettings() {
               <p className="text-sm text-[var(--color-text-secondary)] mb-4">
                 Link your Discord account to receive notifications when marketplace events occur.
               </p>
-              <Button asChild className="bg-[#5865F2] hover:bg-[#4752C4] text-white">
+              <Button asChild className="bg-[var(--color-primary-cyan)] hover:bg-[var(--color-cyan-muted)] text-white">
                 <a href="/api/discord/login">
                   <Link2 className="h-4 w-4 mr-2" />
                   Link Discord Account
@@ -316,7 +316,7 @@ export default function DiscordSettings() {
             </div>
           ) : (
             <div className="flex items-center gap-3">
-              <Badge className="bg-[#5865F2] text-white border-[#5865F2]">
+              <Badge className="bg-[var(--color-primary-cyan)] text-white border-[var(--color-primary-cyan)]">
                 {link.discordUsername}
               </Badge>
               <Button variant="outline" size="sm" onClick={handleUnlink} className="text-[var(--color-danger-rose)] border-[var(--color-danger-rose)]/30 hover:bg-[var(--color-danger-rose)]/10">
