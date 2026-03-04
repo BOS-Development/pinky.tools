@@ -18,6 +18,46 @@ The system enforces a **zero-hardcoded-colors policy**: all colors are token ref
 - **Three-Layer Background Depth System**: Void (deepest), Panel (middle), Elevated (surface) provide visual hierarchy without gradients.
 - **HSL Semantic Tokens for shadcn/ui**: Complementary HSL variables enable shadcn/ui components to blend naturally with custom Neocom styling.
 
+## Visual Hierarchy System
+
+The design tokens enforce a **3-tier visual hierarchy** that guides user attention and establishes information priority:
+
+### Tier 1: Interactive (Primary Cyan)
+**Token**: `--color-primary-cyan` (#00d4ff)
+
+Use for actions and interaction points that demand user attention:
+- Buttons (primary actions)
+- Links and navigation items
+- Focus rings and selected states
+- Loading spinners
+- Call-to-action elements
+
+### Tier 2: Headings (Light Gray)
+**Token**: `--color-heading` (#e0e4eb) — alias: `--color-text-emphasis`
+
+Use for structural hierarchy and section identification:
+- H1/H2/H3 page and section headings
+- Dialog and modal titles
+- Table headers
+- Card titles
+- Navigation labels
+
+### Tier 3: Data Values (Gold)
+**Token**: `--color-data-value` (#d4a44a)
+
+Use for numeric and quantitative information:
+- KPI numbers (total value, ISK sums)
+- Quantity badges (item counts)
+- Statistics and metrics
+- Financial values
+- Significant numeric displays
+
+### Hierarchy Notes
+
+- **Active tab indicators** use `--color-cyan-muted` (#00a8cc), not primary cyan. This reduces visual competition while maintaining the interactive color family.
+- **Default badges** use neutral treatment (`overlay-subtle` background), not cyan. Reserve cyan for actionable badges and high-priority indicators.
+- **Color substitution is contextual**: A heading in a modal uses `--color-heading` (#e0e4eb), but the modal's accent buttons remain cyan (#00d4ff) to maintain interactive clarity.
+
 ## Color Tokens
 
 ### Background Palette (Three-Layer Depth)
