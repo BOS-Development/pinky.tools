@@ -3,36 +3,23 @@ import { useSession } from "next-auth/react";
 import { PlanRun } from "@industry-tool/client/data/models";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import Container from "@mui/material/Container";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Chip from "@mui/material/Chip";
-import IconButton from "@mui/material/IconButton";
-import CancelIcon from "@mui/icons-material/Cancel";
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
+import { XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "@/components/ui/table";
+import { toast } from "@/components/ui/sonner";
 
-function getStatusColor(
-  status: string,
-): "success" | "warning" | "info" | "error" | "default" {
-  switch (status) {
-    case "pending":
-      return "info";
-    case "in_progress":
-      return "warning";
-    case "completed":
-      return "default";
-    default:
-      return "default";
-  }
-}
+const STATUS_CLASSES: Record<string, string> = {
+  pending: "bg-[rgba(59,130,246,0.1)] border-[rgba(59,130,246,0.3)] text-[#3b82f6]",
+  in_progress: "bg-[rgba(245,158,11,0.1)] border-[rgba(245,158,11,0.3)] text-[#f59e0b]",
+  completed: "bg-[rgba(148,163,184,0.1)] border-[rgba(148,163,184,0.3)] text-[#94a3b8]",
+};
 
 function formatStatus(status: string): string {
   switch (status) {
@@ -48,7 +35,7 @@ function formatStatus(status: string): string {
 }
 
 function formatJobProgress(run: PlanRun): string {
-  if (!run.jobSummary || run.jobSummary.total === 0) return "—";
+  if (!run.jobSummary || run.jobSummary.total === 0) return "\u2014";
   const { completed, active, total } = run.jobSummary;
   return `${completed}/${total} done${active > 0 ? `, ${active} active` : ""}`;
 }
@@ -57,11 +44,6 @@ export default function PlanRunsList() {
   const { data: session } = useSession();
   const [runs, setRuns] = useState<PlanRun[]>([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error";
-  }>({ open: false, message: "", severity: "success" });
   const hasFetchedRef = useRef(false);
 
   const fetchRuns = useCallback(async () => {
@@ -101,175 +83,99 @@ export default function PlanRunsList() {
       });
       if (res.ok) {
         const data = await res.json();
-        setSnackbar({
-          open: true,
-          message: `Cancelled ${data.jobsCancelled} planned job${data.jobsCancelled !== 1 ? "s" : ""}`,
-          severity: "success",
-        });
+        toast.success(`Cancelled ${data.jobsCancelled} planned job${data.jobsCancelled !== 1 ? "s" : ""}`);
         fetchRuns();
       } else {
-        setSnackbar({
-          open: true,
-          message: "Failed to cancel plan run",
-          severity: "error",
-        });
+        toast.error("Failed to cancel plan run");
       }
     } catch (err) {
       console.error("Failed to cancel plan run:", err);
-      setSnackbar({
-        open: true,
-        message: "Failed to cancel plan run",
-        severity: "error",
-      });
+      toast.error("Failed to cancel plan run");
     }
   };
 
   return (
     <>
       <Navbar />
-      <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
-        <Box sx={{ mb: 2 }}>
-          <Typography
-            variant="h5"
-            sx={{ color: "#e2e8f0", fontWeight: 600 }}
-          >
+      <div className="px-4 mt-2 mb-4">
+        <div className="mb-2">
+          <h2 className="text-xl font-semibold text-[#e2e8f0]">
             Plan Runs
-          </Typography>
-        </Box>
+          </h2>
+        </div>
 
         {loading ? (
           <Loading />
         ) : runs.length === 0 ? (
-          <Paper
-            sx={{
-              backgroundColor: "#12151f",
-              p: 4,
-              textAlign: "center",
-            }}
-          >
-            <Typography sx={{ color: "#64748b" }}>
+          <div className="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center">
+            <p className="text-[#64748b]">
               No plan runs yet. Generate jobs from a production plan to create a
               run.
-            </Typography>
-          </Paper>
+            </p>
+          </div>
         ) : (
-          <TableContainer
-            component={Paper}
-            sx={{ backgroundColor: "#12151f" }}
-          >
-            <Table size="small">
-              <TableHead>
-                <TableRow sx={{ backgroundColor: "#0f1219" }}>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Product
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Plan
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#94a3b8", fontWeight: 600 }}
-                    align="right"
-                  >
-                    Qty
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Status
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Jobs
-                  </TableCell>
-                  <TableCell sx={{ color: "#94a3b8", fontWeight: 600 }}>
-                    Created
-                  </TableCell>
-                  <TableCell
-                    sx={{ color: "#94a3b8", fontWeight: 600 }}
-                    align="center"
-                  >
-                    Actions
-                  </TableCell>
+          <div className="overflow-x-auto rounded-sm border border-[rgba(148,163,184,0.1)]">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-[#0f1219]">
+                  <TableHead>Product</TableHead>
+                  <TableHead>Plan</TableHead>
+                  <TableHead className="text-right">Qty</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Jobs</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {runs.map((run, idx) => (
                   <TableRow
                     key={run.id}
-                    sx={{
-                      backgroundColor:
-                        idx % 2 === 0 ? "#12151f" : "#0f1219",
-                      "&:hover": { backgroundColor: "#1a1d2e" },
-                    }}
+                    className={`${idx % 2 === 0 ? "bg-[#12151f]" : "bg-[#0f1219]"} hover:bg-[#1a1d2e]`}
                   >
-                    <TableCell>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                        }}
-                      >
-                        <Typography sx={{ color: "#e2e8f0", fontSize: 14 }}>
-                          {run.productName || "—"}
-                        </Typography>
-                      </Box>
+                    <TableCell className="text-[#e2e8f0] text-sm">
+                      {run.productName || "\u2014"}
                     </TableCell>
-                    <TableCell sx={{ color: "#cbd5e1", fontSize: 14 }}>
+                    <TableCell className="text-[#cbd5e1] text-sm">
                       {run.planName || `Plan #${run.planId}`}
                     </TableCell>
-                    <TableCell
-                      align="right"
-                      sx={{ color: "#cbd5e1", fontSize: 14 }}
-                    >
+                    <TableCell className="text-right text-[#cbd5e1] text-sm">
                       {run.quantity}
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={formatStatus(run.status)}
-                        color={getStatusColor(run.status)}
-                        size="small"
-                        variant="outlined"
-                      />
+                      <Badge
+                        variant="outline"
+                        className={`capitalize cursor-default ${STATUS_CLASSES[run.status] || STATUS_CLASSES.completed}`}
+                      >
+                        {formatStatus(run.status)}
+                      </Badge>
                     </TableCell>
-                    <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
+                    <TableCell className="text-[#94a3b8] text-[13px]">
                       {formatJobProgress(run)}
                     </TableCell>
-                    <TableCell sx={{ color: "#94a3b8", fontSize: 13 }}>
+                    <TableCell className="text-[#94a3b8] text-[13px]">
                       {new Date(run.createdAt).toLocaleDateString()}
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell className="text-center">
                       {run.status !== "completed" &&
                         run.jobSummary &&
                         run.jobSummary.planned > 0 && (
-                          <IconButton
-                            size="small"
+                          <button
+                            className="p-1 rounded hover:bg-[rgba(239,68,68,0.1)] text-[#ef4444]"
                             onClick={() => handleCancel(run.id)}
-                            sx={{ color: "#ef4444" }}
                             title="Cancel planned jobs"
                           >
-                            <CancelIcon fontSize="small" />
-                          </IconButton>
+                            <XCircle className="h-4 w-4" />
+                          </button>
                         )}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
-      </Container>
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={4000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          severity={snackbar.severity}
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
+      </div>
     </>
   );
 }
