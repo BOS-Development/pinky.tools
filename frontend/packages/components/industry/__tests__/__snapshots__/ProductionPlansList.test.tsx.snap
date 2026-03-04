@@ -98,10 +98,36 @@ exports[`ProductionPlansList Component should match snapshot with empty plans 1`
       </button>
     </div>
     <div
-      class="bg-[#12151f] rounded-sm border border-[rgba(148,163,184,0.1)] p-8 text-center"
+      class="empty-state"
     >
+      <svg
+        aria-hidden="true"
+        class="lucide lucide-factory empty-state-icon"
+        fill="none"
+        height="24"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="24"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 16h.01"
+        />
+        <path
+          d="M16 16h.01"
+        />
+        <path
+          d="M3 19a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5a.5.5 0 0 0-.769-.422l-4.462 2.844A.5.5 0 0 1 15 10.5v-2a.5.5 0 0 0-.769-.422L9.77 10.922A.5.5 0 0 1 9 10.5V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"
+        />
+        <path
+          d="M8 16h.01"
+        />
+      </svg>
       <p
-        class="text-[#64748b]"
+        class="empty-state-title"
       >
         No production plans yet. Create one to define how items should be produced.
       </p>

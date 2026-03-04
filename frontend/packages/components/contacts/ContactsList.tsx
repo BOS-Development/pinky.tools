@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import { Check, X, Trash2, Settings, UserPlus, Scale, Loader2 } from 'lucide-react';
+import { Check, X, Trash2, Settings, UserPlus, Scale, Loader2, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -359,8 +359,9 @@ export default function ContactsList() {
             <TabsContent value="contacts">
               <CardContent className="p-0">
                 {myContacts.length === 0 ? (
-                  <div className="p-8 text-center">
-                    <p className="text-[var(--color-text-secondary)]">No contacts yet. Add a contact to get started!</p>
+                  <div className="empty-state">
+                    <Users className="empty-state-icon" />
+                    <p className="empty-state-title">No contacts yet. Add a contact to get started!</p>
                   </div>
                 ) : (
                   <Table>
@@ -403,7 +404,10 @@ export default function ContactsList() {
             <TabsContent value="pending">
               <CardContent className="p-0">
                 {pendingRequests.length === 0 ? (
-                  <div className="p-8 text-center"><p className="text-[var(--color-text-secondary)]">No pending requests</p></div>
+                  <div className="empty-state">
+                    <Users className="empty-state-icon" />
+                    <p className="empty-state-title">No pending requests</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader><TableRow><TableHead>Character Name</TableHead><TableHead>Requested</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
@@ -427,7 +431,10 @@ export default function ContactsList() {
             <TabsContent value="sent">
               <CardContent className="p-0">
                 {sentRequests.length === 0 ? (
-                  <div className="p-8 text-center"><p className="text-[var(--color-text-secondary)]">No sent requests</p></div>
+                  <div className="empty-state">
+                    <Users className="empty-state-icon" />
+                    <p className="empty-state-title">No sent requests</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader><TableRow><TableHead>Character Name</TableHead><TableHead>Sent</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader>
@@ -450,7 +457,10 @@ export default function ContactsList() {
             <TabsContent value="rules">
               <CardContent className="p-0">
                 {contactRules.length === 0 ? (
-                  <div className="p-8 text-center"><p className="text-[var(--color-text-secondary)]">No contact rules yet. Add a rule to automatically connect with corporations, alliances, or everyone.</p></div>
+                  <div className="empty-state">
+                    <Scale className="empty-state-icon" />
+                    <p className="empty-state-title">No contact rules yet. Add a rule to automatically connect with corporations, alliances, or everyone.</p>
+                  </div>
                 ) : (
                   <Table>
                     <TableHeader>

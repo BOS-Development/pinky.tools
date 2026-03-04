@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserStation } from "@industry-tool/client/data/models";
 import StationDialog from "./StationDialog";
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -112,8 +112,11 @@ export default function StationsList({ stations, loading, onRefresh }: Props) {
         <TableBody>
           {stations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="text-center text-[var(--color-text-muted)] py-8">
-                No preferred stations configured. Click &quot;Add Station&quot; to get started.
+              <TableCell colSpan={8} className="p-0 border-0">
+                <div className="empty-state">
+                  <Building2 className="empty-state-icon" />
+                  <p className="empty-state-title">No preferred stations configured. Click &quot;Add Station&quot; to get started.</p>
+                </div>
               </TableCell>
             </TableRow>
           ) : (
