@@ -79,7 +79,7 @@ export default function SlotInventoryPanel() {
         <TableHeader>
           <TableRow className="bg-[#0f1219]">
             <TableHead>Character</TableHead>
-            <TableHead>Activity Type</TableHead>
+            <TableHead className="w-[1%] whitespace-nowrap">Activity Type</TableHead>
             <TableHead className="text-right">Max Slots</TableHead>
             <TableHead className="text-right">In Use</TableHead>
             <TableHead className="text-right">Reserved</TableHead>
@@ -88,15 +88,20 @@ export default function SlotInventoryPanel() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {inventory.map((char) => (
-            Object.entries(char.slotsByActivity).map(([activityType, slotInfo]) => (
+          {inventory.map((char) => {
+            const activities = Object.entries(char.slotsByActivity)
+              .filter(([, info]) => info.slotsMax > 0);
+            if (activities.length === 0) return null;
+            return activities.map(([activityType, slotInfo], idx) => (
               <TableRow key={`${char.characterId}-${activityType}`} className="hover:bg-[rgba(0,212,255,0.04)]">
                 <TableCell>
-                  <span className="text-sm font-medium text-[#e2e8f0]">
-                    {char.characterName}
-                  </span>
+                  {idx === 0 && (
+                    <span className="text-sm font-medium text-[#e2e8f0]">
+                      {char.characterName}
+                    </span>
+                  )}
                 </TableCell>
-                <TableCell>
+                <TableCell className="w-[1%] whitespace-nowrap">
                   <Badge className="bg-[rgba(0,212,255,0.1)] border border-[rgba(0,212,255,0.3)] text-[#60a5fa] hover:bg-[rgba(0,212,255,0.15)] cursor-default">
                     {ACTIVITY_LABELS[activityType] || activityType}
                   </Badge>
@@ -111,8 +116,8 @@ export default function SlotInventoryPanel() {
                   </span>
                 </TableCell>
               </TableRow>
-            ))
-          ))}
+            ));
+          })}
         </TableBody>
       </Table>
     </div>
