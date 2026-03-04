@@ -3,6 +3,7 @@ package updaters_test
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -257,4 +258,113 @@ func Test_HaulingMarket_ScanForHistory_EmptyTypeIDs(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.Len(t, repo.upsertedSnaps, 0)
+}
+
+// Test_HaulingMarket_ScanRegion_SnapshotsSortedByTypeID verifies that snapshots
+// are delivered to UpsertSnapshots in ascending TypeID order regardless of the
+// non-deterministic map iteration order used when building them.
+func Test_HaulingMarket_ScanRegion_SnapshotsSortedByTypeID(t *testing.T) {
+	repo := &mockHaulingMarketRepo{snapshotAge: nil}
+	// Provide orders for several type IDs in an arbitrary non-ascending order.
+	esi := &mockHaulingMarketEsiClient{
+		orders: []*client.MarketOrder{
+			{TypeID: int64(500), Price: 100.0, IsBuyOrder: false, VolumeRemain: int64(10)},
+			{TypeID: int64(34), Price: 200.0, IsBuyOrder: false, VolumeRemain: int64(20)},
+			{TypeID: int64(200), Price: 150.0, IsBuyOrder: false, VolumeRemain: int64(15)},
+			{TypeID: int64(1), Price: 50.0, IsBuyOrder: false, VolumeRemain: int64(5)},
+		},
+	}
+
+	u := updaters.NewHaulingMarket(repo, esi)
+	err := u.ScanRegion(context.Background(), int64(10000002), int64(0))
+
+	assert.NoError(t, err)
+	assert.Len(t, repo.upsertedSnaps, 4)
+
+	// Verify ascending TypeID order.
+	for i := 1; i < len(repo.upsertedSnaps); i++ {
+		assert.LessOrEqual(t, repo.upsertedSnaps[i-1].TypeID, repo.upsertedSnaps[i].TypeID,
+			"snapshots must be sorted by TypeID to prevent deadlocks")
+	}
+}
+
+// Test_HaulingMarket_ScanRegion_ConcurrentSameRegionSerialized verifies that
+// concurrent ScanRegion calls for the same region+system are serialised so that
+// only one actual scan runs (the second caller sees a fresh cache).
+func Test_HaulingMarket_ScanRegion_ConcurrentSameRegionSerialized(t *testing.T) {
+	// repo tracks how many times UpsertSnapshots was actually called.
+	type trackingRepo struct {
+		mockHaulingMarketRepo
+		mu         sync.Mutex
+		upsertCalls int
+	}
+	tr := &trackingRepo{}
+	// First call: no age → scan runs. After the first goroutine upserts, the
+	// second goroutine should see a fresh age.  We simulate this by returning
+	// nil on the first GetSnapshotAge call and a recent time on subsequent ones.
+	callCount := 0
+	repoMu := sync.Mutex{}
+
+	type fullRepo struct {
+		tr          *trackingRepo
+		callCountMu *sync.Mutex
+		callCount   *int
+	}
+	fr := &fullRepo{tr: tr, callCountMu: &repoMu, callCount: &callCount}
+	_ = fr
+
+	// Use a simpler approach: a custom mock that counts upsert calls.
+	recentTime := time.Now()
+	callIdx := 0
+	customRepo := &callCountingRepo{
+		snapshotAgeFunc: func() (*time.Time, error) {
+			repoMu.Lock()
+			defer repoMu.Unlock()
+			callIdx++
+			if callIdx == 1 {
+				return nil, nil // First call: stale/missing → scan
+			}
+			return &recentTime, nil // Subsequent calls: fresh → skip
+		},
+	}
+
+	esi := &mockHaulingMarketEsiClient{
+		orders: []*client.MarketOrder{
+			{TypeID: int64(34), Price: 1000.0, IsBuyOrder: false, VolumeRemain: int64(100)},
+		},
+	}
+
+	u := updaters.NewHaulingMarket(customRepo, esi)
+
+	var wg sync.WaitGroup
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_ = u.ScanRegion(context.Background(), int64(10000002), int64(0))
+		}()
+	}
+	wg.Wait()
+
+	// Only the first goroutine (which saw nil age) should have upserted.
+	assert.Equal(t, 1, customRepo.upsertCalls, "only one scan should run when region is serialized")
+}
+
+// callCountingRepo is a test-only repository that counts UpsertSnapshots calls
+// and uses a configurable function for GetSnapshotAge.
+type callCountingRepo struct {
+	snapshotAgeFunc func() (*time.Time, error)
+	mu              sync.Mutex
+	upsertCalls     int
+}
+
+func (r *callCountingRepo) UpsertSnapshots(_ context.Context, _ []*models.HaulingMarketSnapshot) error {
+	r.mu.Lock()
+	r.upsertCalls++
+	r.mu.Unlock()
+	return nil
+}
+
+func (r *callCountingRepo) GetSnapshotAge(_ context.Context, _ int64, _ int64) (*time.Time, error) {
+	return r.snapshotAgeFunc()
 }

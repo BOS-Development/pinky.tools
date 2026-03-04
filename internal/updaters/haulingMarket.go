@@ -2,7 +2,10 @@ package updaters
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"slices"
+	"sync"
 	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/client"
@@ -21,9 +24,10 @@ type HaulingMarketRepository interface {
 }
 
 type HaulingMarket struct {
-	repo   HaulingMarketRepository
-	esi    HaulingMarketEsiClient
-	maxAge time.Duration
+	repo     HaulingMarketRepository
+	esi      HaulingMarketEsiClient
+	maxAge   time.Duration
+	regionMu sync.Map
 }
 
 func NewHaulingMarket(repo HaulingMarketRepository, esi HaulingMarketEsiClient) *HaulingMarket {
@@ -33,6 +37,13 @@ func NewHaulingMarket(repo HaulingMarketRepository, esi HaulingMarketEsiClient) 
 // ScanRegion fetches and caches market data for a region (or system within region).
 // systemID=0 means region-wide.
 func (u *HaulingMarket) ScanRegion(ctx context.Context, regionID int64, systemID int64) error {
+	// Serialize concurrent calls for the same region+system to make the
+	// freshness check atomic with the upsert and avoid redundant ESI calls.
+	lockKey := fmt.Sprintf("%d:%d", regionID, systemID)
+	mu, _ := u.regionMu.LoadOrStore(lockKey, &sync.Mutex{})
+	mu.(*sync.Mutex).Lock()
+	defer mu.(*sync.Mutex).Unlock()
+
 	// Check cache freshness
 	age, err := u.repo.GetSnapshotAge(ctx, regionID, systemID)
 	if err != nil {
@@ -96,6 +107,12 @@ func (u *HaulingMarket) ScanRegion(ctx context.Context, regionID int64, systemID
 		}
 		snapshots = append(snapshots, snap)
 	}
+
+	// Sort by TypeID so concurrent transactions acquire row locks in a
+	// deterministic order, eliminating deadlocks.
+	slices.SortFunc(snapshots, func(a, b *models.HaulingMarketSnapshot) int {
+		return int(a.TypeID - b.TypeID)
+	})
 
 	if err := u.repo.UpsertSnapshots(ctx, snapshots); err != nil {
 		return errors.Wrap(err, "failed to upsert snapshots")
