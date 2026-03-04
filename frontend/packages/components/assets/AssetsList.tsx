@@ -144,6 +144,7 @@ export default function AssetsList(props: AssetsListProps) {
     }
     return new Set();
   });
+  const autoExpandedRef = useRef(false);
   const [hiddenStructures, setHiddenStructures] = useState<Set<number>>(() => {
     // Load hidden structures from localStorage on initial render
     if (typeof window !== 'undefined') {
@@ -563,7 +564,7 @@ export default function AssetsList(props: AssetsListProps) {
 
   // Auto-expand first station when no nodes are expanded
   useEffect(() => {
-    if (expandedNodes.size > 0 || !assets?.structures?.length) return;
+    if (autoExpandedRef.current || !assets?.structures?.length) return;
 
     const firstVisible = assets.structures.find(s => !hiddenStructures.has(s.id));
     if (!firstVisible) return;
@@ -580,7 +581,8 @@ export default function AssetsList(props: AssetsListProps) {
     }
 
     setExpandedNodes(nodesToExpand);
-  }, [assets, hiddenStructures]); // eslint-disable-line react-hooks/exhaustive-deps
+    autoExpandedRef.current = true;
+  }, [assets, hiddenStructures]);
 
   // Debounce search input
   useEffect(() => {
