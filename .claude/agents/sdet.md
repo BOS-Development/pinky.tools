@@ -214,6 +214,22 @@ await expect(page.getByText(/Manufacturing/i).first()).toBeVisible();
 await expect(page.getByText(/accepted/i).first()).toBeVisible();
 ```
 
+### getByText() Substring Pitfall — Exact Headings
+
+`getByText()` does substring matching by default, which can cause false positives. For example:
+- `page.getByText('Sell Progress')` matches both a section heading AND a run named "Phase3 No Sell Progress Planning"
+- When asserting that a *section heading* does NOT appear, use an exact locator:
+
+```typescript
+// BAD — matches "Phase3 No Sell Progress Planning" run name
+await expect(page.getByText('Sell Progress')).not.toBeVisible();
+
+// GOOD — matches only <h3> elements with exactly that text
+await expect(page.locator('h3').filter({ hasText: /^Sell Progress$/ })).not.toBeVisible();
+```
+
+Use `exact: true` in `getByText()` for simple cases, or scope to a specific tag for more control.
+
 ### Subtab Navigation — Wait Before Clicking
 
 Never use `if (await tab.count() > 0)` for subtab navigation — `count()` resolves immediately and returns 0 before the tab renders. Always wait for visibility first:
@@ -266,6 +282,33 @@ await expect(dialog).not.toBeVisible({ timeout: 5000 });
 
 // Native browser confirm dialogs
 page.on('dialog', dialog => dialog.accept());
+```
+
+### shadcn/ui Dialogs with Required Field Dependencies
+
+Some dialogs (e.g., P&L entry) have Save buttons disabled until multiple required fields are set. The typical pattern:
+1. Select required item from combobox
+2. Fill numeric fields
+3. Wait for Save button to enable
+4. Click Save
+
+```typescript
+const pnlDialog = page.getByRole('dialog');
+await expect(pnlDialog).toBeVisible({ timeout: 5000 });
+
+// Step 1: Select item from combobox (click the combobox, then select from options)
+await pnlDialog.getByRole('combobox').click();
+await page.getByRole('option', { name: /Tritanium/i }).click();
+
+// Step 2: Fill required Qty field
+await pnlDialog.getByRole('spinbutton').first().fill('150');
+
+// Step 3: Wait for Save to become enabled, then click
+const saveBtn = pnlDialog.getByRole('button', { name: /^Save$/i });
+await expect(saveBtn).toBeEnabled({ timeout: 5000 });
+await saveBtn.click();
+
+await expect(pnlDialog).not.toBeVisible({ timeout: 5000 });
 ```
 
 ### API Calls in Tests

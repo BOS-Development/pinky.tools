@@ -342,11 +342,11 @@ market_history_cache  -- daily volume history per type per region (type_id, regi
 - [ ] Multibuy export with buy order target prices
 
 ### Phase 3 — Sell Tracking & P&L
-- [ ] Sell order ESI polling + run linkage
-- [ ] Sell progress UI (volume_remain tracking)
-- [ ] Wallet journal integration (actual revenue)
-- [ ] Post-run P&L summary (projected vs. actual)
-- [ ] Discord sell notifications (per item + run complete)
+- [x] Sell order ESI polling + run linkage
+- [x] Sell progress UI (volume_remain tracking)
+- [x] Wallet journal integration (actual revenue)
+- [x] Post-run P&L summary (projected vs. actual)
+- [x] Discord sell notifications (per item + run complete)
 
 ### Phase 4 — Analytics
 - [ ] Run history view

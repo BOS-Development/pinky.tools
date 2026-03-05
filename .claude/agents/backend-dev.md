@@ -109,6 +109,21 @@ if notificationsUpdater != nil {
 }
 ```
 
+When a notifier is used by both a controller interface AND an updater interface, declare a separate typed variable for each. Both can reference the same concrete struct:
+
+```go
+var haulingNotifier controllers.HaulingRunNotifier
+var haulingCharOrdersNotifier updaters.HaulingCharOrdersNotifier
+if notificationsUpdater != nil {
+    haulingNotificationsUpdater := updaters.NewHaulingNotifications(...)
+    haulingNotifier = haulingNotificationsUpdater
+    haulingCharOrdersNotifier = haulingNotificationsUpdater
+    ...
+}
+```
+
+This prevents the concrete struct from being scoped only inside the `if` block and avoids type assertion issues.
+
 ### Database Migrations
 
 - Create via: `./scripts/new-migration.sh <name>`
@@ -203,6 +218,12 @@ mocks.repo.AssertExpectations(t)
 mocks.notifier.On("SendAlert", mock.Anything, mock.Anything).Return(nil).Maybe()
 ```
 
+**Async goroutine calls in updaters:** Similarly, when an updater fires a background goroutine (e.g., `go u.notifier.NotifyHaulingComplete(...)`), use `.Maybe()` to prevent flaky "unexpected call" panics:
+
+```go
+notifier.On("NotifyHaulingComplete", mock.Anything, userID, run, (*models.HaulingRunPnlSummary)(nil)).Return().Maybe()
+```
+
 **Common mistakes that cause test failures:**
 - Forgetting `if args.Get(0) == nil` check → panic on nil type assertion
 - Wrong arg types in `.On()` — use `int64(5)` not `5` for int64 params
@@ -224,15 +245,16 @@ repo := repositories.NewMyRepo(db)
 Tests use **gotestsum** (`pkgname` format) for clean output — shows package-level pass/fail and only prints verbose output for failures. Read the summary at the end rather than scanning the full log.
 
 - **Full suite**: `make test-backend` (tears down, starts fresh DB, runs everything with gotestsum)
+  - ⚠️ **Note**: `make test-backend` uses `docker-compose` (v1 Python script) which fails in some environments. If it fails, use `docker compose` (v2 plugin) directly instead.
 - **Targeted** (faster — prefer when you changed 1-2 packages):
   ```bash
-  # Ensure DB is running
-  docker-compose -f docker-compose.test.yaml up -d database
+  # Start test database
+  docker compose -f docker-compose.test.yaml up -d database
   # Run specific package(s)
-  docker-compose -f docker-compose.test.yaml run --rm backend-test \
+  docker compose -f docker-compose.test.yaml run --rm backend-test \
     gotestsum --format pkgname -- -p 1 ./internal/controllers/
   # Run by test name pattern
-  docker-compose -f docker-compose.test.yaml run --rm backend-test \
+  docker compose -f docker-compose.test.yaml run --rm backend-test \
     gotestsum --format pkgname -- -p 1 -run "Test_ProductionPlans" ./internal/controllers/
   ```
 - Use targeted tests during development; use full `make test-backend` for final verification
