@@ -220,14 +220,14 @@ func (c *TradingStructuresController) ListCharacterAssetStructures(args *web.Han
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get characters")}
 	}
-	var found bool
+	var targetChar *repositories.Character
 	for _, ch := range chars {
 		if ch.ID == charID {
-			found = true
+			targetChar = ch
 			break
 		}
 	}
-	if !found {
+	if targetChar == nil {
 		return nil, &web.HttpError{StatusCode: http.StatusNotFound, Error: errors.New("character not found")}
 	}
 
@@ -245,6 +245,25 @@ func (c *TradingStructuresController) ListCharacterAssetStructures(args *web.Han
 	nameByID := make(map[int64]string)
 	for _, s := range savedStructures {
 		nameByID[s.StructureID] = s.Name
+	}
+
+	// Resolve names for structures not in saved structures via ESI
+	unknownIDs := []int64{}
+	for _, id := range structureIDs {
+		if nameByID[id] == "" {
+			unknownIDs = append(unknownIDs, id)
+		}
+	}
+	if len(unknownIDs) > 0 {
+		refreshed, err := c.esi.RefreshAccessToken(ctx, targetChar.EsiRefreshToken)
+		if err == nil {
+			for _, id := range unknownIDs {
+				info, err := c.esi.GetStructureInfo(ctx, id, refreshed.AccessToken)
+				if err == nil && info != nil {
+					nameByID[id] = info.Name
+				}
+			}
+		}
 	}
 
 	type assetStructure struct {
