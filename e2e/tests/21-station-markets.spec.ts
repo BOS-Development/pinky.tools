@@ -353,6 +353,113 @@ test.describe('Station Markets', () => {
   });
 
   // -------------------------------------------------------------------------
+  // 5b. Add Structure dialog — dropdown-based UI
+  // -------------------------------------------------------------------------
+
+  test('Add Structure form shows Character and Structure dropdowns', async ({ page }) => {
+    await page.goto('/hauling/scanner');
+    await expect(
+      page.getByRole('heading', { name: /Market Scanner/i }),
+    ).toBeVisible({ timeout: 10000 });
+
+    await page.getByTitle('Manage trading structures').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // The "Add Structure" form uses shadcn Select dropdowns, not raw text inputs.
+    // Both triggers should show their placeholder text.
+    await expect(dialog.getByText('Select character')).toBeVisible({ timeout: 5000 });
+  });
+
+  test('Add Structure character dropdown populates from /api/characters', async ({ page }) => {
+    await page.goto('/hauling/scanner');
+    await expect(
+      page.getByRole('heading', { name: /Market Scanner/i }),
+    ).toBeVisible({ timeout: 10000 });
+
+    await page.getByTitle('Manage trading structures').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // The Character Select trigger shows "Select character" placeholder until opened.
+    // Click it to open the dropdown and see the character options.
+    const characterTrigger = dialog.getByRole('combobox').first();
+    await expect(characterTrigger).toBeVisible({ timeout: 5000 });
+    await characterTrigger.click();
+
+    // Alice's characters should appear as options in the listbox
+    await expect(
+      page.getByRole('option', { name: /Alice Alpha/i }),
+    ).toBeVisible({ timeout: 5000 });
+  });
+
+  test('selecting character in Add Structure form populates Structure dropdown', async ({ page }) => {
+    await page.goto('/hauling/scanner');
+    await expect(
+      page.getByRole('heading', { name: /Market Scanner/i }),
+    ).toBeVisible({ timeout: 10000 });
+
+    await page.getByTitle('Manage trading structures').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // Step 1: Open the character dropdown and select Alice Alpha
+    const characterTrigger = dialog.getByRole('combobox').first();
+    await expect(characterTrigger).toBeVisible({ timeout: 5000 });
+    await characterTrigger.click();
+    await page.getByRole('option', { name: /Alice Alpha/i }).click();
+
+    // Step 2: The backend fetches asset structures for Alice Alpha.
+    // Alice has an asset inside structure 1234567890123 (Perimeter - Test Trading Hub)
+    // which was populated by the background asset runner from mock-ESI.
+    // The structure dropdown should now show that structure.
+    const structureTrigger = dialog.getByRole('combobox').nth(1);
+    await expect(structureTrigger).toBeVisible({ timeout: 10000 });
+    await structureTrigger.click();
+
+    await expect(
+      page.getByRole('option', { name: /Perimeter - Test Trading Hub/i }),
+    ).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Add button is enabled when both Character and Structure are selected', async ({ page }) => {
+    await page.goto('/hauling/scanner');
+    await expect(
+      page.getByRole('heading', { name: /Market Scanner/i }),
+    ).toBeVisible({ timeout: 10000 });
+
+    await page.getByTitle('Manage trading structures').click();
+
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 5000 });
+
+    // Add button should be disabled initially (no character or structure selected)
+    const addButton = dialog.getByRole('button', { name: /^Add$/i });
+    await expect(addButton).toBeDisabled({ timeout: 5000 });
+
+    // Select Alice Alpha from character dropdown
+    const characterTrigger = dialog.getByRole('combobox').first();
+    await expect(characterTrigger).toBeVisible({ timeout: 5000 });
+    await characterTrigger.click();
+    await page.getByRole('option', { name: /Alice Alpha/i }).click();
+
+    // Add button still disabled — no structure selected yet
+    await expect(addButton).toBeDisabled({ timeout: 5000 });
+
+    // Select Perimeter - Test Trading Hub from structure dropdown
+    const structureTrigger = dialog.getByRole('combobox').nth(1);
+    await expect(structureTrigger).toBeVisible({ timeout: 10000 });
+    await structureTrigger.click();
+    await page.getByRole('option', { name: /Perimeter - Test Trading Hub/i }).click();
+
+    // Now Add button should be enabled
+    await expect(addButton).toBeEnabled({ timeout: 5000 });
+  });
+
+  // -------------------------------------------------------------------------
   // 6. DELETE structure via API (must be last — removes seeded data)
   // -------------------------------------------------------------------------
 

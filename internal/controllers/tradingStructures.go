@@ -47,6 +47,11 @@ type TradingStructureSolarSystemRepository interface {
 	GetRegionIDBySystemID(ctx context.Context, systemID int64) (int64, error)
 }
 
+// TradingStructureAssetRepository returns structure IDs from character assets.
+type TradingStructureAssetRepository interface {
+	GetPlayerOwnedStationIDs(ctx context.Context, characterID, userID int64) ([]int64, error)
+}
+
 // TradingStructuresController handles station and structure configuration endpoints.
 type TradingStructuresController struct {
 	stations   TradingStationsRepository
@@ -55,6 +60,7 @@ type TradingStructuresController struct {
 	characters TradingStructureCharacterRepository
 	esi        TradingStructureEsiClient
 	systems    TradingStructureSolarSystemRepository
+	assets     TradingStructureAssetRepository
 }
 
 func NewTradingStructures(
@@ -65,6 +71,7 @@ func NewTradingStructures(
 	characters TradingStructureCharacterRepository,
 	esi TradingStructureEsiClient,
 	systems TradingStructureSolarSystemRepository,
+	assets TradingStructureAssetRepository,
 ) *TradingStructuresController {
 	c := &TradingStructuresController{
 		stations:   stations,
@@ -73,12 +80,14 @@ func NewTradingStructures(
 		characters: characters,
 		esi:        esi,
 		systems:    systems,
+		assets:     assets,
 	}
 	router.RegisterRestAPIRoute("/v1/hauling/stations", web.AuthAccessUser, c.ListStations, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/structures", web.AuthAccessUser, c.ListStructures, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/structures", web.AuthAccessUser, c.AddStructure, "POST")
 	router.RegisterRestAPIRoute("/v1/hauling/structures/{id}", web.AuthAccessUser, c.DeleteStructure, "DELETE")
 	router.RegisterRestAPIRoute("/v1/hauling/structures/{id}/scan", web.AuthAccessUser, c.ScanStructure, "POST")
+	router.RegisterRestAPIRoute("/v1/hauling/characters/{id}/asset-structures", web.AuthAccessUser, c.ListCharacterAssetStructures, "GET")
 	return c
 }
 
@@ -195,6 +204,61 @@ func (c *TradingStructuresController) DeleteStructure(args *web.HandlerArgs) (in
 		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to delete structure")}
 	}
 	return nil, nil
+}
+
+// ListCharacterAssetStructures returns structure IDs from the character's assets, with names where known.
+func (c *TradingStructuresController) ListCharacterAssetStructures(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	charID, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid character id")}
+	}
+
+	ctx := args.Request.Context()
+
+	// Validate character belongs to user
+	chars, err := c.characters.GetAll(ctx, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get characters")}
+	}
+	var found bool
+	for _, ch := range chars {
+		if ch.ID == charID {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, &web.HttpError{StatusCode: http.StatusNotFound, Error: errors.New("character not found")}
+	}
+
+	// Get structure IDs from character assets
+	structureIDs, err := c.assets.GetPlayerOwnedStationIDs(ctx, charID, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get asset structures")}
+	}
+
+	// Build name map from already-saved structures
+	savedStructures, err := c.structures.List(ctx, *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to list structures")}
+	}
+	nameByID := make(map[int64]string)
+	for _, s := range savedStructures {
+		nameByID[s.StructureID] = s.Name
+	}
+
+	type assetStructure struct {
+		StructureID int64  `json:"structureId"`
+		Name        string `json:"name"`
+	}
+	results := []assetStructure{}
+	for _, id := range structureIDs {
+		results = append(results, assetStructure{
+			StructureID: id,
+			Name:        nameByID[id],
+		})
+	}
+	return results, nil
 }
 
 // ScanStructure triggers a fresh market scan for a structure.

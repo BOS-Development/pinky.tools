@@ -242,7 +242,7 @@ type State struct {
 func newDefaultState() *State {
 	return &State{
 		characterAssets: map[int64][]asset{
-			// Alice Alpha — assets in Jita
+			// Alice Alpha — assets in Jita and in player structure 1234567890123
 			2001001: {
 				{ItemID: 100001, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 50000, TypeID: 34},  // Tritanium
 				{ItemID: 100002, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 25000, TypeID: 35},  // Pyerite
@@ -250,6 +250,9 @@ func newDefaultState() *State {
 				{ItemID: 100004, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 1, TypeID: 11399, IsSingleton: true},    // Raven Navy Issue
 				{ItemID: 100010, LocationFlag: "Hangar", LocationID: 60003760, LocationType: "station", Quantity: 1, TypeID: 9999001, IsSingleton: true}, // Container
 				{ItemID: 100011, LocationFlag: "Hangar", LocationID: 100010, LocationType: "item", Quantity: 5000, TypeID: 37},        // Isogen in container
+				// Asset inside player-owned structure 1234567890123 (Perimeter - Test Trading Hub)
+				// location_type="item" + location_flag="Hangar" marks this as a player structure for GetPlayerOwnedStationIDs
+				{ItemID: 100020, LocationFlag: "Hangar", LocationID: 1234567890123, LocationType: "item", Quantity: 100, TypeID: 34},  // Tritanium in citadel
 			},
 			// Alice Beta — assets in Amarr
 			2001002: {

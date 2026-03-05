@@ -121,6 +121,20 @@ func (m *MockTradingStructureSolarSystemRepository) GetRegionIDBySystemID(ctx co
 	return args.Get(0).(int64), args.Error(1)
 }
 
+// --- Mock TradingStructureAssetRepository ---
+
+type MockTradingStructureAssetRepository struct {
+	mock.Mock
+}
+
+func (m *MockTradingStructureAssetRepository) GetPlayerOwnedStationIDs(ctx context.Context, characterID, userID int64) ([]int64, error) {
+	args := m.Called(ctx, characterID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]int64), args.Error(1)
+}
+
 // --- Setup helper ---
 
 type tradingStructuresMocks struct {
@@ -130,6 +144,7 @@ type tradingStructuresMocks struct {
 	characters *MockTradingStructureCharacterRepository
 	esi        *MockTradingStructureEsiClient
 	systems    *MockTradingStructureSolarSystemRepository
+	assets     *MockTradingStructureAssetRepository
 }
 
 func setupTradingStructuresController() (*controllers.TradingStructuresController, tradingStructuresMocks) {
@@ -140,9 +155,10 @@ func setupTradingStructuresController() (*controllers.TradingStructuresControlle
 		characters: new(MockTradingStructureCharacterRepository),
 		esi:        new(MockTradingStructureEsiClient),
 		systems:    new(MockTradingStructureSolarSystemRepository),
+		assets:     new(MockTradingStructureAssetRepository),
 	}
 	router := &MockRouter{}
-	controller := controllers.NewTradingStructures(router, mocks.stations, mocks.structures, mocks.scanner, mocks.characters, mocks.esi, mocks.systems)
+	controller := controllers.NewTradingStructures(router, mocks.stations, mocks.structures, mocks.scanner, mocks.characters, mocks.esi, mocks.systems, mocks.assets)
 	return controller, mocks
 }
 
@@ -524,6 +540,162 @@ func Test_TradingStructures_ScanStructure_ScanError(t *testing.T) {
 	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "5"}}
 
 	result, httpErr := controller.ScanStructure(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: ListCharacterAssetStructures ---
+
+func Test_TradingStructures_ListCharacterAssetStructures_Success(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001020)
+	structureID1 := int64(1000000001)
+	structureID2 := int64(1000000002)
+
+	char := &repositories.Character{ID: charID}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{structureID1, structureID2}, nil)
+	// structureID1 is already saved with a name; structureID2 is unknown
+	savedStructures := []*models.UserTradingStructure{
+		{ID: int64(10), UserID: userID, StructureID: structureID1, Name: "Known Structure"},
+	}
+	mocks.structures.On("List", mock.Anything, userID).Return(savedStructures, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001020/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001020"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	type assetStructure struct {
+		StructureID int64  `json:"structureId"`
+		Name        string `json:"name"`
+	}
+	// Re-encode and decode to inspect fields
+	raw, _ := json.Marshal(result)
+	var items []assetStructure
+	_ = json.Unmarshal(raw, &items)
+	assert.Len(t, items, 2)
+
+	found1, found2 := false, false
+	for _, item := range items {
+		if item.StructureID == structureID1 {
+			assert.Equal(t, "Known Structure", item.Name)
+			found1 = true
+		}
+		if item.StructureID == structureID2 {
+			assert.Equal(t, "", item.Name)
+			found2 = true
+		}
+	}
+	assert.True(t, found1, "structureID1 should be in results")
+	assert.True(t, found2, "structureID2 should be in results")
+
+	mocks.characters.AssertExpectations(t)
+	mocks.assets.AssertExpectations(t)
+	mocks.structures.AssertExpectations(t)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_NoAssets(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001021)
+
+	char := &repositories.Character{ID: charID}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{}, nil)
+	mocks.structures.On("List", mock.Anything, userID).Return([]*models.UserTradingStructure{}, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001021/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001021"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	raw, _ := json.Marshal(result)
+	assert.Equal(t, "[]", string(raw))
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_CharacterNotFound(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{}, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001022/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001022"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 404, httpErr.StatusCode)
+	mocks.characters.AssertExpectations(t)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_InvalidID(t *testing.T) {
+	controller, _ := setupTradingStructuresController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/abc/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "abc"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_GetCharactersError(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+
+	mocks.characters.On("GetAll", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001023/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001023"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_AssetsError(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001024)
+
+	char := &repositories.Character{ID: charID}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001024/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001024"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_ListStructuresError(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001025)
+
+	char := &repositories.Character{ID: charID}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{int64(1000000010)}, nil)
+	mocks.structures.On("List", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001025/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001025"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 500, httpErr.StatusCode)
