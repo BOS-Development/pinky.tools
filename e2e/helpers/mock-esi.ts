@@ -309,3 +309,54 @@ export async function setPlanetDetails(
 export async function setCharacterForce401(charID: number): Promise<void> {
   await adminRequest('PUT', `/_admin/character-force-401/${charID}`);
 }
+
+// ---------------------------------------------------------------------------
+// Phase 3: character sell orders and wallet transactions
+// ---------------------------------------------------------------------------
+
+export interface CharacterOrder {
+  order_id: number;
+  type_id: number;
+  location_id: number;
+  region_id: number;
+  price: number;
+  volume_total: number;
+  volume_remain: number;
+  is_buy_order: boolean;
+  issued: string;
+  duration: number;
+}
+
+export interface WalletTransaction {
+  transaction_id: number;
+  date: string;
+  type_id: number;
+  quantity: number;
+  unit_price: number;
+  is_buy: boolean;
+  client_id: number;
+  location_id: number;
+  journal_ref_id: number;
+}
+
+/**
+ * Set the active character market orders returned by the mock ESI.
+ * The backend uses this for the hauling sell-tracking updater.
+ */
+export async function setCharacterOrders(
+  charID: number,
+  orders: CharacterOrder[],
+): Promise<void> {
+  await adminRequest('PUT', `/_admin/character-orders/${charID}`, orders);
+}
+
+/**
+ * Set the character wallet transactions returned by the mock ESI.
+ * The backend uses this for the hauling wallet-tx updater.
+ */
+export async function setCharacterWalletTx(
+  charID: number,
+  transactions: WalletTransaction[],
+): Promise<void> {
+  await adminRequest('PUT', `/_admin/character-wallet-tx/${charID}`, transactions);
+}

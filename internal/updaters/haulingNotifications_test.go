@@ -305,6 +305,98 @@ func Test_HaulingNotifications_SendHaulingDailyDigest_WithRuns(t *testing.T) {
 	assert.Len(t, capturedEmbed.Fields, 2)
 }
 
+// --- NotifyHaulingItemSold tests ---
+
+func Test_HaulingNotifications_NotifyHaulingItemSold_NoTargets(t *testing.T) {
+	notifier, repo, discord := setupHaulingNotifier()
+	userID := int64(100)
+	run := makeHaulingRun()
+	item := &models.HaulingRunItem{
+		ID:              int64(10),
+		TypeName:        "Tritanium",
+		QuantityPlanned: int64(100),
+		QtySold:         int64(100),
+	}
+
+	repo.On("GetActiveTargetsForEvent", mock.Anything, userID, "hauling_item_sold").
+		Return([]*models.DiscordNotificationTarget{}, nil)
+
+	notifier.NotifyHaulingItemSold(context.Background(), userID, run, item)
+
+	repo.AssertExpectations(t)
+	discord.AssertNotCalled(t, "SendDM", mock.Anything, mock.Anything, mock.Anything)
+	discord.AssertNotCalled(t, "SendChannelMessage", mock.Anything, mock.Anything, mock.Anything)
+}
+
+func Test_HaulingNotifications_NotifyHaulingItemSold_SendsChannelMessage(t *testing.T) {
+	notifier, repo, discord := setupHaulingNotifier()
+	userID := int64(100)
+	run := makeHaulingRun()
+	rev := 150000.0
+	item := &models.HaulingRunItem{
+		ID:               int64(10),
+		TypeName:         "Tritanium",
+		QuantityPlanned:  int64(100),
+		QtySold:          int64(100),
+		ActualRevenueISK: &rev,
+	}
+	channelID := "channel-sold"
+
+	target := &models.DiscordNotificationTarget{
+		ID:         int64(7),
+		UserID:     userID,
+		TargetType: "channel",
+		ChannelID:  &channelID,
+	}
+
+	repo.On("GetActiveTargetsForEvent", mock.Anything, userID, "hauling_item_sold").
+		Return([]*models.DiscordNotificationTarget{target}, nil)
+
+	var capturedEmbed *client.DiscordEmbed
+	discord.On("SendChannelMessage", mock.Anything, channelID, mock.AnythingOfType("*client.DiscordEmbed")).
+		Run(func(args mock.Arguments) {
+			capturedEmbed = args.Get(2).(*client.DiscordEmbed)
+		}).
+		Return(nil)
+
+	notifier.NotifyHaulingItemSold(context.Background(), userID, run, item)
+
+	repo.AssertExpectations(t)
+	discord.AssertExpectations(t)
+	assert.NotNil(t, capturedEmbed)
+	assert.Equal(t, "Hauling Item Sold", capturedEmbed.Title)
+	assert.Contains(t, capturedEmbed.Description, "Tritanium")
+	// Revenue field should be present
+	found := false
+	for _, f := range capturedEmbed.Fields {
+		if f.Name == "Revenue" {
+			assert.Contains(t, f.Value, "150000.00")
+			found = true
+		}
+	}
+	assert.True(t, found, "Revenue field not found in embed")
+}
+
+func Test_HaulingNotifications_NotifyHaulingItemSold_RepoError(t *testing.T) {
+	notifier, repo, discord := setupHaulingNotifier()
+	userID := int64(100)
+	run := makeHaulingRun()
+	item := &models.HaulingRunItem{
+		ID:       int64(10),
+		TypeName: "Tritanium",
+		QtySold:  int64(100),
+	}
+
+	repo.On("GetActiveTargetsForEvent", mock.Anything, userID, "hauling_item_sold").
+		Return(nil, assert.AnError)
+
+	// Should not panic; error is logged
+	notifier.NotifyHaulingItemSold(context.Background(), userID, run, item)
+
+	repo.AssertExpectations(t)
+	discord.AssertNotCalled(t, "SendDM", mock.Anything, mock.Anything, mock.Anything)
+}
+
 // --- Region name mapping tests ---
 
 func Test_HaulingNotifications_EmbedContainsRegionNames(t *testing.T) {

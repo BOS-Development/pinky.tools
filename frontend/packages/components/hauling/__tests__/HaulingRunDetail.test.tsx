@@ -62,6 +62,8 @@ const mockRun: HaulingRun = {
       volumeM3: 0.01,
       fillPercent: 50,
       netProfitIsk: 1.5,
+      qtySold: 0,
+      sellFillPercent: 0,
       createdAt: '2026-02-22T12:00:00Z',
       updatedAt: '2026-02-22T12:00:00Z',
     },

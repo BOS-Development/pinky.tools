@@ -1333,11 +1333,16 @@ type HaulingRunItem struct {
 	VolumeM3         *float64 `json:"volumeM3,omitempty"`
 	CharacterID      *int64   `json:"characterId,omitempty"`
 	Notes            *string  `json:"notes,omitempty"`
+	SellOrderID        *int64   `json:"sellOrderId,omitempty"`
+	QtySold            int64    `json:"qtySold"`
+	ActualSellPriceISK *float64 `json:"actualSellPriceIsk,omitempty"`
 	CreatedAt        string   `json:"createdAt"`
 	UpdatedAt        string   `json:"updatedAt"`
 	// Computed
-	FillPercent  float64  `json:"fillPercent"`             // QuantityAcquired / QuantityPlanned * 100
-	NetProfitISK *float64 `json:"netProfitIsk,omitempty"` // (SellPriceISK - BuyPriceISK) * QuantityPlanned
+	FillPercent     float64  `json:"fillPercent"`             // QuantityAcquired / QuantityPlanned * 100
+	NetProfitISK    *float64 `json:"netProfitIsk,omitempty"` // (SellPriceISK - BuyPriceISK) * QuantityPlanned
+	SellFillPercent  float64  `json:"sellFillPercent"`             // QtySold / QuantityPlanned * 100
+	ActualRevenueISK *float64 `json:"actualRevenueIsk,omitempty"` // ActualSellPriceISK * QtySold
 }
 
 // HaulingMarketSnapshot is cached market data for the scanner
