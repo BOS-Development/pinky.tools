@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import Unuathorized from "@industry-tool/components/unauthorized";
@@ -15,5 +16,10 @@ export default function Stockpiles() {
   }
 
   // Assets will be fetched client-side by StockpilesList component
-  return <StockpilesList />;
+  return (
+    <>
+      <Head><title>Stockpiles — pinky.tools</title></Head>
+      <StockpilesList />
+    </>
+  );
 }

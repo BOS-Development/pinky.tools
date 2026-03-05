@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { UserStation } from "@industry-tool/client/data/models";
@@ -42,6 +43,7 @@ export default function Stations() {
 
   return (
     <>
+      <Head><title>Stations — pinky.tools</title></Head>
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 py-6">
         <h2 className="text-xl font-display font-semibold text-[var(--color-text-emphasis)] mb-4">

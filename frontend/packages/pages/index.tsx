@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
@@ -27,6 +28,7 @@ export default function Home() {
 
   return (
     <>
+      <Head><title>pinky.tools</title></Head>
       <Navbar />
 
       <div className="flex flex-col items-center justify-between min-h-screen -mt-16 pt-16 bg-background-void text-center px-3 pb-4">

@@ -19,10 +19,16 @@ exports[`AssetsList Component Empty State should match snapshot when no assets e
         No Assets Found
       </h2>
       <p
-        class="text-sm text-text-secondary"
+        class="text-sm text-text-secondary mb-4"
       >
         You don't have any assets yet, or they haven't been synced.
       </p>
+      <a
+        class="inline-flex items-center px-4 py-2 rounded-sm bg-primary text-background-void text-sm font-medium hover:opacity-90 transition-opacity"
+        href="/settings"
+      >
+        Add a Character in Settings
+      </a>
     </div>
   </div>
 </div>

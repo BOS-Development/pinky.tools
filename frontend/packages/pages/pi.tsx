@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
@@ -27,6 +28,7 @@ export default function PlanetaryIndustry() {
 
   return (
     <>
+      <Head><title>Planetary Industry — pinky.tools</title></Head>
       <Navbar />
       <div className="max-w-screen-xl mx-auto px-4 mt-2 mb-8">
         <h2 className="text-xl font-semibold text-text-emphasis mb-4">

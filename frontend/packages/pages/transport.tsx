@@ -1,3 +1,4 @@
+import Head from "next/head";
 import React, { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -157,6 +158,7 @@ export default function TransportPage() {
 
   return (
     <>
+      <Head><title>Transport — pinky.tools</title></Head>
       <Navbar />
       <div className="max-w-screen-xl mx-auto px-4 mt-4">
         <h2 className="text-xl font-semibold text-text-emphasis mb-4">Transport</h2>

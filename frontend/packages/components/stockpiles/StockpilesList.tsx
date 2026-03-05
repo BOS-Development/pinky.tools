@@ -157,8 +157,10 @@ export default function StockpilesList() {
         {/* Sticky Header Section */}
         <div className="sticky top-16 z-40 bg-[var(--color-bg-void)] pb-4">
           <h1 className="text-2xl font-display font-semibold flex items-center gap-2 mb-4">
-            <AlertTriangle className="h-6 w-6 text-[var(--color-danger-rose)]" />
-            Stockpiles Needing Replenishment
+            {filteredItems.length > 0 && (
+              <AlertTriangle className="h-6 w-6 text-[var(--color-danger-rose)]" />
+            )}
+            {filteredItems.length > 0 ? 'Stockpiles Needing Replenishment' : 'Stockpiles'}
           </h1>
 
           {/* Summary Stats */}

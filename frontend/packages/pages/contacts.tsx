@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import Unauthorized from "@industry-tool/components/unauthorized";
@@ -14,5 +15,10 @@ export default function Contacts() {
     return <Unauthorized />;
   }
 
-  return <ContactsList />;
+  return (
+    <>
+      <Head><title>Contacts — pinky.tools</title></Head>
+      <ContactsList />
+    </>
+  );
 }

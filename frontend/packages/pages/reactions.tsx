@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { AssetsResponse, PlanResponse, PlanSelection, ReactionsResponse, ReactionSystem } from "@industry-tool/client/data/models";
 import Navbar from "@industry-tool/components/Navbar";
 import PlanSummary from "@industry-tool/components/reactions/PlanSummary";
@@ -209,6 +210,7 @@ export default function Reactions() {
 
     return (
         <>
+            <Head><title>Reactions — pinky.tools</title></Head>
             <Navbar />
             <div className="w-full px-4 py-2 bg-[var(--color-bg-void)] min-h-screen">
                 <SettingsToolbar

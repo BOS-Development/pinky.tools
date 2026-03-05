@@ -1287,9 +1287,15 @@ export default function AssetsList(props: AssetsListProps) {
         <div className="max-w-screen-xl mx-auto px-4 mt-4">
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
             <h2 className="text-3xl font-semibold text-text-emphasis mb-2">No Assets Found</h2>
-            <p className="text-sm text-text-secondary">
+            <p className="text-sm text-text-secondary mb-4">
               You don&apos;t have any assets yet, or they haven&apos;t been synced.
             </p>
+            <a
+              href="/settings"
+              className="inline-flex items-center px-4 py-2 rounded-sm bg-primary text-background-void text-sm font-medium hover:opacity-90 transition-opacity"
+            >
+              Add a Character in Settings
+            </a>
           </div>
         </div>
       </>
