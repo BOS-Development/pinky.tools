@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
@@ -27,6 +28,7 @@ export default function Home() {
 
   return (
     <>
+      <Head><title>pinky.tools</title></Head>
       <Navbar />
 
       <div className="flex flex-col items-center justify-between min-h-screen -mt-16 pt-16 bg-background-void text-center px-3 pb-4">
@@ -87,14 +89,14 @@ export default function Home() {
         {isAuthenticated && (
           <div className="w-full max-w-3xl mx-auto pb-8">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <QuickLink href="/inventory" label="Inventory" description="View all assets" />
-              <QuickLink href="/stockpiles" label="Stockpiles" description="Track targets" />
-              <QuickLink href="/industry" label="Industry" description="Manage jobs" />
-              <QuickLink href="/marketplace" label="Marketplace" description="Browse listings" />
-              <QuickLink href="/reactions" label="Reactions" description="Calculator" />
+              <QuickLink href="/inventory" label="Inventory" description="View all assets" icon="/icons/inventory-empty.png" />
+              <QuickLink href="/stockpiles" label="Stockpiles" description="Track targets" icon="/icons/isk.png" />
+              <QuickLink href="/industry" label="Industry" description="Manage jobs" icon="/icons/industry.png" />
+              <QuickLink href="/marketplace" label="Marketplace" description="Browse listings" icon="/icons/trading.png" />
+              <QuickLink href="/reactions" label="Reactions" description="Calculator" icon="/icons/industry.png" />
               <QuickLink href="/production-plans" label="Plans" description="Production plans" />
               <QuickLink href="/contacts" label="Contacts" description="Trading network" />
-              <QuickLink href="/hauling" label="Hauling" description="Run logistics" />
+              <QuickLink href="/hauling" label="Hauling" description="Run logistics" icon="/icons/logistics.png" />
             </div>
           </div>
         )}
@@ -124,12 +126,13 @@ function MetricCard({ label, value, color }: { label: string; value: string; col
   );
 }
 
-function QuickLink({ href, label, description }: { href: string; label: string; description: string }) {
+function QuickLink({ href, label, description, icon }: { href: string; label: string; description: string; icon?: string }) {
   return (
     <a
       href={href}
       className="px-3 py-3 bg-background-panel border border-border-dim rounded-sm hover:border-primary/40 hover:shadow-glow-sm transition-all group"
     >
+      {icon && <img src={icon} alt="" className="h-8 w-8 object-contain mb-1.5 opacity-85" />}
       <p className="text-sm font-semibold text-text-emphasis group-hover:text-primary transition-colors">
         {label}
       </p>

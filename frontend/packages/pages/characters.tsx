@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { GetServerSideProps } from "next";
 import { getSession, useSession } from "next-auth/react";
 import client from "@industry-tool/client/api";
@@ -22,7 +23,12 @@ export default function Home(props: CharactersPageProps) {
   }
 
   console.log(props.characters);
-  return <List characters={props.characters ?? []} />;
+  return (
+    <>
+      <Head><title>Characters — pinky.tools</title></Head>
+      <List characters={props.characters ?? []} />
+    </>
+  );
 }
 
 export const getServerSideProps: GetServerSideProps<

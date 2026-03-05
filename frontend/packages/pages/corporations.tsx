@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { GetServerSideProps } from "next";
 import { getSession, useSession } from "next-auth/react";
 import client from "@industry-tool/client/api";
@@ -21,7 +22,12 @@ export default function Corporations(props: CorporationsPageProps) {
     return <Unuathorized />;
   }
 
-  return <List corporations={props.corporations ?? []} />;
+  return (
+    <>
+      <Head><title>Corporations — pinky.tools</title></Head>
+      <List corporations={props.corporations ?? []} />
+    </>
+  );
 }
 
 export const getServerSideProps: GetServerSideProps<

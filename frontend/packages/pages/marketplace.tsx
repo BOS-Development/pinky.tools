@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState } from 'react';
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
@@ -34,6 +35,7 @@ export default function Marketplace() {
 
   return (
     <>
+      <Head><title>Marketplace — pinky.tools</title></Head>
       <Navbar />
       <div className="w-full px-4">
         <Tabs

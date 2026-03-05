@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import Unuathorized from "@industry-tool/components/unauthorized";
@@ -15,5 +16,10 @@ export default function Inventory() {
   }
 
   // Assets will be loaded client-side by AssetsList component
-  return <AssetsList />;
+  return (
+    <>
+      <Head><title>Inventory — pinky.tools</title></Head>
+      <AssetsList />
+    </>
+  );
 }

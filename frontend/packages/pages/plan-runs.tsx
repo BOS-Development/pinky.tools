@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
 import Unauthorized from "@industry-tool/components/unauthorized";
@@ -9,5 +10,10 @@ export default function PlanRunsPage() {
   if (status === "loading") return <Loading />;
   if (status !== "authenticated") return <Unauthorized />;
 
-  return <PlanRunsList />;
+  return (
+    <>
+      <Head><title>Plan Runs — pinky.tools</title></Head>
+      <PlanRunsList />
+    </>
+  );
 }

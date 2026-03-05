@@ -13,16 +13,27 @@ exports[`AssetsList Component Empty State should match snapshot when no assets e
     <div
       class="flex flex-col items-center justify-center min-h-[60vh] text-center"
     >
+      <img
+        alt=""
+        class="h-20 w-20 object-contain mb-4 opacity-70"
+        src="/icons/inventory-empty.png"
+      />
       <h2
         class="text-3xl font-semibold text-text-emphasis mb-2"
       >
         No Assets Found
       </h2>
       <p
-        class="text-sm text-text-secondary"
+        class="text-sm text-text-secondary mb-4"
       >
         You don't have any assets yet, or they haven't been synced.
       </p>
+      <a
+        class="inline-flex items-center px-4 py-2 rounded-sm bg-primary text-background-void text-sm font-medium hover:opacity-90 transition-opacity"
+        href="/settings"
+      >
+        Add a Character in Settings
+      </a>
     </div>
   </div>
 </div>

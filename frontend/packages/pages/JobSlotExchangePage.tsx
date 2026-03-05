@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { useState, useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import Loading from "@industry-tool/components/loading";
@@ -32,6 +33,7 @@ export default function JobSlotExchangePage() {
 
   return (
     <>
+      <Head><title>Job Slots — pinky.tools</title></Head>
       <Navbar />
       <div className="px-4">
         <Tabs value={tab} onValueChange={setTab}>

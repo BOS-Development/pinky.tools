@@ -1,3 +1,4 @@
+import Head from "next/head";
 import { GetServerSideProps } from "next";
 import { getSession, useSession } from "next-auth/react";
 import client from "@industry-tool/client/api";
@@ -26,6 +27,7 @@ export default function Settings({ characters }: SettingsPageProps) {
 
   return (
     <>
+      <Head><title>Settings — pinky.tools</title></Head>
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-display font-semibold mb-6">Settings</h1>
