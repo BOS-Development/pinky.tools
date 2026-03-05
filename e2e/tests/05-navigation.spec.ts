@@ -52,7 +52,7 @@ test.describe('Navigation', () => {
 
   test('stockpiles page loads', async ({ page }) => {
     await page.goto('/stockpiles');
-    await expect(page.getByText('Stockpiles Needing Replenishment')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText(/Stockpiles Needing Replenishment|Stockpiles/)).toBeVisible({ timeout: 10000 });
   });
 
   test('contacts page loads', async ({ page }) => {

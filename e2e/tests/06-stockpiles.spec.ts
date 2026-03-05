@@ -10,7 +10,7 @@ test.describe('Stockpiles', () => {
   test('stockpiles page shows empty state initially', async ({ page }) => {
     await page.goto('/stockpiles');
 
-    await expect(page.getByText('Stockpiles Needing Replenishment')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Stockpiles' })).toBeVisible({ timeout: 10000 });
     // No stockpile markers set yet
     await expect(page.getByText('No stockpiles need replenishment')).toBeVisible();
   });
