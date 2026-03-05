@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Trash2, ScanSearch, AlertTriangle, Plus } from 'lucide-react';
 import { UserTradingStructure } from '@industry-tool/client/data/models';
 import { toast } from '@/components/ui/sonner';
@@ -22,8 +22,12 @@ export default function UserStructuresDialog({
 }: UserStructuresDialogProps) {
   const [structures, setStructures] = useState<UserTradingStructure[]>([]);
   const [loading, setLoading] = useState(false);
-  const [addStructureId, setAddStructureId] = useState('');
-  const [addCharacterId, setAddCharacterId] = useState('');
+  const [characters, setCharacters] = useState<Array<{id: number; name: string}>>([]);
+  const [loadingCharacters, setLoadingCharacters] = useState(false);
+  const [assetStructures, setAssetStructures] = useState<Array<{structureId: number; name: string}>>([]);
+  const [loadingAssetStructures, setLoadingAssetStructures] = useState(false);
+  const [selectedCharacterId, setSelectedCharacterId] = useState('');
+  const [selectedStructureId, setSelectedStructureId] = useState('');
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
   const [scanningId, setScanningId] = useState<number | null>(null);
@@ -44,14 +48,55 @@ export default function UserStructuresDialog({
     }
   }, []);
 
+  const fetchCharacters = useCallback(async () => {
+    setLoadingCharacters(true);
+    try {
+      const res = await fetch('/api/characters');
+      if (res.ok) {
+        const data = await res.json();
+        setCharacters(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch characters:', err);
+    } finally {
+      setLoadingCharacters(false);
+    }
+  }, []);
+
+  const fetchAssetStructures = useCallback(async (characterId: string) => {
+    if (!characterId) {
+      setAssetStructures([]);
+      return;
+    }
+    setLoadingAssetStructures(true);
+    setSelectedStructureId('');
+    try {
+      const res = await fetch(`/api/hauling/character-asset-structures?characterId=${characterId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAssetStructures(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch asset structures:', err);
+    } finally {
+      setLoadingAssetStructures(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (open) {
       fetchStructures();
+      fetchCharacters();
+    } else {
+      setSelectedCharacterId('');
+      setSelectedStructureId('');
+      setAssetStructures([]);
+      setAddError(null);
     }
-  }, [open, fetchStructures]);
+  }, [open, fetchStructures, fetchCharacters]);
 
   const handleAdd = async () => {
-    if (!addStructureId || !addCharacterId) return;
+    if (!selectedCharacterId || !selectedStructureId) return;
     setAdding(true);
     setAddError(null);
     try {
@@ -59,8 +104,8 @@ export default function UserStructuresDialog({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          structureId: Number(addStructureId),
-          characterId: Number(addCharacterId),
+          structureId: Number(selectedStructureId),
+          characterId: Number(selectedCharacterId),
         }),
       });
 
@@ -74,8 +119,9 @@ export default function UserStructuresDialog({
       } else if (!res.ok) {
         setAddError(data?.error || 'Failed to add structure.');
       } else {
-        setAddStructureId('');
-        setAddCharacterId('');
+        setSelectedStructureId('');
+        setSelectedCharacterId('');
+        setAssetStructures([]);
         await fetchStructures();
         onStructuresChanged();
         toast.success('Structure added successfully.');
@@ -153,34 +199,64 @@ export default function UserStructuresDialog({
           <p className="text-sm font-semibold text-text-emphasis mb-3">Add Structure</p>
           <div className="flex gap-3 flex-wrap items-end">
             <div className="flex-1 min-w-[160px]">
-              <Label htmlFor="structure-id" className="text-xs text-text-secondary mb-1 block">
-                Structure ID
-              </Label>
-              <Input
-                id="structure-id"
-                type="number"
-                placeholder="e.g. 1035466617946"
-                value={addStructureId}
-                onChange={(e) => setAddStructureId(e.target.value)}
-                className="bg-background-elevated border-overlay-strong text-text-emphasis"
-              />
+              <Label className="text-xs text-text-secondary mb-1 block">Character</Label>
+              {loadingCharacters ? (
+                <div className="flex items-center gap-2 text-text-muted text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading characters...
+                </div>
+              ) : (
+                <Select
+                  value={selectedCharacterId}
+                  onValueChange={(v) => {
+                    setSelectedCharacterId(v);
+                    fetchAssetStructures(v);
+                  }}
+                >
+                  <SelectTrigger className="bg-background-elevated border-overlay-strong text-text-emphasis">
+                    <SelectValue placeholder="Select character" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {characters.map((char) => (
+                      <SelectItem key={char.id} value={String(char.id)}>
+                        {char.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-            <div className="flex-1 min-w-[140px]">
-              <Label htmlFor="character-id" className="text-xs text-text-secondary mb-1 block">
-                Character ID
-              </Label>
-              <Input
-                id="character-id"
-                type="number"
-                placeholder="e.g. 12345678"
-                value={addCharacterId}
-                onChange={(e) => setAddCharacterId(e.target.value)}
-                className="bg-background-elevated border-overlay-strong text-text-emphasis"
-              />
+            <div className="flex-1 min-w-[200px]">
+              <Label className="text-xs text-text-secondary mb-1 block">Structure</Label>
+              {loadingAssetStructures ? (
+                <div className="flex items-center gap-2 text-text-muted text-sm">
+                  <Loader2 className="h-4 w-4 animate-spin" /> Loading structures...
+                </div>
+              ) : !selectedCharacterId ? (
+                <p className="text-xs text-text-muted italic">Select a character first</p>
+              ) : assetStructures.length === 0 ? (
+                <p className="text-xs text-text-muted italic">No structures found in assets</p>
+              ) : (
+                <Select
+                  value={selectedStructureId}
+                  onValueChange={setSelectedStructureId}
+                  disabled={!selectedCharacterId}
+                >
+                  <SelectTrigger className="bg-background-elevated border-overlay-strong text-text-emphasis">
+                    <SelectValue placeholder="Select structure" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assetStructures.map((s) => (
+                      <SelectItem key={s.structureId} value={String(s.structureId)}>
+                        {s.name || `Structure ${s.structureId}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
             <Button
               onClick={handleAdd}
-              disabled={adding || !addStructureId || !addCharacterId}
+              disabled={adding || !selectedCharacterId || !selectedStructureId}
               className="shrink-0"
             >
               {adding ? (

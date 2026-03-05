@@ -202,7 +202,7 @@ var rootCmd = &cobra.Command{
 		tradingStationsRepo := repositories.NewTradingStations(db)
 		userTradingStructuresRepo := repositories.NewUserTradingStructures(db)
 		controllers.NewHaulingRuns(router, haulingRunsRepo, haulingRunItemsRepo, haulingMarketRepo, haulingStructuresRepo, haulingMarketUpdater, haulingPnlRepo, haulingNotifier, haulingAnalyticsRepo)
-		controllers.NewTradingStructures(router, tradingStationsRepo, userTradingStructuresRepo, haulingMarketUpdater, charactersRepository, esiClient, systemRepository)
+		controllers.NewTradingStructures(router, tradingStationsRepo, userTradingStructuresRepo, haulingMarketUpdater, charactersRepository, esiClient, systemRepository, charactersAssetRepository)
 
 		// Corp orders runner (15 min) — runs even without Discord
 		haulingCorpOrdersUpdater := updaters.NewHaulingCorpOrders(usersRepository, playerCorporationRepostiory, haulingRunsRepo, haulingRunItemsRepo, haulingRunItemsRepo, esiClient)
