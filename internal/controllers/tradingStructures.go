@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/annymsMthd/industry-tool/internal/client"
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/repositories"
 	"github.com/annymsMthd/industry-tool/internal/web"
@@ -256,10 +257,16 @@ func (c *TradingStructuresController) ListCharacterAssetStructures(args *web.Han
 	}
 	if len(unknownIDs) > 0 {
 		refreshed, err := c.esi.RefreshAccessToken(ctx, targetChar.EsiRefreshToken)
-		if err == nil {
+		if err != nil {
+			log.Warn("failed to refresh access token for structure name resolution", "charID", charID, "err", err)
+		} else {
 			for _, id := range unknownIDs {
 				info, err := c.esi.GetStructureInfo(ctx, id, refreshed.AccessToken)
-				if err == nil && info != nil {
+				if err != nil {
+					log.Warn("failed to get structure info from ESI", "structureID", id, "err", err)
+				} else if info == nil {
+					log.Debug("structure info returned nil (403 — no docking access)", "structureID", id)
+				} else {
 					nameByID[id] = info.Name
 				}
 			}
