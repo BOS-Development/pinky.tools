@@ -132,6 +132,35 @@ This prevents the concrete struct from being scoped only inside the `if` block a
 - Server auto-applies on restart
 - **When the planner provides a migration draft from the DBA agent, use it as-is** unless you find a Go-specific issue (e.g., scan compatibility, column order mismatch with struct fields). The DBA has already reviewed naming, indexes, and cascades.
 
+#### Seed/preset migrations — use ON CONFLICT DO NOTHING
+
+When a migration inserts reference/preset data (e.g., NPC station presets, trade hub records), always use `ON CONFLICT (...) DO NOTHING` so re-running migrations on an existing DB is safe:
+
+```sql
+insert into trading_stations (station_id, name, system_id, region_id, is_preset)
+values
+	(60003760, 'Jita IV - Moon 4 - Caldari Navy Assembly Plant', 30000142, 10000002, true),
+	(60008494, 'Amarr VIII (Oris) - Emperor Family Academy',    30002187, 10000043, true)
+on conflict (station_id) do nothing;
+```
+
+#### E2E seed.sql — adding universe station data
+
+When adding a new NPC station to `e2e/seed.sql`, insert the full universe hierarchy in order. Each level needs `ON CONFLICT ... DO NOTHING` in case the parent is already seeded:
+
+```sql
+-- 1. Region
+INSERT INTO regions (region_id, name) VALUES (10000043, 'Domain') ON CONFLICT (region_id) DO NOTHING;
+-- 2. Constellation
+INSERT INTO constellations (constellation_id, name, region_id) VALUES (20000322, 'Throne Worlds', 10000043) ON CONFLICT (constellation_id) DO NOTHING;
+-- 3. Solar system
+INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (30002187, 'Amarr', 20000322, 1.0) ON CONFLICT (solar_system_id) DO NOTHING;
+-- 4. Station
+INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station) VALUES (60008494, 'Amarr VIII (Oris) - Emperor Family Academy', 30002187, 1000066, true) ON CONFLICT (station_id) DO NOTHING;
+-- 5. Feature-specific table (if applicable)
+INSERT INTO trading_stations (station_id, name, system_id, region_id, is_preset) VALUES (...) ON CONFLICT (station_id) DO NOTHING;
+```
+
 ### New Repository Checklist
 
 1. Create `internal/repositories/myrepo.go`
@@ -230,6 +259,22 @@ notifier.On("NotifyHaulingComplete", mock.Anything, userID, run, (*models.Haulin
 - Missing mock setup for a repo method the handler calls → "unexpected call" panic
 - Adding a new mock field to the mocks struct but forgetting to pass it to the controller constructor
 - Using `mock.MatchedBy()` with a func that doesn't match → mock returns zero values silently
+- **Asserting on `result[0]` when results are ordered by name** — if a new record is inserted whose name sorts before the previously-first record, the test breaks. For example, after inserting Amarr as a preset station, tests that assumed `stations[0]` was Jita failed because Amarr sorts first alphabetically. Fix: search by ID using a loop or map instead of relying on index position:
+  ```go
+  // BAD — brittle, breaks when another alphabetically-earlier record is added
+  assert.Equal(t, "Jita IV - ...", stations[0].Name)
+
+  // GOOD — find by ID, independent of sort order
+  var found bool
+  for _, s := range stations {
+      if s.StationID == 60003760 {
+          found = true
+          assert.Equal(t, "Jita IV - ...", s.Name)
+          break
+      }
+  }
+  assert.True(t, found)
+  ```
 
 ### Repository test patterns
 

@@ -8,15 +8,22 @@
 
 ## Overview
 
-Station Markets extends the hauling scanner to support granular location selection beyond region-wide scans. Players can now select from preset NPC stations (Jita 4-4), add their own player-owned trading structures (citadels, engineering complexes), and scan structure markets for arbitrage opportunities.
+Station Markets extends the hauling scanner to support granular location selection beyond region-wide scans. Players can now select from preset NPC stations (Jita, Amarr, Dodixie, Rens, Hek), add their own player-owned trading structures (citadels, engineering complexes), and scan structure markets for arbitrage opportunities.
 
-The system caches structure market data separately from region snapshots, using a 30-minute TTL to minimize ESI API calls while keeping structure prices fresh. Structure access is validated via ESI (403 = no access), and users see visual indicators (⚠) for structures they cannot read.
+The system caches structure market data separately from region snapshots, using a 30-minute TTL to minimize ESI API calls while keeping structure prices fresh. Structure access is validated via ESI (403 = no access), and users see visual indicators (⚠) for structures they cannot read. The UI shows contextual feedback including a "My Structures" group with empty-state messaging and helper CTAs when no structures are configured.
 
 ## Key Decisions
 
 1. **Station vs Structure terminology** — NPC stations stored in `trading_stations` with `is_preset=true` for Jita 4-4. Player structures stored in `user_trading_structures` (user_id scoped). Both use same location picker UI with grouped selector.
 
-2. **Jita preset seeding** — Jita 4-4 (station_id=60003760, system_id=30000142, region_id=10000002) seeded as `is_preset=true` in `trading_stations`. Cannot be deleted. Acts as default/reference location.
+2. **NPC station preset seeding** — Five major NPC stations seeded as `is_preset=true` in `trading_stations` and cannot be deleted:
+   - Jita 4-4 (station_id=60003760, system_id=30000142, region_id=10000002)
+   - Amarr VIII (station_id=60008494, system_id=30002187, region_id=10000043)
+   - Dodixie V (station_id=60011866, system_id=30002659, region_id=10000032)
+   - Rens VI (station_id=60004588, system_id=30002053, region_id=10000030)
+   - Hek VIII (station_id=60005686, system_id=30002502, region_id=10000033)
+
+   Seeded via migration; acts as default reference locations across major trading hubs.
 
 3. **Structure discovery via ESI** — Users add structures by structure_id. On add, we call `GET /v2/universe/structures/{id}` to validate and fetch name/location. Returns `{accessOk: false}` if 403 (access denied). Frontend shows ⚠ badge; structure remains in list but is not scannable until access is granted (scope/permissions).
 
@@ -36,6 +43,8 @@ The system caches structure market data separately from region snapshots, using 
    - Falls back to region scan if source/dest are regions (backward compatible)
 
 10. **No region inference** — If user selects a structure, we do NOT auto-infer region_id. Region is stored for reference but source/dest comparison is structure-to-structure or structure-to-region depending on picker selection.
+
+11. **UX polish for structure management** — The location picker always displays a "My Structures" group, with an empty-state placeholder and helper CTA when no structures are configured. Scan progress indicator shows contextual text ("Scanning structure market..." vs "Fetching market data from ESI..."). Add dialog validation improved to clearly message when a character has no accessible asset structures.
 
 ## Database Schema
 
@@ -237,6 +246,7 @@ Updated `/v1/hauling/scanner` and `/v1/hauling/scanner/scan` to support station-
 - `internal/database/migrations/20260305_create_user_trading_structures.{up,down}.sql` — user_trading_structures table
 - `internal/database/migrations/20260305_create_hauling_structure_snapshots.{up,down}.sql` — hauling_structure_snapshots table
 - `internal/database/migrations/20260305_hauling_runs_station_tracking.{up,down}.sql` — adds from_station_id, to_station_id to hauling_runs
+- `internal/database/migrations/20260305115121_add_npc_station_presets.{up,down}.sql` — seeds Amarr, Dodixie, Rens, Hek presets into trading_stations
 
 **Models:**
 - `internal/models/models.go` — TradingStation, UserTradingStructure (added)
@@ -324,7 +334,6 @@ Updated `/v1/hauling/scanner` and `/v1/hauling/scanner/scan` to support station-
 
 ## Phase 2 (Future)
 
-- **Station presets expansion** — Add more NPC stations (Amarr, Dodixie, Rens) as presets
 - **Automated structure discovery** — Option to auto-discover accessible structures from character data
 - **Multi-hub arbitrage** — Scanner supports >2 locations for three-way trades
 - **Structure grouping** — User-defined folders/categories for structures

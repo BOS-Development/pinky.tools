@@ -426,6 +426,7 @@ Both must be set; setting only one will still produce mismatches between local a
   cd frontend && npx jest --no-coverage -t "JobQueue"
   ```
 - **Update snapshots**: `cd frontend && npx jest -u packages/components/industry/__tests__/JobQueue.test.tsx`
+- **Filter by test path pattern**: `cd frontend && npx jest --testPathPatterns="ComponentName"` — note the flag is `--testPathPatterns` (plural); the old `--testPathPattern` (singular) was renamed and will error
 - Use targeted tests during development; use full `make test-frontend` for final verification
 
 ## Output
