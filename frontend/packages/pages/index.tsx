@@ -93,9 +93,9 @@ export default function Home() {
               <QuickLink href="/stockpiles" label="Stockpiles" description="Track targets" icon="/icons/isk.png" />
               <QuickLink href="/industry" label="Industry" description="Manage jobs" icon="/icons/industry.png" />
               <QuickLink href="/marketplace" label="Marketplace" description="Browse listings" icon="/icons/trading.png" />
-              <QuickLink href="/reactions" label="Reactions" description="Calculator" icon="/icons/industry.png" />
-              <QuickLink href="/production-plans" label="Plans" description="Production plans" />
-              <QuickLink href="/contacts" label="Contacts" description="Trading network" />
+              <QuickLink href="/reactions" label="Reactions" description="Calculator" icon="/icons/reactions.png" />
+              <QuickLink href="/production-plans" label="Plans" description="Production plans" icon="/icons/plans.png" />
+              <QuickLink href="/contacts" label="Contacts" description="Trading network" icon="/icons/contacts.png" />
               <QuickLink href="/hauling" label="Hauling" description="Run logistics" icon="/icons/logistics.png" />
             </div>
           </div>
