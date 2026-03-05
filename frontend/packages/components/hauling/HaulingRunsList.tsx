@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import Navbar from '@industry-tool/components/Navbar';
 import Loading from '@industry-tool/components/loading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -175,7 +174,6 @@ export default function HaulingRunsList() {
 
   return (
     <>
-      <Navbar />
       <div className="w-full px-4 mt-8 mb-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

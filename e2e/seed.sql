@@ -266,4 +266,49 @@ ON CONFLICT (type_id) DO UPDATE SET
   sell_price     = EXCLUDED.sell_price,
   adjusted_price = EXCLUDED.adjusted_price;
 
+-- ===========================================
+-- Hauling Run Seed Data for Analytics Tests
+-- ===========================================
+
+-- A completed hauling run for user 1001 (Alice Stargazer)
+-- The Forge → Domain, completed 2 days after creation
+INSERT INTO hauling_runs (
+  id, user_id, name, status,
+  from_region_id, to_region_id,
+  max_volume_m3, notify_tier2, notify_tier3, daily_digest,
+  created_at, updated_at, completed_at
+) VALUES (
+  90001, 1001, 'Seed: Jita to Amarr Completed Run', 'COMPLETE',
+  10000002, 10000043,
+  300000, false, false, false,
+  NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'
+) ON CONFLICT (id) DO NOTHING;
+
+-- P&L entry for that run: 150 Tritanium sold at 6.50 each, cost 5.50 each
+-- net_profit_isk is a generated column: total_revenue_isk - total_cost_isk
+INSERT INTO hauling_run_pnl (
+  run_id, type_id,
+  quantity_sold, avg_sell_price_isk,
+  total_revenue_isk, total_cost_isk,
+  created_at, updated_at
+) VALUES (
+  90001, 34,
+  150, 6.50,
+  975.00, 825.00,
+  NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'
+) ON CONFLICT (run_id, type_id) DO NOTHING;
+
+-- Item record for that run (so item analytics can join type_name)
+INSERT INTO hauling_run_items (
+  run_id, type_id, type_name,
+  quantity_planned, quantity_acquired,
+  buy_price_isk, sell_price_isk,
+  created_at, updated_at
+) VALUES (
+  90001, 34, 'Tritanium',
+  150, 150,
+  5.50, 6.50,
+  NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day'
+) ON CONFLICT (run_id, type_id) DO NOTHING;
+
 COMMIT;

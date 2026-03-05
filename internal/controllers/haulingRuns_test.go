@@ -162,42 +162,91 @@ func (m *MockHaulingRunNotifier) SendHaulingDailyDigest(ctx context.Context, use
 	m.Called(ctx, userID, runs)
 }
 
+// --- Mock HaulingAnalyticsRepository ---
+
+type MockHaulingAnalyticsRepository struct {
+	mock.Mock
+}
+
+func (m *MockHaulingAnalyticsRepository) GetRouteAnalytics(ctx context.Context, userID int64) ([]*models.HaulingRouteAnalytics, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.HaulingRouteAnalytics), args.Error(1)
+}
+
+func (m *MockHaulingAnalyticsRepository) GetItemAnalytics(ctx context.Context, userID int64) ([]*models.HaulingItemAnalytics, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.HaulingItemAnalytics), args.Error(1)
+}
+
+func (m *MockHaulingAnalyticsRepository) GetProfitTimeSeries(ctx context.Context, userID int64) ([]*models.HaulingProfitDataPoint, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.HaulingProfitDataPoint), args.Error(1)
+}
+
+func (m *MockHaulingAnalyticsRepository) GetRunDurationSummary(ctx context.Context, userID int64) (*models.HaulingRunDurationSummary, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.HaulingRunDurationSummary), args.Error(1)
+}
+
+func (m *MockHaulingAnalyticsRepository) GetCompletedRuns(ctx context.Context, userID int64, limit, offset int) ([]*models.HaulingRun, int64, error) {
+	args := m.Called(ctx, userID, limit, offset)
+	if args.Get(0) == nil {
+		return nil, args.Get(1).(int64), args.Error(2)
+	}
+	return args.Get(0).([]*models.HaulingRun), args.Get(1).(int64), args.Error(2)
+}
+
 // --- Setup helper ---
 
 type haulingMocks struct {
-	runs     *MockHaulingRunsRepository
-	items    *MockHaulingRunItemsRepository
-	market   *MockHaulingMarketRepo
-	scanner  *MockHaulingMarketUpdater
-	pnl      *MockHaulingPnlRepository
-	notifier *MockHaulingRunNotifier
+	runs      *MockHaulingRunsRepository
+	items     *MockHaulingRunItemsRepository
+	market    *MockHaulingMarketRepo
+	scanner   *MockHaulingMarketUpdater
+	pnl       *MockHaulingPnlRepository
+	notifier  *MockHaulingRunNotifier
+	analytics *MockHaulingAnalyticsRepository
 }
 
 func setupHaulingController() (*controllers.HaulingRunsController, haulingMocks) {
 	mocks := haulingMocks{
-		runs:     new(MockHaulingRunsRepository),
-		items:    new(MockHaulingRunItemsRepository),
-		market:   new(MockHaulingMarketRepo),
-		scanner:  new(MockHaulingMarketUpdater),
-		pnl:      new(MockHaulingPnlRepository),
-		notifier: nil, // default: no notifier
+		runs:      new(MockHaulingRunsRepository),
+		items:     new(MockHaulingRunItemsRepository),
+		market:    new(MockHaulingMarketRepo),
+		scanner:   new(MockHaulingMarketUpdater),
+		pnl:       new(MockHaulingPnlRepository),
+		notifier:  nil, // default: no notifier
+		analytics: new(MockHaulingAnalyticsRepository),
 	}
 	router := &MockRouter{}
-	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, nil)
+	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, nil, mocks.analytics)
 	return controller, mocks
 }
 
 func setupHaulingControllerWithNotifier() (*controllers.HaulingRunsController, haulingMocks) {
 	mocks := haulingMocks{
-		runs:     new(MockHaulingRunsRepository),
-		items:    new(MockHaulingRunItemsRepository),
-		market:   new(MockHaulingMarketRepo),
-		scanner:  new(MockHaulingMarketUpdater),
-		pnl:      new(MockHaulingPnlRepository),
-		notifier: new(MockHaulingRunNotifier),
+		runs:      new(MockHaulingRunsRepository),
+		items:     new(MockHaulingRunItemsRepository),
+		market:    new(MockHaulingMarketRepo),
+		scanner:   new(MockHaulingMarketUpdater),
+		pnl:       new(MockHaulingPnlRepository),
+		notifier:  new(MockHaulingRunNotifier),
+		analytics: new(MockHaulingAnalyticsRepository),
 	}
 	router := &MockRouter{}
-	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, mocks.notifier)
+	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, mocks.notifier, mocks.analytics)
 	return controller, mocks
 }
 
@@ -1033,4 +1082,248 @@ func Test_HaulingRuns_UpdateStatus_NonCompleteNoNotifier(t *testing.T) {
 	// Notifier should not be called for non-COMPLETE status
 	mocks.notifier.AssertNotCalled(t, "NotifyHaulingComplete", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 	mocks.runs.AssertExpectations(t)
+}
+
+// --- Tests: GetRouteAnalytics ---
+
+func Test_HaulingRuns_GetRouteAnalytics_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	expected := []*models.HaulingRouteAnalytics{
+		{FromRegionID: int64(10000002), ToRegionID: int64(10000043), TotalRuns: int64(3), TotalProfitISK: 500000.0},
+	}
+	mocks.analytics.On("GetRouteAnalytics", mock.Anything, userID).Return(expected, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/routes", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetRouteAnalytics(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	rows := result.([]*models.HaulingRouteAnalytics)
+	assert.Len(t, rows, 1)
+	assert.Equal(t, 500000.0, rows[0].TotalProfitISK)
+	mocks.analytics.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetRouteAnalytics_Error(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.analytics.On("GetRouteAnalytics", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/routes", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetRouteAnalytics(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: GetItemAnalytics ---
+
+func Test_HaulingRuns_GetItemAnalytics_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	expected := []*models.HaulingItemAnalytics{
+		{TypeID: int64(34), TypeName: "Tritanium", TotalRuns: int64(5), TotalQtySold: int64(1000), TotalProfitISK: 100000.0},
+	}
+	mocks.analytics.On("GetItemAnalytics", mock.Anything, userID).Return(expected, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/items", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetItemAnalytics(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	items := result.([]*models.HaulingItemAnalytics)
+	assert.Len(t, items, 1)
+	assert.Equal(t, "Tritanium", items[0].TypeName)
+	mocks.analytics.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetItemAnalytics_Error(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.analytics.On("GetItemAnalytics", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/items", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetItemAnalytics(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: GetProfitTimeSeries ---
+
+func Test_HaulingRuns_GetProfitTimeSeries_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	expected := []*models.HaulingProfitDataPoint{
+		{Date: "2026-03-01", FromRegionID: int64(10000002), ToRegionID: int64(10000043), ProfitISK: 250000.0, RunCount: int64(2)},
+	}
+	mocks.analytics.On("GetProfitTimeSeries", mock.Anything, userID).Return(expected, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/timeseries", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetProfitTimeSeries(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	points := result.([]*models.HaulingProfitDataPoint)
+	assert.Len(t, points, 1)
+	assert.Equal(t, "2026-03-01", points[0].Date)
+	mocks.analytics.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetProfitTimeSeries_Error(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.analytics.On("GetProfitTimeSeries", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/timeseries", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetProfitTimeSeries(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: GetRunDurationSummary ---
+
+func Test_HaulingRuns_GetRunDurationSummary_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	expected := &models.HaulingRunDurationSummary{
+		TotalCompletedRuns: int64(10),
+		AvgDurationDays:    3.5,
+		MinDurationDays:    1.0,
+		MaxDurationDays:    7.0,
+		TotalProfitISK:     1500000.0,
+	}
+	mocks.analytics.On("GetRunDurationSummary", mock.Anything, userID).Return(expected, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/summary", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetRunDurationSummary(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	s := result.(*models.HaulingRunDurationSummary)
+	assert.Equal(t, int64(10), s.TotalCompletedRuns)
+	assert.Equal(t, 3.5, s.AvgDurationDays)
+	mocks.analytics.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetRunDurationSummary_Error(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.analytics.On("GetRunDurationSummary", mock.Anything, userID).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/analytics/summary", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetRunDurationSummary(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: GetHaulingHistory ---
+
+func Test_HaulingRuns_GetHaulingHistory_Success(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	completedAt := "2026-03-01T12:00:00Z"
+	runs := []*models.HaulingRun{
+		{ID: int64(1), Status: "COMPLETE", CompletedAt: &completedAt, Items: []*models.HaulingRunItem{}},
+		{ID: int64(2), Status: "CANCELLED", Items: []*models.HaulingRunItem{}},
+	}
+	mocks.analytics.On("GetCompletedRuns", mock.Anything, userID, 20, 0).Return(runs, int64(2), nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/history", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetHaulingHistory(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]interface{})
+	assert.Equal(t, int64(2), resp["total"])
+	assert.Equal(t, 20, resp["limit"])
+	assert.Equal(t, 0, resp["offset"])
+	returnedRuns := resp["runs"].([]*models.HaulingRun)
+	assert.Len(t, returnedRuns, 2)
+	mocks.analytics.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetHaulingHistory_WithPagination(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.analytics.On("GetCompletedRuns", mock.Anything, userID, 5, 10).Return([]*models.HaulingRun{}, int64(25), nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/history?limit=5&offset=10", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetHaulingHistory(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]interface{})
+	assert.Equal(t, int64(25), resp["total"])
+	assert.Equal(t, 5, resp["limit"])
+	assert.Equal(t, 10, resp["offset"])
+	mocks.analytics.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetHaulingHistory_InvalidLimit(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/history?limit=abc", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetHaulingHistory(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetHaulingHistory_InvalidOffset(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/history?offset=xyz", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetHaulingHistory(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetHaulingHistory_Error(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.analytics.On("GetCompletedRuns", mock.Anything, userID, 20, 0).Return(nil, int64(0), errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/history", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetHaulingHistory(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
 }

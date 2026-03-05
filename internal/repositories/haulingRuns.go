@@ -44,17 +44,18 @@ func (r *HaulingRuns) GetRunByID(ctx context.Context, id int64, userID int64) (*
 	query := `
 		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
 		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest, notes,
-		       created_at, updated_at
+		       completed_at, created_at, updated_at
 		FROM hauling_runs WHERE id=$1 AND user_id=$2`
 	var run models.HaulingRun
 	var fromSystemID sql.NullInt64
 	var maxVolume, haulThreshold sql.NullFloat64
 	var notes sql.NullString
+	var completedAt sql.NullTime
 	var createdAt, updatedAt time.Time
 	err := r.db.QueryRowContext(ctx, query, id, userID).Scan(
 		&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
 		&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest, &notes,
-		&createdAt, &updatedAt,
+		&completedAt, &createdAt, &updatedAt,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -74,6 +75,10 @@ func (r *HaulingRuns) GetRunByID(ctx context.Context, id int64, userID int64) (*
 	if notes.Valid {
 		run.Notes = &notes.String
 	}
+	if completedAt.Valid {
+		s := completedAt.Time.Format(time.RFC3339)
+		run.CompletedAt = &s
+	}
 	run.CreatedAt = createdAt.Format(time.RFC3339)
 	run.UpdatedAt = updatedAt.Format(time.RFC3339)
 	run.Items = []*models.HaulingRunItem{}
@@ -85,7 +90,7 @@ func (r *HaulingRuns) ListRunsByUser(ctx context.Context, userID int64) ([]*mode
 	query := `
 		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
 		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest, notes,
-		       created_at, updated_at
+		       completed_at, created_at, updated_at
 		FROM hauling_runs WHERE user_id=$1 ORDER BY created_at DESC`
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
@@ -98,11 +103,12 @@ func (r *HaulingRuns) ListRunsByUser(ctx context.Context, userID int64) ([]*mode
 		var fromSystemID sql.NullInt64
 		var maxVolume, haulThreshold sql.NullFloat64
 		var notes sql.NullString
+		var completedAt sql.NullTime
 		var createdAt, updatedAt time.Time
 		if err := rows.Scan(
 			&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
 			&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest, &notes,
-			&createdAt, &updatedAt,
+			&completedAt, &createdAt, &updatedAt,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan hauling run")
 		}
@@ -118,6 +124,10 @@ func (r *HaulingRuns) ListRunsByUser(ctx context.Context, userID int64) ([]*mode
 		if notes.Valid {
 			run.Notes = &notes.String
 		}
+		if completedAt.Valid {
+			s := completedAt.Time.Format(time.RFC3339)
+			run.CompletedAt = &s
+		}
 		run.CreatedAt = createdAt.Format(time.RFC3339)
 		run.UpdatedAt = updatedAt.Format(time.RFC3339)
 		run.Items = []*models.HaulingRunItem{}
@@ -127,9 +137,10 @@ func (r *HaulingRuns) ListRunsByUser(ctx context.Context, userID int64) ([]*mode
 }
 
 // UpdateRunStatus updates a hauling run's status.
+// When status is set to 'COMPLETE', completed_at is also set to NOW().
 func (r *HaulingRuns) UpdateRunStatus(ctx context.Context, id int64, userID int64, status string) error {
 	result, err := r.db.ExecContext(ctx,
-		`UPDATE hauling_runs SET status=$1, updated_at=NOW() WHERE id=$2 AND user_id=$3`,
+		`UPDATE hauling_runs SET status=$1, completed_at = CASE WHEN $1 = 'COMPLETE' THEN NOW() ELSE completed_at END, updated_at=NOW() WHERE id=$2 AND user_id=$3`,
 		status, id, userID)
 	if err != nil {
 		return errors.Wrap(err, "failed to update hauling run status")
@@ -168,7 +179,7 @@ func (r *HaulingRuns) ListAccumulatingByUser(ctx context.Context, userID int64) 
 	query := `
 		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
 		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest, notes,
-		       created_at, updated_at
+		       completed_at, created_at, updated_at
 		FROM hauling_runs WHERE user_id=$1 AND status='ACCUMULATING' ORDER BY created_at DESC`
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
@@ -181,11 +192,12 @@ func (r *HaulingRuns) ListAccumulatingByUser(ctx context.Context, userID int64) 
 		var fromSystemID sql.NullInt64
 		var maxVolume, haulThreshold sql.NullFloat64
 		var notes sql.NullString
+		var completedAt sql.NullTime
 		var createdAt, updatedAt time.Time
 		if err := rows.Scan(
 			&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
 			&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest, &notes,
-			&createdAt, &updatedAt,
+			&completedAt, &createdAt, &updatedAt,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan accumulating run")
 		}
@@ -201,6 +213,10 @@ func (r *HaulingRuns) ListAccumulatingByUser(ctx context.Context, userID int64) 
 		if notes.Valid {
 			run.Notes = &notes.String
 		}
+		if completedAt.Valid {
+			s := completedAt.Time.Format(time.RFC3339)
+			run.CompletedAt = &s
+		}
 		run.CreatedAt = createdAt.Format(time.RFC3339)
 		run.UpdatedAt = updatedAt.Format(time.RFC3339)
 		run.Items = []*models.HaulingRunItem{}
@@ -214,7 +230,7 @@ func (r *HaulingRuns) ListDigestRunsByUser(ctx context.Context, userID int64) ([
 	query := `
 		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
 		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest, notes,
-		       created_at, updated_at
+		       completed_at, created_at, updated_at
 		FROM hauling_runs
 		WHERE user_id=$1 AND daily_digest=true AND status NOT IN ('COMPLETE', 'CANCELLED')
 		ORDER BY created_at DESC`
@@ -229,11 +245,12 @@ func (r *HaulingRuns) ListDigestRunsByUser(ctx context.Context, userID int64) ([
 		var fromSystemID sql.NullInt64
 		var maxVolume, haulThreshold sql.NullFloat64
 		var notes sql.NullString
+		var completedAt sql.NullTime
 		var createdAt, updatedAt time.Time
 		if err := rows.Scan(
 			&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
 			&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest, &notes,
-			&createdAt, &updatedAt,
+			&completedAt, &createdAt, &updatedAt,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan digest run")
 		}
@@ -249,6 +266,10 @@ func (r *HaulingRuns) ListDigestRunsByUser(ctx context.Context, userID int64) ([
 		if notes.Valid {
 			run.Notes = &notes.String
 		}
+		if completedAt.Valid {
+			s := completedAt.Time.Format(time.RFC3339)
+			run.CompletedAt = &s
+		}
 		run.CreatedAt = createdAt.Format(time.RFC3339)
 		run.UpdatedAt = updatedAt.Format(time.RFC3339)
 		run.Items = []*models.HaulingRunItem{}
@@ -262,7 +283,7 @@ func (r *HaulingRuns) ListSellingByUser(ctx context.Context, userID int64) ([]*m
 	query := `
 		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
 		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest, notes,
-		       created_at, updated_at
+		       completed_at, created_at, updated_at
 		FROM hauling_runs WHERE user_id=$1 AND status='SELLING' ORDER BY created_at DESC`
 	rows, err := r.db.QueryContext(ctx, query, userID)
 	if err != nil {
@@ -275,11 +296,12 @@ func (r *HaulingRuns) ListSellingByUser(ctx context.Context, userID int64) ([]*m
 		var fromSystemID sql.NullInt64
 		var maxVolume, haulThreshold sql.NullFloat64
 		var notes sql.NullString
+		var completedAt sql.NullTime
 		var createdAt, updatedAt time.Time
 		if err := rows.Scan(
 			&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
 			&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest, &notes,
-			&createdAt, &updatedAt,
+			&completedAt, &createdAt, &updatedAt,
 		); err != nil {
 			return nil, errors.Wrap(err, "failed to scan selling run")
 		}
@@ -294,6 +316,10 @@ func (r *HaulingRuns) ListSellingByUser(ctx context.Context, userID int64) ([]*m
 		}
 		if notes.Valid {
 			run.Notes = &notes.String
+		}
+		if completedAt.Valid {
+			s := completedAt.Time.Format(time.RFC3339)
+			run.CompletedAt = &s
 		}
 		run.CreatedAt = createdAt.Format(time.RFC3339)
 		run.UpdatedAt = updatedAt.Format(time.RFC3339)
