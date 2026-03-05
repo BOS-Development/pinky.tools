@@ -50,7 +50,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20",
+    "@types/node": "^25.3.3",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
@@ -59,6 +59,6 @@
     "jest-environment-jsdom": "^30.2.0",
     "lerna": "^8.2.4",
     "postcss": "^8.5.6",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
