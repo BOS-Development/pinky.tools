@@ -215,7 +215,7 @@ export default function UserStructuresDialog({
                   <SelectTrigger className="bg-background-elevated border-overlay-strong text-text-emphasis">
                     <SelectValue placeholder="Select character" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-60 overflow-y-auto">
                     {characters.map((char) => (
                       <SelectItem key={char.id} value={String(char.id)}>
                         {char.name}

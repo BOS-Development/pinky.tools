@@ -719,7 +719,7 @@ exports[`MarketScanner renders results table with arbitrage rows 1`] = `
             class="text-xs text-text-muted ml-1"
           >
             Last updated: 
-            2/22/2026, 10:00:00 AM
+            2/22/2026, 2:00:00 AM
           </span>
         </div>
       </div>

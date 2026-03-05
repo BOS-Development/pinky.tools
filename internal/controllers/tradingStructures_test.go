@@ -554,14 +554,16 @@ func Test_TradingStructures_ListCharacterAssetStructures_Success(t *testing.T) {
 	structureID1 := int64(1000000001)
 	structureID2 := int64(1000000002)
 
-	char := &repositories.Character{ID: charID}
+	char := &repositories.Character{ID: charID, EsiRefreshToken: "tok"}
 	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
 	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{structureID1, structureID2}, nil)
-	// structureID1 is already saved with a name; structureID2 is unknown
+	// structureID1 is already saved with a name; structureID2 is unknown — resolved via ESI
 	savedStructures := []*models.UserTradingStructure{
 		{ID: int64(10), UserID: userID, StructureID: structureID1, Name: "Known Structure"},
 	}
 	mocks.structures.On("List", mock.Anything, userID).Return(savedStructures, nil)
+	mocks.esi.On("RefreshAccessToken", mock.Anything, "tok").Return(&client.RefreshedToken{AccessToken: "access-tok"}, nil)
+	mocks.esi.On("GetStructureInfo", mock.Anything, structureID2, "access-tok").Return(&client.StructureInfo{Name: "ESI Structure Name"}, nil)
 
 	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001020/asset-structures", nil)
 	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001020"}}
@@ -587,7 +589,7 @@ func Test_TradingStructures_ListCharacterAssetStructures_Success(t *testing.T) {
 			found1 = true
 		}
 		if item.StructureID == structureID2 {
-			assert.Equal(t, "", item.Name)
+			assert.Equal(t, "ESI Structure Name", item.Name)
 			found2 = true
 		}
 	}
@@ -597,6 +599,171 @@ func Test_TradingStructures_ListCharacterAssetStructures_Success(t *testing.T) {
 	mocks.characters.AssertExpectations(t)
 	mocks.assets.AssertExpectations(t)
 	mocks.structures.AssertExpectations(t)
+	mocks.esi.AssertExpectations(t)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_ESI_TokenRefreshFails(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001026)
+	structureID1 := int64(1000000011)
+	structureID2 := int64(1000000012)
+
+	char := &repositories.Character{ID: charID, EsiRefreshToken: "bad-tok"}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{structureID1, structureID2}, nil)
+	savedStructures := []*models.UserTradingStructure{
+		{ID: int64(20), UserID: userID, StructureID: structureID1, Name: "Known Structure"},
+	}
+	mocks.structures.On("List", mock.Anything, userID).Return(savedStructures, nil)
+	// Token refresh fails — ESI name resolution is skipped gracefully
+	mocks.esi.On("RefreshAccessToken", mock.Anything, "bad-tok").Return(nil, errors.New("token expired"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001026/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001026"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	type assetStructure struct {
+		StructureID int64  `json:"structureId"`
+		Name        string `json:"name"`
+	}
+	raw, _ := json.Marshal(result)
+	var items []assetStructure
+	_ = json.Unmarshal(raw, &items)
+	assert.Len(t, items, 2)
+
+	found1, found2 := false, false
+	for _, item := range items {
+		if item.StructureID == structureID1 {
+			assert.Equal(t, "Known Structure", item.Name)
+			found1 = true
+		}
+		if item.StructureID == structureID2 {
+			// No ESI resolution — falls back to empty name
+			assert.Equal(t, "", item.Name)
+			found2 = true
+		}
+	}
+	assert.True(t, found1)
+	assert.True(t, found2)
+
+	mocks.characters.AssertExpectations(t)
+	mocks.assets.AssertExpectations(t)
+	mocks.structures.AssertExpectations(t)
+	mocks.esi.AssertExpectations(t)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_ESI_GetStructureInfoFails(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001027)
+	structureID1 := int64(1000000021)
+	structureID2 := int64(1000000022)
+
+	char := &repositories.Character{ID: charID, EsiRefreshToken: "tok2"}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{structureID1, structureID2}, nil)
+	savedStructures := []*models.UserTradingStructure{
+		{ID: int64(30), UserID: userID, StructureID: structureID1, Name: "Known Structure"},
+	}
+	mocks.structures.On("List", mock.Anything, userID).Return(savedStructures, nil)
+	mocks.esi.On("RefreshAccessToken", mock.Anything, "tok2").Return(&client.RefreshedToken{AccessToken: "access-tok2"}, nil)
+	// GetStructureInfo returns error — falls back to empty name gracefully
+	mocks.esi.On("GetStructureInfo", mock.Anything, structureID2, "access-tok2").Return(nil, errors.New("ESI unavailable"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001027/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001027"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	type assetStructure struct {
+		StructureID int64  `json:"structureId"`
+		Name        string `json:"name"`
+	}
+	raw, _ := json.Marshal(result)
+	var items []assetStructure
+	_ = json.Unmarshal(raw, &items)
+	assert.Len(t, items, 2)
+
+	found1, found2 := false, false
+	for _, item := range items {
+		if item.StructureID == structureID1 {
+			assert.Equal(t, "Known Structure", item.Name)
+			found1 = true
+		}
+		if item.StructureID == structureID2 {
+			// GetStructureInfo failed — falls back to empty name
+			assert.Equal(t, "", item.Name)
+			found2 = true
+		}
+	}
+	assert.True(t, found1)
+	assert.True(t, found2)
+
+	mocks.characters.AssertExpectations(t)
+	mocks.assets.AssertExpectations(t)
+	mocks.structures.AssertExpectations(t)
+	mocks.esi.AssertExpectations(t)
+}
+
+func Test_TradingStructures_ListCharacterAssetStructures_AllNamesKnown(t *testing.T) {
+	controller, mocks := setupTradingStructuresController()
+	userID := int64(100)
+	charID := int64(200001028)
+	structureID1 := int64(1000000031)
+	structureID2 := int64(1000000032)
+
+	char := &repositories.Character{ID: charID, EsiRefreshToken: "tok3"}
+	mocks.characters.On("GetAll", mock.Anything, userID).Return([]*repositories.Character{char}, nil)
+	mocks.assets.On("GetPlayerOwnedStationIDs", mock.Anything, charID, userID).Return([]int64{structureID1, structureID2}, nil)
+	// Both structures already have names — no ESI calls needed
+	savedStructures := []*models.UserTradingStructure{
+		{ID: int64(40), UserID: userID, StructureID: structureID1, Name: "Structure One"},
+		{ID: int64(41), UserID: userID, StructureID: structureID2, Name: "Structure Two"},
+	}
+	mocks.structures.On("List", mock.Anything, userID).Return(savedStructures, nil)
+	// RefreshAccessToken and GetStructureInfo must NOT be called
+
+	req := httptest.NewRequest("GET", "/v1/hauling/characters/200001028/asset-structures", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"id": "200001028"}}
+
+	result, httpErr := controller.ListCharacterAssetStructures(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	type assetStructure struct {
+		StructureID int64  `json:"structureId"`
+		Name        string `json:"name"`
+	}
+	raw, _ := json.Marshal(result)
+	var items []assetStructure
+	_ = json.Unmarshal(raw, &items)
+	assert.Len(t, items, 2)
+
+	found1, found2 := false, false
+	for _, item := range items {
+		if item.StructureID == structureID1 {
+			assert.Equal(t, "Structure One", item.Name)
+			found1 = true
+		}
+		if item.StructureID == structureID2 {
+			assert.Equal(t, "Structure Two", item.Name)
+			found2 = true
+		}
+	}
+	assert.True(t, found1)
+	assert.True(t, found2)
+
+	mocks.characters.AssertExpectations(t)
+	mocks.assets.AssertExpectations(t)
+	mocks.structures.AssertExpectations(t)
+	// ESI mock has no expectations set — AssertExpectations verifies nothing was called
+	mocks.esi.AssertExpectations(t)
 }
 
 func Test_TradingStructures_ListCharacterAssetStructures_NoAssets(t *testing.T) {
