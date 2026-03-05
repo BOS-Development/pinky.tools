@@ -193,6 +193,23 @@ These conventions are established by the existing migrations:
 - `ON DELETE CASCADE` for child records
 - `ON DELETE SET NULL` for optional references
 
+### characters Table — Composite PK — CRITICAL
+
+The `characters` table has a **composite primary key `(id, user_id)`**. This means:
+
+- FK constraints like `REFERENCES characters(id)` are **invalid** — PostgreSQL requires all PK columns to be referenced.
+- New tables that logically belong to a character must store `character_id BIGINT NOT NULL` **without a FK constraint**. Rely on `user_id REFERENCES users(id)` for cascade behavior and application-level scoping for character isolation.
+- Always flag this to backend-dev when reviewing or drafting migrations for character-scoped tables.
+
+```sql
+-- BAD — will fail: characters PK is (id, user_id), not just id
+character_id BIGINT NOT NULL REFERENCES characters(id),
+
+-- GOOD — store the ID bare; use user_id for cascade
+character_id BIGINT NOT NULL,
+user_id      BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+```
+
 ### Migration File Format
 - Created via `./scripts/new-migration.sh <name>`
 - Timestamps: `YYYYMMDDHHMMSS` prefix

@@ -480,6 +480,27 @@ make test-e2e-clean
 4. Set appropriate headers (`X-Pages`, `Content-Type`)
 5. Test that the backend can call the mock endpoint via `make test-e2e-debug`
 
+### Custom Select Portal — Scrolling to Options
+
+shadcn/ui `<Select>` renders its options in a **Radix portal** that is appended to `<body>`, not inside the component subtree. When a dropdown has many grouped options, items near the bottom of the list may be outside the viewport and unreachable by standard Playwright locators.
+
+**`scrollIntoViewIfNeeded()` and `scrollTop = scrollHeight` do NOT work** on portal listboxes — the scroll container is the portal element itself, not the page body.
+
+Reliable fix: use `page.evaluate()` with `el.scrollIntoView({ block: 'nearest' })` and then call `.click()` on the element handle:
+
+```typescript
+// Find the option element inside the portal
+const option = page.getByRole('option', { name: /Station Name/i });
+
+// Scroll it into view inside the portal, then click it via evaluate
+await option.evaluate((el) => {
+  el.scrollIntoView({ block: 'nearest' });
+  (el as HTMLElement).click();
+});
+```
+
+**Prevention**: When designing tests that rely on select options, prefer options that appear early in the list (alphabetically first, or near the top of their group). This avoids the scroll problem entirely and makes tests more resilient to list reordering.
+
 ### Analytics UI Strict Mode Pitfalls
 
 When testing analytics pages, these text patterns appear in multiple places (stat card labels AND table column headers) and will cause strict-mode failures. Always use disambiguating strategies:
