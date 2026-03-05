@@ -739,6 +739,11 @@ export type HaulingRunItem = {
   updatedAt: string;
   fillPercent: number;
   netProfitIsk?: number;
+  sellOrderId?: number;
+  qtySold: number;
+  actualSellPriceIsk?: number;
+  sellFillPercent: number;
+  actualRevenueIsk?: number;
 };
 
 export type HaulingArbitrageRow = {

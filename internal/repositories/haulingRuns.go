@@ -257,6 +257,52 @@ func (r *HaulingRuns) ListDigestRunsByUser(ctx context.Context, userID int64) ([
 	return runs, nil
 }
 
+// ListSellingByUser returns all SELLING-status runs for a user.
+func (r *HaulingRuns) ListSellingByUser(ctx context.Context, userID int64) ([]*models.HaulingRun, error) {
+	query := `
+		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
+		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest, notes,
+		       created_at, updated_at
+		FROM hauling_runs WHERE user_id=$1 AND status='SELLING' ORDER BY created_at DESC`
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list selling runs")
+	}
+	defer rows.Close()
+	runs := []*models.HaulingRun{}
+	for rows.Next() {
+		var run models.HaulingRun
+		var fromSystemID sql.NullInt64
+		var maxVolume, haulThreshold sql.NullFloat64
+		var notes sql.NullString
+		var createdAt, updatedAt time.Time
+		if err := rows.Scan(
+			&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
+			&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest, &notes,
+			&createdAt, &updatedAt,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan selling run")
+		}
+		if fromSystemID.Valid {
+			run.FromSystemID = &fromSystemID.Int64
+		}
+		if maxVolume.Valid {
+			run.MaxVolumeM3 = &maxVolume.Float64
+		}
+		if haulThreshold.Valid {
+			run.HaulThresholdISK = &haulThreshold.Float64
+		}
+		if notes.Valid {
+			run.Notes = &notes.String
+		}
+		run.CreatedAt = createdAt.Format(time.RFC3339)
+		run.UpdatedAt = updatedAt.Format(time.RFC3339)
+		run.Items = []*models.HaulingRunItem{}
+		runs = append(runs, &run)
+	}
+	return runs, nil
+}
+
 // DeleteRun deletes a hauling run (cascades to items).
 func (r *HaulingRuns) DeleteRun(ctx context.Context, id int64, userID int64) error {
 	result, err := r.db.ExecContext(ctx,

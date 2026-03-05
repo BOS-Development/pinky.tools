@@ -436,3 +436,47 @@ func Test_HaulingRuns_ListDigestRunsByUser_ExcludesCancelled(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Len(t, runs, 0)
 }
+
+func Test_HaulingRuns_ListSellingByUser(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9095)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Selling Test User"})
+	assert.NoError(t, err)
+
+	repo := repositories.NewHaulingRuns(db)
+
+	// Create runs with various statuses
+	statuses := []string{"PLANNING", "SELLING", "SELLING", "COMPLETE"}
+	for i, status := range statuses {
+		_, err := repo.CreateRun(context.Background(), &models.HaulingRun{
+			UserID:       userID,
+			Name:         "Run " + string(rune('A'+i)),
+			Status:       status,
+			FromRegionID: int64(10000002),
+			ToRegionID:   int64(10000043),
+		})
+		assert.NoError(t, err)
+	}
+
+	runs, err := repo.ListSellingByUser(context.Background(), userID)
+	assert.NoError(t, err)
+	assert.Len(t, runs, 2)
+	for _, r := range runs {
+		assert.Equal(t, "SELLING", r.Status)
+		assert.NotNil(t, r.Items)
+	}
+}
+
+func Test_HaulingRuns_ListSellingByUser_Empty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewHaulingRuns(db)
+	runs, err := repo.ListSellingByUser(context.Background(), int64(99999998))
+	assert.NoError(t, err)
+	assert.NotNil(t, runs)
+	assert.Len(t, runs, 0)
+}

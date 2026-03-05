@@ -185,9 +185,11 @@ var rootCmd = &cobra.Command{
 		haulingPnlRepo := repositories.NewHaulingRunPnl(db)
 
 		var haulingNotifier controllers.HaulingRunNotifier
+		var haulingCharOrdersNotifier updaters.HaulingCharOrdersNotifier
 		if notificationsUpdater != nil {
 			haulingNotificationsUpdater := updaters.NewHaulingNotifications(discordNotificationsRepository, discordClient, settings.FrontendURL)
 			haulingNotifier = haulingNotificationsUpdater
+			haulingCharOrdersNotifier = haulingNotificationsUpdater
 
 			// Daily digest runner (24h)
 			haulingDigestRunner := runners.NewHaulingDigestRunner(haulingNotificationsUpdater, haulingRunsRepo, usersRepository, 24*time.Hour)
@@ -200,6 +202,16 @@ var rootCmd = &cobra.Command{
 		haulingCorpOrdersUpdater := updaters.NewHaulingCorpOrders(usersRepository, playerCorporationRepostiory, haulingRunsRepo, haulingRunItemsRepo, haulingRunItemsRepo, esiClient)
 		haulingCorpOrdersRunner := runners.NewHaulingCorpOrdersRunner(haulingCorpOrdersUpdater, 15*time.Minute)
 		group.Go(func() error { return haulingCorpOrdersRunner.Run(ctx) })
+
+		// Character sell orders runner (15 min)
+		haulingCharOrdersUpdater := updaters.NewHaulingCharOrders(usersRepository, charactersRepository, haulingRunsRepo, haulingRunItemsRepo, haulingCharOrdersNotifier, esiClient)
+		haulingCharOrdersRunner := runners.NewHaulingCharOrdersRunner(haulingCharOrdersUpdater, 15*time.Minute)
+		group.Go(func() error { return haulingCharOrdersRunner.Run(ctx) })
+
+		// Wallet transactions runner (15 min)
+		haulingWalletTxUpdater := updaters.NewHaulingWalletTx(usersRepository, charactersRepository, haulingRunsRepo, haulingRunItemsRepo, esiClient)
+		haulingWalletTxRunner := runners.NewHaulingCharOrdersRunner(haulingWalletTxUpdater, 15*time.Minute)
+		group.Go(func() error { return haulingWalletTxRunner.Run(ctx) })
 
 		group.Go(router.Run(ctx))
 

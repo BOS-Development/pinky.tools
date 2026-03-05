@@ -122,6 +122,31 @@ type marketHistoryEntry struct {
 	OrderCount int64   `json:"order_count"`
 }
 
+type characterOrder struct {
+	OrderID      int64   `json:"order_id"`
+	TypeID       int64   `json:"type_id"`
+	LocationID   int64   `json:"location_id"`
+	RegionID     int64   `json:"region_id"`
+	Price        float64 `json:"price"`
+	VolumeTotal  int64   `json:"volume_total"`
+	VolumeRemain int64   `json:"volume_remain"`
+	IsBuyOrder   bool    `json:"is_buy_order"`
+	Issued       string  `json:"issued"`
+	Duration     int     `json:"duration"`
+}
+
+type walletTransaction struct {
+	TransactionID int64   `json:"transaction_id"`
+	Date          string  `json:"date"`
+	TypeID        int64   `json:"type_id"`
+	Quantity      int64   `json:"quantity"`
+	UnitPrice     float64 `json:"unit_price"`
+	IsBuy         bool    `json:"is_buy"`
+	ClientID      int64   `json:"client_id"`
+	LocationID    int64   `json:"location_id"`
+	JournalRefID  int64   `json:"journal_ref_id"`
+}
+
 // PI types
 
 type piPlanet struct {
@@ -203,9 +228,11 @@ type State struct {
 	marketOrders          []marketOrder
 	marketHistory         []marketHistoryEntry
 	knownNames            map[int64]knownNameEntry
-	characterPlanets      map[int64][]piPlanet
-	planetDetails         map[string]piColony
-	characterForce401     map[int64]bool
+	characterPlanets       map[int64][]piPlanet
+	planetDetails          map[string]piColony
+	characterForce401      map[int64]bool
+	characterOrders        map[int64][]characterOrder
+	characterWalletTx      map[int64][]walletTransaction
 }
 
 // newDefaultState returns a fresh State populated with the standard E2E test fixtures.
@@ -394,6 +421,9 @@ func newDefaultState() *State {
 		characterPlanets:  map[int64][]piPlanet{},
 		planetDetails:     map[string]piColony{},
 		characterForce401: map[int64]bool{},
+		// Phase 3: character orders and wallet transactions — empty by default; tests inject via admin API
+		characterOrders:   map[int64][]characterOrder{},
+		characterWalletTx: map[int64][]walletTransaction{},
 	}
 }
 
@@ -835,6 +865,49 @@ func main() {
 		writeJSON(w, results)
 	})
 
+	// GET /latest/characters/{id}/orders/
+	// GET /latest/characters/{id}/wallet/transactions/
+	mux.HandleFunc("/latest/characters/", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path
+
+		// GET /latest/characters/{id}/orders/
+		if strings.Contains(path, "/orders") && r.Method == "GET" {
+			charID, ok := extractID(strings.TrimPrefix(path, "/latest"), "/characters/", "/orders")
+			if !ok {
+				http.Error(w, "invalid character id", 400)
+				return
+			}
+			state.mu.RLock()
+			orders, ok := state.characterOrders[charID]
+			state.mu.RUnlock()
+			if !ok {
+				orders = []characterOrder{}
+			}
+			w.Header().Set("X-Pages", "1")
+			writeJSON(w, orders)
+			return
+		}
+
+		// GET /latest/characters/{id}/wallet/transactions/
+		if strings.Contains(path, "/wallet/transactions") && r.Method == "GET" {
+			charID, ok := extractID(strings.TrimPrefix(path, "/latest"), "/characters/", "/wallet/transactions")
+			if !ok {
+				http.Error(w, "invalid character id", 400)
+				return
+			}
+			state.mu.RLock()
+			txs, ok := state.characterWalletTx[charID]
+			state.mu.RUnlock()
+			if !ok {
+				txs = []walletTransaction{}
+			}
+			writeJSON(w, txs)
+			return
+		}
+
+		http.Error(w, "not found", 404)
+	})
+
 	// GET /latest/markets/{regionID}/orders/
 	// GET /latest/markets/{regionID}/history/?type_id={typeID}
 	mux.HandleFunc("/latest/markets/", func(w http.ResponseWriter, r *http.Request) {
@@ -886,6 +959,8 @@ func main() {
 			state.characterPlanets = fresh.characterPlanets
 			state.planetDetails = fresh.planetDetails
 			state.characterForce401 = fresh.characterForce401
+			state.characterOrders = fresh.characterOrders
+			state.characterWalletTx = fresh.characterWalletTx
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})
@@ -1074,6 +1149,50 @@ func main() {
 			}
 			state.mu.Lock()
 			state.characterForce401[charID] = true
+			state.mu.Unlock()
+			writeAdminOK(w)
+		})
+
+		// PUT /_admin/character-orders/{charID}
+		mux.HandleFunc("/_admin/character-orders/", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "PUT" {
+				writeAdminError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			charID, ok := extractID(r.URL.Path, "/_admin/character-orders/", "")
+			if !ok {
+				writeAdminError(w, http.StatusBadRequest, "invalid character id")
+				return
+			}
+			var orders []characterOrder
+			if err := json.NewDecoder(r.Body).Decode(&orders); err != nil {
+				writeAdminError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+				return
+			}
+			state.mu.Lock()
+			state.characterOrders[charID] = orders
+			state.mu.Unlock()
+			writeAdminOK(w)
+		})
+
+		// PUT /_admin/character-wallet-tx/{charID}
+		mux.HandleFunc("/_admin/character-wallet-tx/", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "PUT" {
+				writeAdminError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			charID, ok := extractID(r.URL.Path, "/_admin/character-wallet-tx/", "")
+			if !ok {
+				writeAdminError(w, http.StatusBadRequest, "invalid character id")
+				return
+			}
+			var txs []walletTransaction
+			if err := json.NewDecoder(r.Body).Decode(&txs); err != nil {
+				writeAdminError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+				return
+			}
+			state.mu.Lock()
+			state.characterWalletTx[charID] = txs
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})

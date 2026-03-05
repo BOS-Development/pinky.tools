@@ -572,133 +572,277 @@ export default function HaulingRunDetail({ runId }: HaulingRunDetailProps) {
             </CardContent>
           </Card>
         ) : (
-          <Card className="mb-6 bg-background-panel border-overlay-subtle">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-background-void border-overlay-subtle">
-                    <TableHead className="font-bold text-text-emphasis">Item</TableHead>
-                    <TableHead className="font-bold text-text-emphasis text-right">Buy Price</TableHead>
-                    <TableHead className="font-bold text-text-emphasis text-right">Sell Price</TableHead>
-                    <TableHead className="font-bold text-text-emphasis text-right">Net Profit/unit</TableHead>
-                    <TableHead className="font-bold text-text-emphasis text-right">Planned Qty</TableHead>
-                    <TableHead className="font-bold text-text-emphasis text-right">Acquired</TableHead>
-                    <TableHead className="font-bold text-text-emphasis w-36">Fill %</TableHead>
-                    <TableHead className="font-bold text-text-emphasis text-right">Volume</TableHead>
-                    <TableHead className="font-bold text-text-emphasis">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {items.map((item) => {
-                    const rowBg = getRowBgColor(item.fillPercent);
-                    const netProfitUnit = item.netProfitIsk !== undefined
-                      ? item.netProfitIsk
-                      : (item.sellPriceIsk && item.buyPriceIsk)
-                        ? item.sellPriceIsk - item.buyPriceIsk
-                        : undefined;
-                    const fillColor = item.fillPercent >= 100 ? 'var(--color-success-teal)' : 'var(--color-primary-cyan)';
+          <>
+            <Card className="mb-2 bg-background-panel border-overlay-subtle">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-background-void border-overlay-subtle">
+                      <TableHead className="font-bold text-text-emphasis">Item</TableHead>
+                      <TableHead className="font-bold text-text-emphasis text-right">Buy Price</TableHead>
+                      <TableHead className="font-bold text-text-emphasis text-right">Sell Price</TableHead>
+                      <TableHead className="font-bold text-text-emphasis text-right">Net Profit/unit</TableHead>
+                      <TableHead className="font-bold text-text-emphasis text-right">Planned Qty</TableHead>
+                      <TableHead className="font-bold text-text-emphasis text-right">Acquired</TableHead>
+                      <TableHead className="font-bold text-text-emphasis w-36">Fill %</TableHead>
+                      <TableHead className="font-bold text-text-emphasis text-right">Volume</TableHead>
+                      {run.status === 'SELLING' && (
+                        <>
+                          <TableHead className="font-bold text-text-emphasis text-right">Qty Sold</TableHead>
+                          <TableHead className="font-bold text-text-emphasis w-32">Sell Fill</TableHead>
+                          <TableHead className="font-bold text-text-emphasis text-right">Revenue</TableHead>
+                        </>
+                      )}
+                      <TableHead className="font-bold text-text-emphasis">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {items.map((item) => {
+                      const isSellComplete = run.status === 'SELLING' && item.sellFillPercent >= 100;
+                      const rowBg = isSellComplete
+                        ? 'var(--color-success-tint)'
+                        : getRowBgColor(item.fillPercent);
+                      const netProfitUnit = item.netProfitIsk !== undefined
+                        ? item.netProfitIsk
+                        : (item.sellPriceIsk && item.buyPriceIsk)
+                          ? item.sellPriceIsk - item.buyPriceIsk
+                          : undefined;
+                      const fillColor = item.fillPercent >= 100 ? 'var(--color-success-teal)' : 'var(--color-primary-cyan)';
+                      const sellFillColor = item.sellFillPercent >= 100 ? 'var(--color-success-teal)' : 'var(--color-primary-cyan)';
+                      const itemRevenue = item.actualRevenueIsk
+                        ? item.actualRevenueIsk
+                        : item.qtySold > 0 && item.sellPriceIsk
+                          ? item.qtySold * item.sellPriceIsk
+                          : undefined;
 
-                    return (
-                      <TableRow
-                        key={item.id}
-                        className="border-overlay-subtle hover:bg-interactive-hover"
-                        style={{ backgroundColor: rowBg }}
-                      >
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Image
-                              src={getItemIconUrl(item.typeId, 32)}
-                              alt={item.typeName}
-                              width={24}
-                              height={24}
-                              style={{ borderRadius: 2 }}
-                            />
-                            <span className="text-sm font-semibold text-text-emphasis">{item.typeName}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-text-secondary">
-                          {item.buyPriceIsk !== undefined ? formatISK(item.buyPriceIsk) : '—'}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-text-secondary">
-                          {item.sellPriceIsk !== undefined ? formatISK(item.sellPriceIsk) : '—'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {netProfitUnit !== undefined ? (
+                      return (
+                        <TableRow
+                          key={item.id}
+                          className="border-overlay-subtle hover:bg-interactive-hover"
+                          style={{ backgroundColor: rowBg }}
+                        >
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Image
+                                src={getItemIconUrl(item.typeId, 32)}
+                                alt={item.typeName}
+                                width={24}
+                                height={24}
+                                style={{ borderRadius: 2 }}
+                              />
+                              <span className="text-sm font-semibold text-text-emphasis">{item.typeName}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-text-secondary">
+                            {item.buyPriceIsk !== undefined ? formatISK(item.buyPriceIsk) : '—'}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-text-secondary">
+                            {item.sellPriceIsk !== undefined ? formatISK(item.sellPriceIsk) : '—'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {netProfitUnit !== undefined ? (
+                              <span
+                                className="text-sm font-semibold"
+                                style={{ color: netProfitUnit >= 0 ? 'var(--color-success-teal)' : 'var(--color-danger-rose)' }}
+                              >
+                                {formatISK(netProfitUnit)}
+                              </span>
+                            ) : '—'}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-text-secondary">
+                            {item.quantityPlanned.toLocaleString()}
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-text-secondary">
+                            {item.quantityAcquired.toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1">
+                                <div className="h-1.5 bg-background-elevated rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full rounded-full transition-all"
+                                    style={{ width: `${Math.min(item.fillPercent, 100)}%`, backgroundColor: fillColor }}
+                                  />
+                                </div>
+                              </div>
+                              <span className="text-xs text-text-secondary min-w-[36px] text-right">
+                                {item.fillPercent.toFixed(0)}%
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right text-sm text-text-secondary">
+                            {item.volumeM3 !== undefined
+                              ? `${formatNumber(item.volumeM3 * item.quantityPlanned, 1)} m³`
+                              : '—'}
+                          </TableCell>
+                          {run.status === 'SELLING' && (
+                            <>
+                              <TableCell className="text-right text-sm text-text-secondary">
+                                {item.qtySold.toLocaleString()} / {item.quantityPlanned.toLocaleString()}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1">
+                                    <div className="h-1.5 bg-background-elevated rounded-full overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full transition-all"
+                                        style={{ width: `${Math.min(item.sellFillPercent, 100)}%`, backgroundColor: sellFillColor }}
+                                      />
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-text-secondary min-w-[36px] text-right">
+                                    {item.sellFillPercent.toFixed(0)}%
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right text-sm" style={{ color: 'var(--color-success-teal)' }}>
+                                {itemRevenue !== undefined ? formatISK(itemRevenue) : '—'}
+                              </TableCell>
+                            </>
+                          )}
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-text-secondary hover:text-text-emphasis"
+                                    onClick={() => {
+                                      setEditingItem(item);
+                                      setEditAcquiredForm({ quantityAcquired: String(item.quantityAcquired) });
+                                      setEditAcquiredOpen(true);
+                                    }}
+                                  >
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Edit acquired qty</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
+                                    onClick={() => handleRemoveItem(item.id)}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Remove item</TooltipContent>
+                              </Tooltip>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+
+            {/* Sell Progress Summary — SELLING runs only */}
+            {run.status === 'SELLING' && (() => {
+              const realizedRevenue = items.reduce(
+                (sum, i) => sum + (i.actualRevenueIsk ?? (i.qtySold * (i.sellPriceIsk ?? 0))),
+                0,
+              );
+              const pendingRevenue = items.reduce(
+                (sum, i) => sum + ((i.quantityPlanned - i.qtySold) * (i.sellPriceIsk ?? 0)),
+                0,
+              );
+              return (
+                <Card className="mb-6 bg-background-panel border-overlay-subtle">
+                  <CardContent className="pt-4 pb-4">
+                    <h3 className="text-sm font-semibold text-text-secondary mb-3">Sell Progress</h3>
+                    <div className="flex gap-6 flex-wrap">
+                      <div>
+                        <p className="text-xs text-text-muted">Realized so far</p>
+                        <p className="text-lg font-semibold" style={{ color: 'var(--color-success-teal)' }}>
+                          {formatISK(realizedRevenue)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-text-muted">Pending (est.)</p>
+                        <p className="text-lg font-semibold text-text-secondary">
+                          {formatISK(pendingRevenue)}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+
+            {/* Projected vs Actual P&L — COMPLETE runs only */}
+            {run.status === 'COMPLETE' && (() => {
+              const projBuyCost = items.reduce((sum, i) => sum + (i.buyPriceIsk ?? 0) * i.quantityPlanned, 0);
+              const actualBuyCost = items.reduce((sum, i) => sum + (i.buyPriceIsk ?? 0) * i.quantityAcquired, 0);
+              const projRevenue = items.reduce((sum, i) => sum + (i.sellPriceIsk ?? 0) * i.quantityPlanned, 0);
+              const actualRevenue = items.reduce(
+                (sum, i) => sum + (i.actualRevenueIsk ?? ((i.sellPriceIsk ?? 0) * i.qtySold)),
+                0,
+              );
+              const projNetProfit = projRevenue - projBuyCost;
+              const actualNetProfit = actualRevenue - actualBuyCost;
+              return (
+                <Card className="mb-6 bg-background-panel border-overlay-subtle">
+                  <CardContent className="pt-4">
+                    <h3 className="text-sm font-semibold text-text-secondary mb-3">Projected vs Actual P&L</h3>
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-background-void border-overlay-subtle">
+                          <TableHead className="font-bold text-text-emphasis"></TableHead>
+                          <TableHead className="font-bold text-text-emphasis text-right">Projected</TableHead>
+                          <TableHead className="font-bold text-text-emphasis text-right">Actual</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow className="border-overlay-subtle">
+                          <TableCell className="text-sm text-text-secondary">Buy Cost</TableCell>
+                          <TableCell className="text-right text-sm" style={{ color: 'var(--color-danger-rose)' }}>
+                            {formatISK(projBuyCost)}
+                          </TableCell>
+                          <TableCell className="text-right text-sm" style={{ color: 'var(--color-danger-rose)' }}>
+                            {formatISK(actualBuyCost)}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow className="border-overlay-subtle">
+                          <TableCell className="text-sm text-text-secondary">Revenue</TableCell>
+                          <TableCell className="text-right text-sm" style={{ color: 'var(--color-success-teal)' }}>
+                            {formatISK(projRevenue)}
+                          </TableCell>
+                          <TableCell className="text-right text-sm" style={{ color: 'var(--color-success-teal)' }}>
+                            {formatISK(actualRevenue)}
+                          </TableCell>
+                        </TableRow>
+                        <TableRow className="border-overlay-subtle">
+                          <TableCell className="text-sm font-semibold text-text-emphasis">Net Profit</TableCell>
+                          <TableCell className="text-right">
                             <span
                               className="text-sm font-semibold"
-                              style={{ color: netProfitUnit >= 0 ? 'var(--color-success-teal)' : 'var(--color-danger-rose)' }}
+                              style={{ color: projNetProfit >= 0 ? 'var(--color-success-teal)' : 'var(--color-danger-rose)' }}
                             >
-                              {formatISK(netProfitUnit)}
+                              {formatISK(projNetProfit)}
                             </span>
-                          ) : '—'}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-text-secondary">
-                          {item.quantityPlanned.toLocaleString()}
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-text-secondary">
-                          {item.quantityAcquired.toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1">
-                              <div className="h-1.5 bg-background-elevated rounded-full overflow-hidden">
-                                <div
-                                  className="h-full rounded-full transition-all"
-                                  style={{ width: `${Math.min(item.fillPercent, 100)}%`, backgroundColor: fillColor }}
-                                />
-                              </div>
-                            </div>
-                            <span className="text-xs text-text-secondary min-w-[36px] text-right">
-                              {item.fillPercent.toFixed(0)}%
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span
+                              className="text-sm font-semibold"
+                              style={{ color: actualNetProfit >= 0 ? 'var(--color-success-teal)' : 'var(--color-danger-rose)' }}
+                            >
+                              {formatISK(actualNetProfit)}
                             </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-text-secondary">
-                          {item.volumeM3 !== undefined
-                            ? `${formatNumber(item.volumeM3 * item.quantityPlanned, 1)} m³`
-                            : '—'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 text-text-secondary hover:text-text-emphasis"
-                                  onClick={() => {
-                                    setEditingItem(item);
-                                    setEditAcquiredForm({ quantityAcquired: String(item.quantityAcquired) });
-                                    setEditAcquiredOpen(true);
-                                  }}
-                                >
-                                  <Pencil className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Edit acquired qty</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-7 w-7 text-rose-danger hover:text-rose-danger hover:bg-rose-danger/10"
-                                  onClick={() => handleRemoveItem(item.id)}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Remove item</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              );
+            })()}
+          </>
         )}
 
         {/* Fill Remaining Capacity */}

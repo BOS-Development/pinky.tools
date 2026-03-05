@@ -1582,6 +1582,111 @@ func (c *EsiClient) GetCorporationOrders(ctx context.Context, corporationID int6
 	}
 }
 
+// CharacterOrder represents an active character market order from ESI.
+type CharacterOrder struct {
+	OrderID      int64   `json:"order_id"`
+	TypeID       int64   `json:"type_id"`
+	LocationID   int64   `json:"location_id"`
+	RegionID     int64   `json:"region_id"`
+	Price        float64 `json:"price"`
+	VolumeTotal  int64   `json:"volume_total"`
+	VolumeRemain int64   `json:"volume_remain"`
+	IsBuyOrder   bool    `json:"is_buy_order"`
+	Issued       string  `json:"issued"`
+	Duration     int     `json:"duration"`
+}
+
+// GetCharacterOrders fetches all active market orders for a character.
+// Requires esi-markets.read_character_orders.v1 scope.
+// No pagination — ESI returns all active orders in one response.
+func (c *EsiClient) GetCharacterOrders(ctx context.Context, characterID int64, token string) ([]*CharacterOrder, error) {
+	parsedURL, err := url.Parse(fmt.Sprintf("%s/latest/characters/%d/orders/", c.baseURL, characterID))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse url")
+	}
+
+	req := &http.Request{
+		Method: "GET",
+		URL:    parsedURL,
+		Header: c.getAuthHeaders(token),
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get character orders")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("failed to get character orders, expected 200 got %d, %s", res.StatusCode, errText)
+	}
+
+	respBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read response body")
+	}
+
+	orders := []*CharacterOrder{}
+	if err := json.Unmarshal(respBody, &orders); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal character orders")
+	}
+
+	return orders, nil
+}
+
+// WalletTransaction represents a character wallet transaction from ESI.
+type WalletTransaction struct {
+	TransactionID int64   `json:"transaction_id"`
+	Date          string  `json:"date"`
+	TypeID        int64   `json:"type_id"`
+	Quantity      int64   `json:"quantity"`
+	UnitPrice     float64 `json:"unit_price"`
+	IsBuy         bool    `json:"is_buy"`
+	ClientID      int64   `json:"client_id"`
+	LocationID    int64   `json:"location_id"`
+	JournalRefID  int64   `json:"journal_ref_id"`
+}
+
+// GetCharacterWalletTransactions fetches wallet transactions for a character.
+// Requires esi-wallet.read_character_wallet.v1 scope.
+// Returns last 2500 transactions (ESI limit, no pagination).
+func (c *EsiClient) GetCharacterWalletTransactions(ctx context.Context, characterID int64, token string) ([]*WalletTransaction, error) {
+	parsedURL, err := url.Parse(fmt.Sprintf("%s/latest/characters/%d/wallet/transactions/", c.baseURL, characterID))
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse url")
+	}
+
+	req := &http.Request{
+		Method: "GET",
+		URL:    parsedURL,
+		Header: c.getAuthHeaders(token),
+	}
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get character wallet transactions")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode != 200 {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("failed to get character wallet transactions, expected 200 got %d, %s", res.StatusCode, errText)
+	}
+
+	respBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read response body")
+	}
+
+	transactions := []*WalletTransaction{}
+	if err := json.Unmarshal(respBody, &transactions); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal wallet transactions")
+	}
+
+	return transactions, nil
+}
+
 // RefreshAccessToken uses the refresh token to obtain a new access token from EVE SSO.
 // Returns the new access token, refresh token, and expiry. The caller is responsible
 // for persisting these back to the database.

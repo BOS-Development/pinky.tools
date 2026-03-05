@@ -87,6 +87,21 @@ func (u *HaulingNotificationsUpdater) NotifyHaulingComplete(ctx context.Context,
 	u.sendToTargets(ctx, targets, embed, "hauling_complete")
 }
 
+// NotifyHaulingItemSold sends notification when a run item is fully sold.
+func (u *HaulingNotificationsUpdater) NotifyHaulingItemSold(ctx context.Context, userID int64, run *models.HaulingRun, item *models.HaulingRunItem) {
+	targets, err := u.repo.GetActiveTargetsForEvent(ctx, userID, "hauling_item_sold")
+	if err != nil {
+		log.Error("failed to get notification targets for hauling_item_sold", "user_id", userID, "error", err)
+		return
+	}
+	if len(targets) == 0 {
+		return
+	}
+
+	embed := buildHaulingItemSoldEmbed(run, item)
+	u.sendToTargets(ctx, targets, embed, "hauling_item_sold")
+}
+
 // SendHaulingDailyDigest sends a daily summary of active hauling runs.
 func (u *HaulingNotificationsUpdater) SendHaulingDailyDigest(ctx context.Context, userID int64, runs []*models.HaulingRun) {
 	if len(runs) == 0 {
@@ -183,6 +198,30 @@ func buildHaulingCompleteEmbed(run *models.HaulingRun, summary *models.HaulingRu
 		Title:       "Hauling Run Complete",
 		Description: description,
 		Color:       0x3b82f6, // Blue
+		Fields:      fields,
+		Footer: &client.DiscordEmbedFooter{
+			Text: fmt.Sprintf("Pinky.Tools • %s", time.Now().UTC().Format("Jan 2, 2006 15:04 UTC")),
+		},
+	}
+}
+
+func buildHaulingItemSoldEmbed(run *models.HaulingRun, item *models.HaulingRunItem) *client.DiscordEmbed {
+	fields := []client.DiscordEmbedField{
+		{Name: "Item", Value: item.TypeName, Inline: true},
+		{Name: "Qty Sold", Value: fmt.Sprintf("%d", item.QtySold), Inline: true},
+	}
+	if item.ActualRevenueISK != nil {
+		fields = append(fields, client.DiscordEmbedField{
+			Name:   "Revenue",
+			Value:  fmt.Sprintf("%.2f ISK", *item.ActualRevenueISK),
+			Inline: true,
+		})
+	}
+
+	return &client.DiscordEmbed{
+		Title:       "Hauling Item Sold",
+		Description: fmt.Sprintf("**%s** — %s fully sold", run.Name, item.TypeName),
+		Color:       0x10b981, // Green
 		Fields:      fields,
 		Footer: &client.DiscordEmbedFooter{
 			Text: fmt.Sprintf("Pinky.Tools • %s", time.Now().UTC().Format("Jan 2, 2006 15:04 UTC")),

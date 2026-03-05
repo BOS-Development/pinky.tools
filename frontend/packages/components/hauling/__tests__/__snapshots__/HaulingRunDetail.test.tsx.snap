@@ -240,7 +240,7 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
       </button>
     </div>
     <div
-      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-background-panel border-overlay-subtle"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-2 bg-background-panel border-overlay-subtle"
     >
       <div
         class="overflow-x-auto"
@@ -296,6 +296,21 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                   class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis text-right"
                 >
                   Volume
+                </th>
+                <th
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis text-right"
+                >
+                  Qty Sold
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis w-32"
+                >
+                  Sell Fill
+                </th>
+                <th
+                  class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis text-right"
+                >
+                  Revenue
                 </th>
                 <th
                   class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
@@ -392,6 +407,45 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
                   100.0 m³
                 </td>
                 <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm text-text-secondary"
+                >
+                  0
+                   / 
+                  10,000
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                >
+                  <div
+                    class="flex items-center gap-2"
+                  >
+                    <div
+                      class="flex-1"
+                    >
+                      <div
+                        class="h-1.5 bg-background-elevated rounded-full overflow-hidden"
+                      >
+                        <div
+                          class="h-full rounded-full transition-all"
+                          style="width: 0%; background-color: var(--color-primary-cyan);"
+                        />
+                      </div>
+                    </div>
+                    <span
+                      class="text-xs text-text-secondary min-w-[36px] text-right"
+                    >
+                      0
+                      %
+                    </span>
+                  </div>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-sm"
+                  style="color: var(--color-success-teal);"
+                >
+                  —
+                </td>
+                <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
                 >
                   <div
@@ -461,6 +515,48 @@ exports[`HaulingRunDetail Component should match snapshot for SELLING run with P
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+    </div>
+    <div
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-background-panel border-overlay-subtle"
+    >
+      <div
+        class="p-6 pt-4 pb-4"
+      >
+        <h3
+          class="text-sm font-semibold text-text-secondary mb-3"
+        >
+          Sell Progress
+        </h3>
+        <div
+          class="flex gap-6 flex-wrap"
+        >
+          <div>
+            <p
+              class="text-xs text-text-muted"
+            >
+              Realized so far
+            </p>
+            <p
+              class="text-lg font-semibold"
+              style="color: var(--color-success-teal);"
+            >
+              0 ISK
+            </p>
+          </div>
+          <div>
+            <p
+              class="text-xs text-text-muted"
+            >
+              Pending (est.)
+            </p>
+            <p
+              class="text-lg font-semibold text-text-secondary"
+            >
+              70.00K ISK
+            </p>
+          </div>
         </div>
       </div>
     </div>
@@ -1033,7 +1129,7 @@ exports[`HaulingRunDetail Component should match snapshot with planning run 1`] 
       </button>
     </div>
     <div
-      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-6 bg-background-panel border-overlay-subtle"
+      class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all mb-2 bg-background-panel border-overlay-subtle"
     >
       <div
         class="overflow-x-auto"

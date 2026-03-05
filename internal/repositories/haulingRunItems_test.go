@@ -303,6 +303,209 @@ func Test_HaulingRunItems_RemoveItem_NotFound(t *testing.T) {
 	assert.Contains(t, err.Error(), "not found")
 }
 
+func Test_HaulingRunItems_UpdateItemSold(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9170)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Sell Item User 1"})
+	assert.NoError(t, err)
+
+	runsRepo := repositories.NewHaulingRuns(db)
+	run, err := runsRepo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "UpdateItemSold Run",
+		Status:       "SELLING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+	})
+	assert.NoError(t, err)
+
+	itemsRepo := repositories.NewHaulingRunItems(db)
+	added, err := itemsRepo.AddItem(context.Background(), &models.HaulingRunItem{
+		RunID:           run.ID,
+		TypeID:          int64(34),
+		TypeName:        "Tritanium",
+		QuantityPlanned: int64(100),
+	})
+	assert.NoError(t, err)
+
+	orderID := int64(555)
+	err = itemsRepo.UpdateItemSold(context.Background(), added.ID, run.ID, int64(60), &orderID)
+	assert.NoError(t, err)
+
+	items, err := itemsRepo.GetItemsByRunID(context.Background(), run.ID)
+	assert.NoError(t, err)
+	assert.Len(t, items, 1)
+	assert.Equal(t, int64(60), items[0].QtySold)
+	assert.Equal(t, 60.0, items[0].SellFillPercent)
+	assert.NotNil(t, items[0].SellOrderID)
+	assert.Equal(t, int64(555), *items[0].SellOrderID)
+}
+
+func Test_HaulingRunItems_UpdateItemSold_NilOrderID(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9175)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Sell Item User 2"})
+	assert.NoError(t, err)
+
+	runsRepo := repositories.NewHaulingRuns(db)
+	run, err := runsRepo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "UpdateItemSold NilOrder Run",
+		Status:       "SELLING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+	})
+	assert.NoError(t, err)
+
+	itemsRepo := repositories.NewHaulingRunItems(db)
+	added, err := itemsRepo.AddItem(context.Background(), &models.HaulingRunItem{
+		RunID:           run.ID,
+		TypeID:          int64(35),
+		TypeName:        "Pyerite",
+		QuantityPlanned: int64(50),
+	})
+	assert.NoError(t, err)
+
+	err = itemsRepo.UpdateItemSold(context.Background(), added.ID, run.ID, int64(30), nil)
+	assert.NoError(t, err)
+
+	items, err := itemsRepo.GetItemsByRunID(context.Background(), run.ID)
+	assert.NoError(t, err)
+	assert.Len(t, items, 1)
+	assert.Equal(t, int64(30), items[0].QtySold)
+	assert.Nil(t, items[0].SellOrderID)
+}
+
+func Test_HaulingRunItems_UpdateItemSold_NotFound(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	itemsRepo := repositories.NewHaulingRunItems(db)
+	err = itemsRepo.UpdateItemSold(context.Background(), int64(999999999), int64(1), int64(10), nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
+}
+
+func Test_HaulingRunItems_UpdateItemActualSellPrice(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9180)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Sell Price User 1"})
+	assert.NoError(t, err)
+
+	runsRepo := repositories.NewHaulingRuns(db)
+	run, err := runsRepo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "UpdateActualSellPrice Run",
+		Status:       "SELLING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+	})
+	assert.NoError(t, err)
+
+	itemsRepo := repositories.NewHaulingRunItems(db)
+	added, err := itemsRepo.AddItem(context.Background(), &models.HaulingRunItem{
+		RunID:           run.ID,
+		TypeID:          int64(36),
+		TypeName:        "Mexallon",
+		QuantityPlanned: int64(200),
+	})
+	assert.NoError(t, err)
+
+	// First set qty_sold so ActualRevenueISK is computable
+	err = itemsRepo.UpdateItemSold(context.Background(), added.ID, run.ID, int64(150), nil)
+	assert.NoError(t, err)
+
+	err = itemsRepo.UpdateItemActualSellPrice(context.Background(), added.ID, run.ID, 1250.5)
+	assert.NoError(t, err)
+
+	items, err := itemsRepo.GetItemsByRunID(context.Background(), run.ID)
+	assert.NoError(t, err)
+	assert.Len(t, items, 1)
+	assert.NotNil(t, items[0].ActualSellPriceISK)
+	assert.Equal(t, 1250.5, *items[0].ActualSellPriceISK)
+	// ActualRevenueISK = 1250.5 * 150 = 187575
+	assert.NotNil(t, items[0].ActualRevenueISK)
+	assert.InDelta(t, 187575.0, *items[0].ActualRevenueISK, 0.01)
+}
+
+func Test_HaulingRunItems_UpdateItemActualSellPrice_NotFound(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	itemsRepo := repositories.NewHaulingRunItems(db)
+	err = itemsRepo.UpdateItemActualSellPrice(context.Background(), int64(999999999), int64(1), 999.9)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "not found")
+}
+
+func Test_HaulingRunItems_GetItemsByRunID_IncludesSellFields(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	userID := int64(9185)
+	err = userRepo.Add(context.Background(), &repositories.User{ID: userID, Name: "Sell Fields User"})
+	assert.NoError(t, err)
+
+	runsRepo := repositories.NewHaulingRuns(db)
+	run, err := runsRepo.CreateRun(context.Background(), &models.HaulingRun{
+		UserID:       userID,
+		Name:         "Sell Fields Run",
+		Status:       "SELLING",
+		FromRegionID: int64(10000002),
+		ToRegionID:   int64(10000043),
+	})
+	assert.NoError(t, err)
+
+	itemsRepo := repositories.NewHaulingRunItems(db)
+	added, err := itemsRepo.AddItem(context.Background(), &models.HaulingRunItem{
+		RunID:           run.ID,
+		TypeID:          int64(37),
+		TypeName:        "Isogen",
+		QuantityPlanned: int64(100),
+	})
+	assert.NoError(t, err)
+
+	// Before any sold: defaults
+	items, err := itemsRepo.GetItemsByRunID(context.Background(), run.ID)
+	assert.NoError(t, err)
+	assert.Len(t, items, 1)
+	assert.Equal(t, int64(0), items[0].QtySold)
+	assert.Equal(t, 0.0, items[0].SellFillPercent)
+	assert.Nil(t, items[0].SellOrderID)
+	assert.Nil(t, items[0].ActualSellPriceISK)
+	assert.Nil(t, items[0].ActualRevenueISK)
+
+	// Update sold
+	orderID := int64(9001)
+	err = itemsRepo.UpdateItemSold(context.Background(), added.ID, run.ID, int64(75), &orderID)
+	assert.NoError(t, err)
+	err = itemsRepo.UpdateItemActualSellPrice(context.Background(), added.ID, run.ID, 2000.0)
+	assert.NoError(t, err)
+
+	items, err = itemsRepo.GetItemsByRunID(context.Background(), run.ID)
+	assert.NoError(t, err)
+	assert.Len(t, items, 1)
+	assert.Equal(t, int64(75), items[0].QtySold)
+	assert.Equal(t, 75.0, items[0].SellFillPercent)
+	assert.NotNil(t, items[0].SellOrderID)
+	assert.Equal(t, int64(9001), *items[0].SellOrderID)
+	assert.NotNil(t, items[0].ActualSellPriceISK)
+	assert.Equal(t, 2000.0, *items[0].ActualSellPriceISK)
+	// 2000.0 * 75 = 150000
+	assert.NotNil(t, items[0].ActualRevenueISK)
+	assert.Equal(t, 150000.0, *items[0].ActualRevenueISK)
+}
+
 func Test_HaulingRunItems_CascadeDeleteWithRun(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)
