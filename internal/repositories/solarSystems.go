@@ -208,3 +208,21 @@ do update set
 	}
 	return nil
 }
+
+// GetRegionIDBySystemID resolves a solar system ID to its region ID via constellations.
+// Returns 0 if the system is not found.
+func (r *SolarSystems) GetRegionIDBySystemID(ctx context.Context, systemID int64) (int64, error) {
+	var regionID int64
+	err := r.db.QueryRowContext(ctx, `
+		SELECT c.region_id
+		FROM solar_systems ss
+		JOIN constellations c ON c.constellation_id = ss.constellation_id
+		WHERE ss.solar_system_id = $1`, systemID).Scan(&regionID)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to get region id by system id")
+	}
+	return regionID, nil
+}

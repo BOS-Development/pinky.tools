@@ -16,11 +16,14 @@ import (
 type HaulingMarketEsiClient interface {
 	GetMarketOrdersFiltered(ctx context.Context, regionID int64, systemID int64) ([]*client.MarketOrder, error)
 	GetMarketHistory(ctx context.Context, regionID int64, typeID int64) ([]*client.MarketHistoryEntry, error)
+	GetStructureMarketOrders(ctx context.Context, structureID int64, token string) ([]*client.MarketOrder, error)
 }
 
 type HaulingMarketRepository interface {
 	UpsertSnapshots(ctx context.Context, snapshots []*models.HaulingMarketSnapshot) error
 	GetSnapshotAge(ctx context.Context, regionID int64, systemID int64) (*time.Time, error)
+	UpsertStructureSnapshots(ctx context.Context, structureID int64, snapshots []*models.HaulingMarketSnapshot) error
+	GetStructureSnapshotAge(ctx context.Context, structureID int64) (*time.Time, error)
 }
 
 type HaulingMarket struct {
@@ -120,6 +123,88 @@ func (u *HaulingMarket) ScanRegion(ctx context.Context, regionID int64, systemID
 
 	slog.Info("hauling market scan complete", "region_id", regionID, "system_id", systemID, "types", len(snapshots))
 	return nil
+}
+
+// ScanStructure fetches and caches market data for a player-owned structure.
+// token is the character's ESI access token.
+// Returns (accessOK bool, err error) — accessOK=false means 403 from ESI.
+func (u *HaulingMarket) ScanStructure(ctx context.Context, structureID int64, token string) (bool, error) {
+	// Check cache freshness (30 min TTL)
+	age, err := u.repo.GetStructureSnapshotAge(ctx, structureID)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to check structure snapshot age")
+	}
+	if age != nil && time.Since(*age) < u.maxAge {
+		slog.Info("structure market snapshot is fresh, skipping", "structure_id", structureID)
+		return true, nil
+	}
+
+	slog.Info("scanning structure market", "structure_id", structureID)
+
+	orders, err := u.esi.GetStructureMarketOrders(ctx, structureID, token)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to fetch structure market orders")
+	}
+	// nil orders means 403 — no access
+	if orders == nil {
+		return false, nil
+	}
+
+	// Group by type_id: best sell price (min), max buy price, volume available
+	type typeStats struct {
+		minSellPrice float64
+		maxBuyPrice  float64
+		volume       int64
+		hasSell      bool
+		hasBuy       bool
+	}
+	stats := map[int64]*typeStats{}
+	for _, o := range orders {
+		s, ok := stats[o.TypeID]
+		if !ok {
+			s = &typeStats{}
+			stats[o.TypeID] = s
+		}
+		if o.IsBuyOrder {
+			if !s.hasBuy || o.Price > s.maxBuyPrice {
+				s.maxBuyPrice = o.Price
+				s.hasBuy = true
+			}
+		} else {
+			s.volume += o.VolumeRemain
+			if !s.hasSell || o.Price < s.minSellPrice {
+				s.minSellPrice = o.Price
+				s.hasSell = true
+			}
+		}
+	}
+
+	snapshots := []*models.HaulingMarketSnapshot{}
+	for typeID, s := range stats {
+		snap := &models.HaulingMarketSnapshot{
+			TypeID: typeID,
+		}
+		if s.hasSell {
+			snap.SellPrice = &s.minSellPrice
+			snap.VolumeAvailable = &s.volume
+		}
+		if s.hasBuy {
+			snap.BuyPrice = &s.maxBuyPrice
+		}
+		snapshots = append(snapshots, snap)
+	}
+
+	// Sort by TypeID for deterministic lock ordering (deadlock prevention)
+	slices.SortFunc(snapshots, func(a, b *models.HaulingMarketSnapshot) int {
+		return int(a.TypeID - b.TypeID)
+	})
+
+	if err := u.repo.UpsertStructureSnapshots(ctx, structureID, snapshots); err != nil {
+		return false, errors.Wrap(err, "failed to upsert structure snapshots")
+	}
+
+	slog.Info("structure market scan complete", "structure_id", structureID, "types", len(snapshots))
+	return true, nil
 }
 
 // ScanForHistory fetches market history to compute avg_daily_volume and days_to_sell for a set of type IDs.

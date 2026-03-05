@@ -117,6 +117,33 @@ func (m *MockHaulingMarketUpdater) ScanRegion(ctx context.Context, regionID int6
 	return args.Error(0)
 }
 
+func (m *MockHaulingMarketUpdater) ScanStructure(ctx context.Context, structureID int64, token string) (bool, error) {
+	args := m.Called(ctx, structureID, token)
+	return args.Bool(0), args.Error(1)
+}
+
+// --- Mock HaulingStructureRepository ---
+
+type MockHaulingStructureRepository struct {
+	mock.Mock
+}
+
+func (m *MockHaulingStructureRepository) GetStructureScannerResults(ctx context.Context, sourceStructureID int64, destRegionID int64, destSystemID int64) ([]*models.HaulingArbitrageRow, error) {
+	args := m.Called(ctx, sourceStructureID, destRegionID, destSystemID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.HaulingArbitrageRow), args.Error(1)
+}
+
+func (m *MockHaulingStructureRepository) GetRegionToStructureResults(ctx context.Context, srcRegionID int64, srcSystemID int64, destStructureID int64) ([]*models.HaulingArbitrageRow, error) {
+	args := m.Called(ctx, srcRegionID, srcSystemID, destStructureID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.HaulingArbitrageRow), args.Error(1)
+}
+
 // --- Mock HaulingPnlRepository ---
 
 type MockHaulingPnlRepository struct {
@@ -211,42 +238,45 @@ func (m *MockHaulingAnalyticsRepository) GetCompletedRuns(ctx context.Context, u
 // --- Setup helper ---
 
 type haulingMocks struct {
-	runs      *MockHaulingRunsRepository
-	items     *MockHaulingRunItemsRepository
-	market    *MockHaulingMarketRepo
-	scanner   *MockHaulingMarketUpdater
-	pnl       *MockHaulingPnlRepository
-	notifier  *MockHaulingRunNotifier
-	analytics *MockHaulingAnalyticsRepository
+	runs       *MockHaulingRunsRepository
+	items      *MockHaulingRunItemsRepository
+	market     *MockHaulingMarketRepo
+	structures *MockHaulingStructureRepository
+	scanner    *MockHaulingMarketUpdater
+	pnl        *MockHaulingPnlRepository
+	notifier   *MockHaulingRunNotifier
+	analytics  *MockHaulingAnalyticsRepository
 }
 
 func setupHaulingController() (*controllers.HaulingRunsController, haulingMocks) {
 	mocks := haulingMocks{
-		runs:      new(MockHaulingRunsRepository),
-		items:     new(MockHaulingRunItemsRepository),
-		market:    new(MockHaulingMarketRepo),
-		scanner:   new(MockHaulingMarketUpdater),
-		pnl:       new(MockHaulingPnlRepository),
-		notifier:  nil, // default: no notifier
-		analytics: new(MockHaulingAnalyticsRepository),
+		runs:       new(MockHaulingRunsRepository),
+		items:      new(MockHaulingRunItemsRepository),
+		market:     new(MockHaulingMarketRepo),
+		structures: new(MockHaulingStructureRepository),
+		scanner:    new(MockHaulingMarketUpdater),
+		pnl:        new(MockHaulingPnlRepository),
+		notifier:   nil, // default: no notifier
+		analytics:  new(MockHaulingAnalyticsRepository),
 	}
 	router := &MockRouter{}
-	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, nil, mocks.analytics)
+	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.structures, mocks.scanner, mocks.pnl, nil, mocks.analytics)
 	return controller, mocks
 }
 
 func setupHaulingControllerWithNotifier() (*controllers.HaulingRunsController, haulingMocks) {
 	mocks := haulingMocks{
-		runs:      new(MockHaulingRunsRepository),
-		items:     new(MockHaulingRunItemsRepository),
-		market:    new(MockHaulingMarketRepo),
-		scanner:   new(MockHaulingMarketUpdater),
-		pnl:       new(MockHaulingPnlRepository),
-		notifier:  new(MockHaulingRunNotifier),
-		analytics: new(MockHaulingAnalyticsRepository),
+		runs:       new(MockHaulingRunsRepository),
+		items:      new(MockHaulingRunItemsRepository),
+		market:     new(MockHaulingMarketRepo),
+		structures: new(MockHaulingStructureRepository),
+		scanner:    new(MockHaulingMarketUpdater),
+		pnl:        new(MockHaulingPnlRepository),
+		notifier:   new(MockHaulingRunNotifier),
+		analytics:  new(MockHaulingAnalyticsRepository),
 	}
 	router := &MockRouter{}
-	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.scanner, mocks.pnl, mocks.notifier, mocks.analytics)
+	controller := controllers.NewHaulingRuns(router, mocks.runs, mocks.items, mocks.market, mocks.structures, mocks.scanner, mocks.pnl, mocks.notifier, mocks.analytics)
 	return controller, mocks
 }
 
@@ -771,8 +801,9 @@ func Test_HaulingRuns_TriggerScan_Success(t *testing.T) {
 	result, httpErr := controller.TriggerScan(args)
 	assert.Nil(t, httpErr)
 	assert.NotNil(t, result)
-	resp := result.(map[string]string)
+	resp := result.(map[string]interface{})
 	assert.Equal(t, "done", resp["status"])
+	assert.Equal(t, true, resp["accessOk"])
 	mocks.scanner.AssertExpectations(t)
 }
 
@@ -790,8 +821,9 @@ func Test_HaulingRuns_TriggerScan_WithDestRegion(t *testing.T) {
 	result, httpErr := controller.TriggerScan(args)
 	assert.Nil(t, httpErr)
 	assert.NotNil(t, result)
-	resp := result.(map[string]string)
+	resp := result.(map[string]interface{})
 	assert.Equal(t, "done", resp["status"])
+	assert.Equal(t, true, resp["accessOk"])
 	mocks.scanner.AssertExpectations(t)
 }
 
@@ -853,6 +885,192 @@ func Test_HaulingRuns_TriggerScan_InvalidBody(t *testing.T) {
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+// --- Tests: GetScannerResults — structure variants ---
+
+func Test_HaulingRuns_GetScannerResults_SourceStructure(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	buyPrice := 900.0
+	sellPrice := 1100.0
+	spread := 0.22
+	net := 200.0
+	expectedRows := []*models.HaulingArbitrageRow{
+		{TypeID: int64(35), TypeName: "Pyerite", BuyPrice: &buyPrice, SellPrice: &sellPrice, Spread: &spread, NetProfitISK: &net, Indicator: "gap"},
+	}
+	mocks.structures.On("GetStructureScannerResults", mock.Anything, int64(1234567890), int64(10000043), int64(0)).Return(expectedRows, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/scanner?source_structure_id=1234567890&dest_region_id=10000043", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetScannerResults(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	rows := result.([]*models.HaulingArbitrageRow)
+	assert.Len(t, rows, 1)
+	mocks.structures.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetScannerResults_DestStructure(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	expectedRows := []*models.HaulingArbitrageRow{}
+	mocks.structures.On("GetRegionToStructureResults", mock.Anything, int64(10000002), int64(0), int64(9876543210)).Return(expectedRows, nil)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/scanner?source_region_id=10000002&dest_structure_id=9876543210", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetScannerResults(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	mocks.structures.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_GetScannerResults_SourceAndDestStructure_Error(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/scanner?source_structure_id=1234567890&dest_structure_id=9876543210", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetScannerResults(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetScannerResults_SourceStructureMissingDestRegion(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/scanner?source_structure_id=1234567890", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetScannerResults(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetScannerResults_DestStructureMissingSourceRegion(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	req := httptest.NewRequest("GET", "/v1/hauling/scanner?dest_structure_id=9876543210", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetScannerResults(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_GetScannerResults_StructureRepoError(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.structures.On("GetStructureScannerResults", mock.Anything, int64(1234567890), int64(10000043), int64(0)).Return(nil, errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/hauling/scanner?source_structure_id=1234567890&dest_region_id=10000043", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.GetScannerResults(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+// --- Tests: TriggerScan — structure variants ---
+
+func Test_HaulingRuns_TriggerScan_SourceStructure(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanStructure", mock.Anything, int64(1234567890), "mytoken").Return(true, nil)
+
+	body, _ := json.Marshal(map[string]interface{}{"sourceStructureId": int64(1234567890), "charToken": "mytoken"})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]interface{})
+	assert.Equal(t, "done", resp["status"])
+	assert.Equal(t, true, resp["accessOk"])
+	mocks.scanner.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_TriggerScan_SourceStructureAccessDenied(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanStructure", mock.Anything, int64(1234567890), "mytoken").Return(false, nil)
+
+	body, _ := json.Marshal(map[string]interface{}{"sourceStructureId": int64(1234567890), "charToken": "mytoken"})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]interface{})
+	assert.Equal(t, "done", resp["status"])
+	assert.Equal(t, false, resp["accessOk"])
+	mocks.scanner.AssertExpectations(t)
+}
+
+func Test_HaulingRuns_TriggerScan_SourceStructureMissingToken(t *testing.T) {
+	controller, _ := setupHaulingController()
+	userID := int64(100)
+
+	body, _ := json.Marshal(map[string]interface{}{"sourceStructureId": int64(1234567890)})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 400, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_TriggerScan_StructureScanError(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanStructure", mock.Anything, int64(1234567890), "mytoken").Return(false, errors.New("ESI error"))
+
+	body, _ := json.Marshal(map[string]interface{}{"sourceStructureId": int64(1234567890), "charToken": "mytoken"})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+}
+
+func Test_HaulingRuns_TriggerScan_DestStructure(t *testing.T) {
+	controller, mocks := setupHaulingController()
+	userID := int64(100)
+
+	mocks.scanner.On("ScanRegion", mock.Anything, int64(10000002), int64(0)).Return(nil)
+	mocks.scanner.On("ScanStructure", mock.Anything, int64(9876543210), "mytoken").Return(true, nil)
+
+	body, _ := json.Marshal(map[string]interface{}{"regionId": int64(10000002), "destStructureId": int64(9876543210), "charToken": "mytoken"})
+	req := httptest.NewRequest("POST", "/v1/hauling/scanner/scan", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{}}
+
+	result, httpErr := controller.TriggerScan(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+	resp := result.(map[string]interface{})
+	assert.Equal(t, "done", resp["status"])
+	assert.Equal(t, true, resp["accessOk"])
+	mocks.scanner.AssertExpectations(t)
 }
 
 // --- Tests: GetPnl ---

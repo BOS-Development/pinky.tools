@@ -702,6 +702,42 @@ export type ScanService = {
   activity: string;
 };
 
+// Station Markets Types
+
+export type TradingStation = {
+  id: number;
+  stationId: number;
+  name: string;
+  systemId: number;
+  regionId: number;
+  isPreset: boolean;
+};
+
+export type UserTradingStructure = {
+  id: number;
+  userId: number;
+  structureId: number;
+  name: string;
+  systemId: number;
+  regionId: number;
+  characterId: number;
+  accessOk: boolean;
+  lastScannedAt?: string;
+  createdAt: string;
+};
+
+export type LocationType = 'region' | 'station' | 'structure';
+
+export type ScannerLocation = {
+  type: LocationType;
+  dbId?: number;
+  id: number;
+  name: string;
+  regionId: number;
+  systemId: number;
+  structureId?: number;
+};
+
 // Hauling Runs Types
 
 export type HaulingRun = {
@@ -711,7 +747,9 @@ export type HaulingRun = {
   status: 'PLANNING' | 'ACCUMULATING' | 'READY' | 'IN_TRANSIT' | 'SELLING' | 'COMPLETE' | 'CANCELLED';
   fromRegionId: number;
   fromSystemId?: number;
+  fromStationId?: number;
   toRegionId: number;
+  toStationId?: number;
   maxVolumeM3?: number;
   haulThresholdIsk?: number;
   notifyTier2: boolean;

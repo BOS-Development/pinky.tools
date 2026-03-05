@@ -181,7 +181,9 @@ var rootCmd = &cobra.Command{
 		haulingRunsRepo := repositories.NewHaulingRuns(db)
 		haulingRunItemsRepo := repositories.NewHaulingRunItems(db)
 		haulingMarketRepo := repositories.NewHaulingMarket(db)
-		haulingMarketUpdater := updaters.NewHaulingMarket(haulingMarketRepo, esiClient)
+		haulingStructuresRepo := repositories.NewHaulingStructures(db)
+		haulingCombinedRepo := repositories.NewHaulingMarketCombined(haulingMarketRepo, haulingStructuresRepo)
+		haulingMarketUpdater := updaters.NewHaulingMarket(haulingCombinedRepo, esiClient)
 		haulingPnlRepo := repositories.NewHaulingRunPnl(db)
 		haulingAnalyticsRepo := repositories.NewHaulingAnalytics(db)
 
@@ -197,7 +199,10 @@ var rootCmd = &cobra.Command{
 			group.Go(func() error { return haulingDigestRunner.Run(ctx) })
 		}
 
-		controllers.NewHaulingRuns(router, haulingRunsRepo, haulingRunItemsRepo, haulingMarketRepo, haulingMarketUpdater, haulingPnlRepo, haulingNotifier, haulingAnalyticsRepo)
+		tradingStationsRepo := repositories.NewTradingStations(db)
+		userTradingStructuresRepo := repositories.NewUserTradingStructures(db)
+		controllers.NewHaulingRuns(router, haulingRunsRepo, haulingRunItemsRepo, haulingMarketRepo, haulingStructuresRepo, haulingMarketUpdater, haulingPnlRepo, haulingNotifier, haulingAnalyticsRepo)
+		controllers.NewTradingStructures(router, tradingStationsRepo, userTradingStructuresRepo, haulingMarketUpdater, charactersRepository, esiClient, systemRepository)
 
 		// Corp orders runner (15 min) — runs even without Discord
 		haulingCorpOrdersUpdater := updaters.NewHaulingCorpOrders(usersRepository, playerCorporationRepostiory, haulingRunsRepo, haulingRunItemsRepo, haulingRunItemsRepo, esiClient)

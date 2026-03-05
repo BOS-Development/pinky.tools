@@ -55,6 +55,7 @@ Quick-reference for all feature docs. Each links to the full documentation.
 | Planetary Industry | [planetary-industry.md](industry/planetary-industry.md) | PI data, stall detection, profit calc |
 | Transportation | [transportation.md](industry/transportation.md) | Transport profiles, JF routes, cost calc |
 | Hauling Runs | [hauling-runs.md](industry/hauling-runs.md) | Phase 4 — Hub-to-hub arbitrage, run planning, fill tracking, Discord alerts, P&L tracking, analytics dashboards, run history |
+| Station Markets | [station-markets.md](industry/station-markets.md) | NPC station presets, player-owned structures, structure market caching, unified location picker |
 
 ## Infrastructure
 

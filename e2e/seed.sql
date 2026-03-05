@@ -21,6 +21,7 @@ ON CONFLICT (constellation_id) DO NOTHING;
 
 INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES
   (30000142, 'Jita', 20000020, 0.9),
+  (30000144, 'Perimeter', 20000020, 1.0),
   (30002187, 'Amarr', 20000322, 1.0)
 ON CONFLICT (solar_system_id) DO NOTHING;
 
@@ -310,5 +311,43 @@ INSERT INTO hauling_run_items (
   5.50, 6.50,
   NOW() - INTERVAL '3 days', NOW() - INTERVAL '1 day'
 ) ON CONFLICT (run_id, type_id) DO NOTHING;
+
+-- ===========================================
+-- Station Markets Seed Data (Feature #162)
+-- ===========================================
+
+-- User trading structures for Alice (user_id=1001)
+-- Structure 1234567890123 = "Perimeter - Test Trading Hub" (access OK)
+-- Structure 9999999999999 = "Restricted Citadel" (access denied)
+INSERT INTO user_trading_structures (user_id, structure_id, name, system_id, region_id, character_id, access_ok)
+VALUES
+  (1001, 1234567890123, 'Perimeter - Test Trading Hub', 30000142, 10000002, 2001001, true),
+  (1001, 9999999999999, 'Restricted Citadel', 30000142, 10000002, 2001001, false)
+ON CONFLICT (user_id, structure_id) DO NOTHING;
+
+-- Structure market snapshots for the accessible structure
+-- These allow the scanner to return results when the structure is selected as source
+INSERT INTO hauling_structure_snapshots (type_id, structure_id, sell_price, buy_price, volume_available, updated_at)
+VALUES
+  (34, 1234567890123, 5.0, 4.5, 500000, NOW()),
+  (35, 1234567890123, 9.0, 8.5, 300000, NOW()),
+  (36, 1234567890123, 17.0, 16.5, 200000, NOW())
+ON CONFLICT (type_id, structure_id) DO UPDATE SET
+  sell_price = EXCLUDED.sell_price,
+  buy_price = EXCLUDED.buy_price,
+  volume_available = EXCLUDED.volume_available,
+  updated_at = NOW();
+
+-- Destination region snapshots for Domain (10000043) so structure→region scan returns results
+INSERT INTO hauling_market_snapshots (type_id, region_id, system_id, buy_price, sell_price, volume_available, updated_at)
+VALUES
+  (34, 10000043, 0, 6.0,  5.5,  100000, NOW()),
+  (35, 10000043, 0, 11.0, 10.5, 80000,  NOW()),
+  (36, 10000043, 0, 21.0, 19.5, 60000,  NOW())
+ON CONFLICT (type_id, region_id, system_id) DO UPDATE SET
+  buy_price = EXCLUDED.buy_price,
+  sell_price = EXCLUDED.sell_price,
+  volume_available = EXCLUDED.volume_available,
+  updated_at = NOW();
 
 COMMIT;
