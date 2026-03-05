@@ -130,7 +130,7 @@ function QuickLink({ href, label, description, icon }: { href: string; label: st
   return (
     <a
       href={href}
-      className="px-3 py-3 bg-background-panel border border-border-dim rounded-sm hover:border-primary/40 hover:shadow-glow-sm transition-all group"
+      className="px-3 py-3 bg-background-panel border border-border-dim rounded-sm hover:border-primary/40 hover:shadow-glow-sm transition-all group no-underline"
     >
       {icon && <img src={icon} alt="" className="h-8 w-8 object-contain mb-1.5 opacity-85" />}
       <p className="text-sm font-semibold text-text-emphasis group-hover:text-primary transition-colors">

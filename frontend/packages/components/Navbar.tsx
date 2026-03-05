@@ -59,7 +59,7 @@ function NavDropdown({ label, items, pathname }: NavDropdownProps) {
             <DropdownMenuItem key={item.href} asChild>
               <a
                 href={item.href}
-                className={`flex items-center gap-2 ${
+                className={`flex items-center gap-2 no-underline ${
                   itemActive ? 'text-[var(--color-primary-cyan)] font-medium' : ''
                 }`}
               >
