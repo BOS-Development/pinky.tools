@@ -154,9 +154,60 @@ try {
 }
 ```
 
+### Recharts Integration
+
+Recharts is available in the project (`^3.7.0`). Key import pattern:
+
+```tsx
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+} from 'recharts';
+```
+
+**TypeScript**: Define explicit interfaces for chart data points — do not use `any[]`:
+```tsx
+interface ProfitDataPoint {
+  date: string;
+  profit: number;
+}
+const data: ProfitDataPoint[] = timeseries.map(...);
+```
+
+**Tooltip formatter** in recharts 3.x has signature:
+```tsx
+formatter={(value: TValue | undefined, name: TName | undefined, item, index, payload) =>
+  [formattedValue, label] as [string, string]
+}
+```
+
+**Jest mocking**: Mock the entire `recharts` module with stub components returning `<div data-testid="...">` wrappers — `ResponsiveContainer` doesn't auto-measure in jsdom:
+```tsx
+jest.mock('recharts', () => ({
+  ResponsiveContainer: ({ children }: any) => <div data-testid="recharts-responsive-container">{children}</div>,
+  LineChart: ({ children }: any) => <div data-testid="recharts-line-chart">{children}</div>,
+  Line: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+  CartesianGrid: () => null,
+  Tooltip: () => null,
+  Legend: () => null,
+}));
+```
+
+### Adding Tabs to an Existing Single-Component Page
+
+When a page currently just renders `<SomeComponent />` and you need to add tabbed navigation (e.g., adding Analytics and History tabs alongside an existing list):
+
+1. Create a new wrapper component (`packages/pages/FeaturePage.tsx`) that owns the tab state and renders the appropriate sub-component per tab
+2. Update the page entry file (`pages/feature.tsx`) to import and render the wrapper component
+3. Move the `<Navbar />` render into the wrapper if the original component rendered it
+
+This avoids bloating the original list component with tab logic it shouldn't own.
+
 ### Formatting
 
 - Use utilities from `packages/utils/formatting.ts`: `formatISK`, `formatNumber`, `formatCompact`
+- For ISK amounts in analytics/stats: always use `formatISK` — never raw number formatting
 - Never write custom number formatting
 
 ### Design Token System — CRITICAL

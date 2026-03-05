@@ -49,13 +49,23 @@ type HaulingRunNotifier interface {
 	SendHaulingDailyDigest(ctx context.Context, userID int64, runs []*models.HaulingRun)
 }
 
+// HaulingAnalyticsRepository provides analytics data access for hauling runs.
+type HaulingAnalyticsRepository interface {
+	GetRouteAnalytics(ctx context.Context, userID int64) ([]*models.HaulingRouteAnalytics, error)
+	GetItemAnalytics(ctx context.Context, userID int64) ([]*models.HaulingItemAnalytics, error)
+	GetProfitTimeSeries(ctx context.Context, userID int64) ([]*models.HaulingProfitDataPoint, error)
+	GetRunDurationSummary(ctx context.Context, userID int64) (*models.HaulingRunDurationSummary, error)
+	GetCompletedRuns(ctx context.Context, userID int64, limit, offset int) ([]*models.HaulingRun, int64, error)
+}
+
 type HaulingRunsController struct {
-	runs     HaulingRunsRepository
-	items    HaulingRunItemsRepository
-	market   HaulingMarketRepository
-	scanner  HaulingMarketUpdater
-	pnl      HaulingPnlRepository
-	notifier HaulingRunNotifier // may be nil
+	runs      HaulingRunsRepository
+	items     HaulingRunItemsRepository
+	market    HaulingMarketRepository
+	scanner   HaulingMarketUpdater
+	pnl       HaulingPnlRepository
+	notifier  HaulingRunNotifier // may be nil
+	analytics HaulingAnalyticsRepository
 }
 
 func NewHaulingRuns(
@@ -66,14 +76,16 @@ func NewHaulingRuns(
 	scanner HaulingMarketUpdater,
 	pnl HaulingPnlRepository,
 	notifier HaulingRunNotifier,
+	analytics HaulingAnalyticsRepository,
 ) *HaulingRunsController {
 	c := &HaulingRunsController{
-		runs:     runs,
-		items:    items,
-		market:   market,
-		scanner:  scanner,
-		pnl:      pnl,
-		notifier: notifier,
+		runs:      runs,
+		items:     items,
+		market:    market,
+		scanner:   scanner,
+		pnl:       pnl,
+		notifier:  notifier,
+		analytics: analytics,
 	}
 	router.RegisterRestAPIRoute("/v1/hauling/runs", web.AuthAccessUser, c.ListRuns, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/runs", web.AuthAccessUser, c.CreateRun, "POST")
@@ -89,6 +101,11 @@ func NewHaulingRuns(
 	router.RegisterRestAPIRoute("/v1/hauling/runs/{id}/pnl/summary", web.AuthAccessUser, c.GetPnlSummary, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/scanner", web.AuthAccessUser, c.GetScannerResults, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/scanner/scan", web.AuthAccessUser, c.TriggerScan, "POST")
+	router.RegisterRestAPIRoute("/v1/hauling/analytics/routes", web.AuthAccessUser, c.GetRouteAnalytics, "GET")
+	router.RegisterRestAPIRoute("/v1/hauling/analytics/items", web.AuthAccessUser, c.GetItemAnalytics, "GET")
+	router.RegisterRestAPIRoute("/v1/hauling/analytics/timeseries", web.AuthAccessUser, c.GetProfitTimeSeries, "GET")
+	router.RegisterRestAPIRoute("/v1/hauling/analytics/summary", web.AuthAccessUser, c.GetRunDurationSummary, "GET")
+	router.RegisterRestAPIRoute("/v1/hauling/history", web.AuthAccessUser, c.GetHaulingHistory, "GET")
 	return c
 }
 
@@ -423,4 +440,73 @@ func (c *HaulingRunsController) TriggerScan(args *web.HandlerArgs) (interface{},
 		}
 	}
 	return map[string]string{"status": "done"}, nil
+}
+
+// GetRouteAnalytics returns per-route aggregated P&L stats for completed runs.
+func (c *HaulingRunsController) GetRouteAnalytics(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	results, err := c.analytics.GetRouteAnalytics(args.Request.Context(), *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get route analytics")}
+	}
+	return results, nil
+}
+
+// GetItemAnalytics returns per-item-type aggregated P&L stats for completed runs.
+func (c *HaulingRunsController) GetItemAnalytics(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	results, err := c.analytics.GetItemAnalytics(args.Request.Context(), *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get item analytics")}
+	}
+	return results, nil
+}
+
+// GetProfitTimeSeries returns daily profit aggregated by date+route for completed runs.
+func (c *HaulingRunsController) GetProfitTimeSeries(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	results, err := c.analytics.GetProfitTimeSeries(args.Request.Context(), *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get profit time series")}
+	}
+	return results, nil
+}
+
+// GetRunDurationSummary returns summary stats on run completion time.
+func (c *HaulingRunsController) GetRunDurationSummary(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	summary, err := c.analytics.GetRunDurationSummary(args.Request.Context(), *args.User)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get run duration summary")}
+	}
+	return summary, nil
+}
+
+// GetHaulingHistory returns paginated COMPLETE/CANCELLED runs for the history view.
+// Supports ?limit=&offset= query params (defaults: limit=20, offset=0).
+func (c *HaulingRunsController) GetHaulingHistory(args *web.HandlerArgs) (interface{}, *web.HttpError) {
+	q := args.Request.URL.Query()
+	limit := 20
+	offset := 0
+	if v := q.Get("limit"); v != "" {
+		parsed, err := strconv.Atoi(v)
+		if err != nil || parsed < 1 {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid limit")}
+		}
+		limit = parsed
+	}
+	if v := q.Get("offset"); v != "" {
+		parsed, err := strconv.Atoi(v)
+		if err != nil || parsed < 0 {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid offset")}
+		}
+		offset = parsed
+	}
+
+	runs, total, err := c.analytics.GetCompletedRuns(args.Request.Context(), *args.User, limit, offset)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get hauling history")}
+	}
+	return map[string]interface{}{
+		"runs":   runs,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	}, nil
 }

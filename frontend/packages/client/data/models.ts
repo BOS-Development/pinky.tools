@@ -720,6 +720,7 @@ export type HaulingRun = {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string;
   items?: HaulingRunItem[];
 };
 
@@ -781,4 +782,48 @@ export type HaulingRunPnlSummary = {
   marginPct: number;
   itemsSold: number;
   itemsPending: number;
+};
+
+// Hauling Analytics Types
+
+export type HaulingRouteAnalytics = {
+  fromRegionId: number;
+  toRegionId: number;
+  totalRuns: number;
+  totalProfitIsk: number;
+  avgProfitIsk: number;
+  avgMarginPct: number;
+  avgIskPerM3: number;
+  bestRunProfitIsk: number;
+  worstRunProfitIsk: number;
+};
+
+export type HaulingItemAnalytics = {
+  typeId: number;
+  typeName: string;
+  totalRuns: number;
+  totalQtySold: number;
+  totalProfitIsk: number;
+  avgMarginPct: number;
+};
+
+export type HaulingProfitDataPoint = {
+  date: string;
+  fromRegionId: number;
+  toRegionId: number;
+  profitIsk: number;
+  runCount: number;
+};
+
+export type HaulingRunDurationSummary = {
+  totalCompletedRuns: number;
+  avgDurationDays: number;
+  minDurationDays: number;
+  maxDurationDays: number;
+  totalProfitIsk: number;
+};
+
+export type HaulingHistoryResponse = {
+  runs: HaulingRun[];
+  total: number;
 };

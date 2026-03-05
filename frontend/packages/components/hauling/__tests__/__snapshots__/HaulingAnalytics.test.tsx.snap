@@ -1,0 +1,797 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`HaulingAnalytics Component should match snapshot with data loaded 1`] = `
+<div>
+  <div
+    class="flex flex-col gap-8"
+  >
+    <section>
+      <h2
+        class="text-lg font-semibold text-text-heading mb-4"
+      >
+        Overview
+      </h2>
+      <div
+        class="grid grid-cols-2 sm:grid-cols-4 gap-4"
+      >
+        <div
+          class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+        >
+          <div
+            class="p-6 pt-5 pb-4 px-5"
+          >
+            <div
+              class="flex items-start justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Completed Runs
+                </p>
+                <p
+                  class="text-2xl font-bold text-text-data-value"
+                >
+                  5
+                </p>
+              </div>
+              <div
+                class="text-text-secondary opacity-60"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-trending-up h-5 w-5"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M16 7h6v6"
+                  />
+                  <path
+                    d="m22 7-8.5 8.5-5-5L2 17"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+        >
+          <div
+            class="p-6 pt-5 pb-4 px-5"
+          >
+            <div
+              class="flex items-start justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Total Profit
+                </p>
+                <p
+                  class="text-2xl font-bold text-text-data-value"
+                >
+                  500.00M ISK
+                </p>
+              </div>
+              <div
+                class="text-text-secondary opacity-60"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chart-no-axes-column h-5 w-5"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 21v-6"
+                  />
+                  <path
+                    d="M12 21V3"
+                  />
+                  <path
+                    d="M19 21V9"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+        >
+          <div
+            class="p-6 pt-5 pb-4 px-5"
+          >
+            <div
+              class="flex items-start justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Avg Run Duration
+                </p>
+                <p
+                  class="text-2xl font-bold text-text-data-value"
+                >
+                  4.2 days
+                </p>
+              </div>
+              <div
+                class="text-text-secondary opacity-60"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-clock h-5 w-5"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                  />
+                  <path
+                    d="M12 6v6l4 2"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+        >
+          <div
+            class="p-6 pt-5 pb-4 px-5"
+          >
+            <div
+              class="flex items-start justify-between"
+            >
+              <div>
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Avg Margin
+                </p>
+                <p
+                  class="text-2xl font-bold text-text-data-value"
+                >
+                  12.5%
+                </p>
+                <p
+                  class="text-xs text-text-muted mt-1"
+                >
+                  across all routes
+                </p>
+              </div>
+              <div
+                class="text-text-secondary opacity-60"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-package h-5 w-5"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"
+                  />
+                  <path
+                    d="M12 22V12"
+                  />
+                  <polyline
+                    points="3.29 7 12 12 20.71 7"
+                  />
+                  <path
+                    d="m7.5 4.27 9 5.15"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2
+        class="text-lg font-semibold text-text-heading mb-4"
+      >
+        Route Performance
+      </h2>
+      <div
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle mb-4"
+      >
+        <div
+          class="overflow-x-auto"
+        >
+          <div
+            class="relative w-full overflow-auto"
+          >
+            <table
+              class="w-full caption-bottom text-sm"
+            >
+              <thead
+                class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+              >
+                <tr
+                  class="border-b transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void border-overlay-subtle"
+                >
+                  <th
+                    class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
+                  >
+                    Route
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Runs
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Total Profit
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-down h-3 w-3 ml-1 inline text-primary"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m6 9 6 6 6-6"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Avg Profit/Run
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Avg Margin%
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    ISK/m³
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Best Run
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Worst Run
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="[&_tr:last-child]:border-0"
+              >
+                <tr
+                  class="border-b transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted border-overlay-subtle"
+                >
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-medium text-text-emphasis"
+                  >
+                    The Forge
+                     → 
+                    Domain
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    5
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-data-value font-semibold"
+                  >
+                    500.00M ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    100.00M ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    12.5
+                    %
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    300 ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+                    style="color: var(--color-success-teal);"
+                  >
+                    200.00M ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right"
+                    style="color: var(--color-text-secondary);"
+                  >
+                    50.00M ISK
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <h3
+        class="text-sm font-semibold text-text-secondary mb-3"
+      >
+        Profit Over Time by Route
+      </h3>
+      <div
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+      >
+        <div
+          class="p-6 pt-4"
+        >
+          <div
+            data-testid="responsive-container"
+          >
+            <div
+              data-testid="line-chart"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2
+        class="text-lg font-semibold text-text-heading mb-4"
+      >
+        Item Performance
+      </h2>
+      <div
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+      >
+        <div
+          class="overflow-x-auto"
+        >
+          <div
+            class="relative w-full overflow-auto"
+          >
+            <table
+              class="w-full caption-bottom text-sm"
+            >
+              <thead
+                class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+              >
+                <tr
+                  class="border-b transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted bg-background-void border-overlay-subtle"
+                >
+                  <th
+                    class="h-10 px-2 text-left align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis"
+                  >
+                    Item
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Runs
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Qty Sold
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Total Profit
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-down h-3 w-3 ml-1 inline text-primary"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m6 9 6 6 6-6"
+                      />
+                    </svg>
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] font-bold text-text-emphasis cursor-pointer select-none text-right"
+                  >
+                    Avg Margin%
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevrons-up-down h-3 w-3 ml-1 inline opacity-40"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m7 15 5 5 5-5"
+                      />
+                      <path
+                        d="m7 9 5-5 5 5"
+                      />
+                    </svg>
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                class="[&_tr:last-child]:border-0"
+              >
+                <tr
+                  class="border-b transition-colors hover:bg-interactive-hover data-[state=selected]:bg-muted border-overlay-subtle"
+                >
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+                  >
+                    <div
+                      class="flex items-center gap-2"
+                    >
+                      <img
+                        alt="Tritanium"
+                        src="https://images.evetech.net/types/34/icon"
+                      />
+                      <span
+                        class="text-text-emphasis font-medium"
+                      >
+                        Tritanium
+                      </span>
+                    </div>
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    3
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    150,000
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-data-value font-semibold"
+                  >
+                    250.00M ISK
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-right text-text-secondary"
+                  >
+                    10.0
+                    %
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section>
+      <h2
+        class="text-lg font-semibold text-text-heading mb-4"
+      >
+        Run Duration
+      </h2>
+      <div
+        class="rounded-sm border text-[var(--color-text-primary)] shadow hover:border-[var(--color-border-active)] hover:shadow-[var(--glow-cyan-sm)] transition-all bg-background-panel border-overlay-subtle"
+      >
+        <div
+          class="p-6 pt-5 pb-5"
+        >
+          <div
+            class="flex flex-col gap-4"
+          >
+            <div
+              class="grid grid-cols-1 sm:grid-cols-3 gap-4"
+            >
+              <div
+                class="text-center"
+              >
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Fastest Run
+                </p>
+                <p
+                  class="text-xl font-bold text-text-data-value"
+                >
+                  1.5
+                   days
+                </p>
+              </div>
+              <div
+                class="text-center"
+              >
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Average Duration
+                </p>
+                <p
+                  class="text-xl font-bold text-text-data-value"
+                >
+                  4.2
+                   days
+                </p>
+              </div>
+              <div
+                class="text-center"
+              >
+                <p
+                  class="text-xs text-text-secondary mb-1"
+                >
+                  Slowest Run
+                </p>
+                <p
+                  class="text-xl font-bold text-text-data-value"
+                >
+                  8.0
+                   days
+                </p>
+              </div>
+            </div>
+            <div
+              class="relative mt-2"
+            >
+              <div
+                class="w-full h-2 bg-background-elevated rounded-full overflow-visible"
+              >
+                <div
+                  class="absolute inset-0 rounded-full"
+                  style="background-color: var(--color-overlay-medium);"
+                />
+                <div
+                  class="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2"
+                  style="left: calc(41.5385% - 6px); background-color: var(--color-primary-cyan); border-color: var(--color-bg-elevated);"
+                />
+              </div>
+              <div
+                class="flex justify-between mt-1"
+              >
+                <span
+                  class="text-xs text-text-muted"
+                >
+                  1.5
+                  d
+                </span>
+                <span
+                  class="text-xs"
+                  style="color: var(--color-primary-cyan);"
+                >
+                  avg 
+                  4.2
+                  d
+                </span>
+                <span
+                  class="text-xs text-text-muted"
+                >
+                  8.0
+                  d
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+`;

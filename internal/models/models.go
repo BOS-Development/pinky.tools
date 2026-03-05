@@ -1315,6 +1315,7 @@ type HaulingRun struct {
 	NotifyTier3      bool              `json:"notifyTier3"`
 	DailyDigest      bool              `json:"dailyDigest"`
 	Notes            *string           `json:"notes,omitempty"`
+	CompletedAt      *string           `json:"completedAt,omitempty"`
 	CreatedAt        string            `json:"createdAt"`
 	UpdatedAt        string            `json:"updatedAt"`
 	Items            []*HaulingRunItem `json:"items,omitempty"`
@@ -1397,4 +1398,45 @@ type HaulingRunPnlSummary struct {
 	MarginPct       float64 `json:"marginPct"`    // netProfit/totalRevenue * 100
 	ItemsSold       int64   `json:"itemsSold"`
 	ItemsPending    int64   `json:"itemsPending"` // items with qty_sold < qty_acquired
+}
+
+// HaulingRouteAnalytics contains aggregated stats per route (from_region -> to_region) across completed runs.
+type HaulingRouteAnalytics struct {
+	FromRegionID      int64   `json:"fromRegionId"`
+	ToRegionID        int64   `json:"toRegionId"`
+	TotalRuns         int64   `json:"totalRuns"`
+	TotalProfitISK    float64 `json:"totalProfitIsk"`
+	AvgProfitISK      float64 `json:"avgProfitIsk"`
+	AvgMarginPct      float64 `json:"avgMarginPct"`
+	AvgIskPerM3       float64 `json:"avgIskPerM3"`
+	BestRunProfitISK  float64 `json:"bestRunProfitIsk"`
+	WorstRunProfitISK float64 `json:"worstRunProfitIsk"`
+}
+
+// HaulingItemAnalytics contains aggregated per-item-type stats across all completed runs.
+type HaulingItemAnalytics struct {
+	TypeID         int64   `json:"typeId"`
+	TypeName       string  `json:"typeName"`
+	TotalRuns      int64   `json:"totalRuns"`
+	TotalQtySold   int64   `json:"totalQtySold"`
+	TotalProfitISK float64 `json:"totalProfitIsk"`
+	AvgMarginPct   float64 `json:"avgMarginPct"`
+}
+
+// HaulingProfitDataPoint is a single point in the profit-over-time time series.
+type HaulingProfitDataPoint struct {
+	Date         string  `json:"date"` // YYYY-MM-DD
+	FromRegionID int64   `json:"fromRegionId"`
+	ToRegionID   int64   `json:"toRegionId"`
+	ProfitISK    float64 `json:"profitIsk"`
+	RunCount     int64   `json:"runCount"`
+}
+
+// HaulingRunDurationSummary summarizes run completion time across all completed runs.
+type HaulingRunDurationSummary struct {
+	TotalCompletedRuns int64   `json:"totalCompletedRuns"`
+	AvgDurationDays    float64 `json:"avgDurationDays"`
+	MinDurationDays    float64 `json:"minDurationDays"`
+	MaxDurationDays    float64 `json:"maxDurationDays"`
+	TotalProfitISK     float64 `json:"totalProfitIsk"`
 }

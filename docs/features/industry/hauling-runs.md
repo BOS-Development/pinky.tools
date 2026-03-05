@@ -2,9 +2,9 @@
 
 ## Status
 
-- **Phase**: 2 - Discord Alerts, Corp Orders, P&L UI (Implemented)
-- **Scope**: Hub-to-hub arbitrage scanning, run creation/tracking, per-item fill progress, Discord notifications, corp order auto-fill, post-run P&L tracking
-- **Future**: Phase 3 adds split-run operators, undercut monitoring, Dotlan integration
+- **Phase**: 4 - Analytics (Implemented)
+- **Scope**: Hub-to-hub arbitrage scanning, run creation/tracking, per-item fill progress, Discord notifications, corp order auto-fill, post-run P&L tracking, analytics dashboards, run history
+- **Future**: Phase 5 adds split-run operators, undercut monitoring, advanced forecasting
 
 ## Overview
 
@@ -13,6 +13,8 @@ Hauling Runs is a logistics planning feature that helps players identify profita
 **Phase 1** covers the planning workflow: scanning markets for opportunities, creating hauling runs with source/destination regions, adding items to runs with target quantities, and tracking fill progress toward ship capacity.
 
 **Phase 2** adds Discord notifications (Tier 2 fill alerts at ≥80%, run completion alerts, daily digests), automatic corp buy order polling (matching corp wallet orders to run items every 15 minutes), and post-run P&L tracking with revenue, cost, and profit summary.
+
+**Phase 4** adds analytics dashboards showing per-route and per-item profitability metrics, profit-over-time charts, run duration analysis, and a paginated run history view for completed/cancelled runs.
 
 ## Key Decisions
 
@@ -44,6 +46,14 @@ Hauling Runs is a logistics planning feature that helps players identify profita
 
 14. **Route safety is frontend-only** — Jump count and kill count data are fetched client-side from public ESI and zKillboard APIs; no server-side caching.
 
+15. **Analytics use SQL aggregation directly** — Route and item analytics aggregate across hauling_run_pnl joined to hauling_runs; no materialized views needed at current data scale.
+
+16. **completed_at tracks run lifecycle** — Set automatically in UpdateRunStatus when transitioning to COMPLETE; used to compute run duration in analytics.
+
+17. **Recharts for charts** — Added recharts v3 for profit-over-time line chart; no other charting library in project.
+
+18. **History view separate from active runs** — `/hauling` page uses 3 tabs (Active Runs / History / Analytics) so completed runs don't clutter the active list.
+
 ## Schema
 
 ### `hauling_runs` (NEW)
@@ -63,6 +73,7 @@ Represents a planned hauling operation between regions with fill tracking.
 - `notify_tier3` (boolean, default false) — notify on Tier 3 fill (Phase 2)
 - `daily_digest` (boolean, default false) — include in daily digest (Phase 2)
 - `notes` (text, nullable) — user notes
+- `completed_at` (timestamptz, nullable) — set when status transitions to COMPLETE (Phase 4)
 - `created_at`, `updated_at` (timestamps)
 
 **Indexes:**
@@ -372,6 +383,92 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - **Daily digest** — runs with daily_digest=true, sent at configured time
 - **Corp order match** — run.corporation_id orders matched by type_id, quantity_acquired auto-updated
 
+### Analytics (Phase 4)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/hauling/analytics/routes` | Per-route aggregated P&L stats for completed runs |
+| GET | `/v1/hauling/analytics/items` | Per-item-type aggregated P&L stats across completed runs |
+| GET | `/v1/hauling/analytics/timeseries` | Daily profit by date+route (last 90 days) for charts |
+| GET | `/v1/hauling/analytics/summary` | Run duration summary (avg/min/max days, total profit) |
+| GET | `/v1/hauling/history` | Paginated COMPLETE/CANCELLED runs (`?limit=25&offset=0`) |
+
+**Response types:**
+
+**GET /analytics/routes response:**
+```json
+[
+  {
+    "fromRegionId": 10000002,
+    "toRegionId": 10000043,
+    "totalRuns": 5,
+    "totalProfitIsk": 250000000,
+    "avgProfitIsk": 50000000,
+    "avgMarginPct": 8.5,
+    "avgIskPerM3": 2500,
+    "bestRunProfitIsk": 75000000,
+    "worstRunProfitIsk": 25000000
+  }
+]
+```
+
+**GET /analytics/items response:**
+```json
+[
+  {
+    "typeId": 1234,
+    "typeName": "Fusion Reactor",
+    "totalRuns": 3,
+    "totalQtySold": 250,
+    "totalProfitIsk": 62500000,
+    "avgMarginPct": 10.0
+  }
+]
+```
+
+**GET /analytics/timeseries response:**
+```json
+[
+  {
+    "date": "2026-03-01",
+    "fromRegionId": 10000002,
+    "toRegionId": 10000043,
+    "profitIsk": 50000000,
+    "runCount": 1
+  }
+]
+```
+
+**GET /analytics/summary response:**
+```json
+{
+  "totalCompletedRuns": 10,
+  "avgDurationDays": 3.5,
+  "minDurationDays": 1,
+  "maxDurationDays": 8,
+  "totalProfitIsk": 500000000
+}
+```
+
+**GET /hauling/history response:**
+```json
+{
+  "runs": [
+    {
+      "id": 1,
+      "name": "Jita to Amarr",
+      "status": "COMPLETE",
+      "fromRegionId": 10000002,
+      "toRegionId": 10000043,
+      "totalNetProfitIsk": 50000000,
+      "createdAt": "2026-03-01T10:30:00Z",
+      "completedAt": "2026-03-04T15:20:00Z"
+    }
+  ],
+  "total": 42
+}
+```
+
 ## File Structure
 
 ### Backend
@@ -380,15 +477,17 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - `internal/database/migrations/20260301010649_create_hauling_runs.up.sql` — Phase 1: runs, items, snapshots
 - `internal/database/migrations/20260301010649_create_hauling_runs.down.sql`
 - `internal/database/migrations/20260301110717_hauling_run_pnl_unique.up.sql` — Phase 2: adds UNIQUE(run_id, type_id) constraint
+- `internal/database/migrations/20260305014117_hauling_runs_completed_at.up.sql` — Phase 4: adds completed_at to hauling_runs
 
 **Models:**
 - `internal/models/models.go` — HaulingRun, HaulingRunItem, HaulingMarketSnapshot, HaulingArbitrageRow (scanner result DTO)
 
 **Repositories:**
-- `internal/repositories/haulingRuns.go` — CRUD: CreateRun, GetRun, UpdateRun, DeleteRun, ListRuns, UpdateStatus; Phase 2 adds ListAccumulatingByUser, ListDigestRunsByUser
+- `internal/repositories/haulingRuns.go` — CRUD: CreateRun, GetRun, UpdateRun, DeleteRun, ListRuns, UpdateStatus; Phase 2 adds ListAccumulatingByUser, ListDigestRunsByUser; Phase 4 adds UpdateCompletedAt
 - `internal/repositories/haulingRunItems.go` — CRUD: AddItem, UpdateItem, DeleteItem, GetRunItems
 - `internal/repositories/haulingMarket.go` — Cache: UpsertSnapshot, GetSnapshot, GetSnapshotsForType, GetSnapshotsOlderThan
 - `internal/repositories/haulingRunPnl.go` — Phase 2: UpsertPnlEntry, GetPnlByRunID, GetPnlSummaryByRunID
+- `internal/repositories/haulingAnalytics.go` — Phase 4: GetRouteAnalytics, GetItemAnalytics, GetProfitTimeSeries, GetRunDurationSummary, GetCompletedRuns
 
 **Updaters:**
 - `internal/updaters/haulingMarket.go` — Market scanning and snapshot refresh:
@@ -399,11 +498,12 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - `internal/updaters/haulingCorpOrders.go` — Phase 2: matches corp buy orders to run items by type_id, updates quantity_acquired
 
 **Controllers:**
-- `internal/controllers/haulingRuns.go` — HTTP handlers (14+ endpoints):
+- `internal/controllers/haulingRuns.go` — HTTP handlers (19+ endpoints):
   - Phase 1: ListRuns, CreateRun, GetRun, UpdateRun, DeleteRun, UpdateStatus
   - Phase 1: GetRunItems, AddRunItem, UpdateRunItem, DeleteRunItem
   - Phase 1: ScanMarket, GetScanResults, GetFillSuggestions
   - Phase 2: GetPnlByRunID, UpsertPnlEntry, GetPnlSummaryByRunID
+  - Phase 4: GetRouteAnalytics, GetItemAnalytics, GetProfitTimeSeries, GetRunDurationSummary, GetCompletedRuns
 
 **Client:**
 - `internal/client/esiClient.go` — added MarketHistoryEntry type and GetMarketHistory method for future analytics
@@ -420,9 +520,14 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - `frontend/pages/api/hauling/suggestions.ts` — GET fill suggestions
 - `frontend/pages/api/hauling/pnl.ts` — Phase 2: GET/PUT P&L entries
 - `frontend/pages/api/hauling/pnl-summary.ts` — Phase 2: GET P&L summary
+- `frontend/pages/api/hauling/analytics/routes.ts` — Phase 4: GET route analytics
+- `frontend/pages/api/hauling/analytics/items.ts` — Phase 4: GET item analytics
+- `frontend/pages/api/hauling/analytics/timeseries.ts` — Phase 4: GET profit timeseries
+- `frontend/pages/api/hauling/analytics/summary.ts` — Phase 4: GET run duration summary
+- `frontend/pages/api/hauling/history.ts` — Phase 4: GET paginated completed/cancelled runs
 
 **Package Components:**
-- `frontend/packages/pages/hauling.tsx` — Main page with tabs
+- `frontend/packages/pages/hauling.tsx` — Main page with 3 tabs: Active Runs, History, Analytics (Phase 4)
 - `frontend/packages/pages/hauling/detail.tsx` — Run detail view
 - `frontend/packages/pages/hauling/scanner.tsx` — Scanner with sort/filter
 - `frontend/packages/components/hauling/HaulingRunsList.tsx` — List view with creation
@@ -431,7 +536,9 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
 - `frontend/packages/components/hauling/FillSuggestionsPanel.tsx` — Top 3 fits + [Add] buttons
 - `frontend/packages/components/hauling/HaulingRunPnlSection.tsx` — Phase 2: P&L entry form and summary display
 - `frontend/packages/components/hauling/RouteSafetyCard.tsx` — Phase 2: Jump count + kill count from ESI and zKillboard
-- `frontend/packages/client/api.ts` — API client methods for all endpoints; Phase 2 adds getPnl, upsertPnl, getPnlSummary
+- `frontend/packages/components/hauling/HaulingAnalytics.tsx` — Phase 4: 4 stat cards, route table, profit chart (recharts), item table, run duration
+- `frontend/packages/components/hauling/HaulingHistory.tsx` — Phase 4: Paginated table of completed/cancelled runs
+- `frontend/packages/client/api.ts` — API client methods for all endpoints; Phase 2 adds getPnl, upsertPnl, getPnlSummary; Phase 4 adds analytics methods
 
 **Navigation:**
 - `frontend/packages/components/Navbar.tsx` — Added "Hauling Runs" link to Industry menu
@@ -463,16 +570,26 @@ Frontend [Add] button on suggestion posts to `/v1/hauling/runs/{id}/items` with 
   - Corp order auto-fill scenarios
   - Daily digest runner behavior
 
+- `e2e/tests/20-hauling-runs-analytics.spec.ts` — Phase 4 workflow (17 tests):
+  - Analytics tab loads with route, item, timeseries, and summary data
+  - Route analytics table shows aggregated stats
+  - Item analytics table shows per-type profitability
+  - Profit-over-time chart renders (recharts)
+  - Run duration summary card displays correctly
+  - History tab shows completed/cancelled runs
+  - Pagination in history works
+  - Completed run duration calculation (created_at → completed_at)
+
 **Mock ESI:**
 - `cmd/mock-esi/main.go` — Added market history endpoint for scanner caching validation; Phase 2 adds corp orders endpoint (esi-corporations.read_orders.v1)
 
-## Phase 3 Deferred Items
+## Phase 5 Deferred Items
 
-1. **Split-run operators** — Track which character is responsible for final haul in multi-char runs (operator_character_id on run). Phase 2 treats all runs as single-character.
+1. **Split-run operators** — Track which character is responsible for final haul in multi-char runs (operator_character_id on run). Phase 4 treats all runs as single-character.
 
-2. **Undercut monitoring** — Alert if destination sell price undercuts by >X% after initial scan. Phase 2 deferred to Phase 3.
+2. **Undercut monitoring** — Alert if destination sell price undercuts by >X% after initial scan. Phase 4 deferred to Phase 5.
 
-3. **Dotlan integration** — Fetch kill data and player traffic statistics to highlight risky routes. Phase 2 replaced with client-side zKillboard lookup.
+3. **Advanced forecasting** — Predict profitability trends based on historical analytics, seasonal patterns, and price volatility. Phase 4 provides raw analytics data; Phase 5 will add predictions.
 
 ## Open Questions
 

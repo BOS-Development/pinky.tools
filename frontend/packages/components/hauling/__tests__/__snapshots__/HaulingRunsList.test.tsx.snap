@@ -13,11 +13,6 @@ exports[`HaulingRunsList Component should match snapshot with new run dialog ope
 exports[`HaulingRunsList Component should match snapshot with runs list 1`] = `
 <div>
   <div
-    data-testid="navbar"
-  >
-    Navbar
-  </div>
-  <div
     class="w-full px-4 mt-8 mb-8"
   >
     <div
