@@ -16,24 +16,51 @@ func Test_TradingStations_ListStations_ReturnsPresetJita(t *testing.T) {
 
 	stations, err := repo.ListStations(context.Background())
 	assert.NoError(t, err)
-	// The migration seeds Jita 4-4 as a preset
-	assert.GreaterOrEqual(t, len(stations), 1)
+	// The migrations seed 5 presets (Jita + 4 secondary hubs)
+	assert.GreaterOrEqual(t, len(stations), 5)
 
-	// Find the preset Jita station
-	var jita interface{ GetIsPreset() bool }
-	_ = jita
-	var foundPreset bool
+	// Find the preset Jita station by station_id
+	var foundJita bool
 	for _, s := range stations {
-		if s.IsPreset {
-			foundPreset = true
-			assert.Equal(t, int64(60003760), s.StationID)
+		if s.StationID == 60003760 {
+			foundJita = true
+			assert.True(t, s.IsPreset, "Jita should be a preset station")
 			assert.Equal(t, "Jita IV - Moon 4 - Caldari Navy Assembly Plant", s.Name)
 			assert.Equal(t, int64(30000142), s.SystemID)
 			assert.Equal(t, int64(10000002), s.RegionID)
 			break
 		}
 	}
-	assert.True(t, foundPreset, "expected at least one preset station (Jita 4-4)")
+	assert.True(t, foundJita, "expected preset station for Jita 4-4 (station_id 60003760)")
+}
+
+func Test_TradingStations_ListStations_ReturnsAllFivePresets(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewTradingStations(db)
+
+	stations, err := repo.ListStations(context.Background())
+	assert.NoError(t, err)
+
+	// Collect all preset station_ids
+	presetIDs := map[int64]bool{}
+	for _, s := range stations {
+		if s.IsPreset {
+			presetIDs[s.StationID] = true
+		}
+	}
+
+	expectedPresets := []int64{
+		60003760, // Jita
+		60008494, // Amarr
+		60011866, // Dodixie
+		60004588, // Rens
+		60005686, // Hek
+	}
+	for _, id := range expectedPresets {
+		assert.True(t, presetIDs[id], "expected preset station_id %d to be in list", id)
+	}
 }
 
 func Test_TradingStations_ListStations_OrderedPresetFirst(t *testing.T) {

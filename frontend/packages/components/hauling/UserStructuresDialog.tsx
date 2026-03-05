@@ -234,7 +234,9 @@ export default function UserStructuresDialog({
               ) : !selectedCharacterId ? (
                 <p className="text-xs text-text-muted italic">Select a character first</p>
               ) : assetStructures.length === 0 ? (
-                <p className="text-xs text-text-muted italic">No structures found in assets</p>
+                <p className="text-xs text-text-muted italic">
+                  No player structures found in assets. The character must have items stored in a citadel or engineering complex.
+                </p>
               ) : (
                 <Select
                   value={selectedStructureId}

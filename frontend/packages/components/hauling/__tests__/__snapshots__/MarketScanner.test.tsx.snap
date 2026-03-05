@@ -76,7 +76,7 @@ exports[`MarketScanner renders empty state when no results 1`] = `
             </div>
             <button
               aria-autocomplete="none"
-              aria-controls="radix-_r_o_"
+              aria-controls="radix-_r_s_"
               aria-expanded="false"
               class="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-background-void border-overlay-strong text-text-emphasis"
               data-state="closed"
@@ -118,7 +118,7 @@ exports[`MarketScanner renders empty state when no results 1`] = `
             </label>
             <button
               aria-autocomplete="none"
-              aria-controls="radix-_r_p_"
+              aria-controls="radix-_r_t_"
               aria-expanded="false"
               class="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-background-void border-overlay-strong text-text-emphasis"
               data-state="closed"
@@ -225,6 +225,19 @@ exports[`MarketScanner renders empty state when no results 1`] = `
               </svg>
             </button>
           </div>
+          <span
+            class="text-xs text-text-muted"
+          >
+            No trading structures added.
+             
+            <button
+              class="underline cursor-pointer hover:text-text-secondary"
+            >
+              Add one via the ⚙ button
+            </button>
+             
+            to scan player-owned markets.
+          </span>
         </div>
       </div>
     </div>
@@ -470,6 +483,19 @@ exports[`MarketScanner renders loading skeleton while fetching results 1`] = `
               </svg>
             </button>
           </div>
+          <span
+            class="text-xs text-text-muted"
+          >
+            No trading structures added.
+             
+            <button
+              class="underline cursor-pointer hover:text-text-secondary"
+            >
+              Add one via the ⚙ button
+            </button>
+             
+            to scan player-owned markets.
+          </span>
         </div>
       </div>
     </div>
@@ -566,7 +592,7 @@ exports[`MarketScanner renders results table with arbitrage rows 1`] = `
             </div>
             <button
               aria-autocomplete="none"
-              aria-controls="radix-_r_1g_"
+              aria-controls="radix-_r_1o_"
               aria-expanded="false"
               class="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-background-void border-overlay-strong text-text-emphasis"
               data-state="closed"
@@ -608,7 +634,7 @@ exports[`MarketScanner renders results table with arbitrage rows 1`] = `
             </label>
             <button
               aria-autocomplete="none"
-              aria-controls="radix-_r_1h_"
+              aria-controls="radix-_r_1p_"
               aria-expanded="false"
               class="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-background-void border-overlay-strong text-text-emphasis"
               data-state="closed"
@@ -719,7 +745,7 @@ exports[`MarketScanner renders results table with arbitrage rows 1`] = `
             class="text-xs text-text-muted ml-1"
           >
             Last updated: 
-            2/22/2026, 10:00:00 AM
+            2/22/2026, 2:00:00 AM
           </span>
         </div>
       </div>
@@ -1084,7 +1110,7 @@ exports[`MarketScanner renders with stations in location picker after load 1`] =
             </div>
             <button
               aria-autocomplete="none"
-              aria-controls="radix-_r_2g_"
+              aria-controls="radix-_r_2q_"
               aria-expanded="false"
               class="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-background-void border-overlay-strong text-text-emphasis"
               data-state="closed"
@@ -1126,7 +1152,7 @@ exports[`MarketScanner renders with stations in location picker after load 1`] =
             </label>
             <button
               aria-autocomplete="none"
-              aria-controls="radix-_r_2h_"
+              aria-controls="radix-_r_2r_"
               aria-expanded="false"
               class="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-sm border px-3 py-2 text-sm shadow-sm ring-offset-background data-[placeholder]:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] focus:border-[var(--color-primary-cyan)] focus:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 bg-background-void border-overlay-strong text-text-emphasis"
               data-state="closed"
@@ -1233,6 +1259,19 @@ exports[`MarketScanner renders with stations in location picker after load 1`] =
               </svg>
             </button>
           </div>
+          <span
+            class="text-xs text-text-muted"
+          >
+            No trading structures added.
+             
+            <button
+              class="underline cursor-pointer hover:text-text-secondary"
+            >
+              Add one via the ⚙ button
+            </button>
+             
+            to scan player-owned markets.
+          </span>
         </div>
       </div>
     </div>
