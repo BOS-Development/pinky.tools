@@ -433,6 +433,14 @@ test.describe('Feature requiring specific ESI data', () => {
 
 If your test needs new static data (e.g., a new item type, station, or region), add it to `seed.sql`.
 
+### character_assets Cannot Be Seeded in seed.sql — CRITICAL
+
+`character_assets` has a FK constraint `REFERENCES characters(id, user_id)`. Characters are created at E2E runtime (during tests 02+), **not** during DB seed. Therefore you **cannot** insert `character_assets` rows in `seed.sql` — the FK will fail because the referenced character rows don't exist yet.
+
+**Instead**: add asset data to `cmd/mock-esi/main.go` as canned data. The background asset runner (every 10 seconds, configured via `ASSET_UPDATE_INTERVAL_SEC=10` in `docker-compose.e2e.yaml`) will populate `character_assets` after each character is created. Tests that need specific character assets must run after test 04 (asset refresh).
+
+For player-structure assets specifically: use `location_type="item"`, `location_flag="Hangar"`, `location_id=<structure_id>`. The `GetPlayerOwnedStationIDs` repository method returns distinct `location_id` values where these conditions hold.
+
 ## Running Tests
 
 Always use Makefile targets — never run test commands directly.
@@ -479,6 +487,28 @@ make test-e2e-clean
 3. Add handler with `mux.HandleFunc` pattern
 4. Set appropriate headers (`X-Pages`, `Content-Type`)
 5. Test that the backend can call the mock endpoint via `make test-e2e-debug`
+
+### shadcn Select in Dialogs — Scoped combobox Locator
+
+shadcn/ui `<Select>` renders as `role="combobox"` but does NOT have an accessible name by default (unlike MUI Select with `<InputLabel>`). `getByRole('combobox', { name: /Label/i })` will NOT work unless you explicitly wire `aria-labelledby`.
+
+**When a dialog contains multiple shadcn Selects**, use `.nth(N)` scoped to the dialog element to target the right one:
+
+```typescript
+const dialog = page.getByRole('dialog');
+await expect(dialog).toBeVisible({ timeout: 5000 });
+
+// First Select (index 0), second Select (index 1), etc.
+await dialog.getByRole('combobox').nth(0).click();
+await page.getByRole('option', { name: /Alice Alpha/i }).click();
+
+await dialog.getByRole('combobox').nth(1).click();
+await page.getByRole('option', { name: /Jita IV - Moon 4/i }).click();
+```
+
+**Important**: Always scope to the dialog (`dialog.getByRole('combobox')`) rather than `page.getByRole('combobox')`. The page may contain other comboboxes outside the dialog (e.g., search inputs in the background), which would make `.nth()` index non-deterministic.
+
+If you know the visual order of the selects within the dialog, use `.nth(0)` for the first and `.nth(1)` for the second, etc. If the component might have labels that create `aria-labelledby` wiring, prefer `getByRole('combobox', { name: /Label/i })` for resilience.
 
 ### Custom Select Portal — Scrolling to Options
 

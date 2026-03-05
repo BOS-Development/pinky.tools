@@ -343,6 +343,40 @@ expect(toast.success).toHaveBeenCalledWith(expect.stringMatching(/success messag
 ```
 **Important:** `jest.mock()` is hoisted before variable declarations. Use inline `jest.fn()` in the mock factory — do NOT reference external variables.
 
+**5. shadcn Select in JSDOM — mock the entire module:**
+shadcn/ui `Select` (backed by Radix UI) does not work in jsdom — Radix uses pointer events and portals that jsdom doesn't support. Mock the entire module with flat DOM stubs:
+```tsx
+jest.mock('@/components/ui/select', () => ({
+  Select: ({ children, value, onValueChange }: any) => (
+    <div data-testid="select" data-value={value} onClick={() => onValueChange?.('mock-value')}>
+      {children}
+    </div>
+  ),
+  SelectTrigger: ({ children }: any) => <div role="combobox">{children}</div>,
+  SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
+  SelectContent: ({ children }: any) => <div>{children}</div>,
+  SelectItem: ({ children, value }: any) => <div role="option" data-value={value}>{children}</div>,
+  SelectGroup: ({ children }: any) => <div>{children}</div>,
+  SelectLabel: ({ children }: any) => <div>{children}</div>,
+}));
+```
+Adapt the stub to match what your test actually needs to assert (e.g., expose `onValueChange` via a click handler, or expose `data-value` for value assertions).
+
+**6. `@/` path alias — required in Jest config:**
+The `@/` import alias (maps to `frontend/` root per tsconfig) is **not** auto-resolved by `next/jest`. Any test file that imports from `@/components/ui/` requires the alias in `jest.config.js`:
+```js
+// frontend/jest.config.js
+const nextJest = require('next/jest');
+const createJestConfig = nextJest({ dir: './' });
+module.exports = createJestConfig({
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+    // ... other mappings
+  },
+});
+```
+This is already added to the project's `jest.config.js`. If you add a new component that uses `@/` imports and its test file fails with "Cannot find module '@/components/ui/...'", check that the alias is present in `moduleNameMapper`.
+
 **5. MUI class selectors:**
 Replace `.MuiChip-root`, `.MuiIconButton-root` with element selectors:
 ```tsx
