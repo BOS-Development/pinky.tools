@@ -204,8 +204,13 @@ test.describe('Hauling Runs', () => {
     await page.getByRole('combobox').first().click();
     await page.getByRole('option', { name: /The Forge/i }).click();
 
+    // Wait for first dropdown to close before opening second
+    await page.waitForTimeout(500);
+
     // Select destination region: Domain — second combobox is "Destination Region"
     await page.getByRole('combobox').nth(1).click();
+    // Wait for dropdown to fully open
+    await page.waitForTimeout(300);
     await page.getByRole('option', { name: /Domain/i }).click();
 
     // Click Scan — scan is synchronous, results load after POST completes
