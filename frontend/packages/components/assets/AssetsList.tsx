@@ -1286,6 +1286,7 @@ export default function AssetsList(props: AssetsListProps) {
         <Navbar />
         <div className="max-w-screen-xl mx-auto px-4 mt-4">
           <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+            <img src="/icons/inventory-empty.png" alt="" className="h-20 w-20 object-contain mb-4 opacity-70" />
             <h2 className="text-3xl font-semibold text-text-emphasis mb-2">No Assets Found</h2>
             <p className="text-sm text-text-secondary mb-4">
               You don&apos;t have any assets yet, or they haven&apos;t been synced.

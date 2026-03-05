@@ -79,7 +79,16 @@ exports[`Navbar Component should match snapshot when not authenticated 1`] = `
         id="radix-_r_2_"
         type="button"
       >
-        Assets
+        <span
+          class="flex items-center gap-1.5"
+        >
+          <img
+            alt=""
+            class="h-4 w-4 object-contain"
+            src="/icons/assets.png"
+          />
+          Assets
+        </span>
         <svg
           aria-hidden="true"
           class="lucide lucide-chevron-down h-4 w-4 opacity-60"
@@ -106,7 +115,16 @@ exports[`Navbar Component should match snapshot when not authenticated 1`] = `
         id="radix-_r_4_"
         type="button"
       >
-        Trading
+        <span
+          class="flex items-center gap-1.5"
+        >
+          <img
+            alt=""
+            class="h-4 w-4 object-contain"
+            src="/icons/trading.png"
+          />
+          Trading
+        </span>
         <svg
           aria-hidden="true"
           class="lucide lucide-chevron-down h-4 w-4 opacity-60"
@@ -133,7 +151,16 @@ exports[`Navbar Component should match snapshot when not authenticated 1`] = `
         id="radix-_r_6_"
         type="button"
       >
-        Industry
+        <span
+          class="flex items-center gap-1.5"
+        >
+          <img
+            alt=""
+            class="h-4 w-4 object-contain"
+            src="/icons/industry.png"
+          />
+          Industry
+        </span>
         <svg
           aria-hidden="true"
           class="lucide lucide-chevron-down h-4 w-4 opacity-60"
@@ -160,7 +187,16 @@ exports[`Navbar Component should match snapshot when not authenticated 1`] = `
         id="radix-_r_8_"
         type="button"
       >
-        Logistics
+        <span
+          class="flex items-center gap-1.5"
+        >
+          <img
+            alt=""
+            class="h-4 w-4 object-contain"
+            src="/icons/logistics.png"
+          />
+          Logistics
+        </span>
         <svg
           aria-hidden="true"
           class="lucide lucide-chevron-down h-4 w-4 opacity-60"

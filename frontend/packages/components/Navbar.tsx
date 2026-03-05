@@ -161,7 +161,12 @@ export default function Navbar() {
           />
 
           <NavDropdown
-            label="Assets"
+            label={
+              <span className="flex items-center gap-1.5">
+                <img src="/icons/assets.png" alt="" className="h-4 w-4 object-contain" />
+                Assets
+              </span>
+            }
             items={[
               { label: 'Inventory', href: '/inventory' },
               { label: 'Stockpiles', href: '/stockpiles' },
@@ -173,13 +178,17 @@ export default function Navbar() {
             label={
               pendingCount > 0 ? (
                 <span className="flex items-center gap-1.5">
+                  <img src="/icons/trading.png" alt="" className="h-4 w-4 object-contain" />
                   Trading
                   <Badge variant="destructive" className="text-[10px] px-1.5 py-0">
                     {pendingCount}
                   </Badge>
                 </span>
               ) : (
-                'Trading'
+                <span className="flex items-center gap-1.5">
+                  <img src="/icons/trading.png" alt="" className="h-4 w-4 object-contain" />
+                  Trading
+                </span>
               )
             }
             items={[
@@ -190,7 +199,12 @@ export default function Navbar() {
           />
 
           <NavDropdown
-            label="Industry"
+            label={
+              <span className="flex items-center gap-1.5">
+                <img src="/icons/industry.png" alt="" className="h-4 w-4 object-contain" />
+                Industry
+              </span>
+            }
             items={[
               { label: 'Reactions', href: '/reactions' },
               { label: 'Industry', href: '/industry' },
@@ -203,7 +217,12 @@ export default function Navbar() {
           />
 
           <NavDropdown
-            label="Logistics"
+            label={
+              <span className="flex items-center gap-1.5">
+                <img src="/icons/logistics.png" alt="" className="h-4 w-4 object-contain" />
+                Logistics
+              </span>
+            }
             items={[
               { label: 'Transport', href: '/transport' },
               { label: 'Stations', href: '/stations' },

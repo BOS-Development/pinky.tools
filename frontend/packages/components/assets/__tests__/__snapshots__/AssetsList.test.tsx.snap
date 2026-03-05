@@ -13,6 +13,11 @@ exports[`AssetsList Component Empty State should match snapshot when no assets e
     <div
       class="flex flex-col items-center justify-center min-h-[60vh] text-center"
     >
+      <img
+        alt=""
+        class="h-20 w-20 object-contain mb-4 opacity-70"
+        src="/icons/inventory-empty.png"
+      />
       <h2
         class="text-3xl font-semibold text-text-emphasis mb-2"
       >

@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import Navbar from "@industry-tool/components/Navbar";
 import Loading from "@industry-tool/components/loading";
-import { AlertTriangle, DollarSign, Copy, ExternalLink, Search, Package } from 'lucide-react';
+import { AlertTriangle, Copy, ExternalLink, Search, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -188,7 +188,7 @@ export default function StockpilesList() {
             <Card>
               <CardContent className="p-4">
                 <p className="text-sm text-[var(--color-text-secondary)] flex items-center gap-1 mb-1">
-                  <DollarSign className="h-4 w-4 text-[var(--color-success-teal)]" />
+                  <img src="/icons/isk.png" alt="ISK" className="h-4 w-4 object-contain" />
                   Total Cost (ISK)
                 </p>
                 <p className="text-3xl font-bold text-[var(--color-danger-rose)]">
