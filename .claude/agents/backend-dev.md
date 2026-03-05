@@ -317,6 +317,54 @@ _, err = tx.ExecContext(ctx, `UPDATE hauling_runs SET status = $1 WHERE id = $2`
 _, err = tx.ExecContext(ctx, `UPDATE hauling_runs SET completed_at = NOW() WHERE id = $1`, runID)
 ```
 
+## characters Table — Composite PK — CRITICAL
+
+The `characters` table has a **composite primary key `(id, user_id)`**, NOT a simple `id` PK. This means:
+
+- `REFERENCES characters(id)` alone is **invalid** — PostgreSQL requires all PK columns in a FK reference.
+- New tables that logically reference a character must store `character_id BIGINT NOT NULL` **without a FK constraint** — do not attempt to add `REFERENCES characters(id)`.
+- This is intentional: character IDs are EVE-assigned and globally unique; the composite PK enforces per-user data isolation.
+
+```sql
+-- BAD — characters has composite PK, this will fail migration
+CREATE TABLE my_table (
+    character_id BIGINT NOT NULL REFERENCES characters(id),
+    ...
+);
+
+-- GOOD — store the ID without a FK, rely on application-level scoping
+CREATE TABLE my_table (
+    character_id BIGINT NOT NULL,
+    user_id      BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    ...
+);
+```
+
+## Controller Interface Separation for New Repository Methods
+
+When adding new methods to a repository interface that is already used by a controller, do **not** extend the existing interface. Instead, create a **new separate interface** in the controller file and add a new field to the controller struct. This keeps interfaces narrow and mocks focused:
+
+```go
+// Existing interface — do not touch
+type MyRepository interface {
+    GetByID(ctx context.Context, id, userID int64) (*models.Thing, error)
+}
+
+// New interface for the additional method
+type MyExtendedRepository interface {
+    GetRelated(ctx context.Context, thingID int64) ([]*models.Related, error)
+}
+
+// Add a new field to the controller struct — do not add the method to MyRepository
+type MyController struct {
+    repo         MyRepository
+    extendedRepo MyExtendedRepository
+    // ...
+}
+```
+
+Both interfaces can be satisfied by the same concrete repository struct; pass the same repo instance for both fields at construction time.
+
 ## Key Relationships
 
 ```

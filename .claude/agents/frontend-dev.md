@@ -367,6 +367,22 @@ const items: string[] = [];
 items.push("hello");
 ```
 
+### Timezone snapshot mismatches
+
+Snapshot tests that render timestamps or dates can produce different output depending on the system timezone. If snapshots pass locally but fail in CI (or vice versa), pin the timezone to UTC in two places:
+
+1. **`frontend/jest.setup.js`** — add at the top:
+   ```js
+   process.env.TZ = 'UTC';
+   ```
+2. **`docker-compose.test.yaml`** — add to the frontend-test service environment:
+   ```yaml
+   environment:
+     TZ: UTC
+   ```
+
+Both must be set; setting only one will still produce mismatches between local and Docker runs.
+
 ### Running tests
 
 - **Full suite**: `make test-frontend` (runs all Jest tests in Docker)
