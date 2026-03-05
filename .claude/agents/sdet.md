@@ -416,6 +416,8 @@ test.describe('Feature requiring specific ESI data', () => {
 | `setMarketOrders(orders)` | PUT `/_admin/market-orders` | Replace all market orders |
 | `setCharacterPlanets(charID, planets)` | PUT `/_admin/character-planets/{id}` | Set PI planets |
 | `setPlanetDetails(charID, planetID, colony)` | PUT `/_admin/planet-details/{charID}/{planetID}` | Set planet colony |
+| `setCharacterOrders(charID, orders)` | PUT `/_admin/character-orders/{id}` | Set active sell orders |
+| `setCharacterWalletTx(charID, txs)` | PUT `/_admin/character-wallet-tx/{id}` | Set wallet transactions |
 
 ### Rules
 - **Always reset in afterAll**: Any test that modifies mock ESI state MUST call `resetMockESI()` in `afterAll`
@@ -478,6 +480,38 @@ make test-e2e-clean
 4. Set appropriate headers (`X-Pages`, `Content-Type`)
 5. Test that the backend can call the mock endpoint via `make test-e2e-debug`
 
+### Analytics UI Strict Mode Pitfalls
+
+When testing analytics pages, these text patterns appear in multiple places (stat card labels AND table column headers) and will cause strict-mode failures. Always use disambiguating strategies:
+
+| Text | Where it appears | Fix |
+|------|-----------------|-----|
+| `'Total Profit'` | stat card label + route table header + item table header | `.first()` |
+| `'Run Duration'` | `<h2>` section heading + stat card label "Avg Run Duration" (substring) | `getByRole('heading', { name: 'Run Duration' })` |
+| `'Runs'` (column header) | route table header + item table header | `getByRole('columnheader', { name: /^Runs$/i }).first()` |
+| `'COMPLETE'` in a filtered row | cell text "Completed" partially matches | `getByText('COMPLETE', { exact: true })` |
+
+### Seed Data Requirements for Analytics Pages
+
+When writing E2E tests for an analytics feature, `seed.sql` needs **three layers** of data for full coverage:
+
+1. **The main entity** (e.g., `hauling_runs` row with `status='COMPLETE'`) — so the analytics query returns rows
+2. **The aggregation source** (e.g., `hauling_run_pnl`) — so profit/revenue stats are non-zero
+3. **The JOIN source** (e.g., `hauling_run_items` with `type_name`) — so item name columns populate in item analytics tables
+
+Missing any layer means that section of the analytics UI will show empty/zero state, causing test assertions to fail.
+
+### Mock ESI Helpers — Phase 3 (Hauling Sell Tracking)
+
+Phase 3 added these mock ESI helpers in `e2e/helpers/mock-esi.ts`:
+
+| Function | Admin Endpoint | Purpose |
+|----------|---------------|---------|
+| `setCharacterOrders(charID, orders)` | PUT `/_admin/character-orders/{id}` | Set active sell orders |
+| `setCharacterWalletTx(charID, txs)` | PUT `/_admin/character-wallet-tx/{id}` | Set wallet transactions |
+
+Note: The `add-character.ts` E2E helper does NOT include `esi-markets.read_character_orders.v1` or `esi-wallet.read_character_wallet.v1` scopes, so the background hauling sell tracking updaters skip all E2E test characters. Phase 3 P&L data must be set via the Enter P&L dialog in tests, not via mock ESI background sync.
+
 ## E2E Coverage Tracking
 
 | Page | Route | Test File | Status |
@@ -501,6 +535,7 @@ make test-e2e-clean
 | Job Slots | `/job-slots` | 17-job-slot-exchange.spec.ts | ✅ |
 | Hauling Runs (list) | `/hauling` | 18-hauling-runs.spec.ts | ✅ |
 | Hauling Runs (P&L, alerts) | `/hauling/[id]` | 19-hauling-runs-phase2.spec.ts | ✅ |
+| Hauling Analytics | `/hauling` (Analytics tab) | 20-hauling-runs-analytics.spec.ts | ✅ |
 
 When adding a new page, create a corresponding E2E test file. Minimum coverage: page loads, primary happy path, empty state.
 

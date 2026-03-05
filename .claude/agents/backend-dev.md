@@ -260,6 +260,63 @@ Tests use **gotestsum** (`pkgname` format) for clean output — shows package-le
 - Use targeted tests during development; use full `make test-backend` for final verification
 - When a test fails, gotestsum prints the full failure output — read the FAIL lines at the bottom first
 
+## Analytics Repository Pattern
+
+When building analytics repositories with complex aggregation SQL, use subquery JOINs to avoid double-counting across GROUP BY dimensions. For example, aggregate in a CTE or derived table first, then JOIN to the main query:
+
+```sql
+-- GOOD: aggregate P&L separately, then join
+SELECT
+    r.origin_region_id,
+    r.destination_region_id,
+    COUNT(*) AS run_count,
+    COALESCE(pnl_agg.total_profit, 0) AS total_profit
+FROM hauling_runs r
+LEFT JOIN (
+    SELECT run_id, SUM(net_profit_isk) AS total_profit
+    FROM hauling_run_pnl
+    GROUP BY run_id
+) pnl_agg ON pnl_agg.run_id = r.id
+WHERE r.user_id = $1
+GROUP BY r.origin_region_id, r.destination_region_id, pnl_agg.total_profit
+
+-- BAD: joining pnl rows directly into the outer GROUP BY causes overcounting
+```
+
+Analytics repositories should use a separate interface and separate field in the controller struct — same pattern as other repository interfaces:
+
+```go
+type HaulingAnalyticsRepository interface {
+    GetRouteAnalytics(ctx context.Context, userID int64) ([]*models.RouteAnalytics, error)
+    GetItemAnalytics(ctx context.Context, userID int64) ([]*models.ItemAnalytics, error)
+    // ...
+}
+
+type HaulingController struct {
+    repo           HaulingRepository
+    analyticsRepo  HaulingAnalyticsRepository
+    // ...
+}
+```
+
+## Timestamp Update Pattern
+
+When adding a `completed_at`-style timestamp column that should be set conditionally on status change, always handle it in the same UPDATE query using a CASE expression — not a separate query:
+
+```go
+// GOOD: single UPDATE with conditional timestamp
+_, err = tx.ExecContext(ctx, `
+    UPDATE hauling_runs
+    SET status = $1,
+        completed_at = CASE WHEN $1 = 'COMPLETE' THEN NOW() ELSE completed_at END
+    WHERE id = $2 AND user_id = $3
+`, status, runID, userID)
+
+// BAD: two separate queries
+_, err = tx.ExecContext(ctx, `UPDATE hauling_runs SET status = $1 WHERE id = $2`, status, runID)
+_, err = tx.ExecContext(ctx, `UPDATE hauling_runs SET completed_at = NOW() WHERE id = $1`, runID)
+```
+
 ## Key Relationships
 
 ```
