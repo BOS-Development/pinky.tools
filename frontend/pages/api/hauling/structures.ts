@@ -22,23 +22,7 @@ export default async function handler(
 
   try {
     if (req.method === "GET") {
-      const {
-        source_region_id,
-        dest_region_id,
-        source_system_id,
-        source_structure_id,
-        dest_structure_id,
-        dest_system_id,
-      } = req.query;
-      const params = new URLSearchParams();
-      if (source_region_id) params.set("source_region_id", String(source_region_id));
-      if (dest_region_id) params.set("dest_region_id", String(dest_region_id));
-      if (source_system_id) params.set("source_system_id", String(source_system_id));
-      if (source_structure_id) params.set("source_structure_id", String(source_structure_id));
-      if (dest_structure_id) params.set("dest_structure_id", String(dest_structure_id));
-      if (dest_system_id) params.set("dest_system_id", String(dest_system_id));
-
-      const response = await fetch(`${backend}v1/hauling/scanner?${params.toString()}`, {
+      const response = await fetch(`${backend}v1/hauling/structures`, {
         method: "GET",
         headers: getHeaders(session.providerAccountId),
       });
@@ -51,10 +35,28 @@ export default async function handler(
       const data = await response.json();
       return res.status(200).json(data);
     } else if (req.method === "POST") {
-      const response = await fetch(`${backend}v1/hauling/scanner/scan`, {
+      const response = await fetch(`${backend}v1/hauling/structures`, {
         method: "POST",
         headers: getHeaders(session.providerAccountId),
         body: JSON.stringify(req.body),
+      });
+
+      if (!response.ok && response.status !== 403) {
+        const errorText = await response.text();
+        return res.status(response.status).json({ error: errorText });
+      }
+
+      const data = await response.json();
+      return res.status(response.status === 403 ? 403 : 200).json(data);
+    } else if (req.method === "DELETE") {
+      const { id } = req.query;
+      if (!id) {
+        return res.status(400).json({ error: "Missing structure id" });
+      }
+
+      const response = await fetch(`${backend}v1/hauling/structures/${id}`, {
+        method: "DELETE",
+        headers: getHeaders(session.providerAccountId),
       });
 
       if (!response.ok) {
@@ -62,12 +64,12 @@ export default async function handler(
         return res.status(response.status).json({ error: errorText });
       }
 
-      return res.status(200).json({ success: true });
+      return res.status(204).end();
     } else {
       return res.status(405).json({ error: "Method not allowed" });
     }
   } catch (error) {
-    console.error("Hauling scanner API error:", error);
-    return res.status(500).json({ error: "Failed to process hauling scanner request" });
+    console.error("Hauling structures API error:", error);
+    return res.status(500).json({ error: "Failed to process hauling structures request" });
   }
 }

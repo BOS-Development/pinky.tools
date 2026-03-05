@@ -16,10 +16,12 @@ import (
 // Mock ESI client for hauling market
 
 type mockHaulingMarketEsiClient struct {
-	orders  []*client.MarketOrder
-	ordersErr error
-	history []*client.MarketHistoryEntry
-	historyErr error
+	orders              []*client.MarketOrder
+	ordersErr           error
+	structureOrders     []*client.MarketOrder
+	structureOrdersErr  error
+	history             []*client.MarketHistoryEntry
+	historyErr          error
 }
 
 func (m *mockHaulingMarketEsiClient) GetMarketOrdersFiltered(ctx context.Context, regionID int64, systemID int64) ([]*client.MarketOrder, error) {
@@ -30,13 +32,21 @@ func (m *mockHaulingMarketEsiClient) GetMarketHistory(ctx context.Context, regio
 	return m.history, m.historyErr
 }
 
+func (m *mockHaulingMarketEsiClient) GetStructureMarketOrders(ctx context.Context, structureID int64, token string) ([]*client.MarketOrder, error) {
+	return m.structureOrders, m.structureOrdersErr
+}
+
 // Mock repository for hauling market
 
 type mockHaulingMarketRepo struct {
-	snapshotAge    *time.Time
-	snapshotAgeErr error
-	upsertErr      error
-	upsertedSnaps  []*models.HaulingMarketSnapshot
+	snapshotAge             *time.Time
+	snapshotAgeErr          error
+	structureSnapshotAge    *time.Time
+	structureSnapshotAgeErr error
+	upsertErr               error
+	upsertStructureErr      error
+	upsertedSnaps           []*models.HaulingMarketSnapshot
+	upsertedStructureSnaps  []*models.HaulingMarketSnapshot
 }
 
 func (m *mockHaulingMarketRepo) UpsertSnapshots(ctx context.Context, snapshots []*models.HaulingMarketSnapshot) error {
@@ -46,6 +56,15 @@ func (m *mockHaulingMarketRepo) UpsertSnapshots(ctx context.Context, snapshots [
 
 func (m *mockHaulingMarketRepo) GetSnapshotAge(ctx context.Context, regionID int64, systemID int64) (*time.Time, error) {
 	return m.snapshotAge, m.snapshotAgeErr
+}
+
+func (m *mockHaulingMarketRepo) UpsertStructureSnapshots(ctx context.Context, structureID int64, snapshots []*models.HaulingMarketSnapshot) error {
+	m.upsertedStructureSnaps = append(m.upsertedStructureSnaps, snapshots...)
+	return m.upsertStructureErr
+}
+
+func (m *mockHaulingMarketRepo) GetStructureSnapshotAge(ctx context.Context, structureID int64) (*time.Time, error) {
+	return m.structureSnapshotAge, m.structureSnapshotAgeErr
 }
 
 func Test_HaulingMarket_ScanRegion_FreshCacheSkip(t *testing.T) {
@@ -367,4 +386,96 @@ func (r *callCountingRepo) UpsertSnapshots(_ context.Context, _ []*models.Haulin
 
 func (r *callCountingRepo) GetSnapshotAge(_ context.Context, _ int64, _ int64) (*time.Time, error) {
 	return r.snapshotAgeFunc()
+}
+
+func (r *callCountingRepo) UpsertStructureSnapshots(_ context.Context, _ int64, _ []*models.HaulingMarketSnapshot) error {
+	return nil
+}
+
+func (r *callCountingRepo) GetStructureSnapshotAge(_ context.Context, _ int64) (*time.Time, error) {
+	return nil, nil
+}
+
+// --- ScanStructure tests ---
+
+func Test_HaulingMarket_ScanStructure_FreshCacheSkip(t *testing.T) {
+	recentTime := time.Now().Add(-5 * time.Minute)
+	repo := &mockHaulingMarketRepo{structureSnapshotAge: &recentTime}
+	esi := &mockHaulingMarketEsiClient{}
+
+	u := updaters.NewHaulingMarket(repo, esi)
+	accessOK, err := u.ScanStructure(context.Background(), int64(1000000001), "token")
+
+	assert.NoError(t, err)
+	assert.True(t, accessOK)
+	assert.Len(t, repo.upsertedStructureSnaps, 0)
+}
+
+func Test_HaulingMarket_ScanStructure_AccessDenied(t *testing.T) {
+	repo := &mockHaulingMarketRepo{structureSnapshotAge: nil}
+	esi := &mockHaulingMarketEsiClient{
+		structureOrders: nil, // nil = 403 access denied
+	}
+
+	u := updaters.NewHaulingMarket(repo, esi)
+	accessOK, err := u.ScanStructure(context.Background(), int64(1000000001), "token")
+
+	assert.NoError(t, err)
+	assert.False(t, accessOK)
+	assert.Len(t, repo.upsertedStructureSnaps, 0)
+}
+
+func Test_HaulingMarket_ScanStructure_Success(t *testing.T) {
+	repo := &mockHaulingMarketRepo{structureSnapshotAge: nil}
+	esi := &mockHaulingMarketEsiClient{
+		structureOrders: []*client.MarketOrder{
+			{TypeID: int64(34), Price: 1000.0, IsBuyOrder: false, VolumeRemain: int64(500)},
+			{TypeID: int64(34), Price: 1200.0, IsBuyOrder: true, VolumeRemain: int64(200)},
+			{TypeID: int64(35), Price: 500.0, IsBuyOrder: false, VolumeRemain: int64(100)},
+		},
+	}
+
+	u := updaters.NewHaulingMarket(repo, esi)
+	accessOK, err := u.ScanStructure(context.Background(), int64(1000000001), "token")
+
+	assert.NoError(t, err)
+	assert.True(t, accessOK)
+	assert.Len(t, repo.upsertedStructureSnaps, 2) // 2 types
+}
+
+func Test_HaulingMarket_ScanStructure_ESIError(t *testing.T) {
+	repo := &mockHaulingMarketRepo{structureSnapshotAge: nil}
+	esi := &mockHaulingMarketEsiClient{
+		structureOrdersErr: fmt.Errorf("ESI timeout"),
+	}
+
+	u := updaters.NewHaulingMarket(repo, esi)
+	accessOK, err := u.ScanStructure(context.Background(), int64(1000000001), "token")
+
+	assert.Error(t, err)
+	assert.False(t, accessOK)
+	assert.Contains(t, err.Error(), "failed to fetch structure market orders")
+}
+
+func Test_HaulingMarket_ScanStructure_SnapshotsSortedByTypeID(t *testing.T) {
+	repo := &mockHaulingMarketRepo{structureSnapshotAge: nil}
+	esi := &mockHaulingMarketEsiClient{
+		structureOrders: []*client.MarketOrder{
+			{TypeID: int64(500), Price: 100.0, IsBuyOrder: false, VolumeRemain: int64(10)},
+			{TypeID: int64(34), Price: 200.0, IsBuyOrder: false, VolumeRemain: int64(20)},
+			{TypeID: int64(200), Price: 150.0, IsBuyOrder: false, VolumeRemain: int64(15)},
+		},
+	}
+
+	u := updaters.NewHaulingMarket(repo, esi)
+	accessOK, err := u.ScanStructure(context.Background(), int64(1000000001), "token")
+
+	assert.NoError(t, err)
+	assert.True(t, accessOK)
+	assert.Len(t, repo.upsertedStructureSnaps, 3)
+
+	for i := 1; i < len(repo.upsertedStructureSnaps); i++ {
+		assert.LessOrEqual(t, repo.upsertedStructureSnaps[i-1].TypeID, repo.upsertedStructureSnaps[i].TypeID,
+			"snapshots must be sorted by TypeID")
+	}
 }

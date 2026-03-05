@@ -1,5 +1,7 @@
 # Hauling Runs
 
+**See also:** [Station Markets](station-markets.md) — Station-level selection and player structure markets are documented separately.
+
 ## Status
 
 - **Phase**: 4 - Analytics (Implemented)

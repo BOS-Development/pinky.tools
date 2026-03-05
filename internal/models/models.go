@@ -1309,6 +1309,8 @@ type HaulingRun struct {
 	FromRegionID     int64             `json:"fromRegionId"`
 	FromSystemID     *int64            `json:"fromSystemId,omitempty"`
 	ToRegionID       int64             `json:"toRegionId"`
+	FromStationID    *int64            `json:"fromStationId,omitempty"`
+	ToStationID      *int64            `json:"toStationId,omitempty"`
 	MaxVolumeM3      *float64          `json:"maxVolumeM3,omitempty"`
 	HaulThresholdISK *float64          `json:"haulThresholdIsk,omitempty"`
 	NotifyTier2      bool              `json:"notifyTier2"`
@@ -1439,4 +1441,28 @@ type HaulingRunDurationSummary struct {
 	MinDurationDays    float64 `json:"minDurationDays"`
 	MaxDurationDays    float64 `json:"maxDurationDays"`
 	TotalProfitISK     float64 `json:"totalProfitIsk"`
+}
+
+// TradingStation is an NPC station preset for market scanning
+type TradingStation struct {
+	ID        int64  `json:"id"`
+	StationID int64  `json:"stationId"`
+	Name      string `json:"name"`
+	SystemID  int64  `json:"systemId"`
+	RegionID  int64  `json:"regionId"`
+	IsPreset  bool   `json:"isPreset"`
+}
+
+// UserTradingStructure is a player-owned structure with a market that the user has configured
+type UserTradingStructure struct {
+	ID            int64   `json:"id"`
+	UserID        int64   `json:"userId"`
+	StructureID   int64   `json:"structureId"`
+	Name          string  `json:"name"`
+	SystemID      int64   `json:"systemId"`
+	RegionID      int64   `json:"regionId"`
+	CharacterID   int64   `json:"characterId"`
+	AccessOK      bool    `json:"accessOk"`
+	LastScannedAt *string `json:"lastScannedAt,omitempty"`
+	CreatedAt     string  `json:"createdAt"`
 }

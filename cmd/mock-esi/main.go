@@ -233,6 +233,9 @@ type State struct {
 	characterForce401      map[int64]bool
 	characterOrders        map[int64][]characterOrder
 	characterWalletTx      map[int64][]walletTransaction
+	// Station market: structure info and market orders keyed by structureID
+	structureInfo         map[int64]*structureInfo
+	structureMarketOrders map[int64][]marketOrder
 }
 
 // newDefaultState returns a fresh State populated with the standard E2E test fixtures.
@@ -424,6 +427,21 @@ func newDefaultState() *State {
 		// Phase 3: character orders and wallet transactions — empty by default; tests inject via admin API
 		characterOrders:   map[int64][]characterOrder{},
 		characterWalletTx: map[int64][]walletTransaction{},
+		// Station markets: structure info and market orders
+		// Structure 1234567890123 = "Perimeter - Test Trading Hub" in Jita system (30000142 = The Forge)
+		// Structure 9999999999999 = access denied (403)
+		structureInfo: map[int64]*structureInfo{
+			1234567890123: {Name: "Perimeter - Test Trading Hub", SolarSystemID: 30000142},
+		},
+		structureMarketOrders: map[int64][]marketOrder{
+			1234567890123: {
+				{OrderID: 80001, TypeID: 34, LocationID: 1234567890123, VolumeTotal: 500000, VolumeRemain: 500000, MinVolume: 1, Price: 5.00, IsBuyOrder: false, Duration: 90, Issued: "2026-01-01T00:00:00Z", Range: "station"},
+				{OrderID: 80002, TypeID: 34, LocationID: 1234567890123, VolumeTotal: 300000, VolumeRemain: 300000, MinVolume: 1, Price: 4.50, IsBuyOrder: true, Duration: 90, Issued: "2026-01-01T00:00:00Z", Range: "station"},
+				{OrderID: 80003, TypeID: 35, LocationID: 1234567890123, VolumeTotal: 300000, VolumeRemain: 300000, MinVolume: 1, Price: 9.00, IsBuyOrder: false, Duration: 90, Issued: "2026-01-01T00:00:00Z", Range: "station"},
+				{OrderID: 80004, TypeID: 35, LocationID: 1234567890123, VolumeTotal: 200000, VolumeRemain: 200000, MinVolume: 1, Price: 8.50, IsBuyOrder: true, Duration: 90, Issued: "2026-01-01T00:00:00Z", Range: "station"},
+				{OrderID: 80005, TypeID: 36, LocationID: 1234567890123, VolumeTotal: 200000, VolumeRemain: 200000, MinVolume: 1, Price: 17.00, IsBuyOrder: false, Duration: 90, Issued: "2026-01-01T00:00:00Z", Range: "station"},
+			},
+		},
 	}
 }
 
@@ -830,10 +848,43 @@ func main() {
 		writeJSON(w, corpInfo{Name: name})
 	})
 
-	// GET /universe/structures/{id}
+	// GET /universe/structures/{id}  (legacy non-versioned path)
 	mux.HandleFunc("/universe/structures/", func(w http.ResponseWriter, r *http.Request) {
-		// No player-owned structures in test data, return 403 (access denied)
-		http.Error(w, `{"error":"Forbidden"}`, 403)
+		// Delegate to versioned handler
+		structID, ok := extractID(r.URL.Path, "/universe/structures/", "")
+		if !ok {
+			http.Error(w, `{"error":"invalid structure id"}`, 400)
+			return
+		}
+		state.mu.RLock()
+		info, exists := state.structureInfo[structID]
+		state.mu.RUnlock()
+		if !exists {
+			http.Error(w, `{"error":"Forbidden"}`, 403)
+			return
+		}
+		writeJSON(w, info)
+	})
+
+	// GET /latest/universe/structures/{id}/ (versioned, authenticated)
+	mux.HandleFunc("/latest/universe/structures/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "method not allowed", 405)
+			return
+		}
+		structID, ok := extractID(r.URL.Path, "/latest/universe/structures/", "")
+		if !ok {
+			http.Error(w, `{"error":"invalid structure id"}`, 400)
+			return
+		}
+		state.mu.RLock()
+		info, exists := state.structureInfo[structID]
+		state.mu.RUnlock()
+		if !exists {
+			http.Error(w, `{"error":"Forbidden"}`, 403)
+			return
+		}
+		writeJSON(w, info)
 	})
 
 	// POST /universe/names/
@@ -908,6 +959,30 @@ func main() {
 		http.Error(w, "not found", 404)
 	})
 
+	// GET /latest/markets/structures/{structureID}/ (authenticated, paginated)
+	// Returns structure market orders; 403 for unknown structures
+	mux.HandleFunc("/latest/markets/structures/", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "method not allowed", 405)
+			return
+		}
+		path := r.URL.Path
+		structID, ok := extractID(path, "/latest/markets/structures/", "")
+		if !ok {
+			http.Error(w, `{"error":"invalid structure id"}`, 400)
+			return
+		}
+		state.mu.RLock()
+		orders, exists := state.structureMarketOrders[structID]
+		state.mu.RUnlock()
+		if !exists {
+			http.Error(w, `{"error":"Forbidden"}`, 403)
+			return
+		}
+		w.Header().Set("X-Pages", "1")
+		writeJSON(w, orders)
+	})
+
 	// GET /latest/markets/{regionID}/orders/
 	// GET /latest/markets/{regionID}/history/?type_id={typeID}
 	mux.HandleFunc("/latest/markets/", func(w http.ResponseWriter, r *http.Request) {
@@ -961,6 +1036,8 @@ func main() {
 			state.characterForce401 = fresh.characterForce401
 			state.characterOrders = fresh.characterOrders
 			state.characterWalletTx = fresh.characterWalletTx
+			state.structureInfo = fresh.structureInfo
+			state.structureMarketOrders = fresh.structureMarketOrders
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})
@@ -1229,6 +1306,29 @@ func main() {
 			key := fmt.Sprintf("%d:%d", charID, planetID)
 			state.mu.Lock()
 			state.planetDetails[key] = colony
+			state.mu.Unlock()
+			writeAdminOK(w)
+		})
+
+		// PUT /_admin/structure-market-orders/{structureID}
+		// Replaces market orders for a structure. Used by station-markets tests.
+		mux.HandleFunc("/_admin/structure-market-orders/", func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != "PUT" {
+				writeAdminError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			structID, ok := extractID(r.URL.Path, "/_admin/structure-market-orders/", "")
+			if !ok {
+				writeAdminError(w, http.StatusBadRequest, "invalid structure id")
+				return
+			}
+			var orders []marketOrder
+			if err := json.NewDecoder(r.Body).Decode(&orders); err != nil {
+				writeAdminError(w, http.StatusBadRequest, "invalid request body: "+err.Error())
+				return
+			}
+			state.mu.Lock()
+			state.structureMarketOrders[structID] = orders
 			state.mu.Unlock()
 			writeAdminOK(w)
 		})

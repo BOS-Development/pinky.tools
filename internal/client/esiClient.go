@@ -1705,3 +1705,104 @@ func (c *EsiClient) RefreshAccessToken(ctx context.Context, refreshToken string)
 		Expiry:       newToken.Expiry,
 	}, nil
 }
+
+// StructureInfo holds basic info about a player-owned structure.
+type StructureInfo struct {
+	Name          string `json:"name"`
+	SolarSystemID int64  `json:"solar_system_id"`
+}
+
+// GetStructureInfo fetches info about a player-owned structure (requires auth).
+// Returns nil, nil if the structure is not accessible (403).
+func (c *EsiClient) GetStructureInfo(ctx context.Context, structureID int64, token string) (*StructureInfo, error) {
+	reqURL := fmt.Sprintf("%s/latest/universe/structures/%d/", c.baseURL, structureID)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create structure info request")
+	}
+	req.Header = c.getAuthHeaders(token)
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to fetch structure info")
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusForbidden {
+		return nil, nil
+	}
+
+	if res.StatusCode != http.StatusOK {
+		errText, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("failed to get structure info, expected 200 got %d, %s", res.StatusCode, errText)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read structure info body")
+	}
+
+	var info StructureInfo
+	if err := json.Unmarshal(body, &info); err != nil {
+		return nil, errors.Wrap(err, "failed to unmarshal structure info")
+	}
+
+	return &info, nil
+}
+
+// GetStructureMarketOrders fetches market orders for a player structure (requires auth).
+// Returns nil, nil if the structure market is not accessible (403).
+// Paginates via X-Pages header.
+func (c *EsiClient) GetStructureMarketOrders(ctx context.Context, structureID int64, token string) ([]*MarketOrder, error) {
+	orders := []*MarketOrder{}
+	page := 1
+	for {
+		reqURL := fmt.Sprintf("%s/latest/markets/structures/%d/?page=%d", c.baseURL, structureID, page)
+		u, err := url.Parse(reqURL)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse structure market orders url")
+		}
+		req := &http.Request{Method: http.MethodGet, URL: u, Header: c.getAuthHeaders(token)}
+		res, err := c.httpClient.Do(req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get structure market orders")
+		}
+
+		if res.StatusCode == http.StatusForbidden {
+			res.Body.Close()
+			return nil, nil
+		}
+
+		if res.StatusCode != http.StatusOK {
+			errText, _ := io.ReadAll(res.Body)
+			res.Body.Close()
+			return nil, fmt.Errorf("failed to get structure market orders: %d %s", res.StatusCode, errText)
+		}
+
+		var pageOrders []*MarketOrder
+		j, err := io.ReadAll(res.Body)
+		res.Body.Close()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read structure market orders body")
+		}
+		if err = json.Unmarshal(j, &pageOrders); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal structure market orders")
+		}
+		orders = append(orders, pageOrders...)
+
+		pages := res.Header.Get("X-Pages")
+		if pages == "" {
+			break
+		}
+		totalPages, err := strconv.Atoi(pages)
+		if err != nil {
+			break
+		}
+		if page >= totalPages {
+			break
+		}
+		page++
+	}
+	return orders, nil
+}

@@ -10,10 +10,17 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScanSearch, ShoppingCart } from 'lucide-react';
-import { HaulingArbitrageRow, HaulingRun } from '@industry-tool/client/data/models';
+import { ScanSearch, ShoppingCart, Settings, AlertTriangle } from 'lucide-react';
+import {
+  HaulingArbitrageRow,
+  HaulingRun,
+  ScannerLocation,
+  TradingStation,
+  UserTradingStructure,
+} from '@industry-tool/client/data/models';
 import { formatISK, formatNumber } from '@industry-tool/utils/formatting';
 import { getItemIconUrl } from '@industry-tool/utils/eveImages';
+import UserStructuresDialog from './UserStructuresDialog';
 
 const EVE_REGIONS: Record<number, string> = {
   10000002: 'The Forge',
@@ -32,6 +39,70 @@ const REGION_OPTIONS = Object.entries(EVE_REGIONS).map(([id, name]) => ({
   id: Number(id),
   name,
 }));
+
+// Build a location value string for use in Select component
+function locationToValue(loc: ScannerLocation): string {
+  return `${loc.type}:${loc.id}`;
+}
+
+// Default locations
+const DEFAULT_SOURCE: ScannerLocation = {
+  type: 'region',
+  id: 10000002,
+  name: 'The Forge',
+  regionId: 10000002,
+  systemId: 0,
+};
+
+const DEFAULT_DEST: ScannerLocation = {
+  type: 'region',
+  id: 10000043,
+  name: 'Domain',
+  regionId: 10000043,
+  systemId: 0,
+};
+
+function buildRegionLocations(): ScannerLocation[] {
+  return REGION_OPTIONS.map((r) => ({
+    type: 'region' as const,
+    id: r.id,
+    name: r.name,
+    regionId: r.id,
+    systemId: 0,
+  }));
+}
+
+function buildStationLocations(stations: TradingStation[]): ScannerLocation[] {
+  return stations.map((s) => ({
+    type: 'station' as const,
+    id: s.stationId,
+    name: s.name,
+    regionId: s.regionId,
+    systemId: s.systemId,
+  }));
+}
+
+function buildStructureLocations(structs: UserTradingStructure[]): ScannerLocation[] {
+  return structs.map((s) => ({
+    type: 'structure' as const,
+    dbId: s.id,
+    id: s.structureId,
+    name: s.name,
+    regionId: s.regionId,
+    systemId: s.systemId,
+    structureId: s.structureId,
+  }));
+}
+
+function findLocationByValue(
+  value: string,
+  regions: ScannerLocation[],
+  stations: ScannerLocation[],
+  structures: ScannerLocation[],
+): ScannerLocation | undefined {
+  const all = [...stations, ...regions, ...structures];
+  return all.find((l) => locationToValue(l) === value);
+}
 
 function getIndicatorStyle(indicator: HaulingArbitrageRow['indicator']): { color: string; bg: string } {
   switch (indicator) {
@@ -65,14 +136,41 @@ interface MarketScannerProps {
 
 export default function MarketScanner({ initialSourceRegion, initialDestRegion }: MarketScannerProps) {
   const { data: session } = useSession();
-  const [sourceRegionId, setSourceRegionId] = useState<number>(initialSourceRegion || 10000002);
-  const [destRegionId, setDestRegionId] = useState<number>(initialDestRegion || 10000043);
+
+  // Build initial locations from props
+  const initSource: ScannerLocation = initialSourceRegion
+    ? {
+        type: 'region',
+        id: initialSourceRegion,
+        name: EVE_REGIONS[initialSourceRegion] || String(initialSourceRegion),
+        regionId: initialSourceRegion,
+        systemId: 0,
+      }
+    : DEFAULT_SOURCE;
+
+  const initDest: ScannerLocation = initialDestRegion
+    ? {
+        type: 'region',
+        id: initialDestRegion,
+        name: EVE_REGIONS[initialDestRegion] || String(initialDestRegion),
+        regionId: initialDestRegion,
+        systemId: 0,
+      }
+    : DEFAULT_DEST;
+
+  const [sourceLocation, setSourceLocation] = useState<ScannerLocation>(initSource);
+  const [destLocation, setDestLocation] = useState<ScannerLocation>(initDest);
+
+  const [stations, setStations] = useState<TradingStation[]>([]);
+  const [structures, setStructures] = useState<UserTradingStructure[]>([]);
+
   const [results, setResults] = useState<HaulingArbitrageRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [runs, setRuns] = useState<HaulingRun[]>([]);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number>(-1);
+  const [structuresDialogOpen, setStructuresDialogOpen] = useState(false);
 
   const [addToRun, setAddToRun] = useState<AddToRunState>({
     row: null,
@@ -83,30 +181,86 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
 
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const fetchResults = useCallback(async (srcId: number, dstId: number) => {
-    setLoading(true);
+  const fetchStations = useCallback(async () => {
     try {
-      const params = new URLSearchParams({
-        source_region_id: String(srcId),
-        dest_region_id: String(dstId),
-      });
-      const response = await fetch(`/api/hauling/scanner?${params.toString()}`);
-      if (response.ok) {
-        const data = await response.json();
-        const rows: HaulingArbitrageRow[] = Array.isArray(data) ? data : [];
-        // Sort by net profit descending
-        rows.sort((a, b) => (b.netProfitIsk || 0) - (a.netProfitIsk || 0));
-        setResults(rows);
-        if (rows.length > 0) {
-          setLastUpdated(rows[0].updatedAt);
-        }
+      const res = await fetch('/api/hauling/stations');
+      if (res.ok) {
+        const data = await res.json();
+        setStations(Array.isArray(data) ? data : []);
       }
-    } catch (error) {
-      console.error('Failed to fetch scanner results:', error);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error('Failed to fetch stations:', err);
     }
   }, []);
+
+  const fetchStructures = useCallback(async () => {
+    try {
+      const res = await fetch('/api/hauling/structures');
+      if (res.ok) {
+        const data = await res.json();
+        setStructures(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch structures:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      fetchStations();
+      fetchStructures();
+    }
+  }, [session, fetchStations, fetchStructures]);
+
+  // Build location lists
+  const regionLocs = buildRegionLocations();
+  const stationLocs = buildStationLocations(stations);
+  const structureLocs = buildStructureLocations(structures);
+
+  const buildScannerParams = useCallback(
+    (loc: ScannerLocation, prefix: 'source' | 'dest', params: URLSearchParams) => {
+      if (loc.type === 'structure' && loc.structureId) {
+        params.set(`${prefix}_structure_id`, String(loc.structureId));
+      } else {
+        if (prefix === 'source') {
+          params.set('source_region_id', String(loc.regionId));
+          if (loc.systemId > 0) params.set('source_system_id', String(loc.systemId));
+        } else {
+          params.set('dest_region_id', String(loc.regionId));
+          if (loc.systemId > 0) params.set('dest_system_id', String(loc.systemId));
+        }
+      }
+    },
+    [],
+  );
+
+  const fetchResults = useCallback(
+    async (srcLoc: ScannerLocation, dstLoc: ScannerLocation) => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        buildScannerParams(srcLoc, 'source', params);
+        buildScannerParams(dstLoc, 'dest', params);
+
+        const response = await fetch(`/api/hauling/scanner?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          const rows: HaulingArbitrageRow[] = Array.isArray(data) ? data : [];
+          // Sort by net profit descending
+          rows.sort((a, b) => (b.netProfitIsk || 0) - (a.netProfitIsk || 0));
+          setResults(rows);
+          if (rows.length > 0) {
+            setLastUpdated(rows[0].updatedAt);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch scanner results:', error);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [buildScannerParams],
+  );
 
   const fetchRuns = useCallback(async () => {
     try {
@@ -129,13 +283,55 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
   const handleScan = async () => {
     setScanning(true);
     try {
-      await fetch('/api/hauling/scanner', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ regionId: sourceRegionId, destRegionId }),
-      });
-      // Scan is synchronous — results are ready after POST completes
-      await fetchResults(sourceRegionId, destRegionId);
+      // If either location is a structure, scan it via structure-scan endpoint
+      const scanPromises: Promise<void>[] = [];
+
+      if (sourceLocation.type === 'structure' && sourceLocation.dbId) {
+        scanPromises.push(
+          fetch('/api/hauling/structure-scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: sourceLocation.dbId }),
+          }).then(() => undefined),
+        );
+      }
+      if (destLocation.type === 'structure' && destLocation.dbId) {
+        scanPromises.push(
+          fetch('/api/hauling/structure-scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: destLocation.dbId }),
+          }).then(() => undefined),
+        );
+      }
+
+      // If both are non-structure, use the region scan endpoint
+      if (sourceLocation.type !== 'structure' || destLocation.type !== 'structure') {
+        const body: Record<string, unknown> = {};
+        if (sourceLocation.type === 'structure') {
+          body.sourceStructureId = sourceLocation.structureId;
+        } else {
+          body.regionId = sourceLocation.regionId;
+          body.systemId = sourceLocation.systemId;
+        }
+        if (destLocation.type === 'structure') {
+          body.destStructureId = destLocation.structureId;
+        } else {
+          body.destRegionId = destLocation.regionId;
+          body.destSystemId = destLocation.systemId;
+        }
+
+        scanPromises.push(
+          fetch('/api/hauling/scanner', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          }).then(() => undefined),
+        );
+      }
+
+      await Promise.all(scanPromises);
+      await fetchResults(sourceLocation, destLocation);
     } catch (error) {
       console.error('Failed to trigger scan:', error);
     } finally {
@@ -144,7 +340,7 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
   };
 
   const handleFetchResults = () => {
-    fetchResults(sourceRegionId, destRegionId);
+    fetchResults(sourceLocation, destLocation);
   };
 
   const handleAddToRun = async () => {
@@ -175,26 +371,41 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
   };
 
   // Keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedRowIndex((prev) => Math.min(prev + 1, results.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedRowIndex((prev) => Math.max(prev - 1, 0));
-    } else if (e.key === 'Enter' && selectedRowIndex >= 0 && runs.length > 0) {
-      e.preventDefault();
-      const row = results[selectedRowIndex];
-      if (row) {
-        setAddToRun({
-          row,
-          open: true,
-          selectedRunId: runs[0]?.id || '',
-          quantity: '1',
-        });
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedRowIndex((prev) => Math.min(prev + 1, results.length - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedRowIndex((prev) => Math.max(prev - 1, 0));
+      } else if (e.key === 'Enter' && selectedRowIndex >= 0 && runs.length > 0) {
+        e.preventDefault();
+        const row = results[selectedRowIndex];
+        if (row) {
+          setAddToRun({
+            row,
+            open: true,
+            selectedRunId: runs[0]?.id || '',
+            quantity: '1',
+          });
+        }
       }
-    }
-  }, [results, selectedRowIndex, runs]);
+    },
+    [results, selectedRowIndex, runs],
+  );
+
+  const handleStructuresChanged = useCallback(async () => {
+    await fetchStructures();
+  }, [fetchStructures]);
+
+  const sourceHasAccessWarning =
+    sourceLocation.type === 'structure' &&
+    structures.find((s) => s.id === sourceLocation.dbId)?.accessOk === false;
+
+  const destHasAccessWarning =
+    destLocation.type === 'structure' &&
+    structures.find((s) => s.id === destLocation.dbId)?.accessOk === false;
 
   if (!session) return null;
 
@@ -211,65 +422,157 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
         {/* Controls */}
         <Card className="mb-6 bg-background-panel border-overlay-subtle">
           <CardContent className="pt-4">
-            <div className="flex gap-4 items-center flex-wrap">
-              <div className="min-w-[180px]">
-                <label className="text-xs text-text-secondary mb-1 block">Source Region</label>
+            <div className="flex gap-4 items-end flex-wrap">
+              {/* Source Picker */}
+              <div className="min-w-[220px]">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-text-secondary">Source Location</label>
+                </div>
                 <Select
-                  value={String(sourceRegionId)}
-                  onValueChange={(v) => setSourceRegionId(Number(v))}
+                  value={locationToValue(sourceLocation)}
+                  onValueChange={(v) => {
+                    const loc = findLocationByValue(v, regionLocs, stationLocs, structureLocs);
+                    if (loc) setSourceLocation(loc);
+                  }}
                 >
                   <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-background-panel border-overlay-medium">
-                    {REGION_OPTIONS.map((r) => (
-                      <SelectItem key={r.id} value={r.id.toString()} className="text-text-emphasis">
-                        {r.name}
+                    {stationLocs.length > 0 && (
+                      <>
+                        <SelectItem value="__stations_label__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                          Stations
+                        </SelectItem>
+                        {stationLocs.map((loc) => (
+                          <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
+                            {loc.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    <SelectItem value="__regions_label__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                      Regions
+                    </SelectItem>
+                    {regionLocs.map((loc) => (
+                      <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
+                        {loc.name}
                       </SelectItem>
                     ))}
+                    {structureLocs.length > 0 && (
+                      <>
+                        <SelectItem value="__structures_label__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                          My Structures
+                        </SelectItem>
+                        {structureLocs.map((loc) => {
+                          const struct = structures.find((s) => s.id === loc.dbId);
+                          return (
+                            <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
+                              {struct?.accessOk === false ? '⚠ ' : ''}{loc.name}
+                            </SelectItem>
+                          );
+                        })}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="min-w-[180px]">
-                <label className="text-xs text-text-secondary mb-1 block">Destination Region</label>
+
+              {/* Dest Picker */}
+              <div className="min-w-[220px]">
+                <label className="text-xs text-text-secondary mb-1 block">Destination Location</label>
                 <Select
-                  value={String(destRegionId)}
-                  onValueChange={(v) => setDestRegionId(Number(v))}
+                  value={locationToValue(destLocation)}
+                  onValueChange={(v) => {
+                    const loc = findLocationByValue(v, regionLocs, stationLocs, structureLocs);
+                    if (loc) setDestLocation(loc);
+                  }}
                 >
                   <SelectTrigger className="bg-background-void border-overlay-strong text-text-emphasis">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-background-panel border-overlay-medium">
-                    {REGION_OPTIONS.map((r) => (
-                      <SelectItem key={r.id} value={r.id.toString()} className="text-text-emphasis">
-                        {r.name}
+                    {stationLocs.length > 0 && (
+                      <>
+                        <SelectItem value="__stations_label_d__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                          Stations
+                        </SelectItem>
+                        {stationLocs.map((loc) => (
+                          <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
+                            {loc.name}
+                          </SelectItem>
+                        ))}
+                      </>
+                    )}
+                    <SelectItem value="__regions_label_d__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                      Regions
+                    </SelectItem>
+                    {regionLocs.map((loc) => (
+                      <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
+                        {loc.name}
                       </SelectItem>
                     ))}
+                    {structureLocs.length > 0 && (
+                      <>
+                        <SelectItem value="__structures_label_d__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                          My Structures
+                        </SelectItem>
+                        {structureLocs.map((loc) => {
+                          const struct = structures.find((s) => s.id === loc.dbId);
+                          return (
+                            <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
+                              {struct?.accessOk === false ? '⚠ ' : ''}{loc.name}
+                            </SelectItem>
+                          );
+                        })}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-end gap-2 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={handleFetchResults}
-                  disabled={loading}
-                >
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleFetchResults} disabled={loading}>
                   {loading ? 'Loading...' : 'Load'}
                 </Button>
-                <Button
-                  onClick={handleScan}
-                  disabled={scanning || loading}
-                >
+                <Button onClick={handleScan} disabled={scanning || loading}>
                   <ScanSearch className="h-4 w-4 mr-2" />
                   {scanning ? 'Scanning...' : 'Scan'}
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setStructuresDialogOpen(true)}
+                  title="Manage trading structures"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
               </div>
+
               {lastUpdated && (
                 <span className="text-xs text-text-muted ml-1">
                   Last updated: {new Date(lastUpdated).toLocaleString()}
                 </span>
               )}
             </div>
+
+            {/* Access warnings */}
+            {(sourceHasAccessWarning || destHasAccessWarning) && (
+              <div className="mt-3 flex items-start gap-2 text-sm text-amber-500 bg-status-warning-tint border border-amber-500/30 rounded-md px-3 py-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>
+                  Structure market access failed. Check your docking rights or rescan from the Structure Manager (
+                  <button
+                    className="underline cursor-pointer"
+                    onClick={() => setStructuresDialogOpen(true)}
+                  >
+                    open
+                  </button>
+                  ).
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -474,6 +777,13 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Structures Manager Dialog */}
+        <UserStructuresDialog
+          open={structuresDialogOpen}
+          onClose={() => setStructuresDialogOpen(false)}
+          onStructuresChanged={handleStructuresChanged}
+        />
       </div>
     </>
   );

@@ -192,6 +192,7 @@ func (r *HaulingAnalytics) GetCompletedRuns(ctx context.Context, userID int64, l
 
 	query := `
 		SELECT id, user_id, name, status, from_region_id, from_system_id, to_region_id,
+		       from_station_id, to_station_id,
 		       max_volume_m3, haul_threshold_isk, notify_tier2, notify_tier3, daily_digest,
 		       notes, completed_at, created_at, updated_at
 		FROM hauling_runs
@@ -208,13 +209,14 @@ func (r *HaulingAnalytics) GetCompletedRuns(ctx context.Context, userID int64, l
 	runs := []*models.HaulingRun{}
 	for rows.Next() {
 		var run models.HaulingRun
-		var fromSystemID sql.NullInt64
+		var fromSystemID, fromStationID, toStationID sql.NullInt64
 		var maxVolume, haulThreshold sql.NullFloat64
 		var notes sql.NullString
 		var completedAt sql.NullTime
 		var createdAt, updatedAt time.Time
 		if err := rows.Scan(
 			&run.ID, &run.UserID, &run.Name, &run.Status, &run.FromRegionID, &fromSystemID, &run.ToRegionID,
+			&fromStationID, &toStationID,
 			&maxVolume, &haulThreshold, &run.NotifyTier2, &run.NotifyTier3, &run.DailyDigest,
 			&notes, &completedAt, &createdAt, &updatedAt,
 		); err != nil {
@@ -222,6 +224,12 @@ func (r *HaulingAnalytics) GetCompletedRuns(ctx context.Context, userID int64, l
 		}
 		if fromSystemID.Valid {
 			run.FromSystemID = &fromSystemID.Int64
+		}
+		if fromStationID.Valid {
+			run.FromStationID = &fromStationID.Int64
+		}
+		if toStationID.Valid {
+			run.ToStationID = &toStationID.Int64
 		}
 		if maxVolume.Valid {
 			run.MaxVolumeM3 = &maxVolume.Float64

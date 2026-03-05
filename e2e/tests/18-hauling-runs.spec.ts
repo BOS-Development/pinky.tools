@@ -171,10 +171,10 @@ test.describe('Hauling Runs', () => {
 
     // Region selection controls should be present
     await expect(
-      page.getByText(/Source Region|From Region/i).first()
+      page.getByText(/Source Location|Source Region|From Region/i).first()
     ).toBeVisible({ timeout: 5000 });
     await expect(
-      page.getByText(/Destination Region|To Region/i).first()
+      page.getByText(/Destination Location|Destination Region|To Region/i).first()
     ).toBeVisible({ timeout: 5000 });
   });
 

@@ -29,10 +29,17 @@ type HaulingRunItemsRepository interface {
 
 type HaulingMarketUpdater interface {
 	ScanRegion(ctx context.Context, regionID int64, systemID int64) error
+	ScanStructure(ctx context.Context, structureID int64, token string) (bool, error)
 }
 
 type HaulingMarketRepository interface {
 	GetScannerResults(ctx context.Context, sourceRegionID int64, sourceSystemID int64, destRegionID int64) ([]*models.HaulingArbitrageRow, error)
+}
+
+// HaulingStructureRepository provides structure-based market scanner access.
+type HaulingStructureRepository interface {
+	GetStructureScannerResults(ctx context.Context, sourceStructureID int64, destRegionID int64, destSystemID int64) ([]*models.HaulingArbitrageRow, error)
+	GetRegionToStructureResults(ctx context.Context, srcRegionID int64, srcSystemID int64, destStructureID int64) ([]*models.HaulingArbitrageRow, error)
 }
 
 // HaulingPnlRepository provides P&L data access for hauling runs.
@@ -59,13 +66,14 @@ type HaulingAnalyticsRepository interface {
 }
 
 type HaulingRunsController struct {
-	runs      HaulingRunsRepository
-	items     HaulingRunItemsRepository
-	market    HaulingMarketRepository
-	scanner   HaulingMarketUpdater
-	pnl       HaulingPnlRepository
-	notifier  HaulingRunNotifier // may be nil
-	analytics HaulingAnalyticsRepository
+	runs       HaulingRunsRepository
+	items      HaulingRunItemsRepository
+	market     HaulingMarketRepository
+	structures HaulingStructureRepository
+	scanner    HaulingMarketUpdater
+	pnl        HaulingPnlRepository
+	notifier   HaulingRunNotifier // may be nil
+	analytics  HaulingAnalyticsRepository
 }
 
 func NewHaulingRuns(
@@ -73,19 +81,21 @@ func NewHaulingRuns(
 	runs HaulingRunsRepository,
 	items HaulingRunItemsRepository,
 	market HaulingMarketRepository,
+	structures HaulingStructureRepository,
 	scanner HaulingMarketUpdater,
 	pnl HaulingPnlRepository,
 	notifier HaulingRunNotifier,
 	analytics HaulingAnalyticsRepository,
 ) *HaulingRunsController {
 	c := &HaulingRunsController{
-		runs:      runs,
-		items:     items,
-		market:    market,
-		scanner:   scanner,
-		pnl:       pnl,
-		notifier:  notifier,
-		analytics: analytics,
+		runs:       runs,
+		items:      items,
+		market:     market,
+		structures: structures,
+		scanner:    scanner,
+		pnl:        pnl,
+		notifier:   notifier,
+		analytics:  analytics,
 	}
 	router.RegisterRestAPIRoute("/v1/hauling/runs", web.AuthAccessUser, c.ListRuns, "GET")
 	router.RegisterRestAPIRoute("/v1/hauling/runs", web.AuthAccessUser, c.CreateRun, "POST")
@@ -386,7 +396,78 @@ func (c *HaulingRunsController) GetScannerResults(args *web.HandlerArgs) (interf
 	sourceRegionStr := q.Get("source_region_id")
 	destRegionStr := q.Get("dest_region_id")
 	sourceSystemStr := q.Get("source_system_id")
+	destSystemStr := q.Get("dest_system_id")
+	sourceStructureStr := q.Get("source_structure_id")
+	destStructureStr := q.Get("dest_structure_id")
 
+	// Parse optional structure IDs
+	var sourceStructureID, destStructureID int64
+	var err error
+	if sourceStructureStr != "" {
+		sourceStructureID, err = strconv.ParseInt(sourceStructureStr, 10, 64)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid source_structure_id")}
+		}
+	}
+	if destStructureStr != "" {
+		destStructureID, err = strconv.ParseInt(destStructureStr, 10, 64)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid dest_structure_id")}
+		}
+	}
+
+	// Structure-to-structure is not supported in MVP
+	if sourceStructureID > 0 && destStructureID > 0 {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("structure-to-structure scanning is not supported")}
+	}
+
+	// Source is a structure
+	if sourceStructureID > 0 {
+		if destRegionStr == "" {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("dest_region_id is required")}
+		}
+		destRegionID, err := strconv.ParseInt(destRegionStr, 10, 64)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid dest_region_id")}
+		}
+		var destSystemID int64
+		if destSystemStr != "" {
+			destSystemID, err = strconv.ParseInt(destSystemStr, 10, 64)
+			if err != nil {
+				return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid dest_system_id")}
+			}
+		}
+		results, err := c.structures.GetStructureScannerResults(args.Request.Context(), sourceStructureID, destRegionID, destSystemID)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get structure scanner results")}
+		}
+		return results, nil
+	}
+
+	// Destination is a structure
+	if destStructureID > 0 {
+		if sourceRegionStr == "" {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("source_region_id is required")}
+		}
+		sourceRegionID, err := strconv.ParseInt(sourceRegionStr, 10, 64)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid source_region_id")}
+		}
+		var sourceSystemID int64
+		if sourceSystemStr != "" {
+			sourceSystemID, err = strconv.ParseInt(sourceSystemStr, 10, 64)
+			if err != nil {
+				return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("invalid source_system_id")}
+			}
+		}
+		results, err := c.structures.GetRegionToStructureResults(args.Request.Context(), sourceRegionID, sourceSystemID, destStructureID)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get region-to-structure results")}
+		}
+		return results, nil
+	}
+
+	// Standard region-to-region scan
 	if sourceRegionStr == "" || destRegionStr == "" {
 		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("source_region_id and dest_region_id are required")}
 	}
@@ -406,9 +487,6 @@ func (c *HaulingRunsController) GetScannerResults(args *web.HandlerArgs) (interf
 		}
 	}
 
-	// TODO(Phase 3): Undercut alert — if destination sell price has dropped below item.SellPriceISK
-	// by more than X% since the run was created, fire a Discord alert via notifier.NotifyUndercutAlert().
-
 	results, err := c.market.GetScannerResults(args.Request.Context(), sourceRegionID, sourceSystemID, destRegionID)
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to get scanner results")}
@@ -418,28 +496,59 @@ func (c *HaulingRunsController) GetScannerResults(args *web.HandlerArgs) (interf
 
 func (c *HaulingRunsController) TriggerScan(args *web.HandlerArgs) (interface{}, *web.HttpError) {
 	var body struct {
-		RegionID     int64 `json:"regionId"`
-		SystemID     int64 `json:"systemId"`
-		DestRegionID int64 `json:"destRegionId"`
+		RegionID          int64  `json:"regionId"`
+		SystemID          int64  `json:"systemId"`
+		DestRegionID      int64  `json:"destRegionId"`
+		DestSystemID      int64  `json:"destSystemId"`
+		SourceStructureID int64  `json:"sourceStructureId"`
+		DestStructureID   int64  `json:"destStructureId"`
+		CharToken         string `json:"charToken"`
 	}
 	if err := json.NewDecoder(args.Request.Body).Decode(&body); err != nil {
 		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.Wrap(err, "invalid request body")}
 	}
-	if body.RegionID == 0 {
-		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("regionId is required")}
-	}
+
 	ctx := args.Request.Context()
-	// Scan source region
-	if err := c.scanner.ScanRegion(ctx, body.RegionID, body.SystemID); err != nil {
-		return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan source region")}
+
+	// Scan source: structure or region
+	if body.SourceStructureID > 0 {
+		if body.CharToken == "" {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("charToken is required for structure scan")}
+		}
+		accessOK, err := c.scanner.ScanStructure(ctx, body.SourceStructureID, body.CharToken)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan source structure")}
+		}
+		if !accessOK {
+			return map[string]interface{}{"status": "done", "accessOk": false}, nil
+		}
+	} else if body.RegionID != 0 {
+		if err := c.scanner.ScanRegion(ctx, body.RegionID, body.SystemID); err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan source region")}
+		}
+	} else {
+		return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("regionId or sourceStructureId is required")}
 	}
-	// Scan destination region (region-wide, systemID=0)
-	if body.DestRegionID != 0 {
-		if err := c.scanner.ScanRegion(ctx, body.DestRegionID, 0); err != nil {
+
+	// Scan destination: structure or region
+	if body.DestStructureID > 0 {
+		if body.CharToken == "" {
+			return nil, &web.HttpError{StatusCode: http.StatusBadRequest, Error: errors.New("charToken is required for structure scan")}
+		}
+		accessOK, err := c.scanner.ScanStructure(ctx, body.DestStructureID, body.CharToken)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan destination structure")}
+		}
+		if !accessOK {
+			return map[string]interface{}{"status": "done", "accessOk": false}, nil
+		}
+	} else if body.DestRegionID != 0 {
+		if err := c.scanner.ScanRegion(ctx, body.DestRegionID, body.DestSystemID); err != nil {
 			return nil, &web.HttpError{StatusCode: http.StatusInternalServerError, Error: errors.Wrap(err, "failed to scan destination region")}
 		}
 	}
-	return map[string]string{"status": "done"}, nil
+
+	return map[string]interface{}{"status": "done", "accessOk": true}, nil
 }
 
 // GetRouteAnalytics returns per-route aggregated P&L stats for completed runs.
