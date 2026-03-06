@@ -200,13 +200,14 @@ test.describe('Hauling Runs', () => {
       ).first()
     ).toBeVisible({ timeout: 10000 });
 
-    // Select source region: The Forge — first combobox is "Source Region"
+    // Source defaults to The Forge, Dest defaults to Domain.
+    // We need to select different values to trigger a scan.
+    // Select source: Sinq Laison (different from default The Forge)
     await page.getByRole('combobox').first().click();
-    await page.getByRole('option', { name: /The Forge/i }).click();
+    await page.getByRole('option', { name: /Sinq Laison/i }).click();
 
-    // Select destination region: Domain — second combobox is "Destination Region"
-    await page.getByRole('combobox').nth(1).click();
-    await page.getByRole('option', { name: /Domain/i }).click();
+    // Destination is already Domain by default — no need to change it.
+    // Just verify it's set and proceed to scan.
 
     // Click Scan — scan is synchronous, results load after POST completes
     await page.getByRole('button', { name: /Scan/i }).click();

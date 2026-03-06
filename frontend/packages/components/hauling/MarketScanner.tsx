@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScanSearch, ShoppingCart, Settings, AlertTriangle } from 'lucide-react';
+import { ScanSearch, ShoppingCart, Settings, AlertTriangle, Loader2 } from 'lucide-react';
 import {
   HaulingArbitrageRow,
   HaulingRun,
@@ -459,21 +459,25 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                         {loc.name}
                       </SelectItem>
                     ))}
-                    {structureLocs.length > 0 && (
-                      <>
-                        <SelectItem value="__structures_label__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
-                          My Structures
-                        </SelectItem>
-                        {structureLocs.map((loc) => {
+                    <>
+                      <SelectItem value="__structures_label__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                        My Structures
+                      </SelectItem>
+                      {structureLocs.length > 0 ? (
+                        structureLocs.map((loc) => {
                           const struct = structures.find((s) => s.id === loc.dbId);
                           return (
                             <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
                               {struct?.accessOk === false ? '⚠ ' : ''}{loc.name}
                             </SelectItem>
                           );
-                        })}
-                      </>
-                    )}
+                        })
+                      ) : (
+                        <SelectItem value="__no_structures__" disabled className="text-xs text-text-muted italic pl-4">
+                          No structures added yet
+                        </SelectItem>
+                      )}
+                    </>
                   </SelectContent>
                 </Select>
               </div>
@@ -512,21 +516,25 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                         {loc.name}
                       </SelectItem>
                     ))}
-                    {structureLocs.length > 0 && (
-                      <>
-                        <SelectItem value="__structures_label_d__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
-                          My Structures
-                        </SelectItem>
-                        {structureLocs.map((loc) => {
+                    <>
+                      <SelectItem value="__structures_label_d__" disabled className="text-xs text-text-muted font-semibold uppercase tracking-wide opacity-70 cursor-default">
+                        My Structures
+                      </SelectItem>
+                      {structureLocs.length > 0 ? (
+                        structureLocs.map((loc) => {
                           const struct = structures.find((s) => s.id === loc.dbId);
                           return (
                             <SelectItem key={locationToValue(loc)} value={locationToValue(loc)} className="text-text-emphasis pl-4">
                               {struct?.accessOk === false ? '⚠ ' : ''}{loc.name}
                             </SelectItem>
                           );
-                        })}
-                      </>
-                    )}
+                        })
+                      ) : (
+                        <SelectItem value="__no_structures_d__" disabled className="text-xs text-text-muted italic pl-4">
+                          No structures added yet
+                        </SelectItem>
+                      )}
+                    </>
                   </SelectContent>
                 </Select>
               </div>
@@ -555,6 +563,18 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                   Last updated: {new Date(lastUpdated).toLocaleString()}
                 </span>
               )}
+              {structureLocs.length === 0 && (
+                <span className="text-xs text-text-muted">
+                  No trading structures added.{' '}
+                  <button
+                    className="underline cursor-pointer hover:text-text-secondary"
+                    onClick={() => setStructuresDialogOpen(true)}
+                  >
+                    Add one via the ⚙ button
+                  </button>{' '}
+                  to scan player-owned markets.
+                </span>
+              )}
             </div>
 
             {/* Access warnings */}
@@ -570,6 +590,16 @@ export default function MarketScanner({ initialSourceRegion, initialDestRegion }
                     open
                   </button>
                   ).
+                </span>
+              </div>
+            )}
+            {scanning && (
+              <div className="mt-3 flex items-center gap-2 text-xs text-text-muted">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>
+                  {(sourceLocation.type === 'structure' || destLocation.type === 'structure')
+                    ? 'Scanning structure market...'
+                    : 'Fetching market data from ESI...'}
                 </span>
               </div>
             )}

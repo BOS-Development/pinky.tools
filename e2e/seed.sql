@@ -240,6 +240,48 @@ INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_
   (60011866, 'Dodixie IX - Moon 20 - Federation Navy Assembly Plant', 30002659, 1000107, true)
 ON CONFLICT (station_id) DO NOTHING;
 
+-- Rens region/constellation/system/station
+INSERT INTO regions (region_id, name) VALUES
+  (10000030, 'Heimatar')
+ON CONFLICT (region_id) DO NOTHING;
+
+INSERT INTO constellations (constellation_id, name, region_id) VALUES
+  (20000366, 'Ani', 10000030)
+ON CONFLICT (constellation_id) DO NOTHING;
+
+INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES
+  (30002510, 'Rens', 20000366, 0.9)
+ON CONFLICT (solar_system_id) DO NOTHING;
+
+INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station) VALUES
+  (60004588, 'Rens VI - Moon 8 - Brutor Tribe Treasury', 30002510, 1000130, true)
+ON CONFLICT (station_id) DO NOTHING;
+
+-- Hek region/constellation/system/station
+INSERT INTO regions (region_id, name) VALUES
+  (10000042, 'Metropolis')
+ON CONFLICT (region_id) DO NOTHING;
+
+INSERT INTO constellations (constellation_id, name, region_id) VALUES
+  (20000302, 'Hed', 10000042)
+ON CONFLICT (constellation_id) DO NOTHING;
+
+INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES
+  (30002053, 'Hek', 20000302, 0.5)
+ON CONFLICT (solar_system_id) DO NOTHING;
+
+INSERT INTO stations (station_id, name, solar_system_id, corporation_id, is_npc_station) VALUES
+  (60005686, 'Hek VIII - Moon 12 - Boundless Creation Factory', 30002053, 1000084, true)
+ON CONFLICT (station_id) DO NOTHING;
+
+-- Trading station presets (all 4 secondary trade hubs)
+INSERT INTO trading_stations (station_id, name, system_id, region_id, is_preset) VALUES
+  (60008494, 'Amarr VIII (Oris) - Emperor Family Academy',            30002187, 10000043, true),
+  (60011866, 'Dodixie IX - Moon 20 - Federation Navy Assembly Plant', 30002659, 10000032, true),
+  (60004588, 'Rens VI - Moon 8 - Brutor Tribe Treasury',              30002510, 10000030, true),
+  (60005686, 'Hek VIII - Moon 12 - Boundless Creation Factory',       30002053, 10000042, true)
+ON CONFLICT (station_id) DO NOTHING;
+
 -- Cruiser group (for Thorax)
 INSERT INTO sde_groups (group_id, name, category_id, published) VALUES
   (26, 'Cruiser', 6, true)
