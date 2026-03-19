@@ -15,6 +15,19 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+// MockJobSlotInterestNotifier mocks the JobSlotInterestNotifier interface
+type MockJobSlotInterestNotifier struct {
+	mock.Mock
+}
+
+func (m *MockJobSlotInterestNotifier) NotifyJobSlotInterestReceived(ctx context.Context, interest *models.JobSlotInterestRequest, listing *models.JobSlotRentalListing) {
+	m.Called(ctx, interest, listing)
+}
+
+func (m *MockJobSlotInterestNotifier) NotifyJobSlotInterestStatusUpdated(ctx context.Context, interest *models.JobSlotInterestRequest, newStatus string) {
+	m.Called(ctx, interest, newStatus)
+}
+
 // Mock JobSlotRentalsRepository
 type MockJobSlotRentalsRepository struct {
 	mock.Mock
@@ -101,6 +114,14 @@ func (m *MockJobSlotRentalsRepository) GetReceivedInterests(ctx context.Context,
 	return args.Get(0).([]*models.JobSlotInterestRequest), args.Error(1)
 }
 
+func (m *MockJobSlotRentalsRepository) GetInterestByID(ctx context.Context, interestID int64) (*models.JobSlotInterestRequest, error) {
+	args := m.Called(ctx, interestID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.JobSlotInterestRequest), args.Error(1)
+}
+
 func Test_JobSlotRentalsController_GetSlotInventory_Success(t *testing.T) {
 	mockRepo := new(MockJobSlotRentalsRepository)
 	mockRouter := &MockRouter{}
@@ -133,7 +154,7 @@ func Test_JobSlotRentalsController_GetSlotInventory_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.GetSlotInventory(args)
 
 	assert.Nil(t, httpErr)
@@ -175,7 +196,7 @@ func Test_JobSlotRentalsController_GetMyListings_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.GetMyListings(args)
 
 	assert.Nil(t, httpErr)
@@ -239,7 +260,7 @@ func Test_JobSlotRentalsController_CreateListing_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.CreateListing(args)
 
 	assert.Nil(t, httpErr)
@@ -293,7 +314,7 @@ func Test_JobSlotRentalsController_CreateListing_InsufficientSlots(t *testing.T)
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.CreateListing(args)
 
 	assert.Nil(t, result)
@@ -345,7 +366,7 @@ func Test_JobSlotRentalsController_UpdateListing_Success(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.UpdateListing(args)
 
 	assert.Nil(t, httpErr)
@@ -391,7 +412,7 @@ func Test_JobSlotRentalsController_UpdateListing_NotOwner(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.UpdateListing(args)
 
 	assert.Nil(t, result)
@@ -418,7 +439,7 @@ func Test_JobSlotRentalsController_DeleteListing_Success(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.DeleteListing(args)
 
 	assert.Nil(t, httpErr)
@@ -460,7 +481,7 @@ func Test_JobSlotRentalsController_BrowseListings_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, mockPermRepo)
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, mockPermRepo, nil)
 	result, httpErr := controller.BrowseListings(args)
 
 	assert.Nil(t, httpErr)
@@ -516,7 +537,7 @@ func Test_JobSlotRentalsController_CreateInterest_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.CreateInterest(args)
 
 	assert.Nil(t, httpErr)
@@ -562,7 +583,7 @@ func Test_JobSlotRentalsController_CreateInterest_SelfInterest(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.CreateInterest(args)
 
 	assert.Nil(t, result)
@@ -603,7 +624,7 @@ func Test_JobSlotRentalsController_GetSentInterests_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.GetSentInterests(args)
 
 	assert.Nil(t, httpErr)
@@ -644,7 +665,7 @@ func Test_JobSlotRentalsController_GetReceivedInterests_Success(t *testing.T) {
 		Params:  map[string]string{},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.GetReceivedInterests(args)
 
 	assert.Nil(t, httpErr)
@@ -679,7 +700,7 @@ func Test_JobSlotRentalsController_UpdateInterestStatus_Success(t *testing.T) {
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.UpdateInterestStatus(args)
 
 	assert.Nil(t, httpErr)
@@ -708,7 +729,7 @@ func Test_JobSlotRentalsController_UpdateInterestStatus_InvalidStatus(t *testing
 		Params:  map[string]string{"id": "1"},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.UpdateInterestStatus(args)
 
 	assert.Nil(t, result)
@@ -740,12 +761,202 @@ func Test_JobSlotRentalsController_UpdateInterestStatus_NotFound(t *testing.T) {
 		Params:  map[string]string{"id": "999"},
 	}
 
-	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{})
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, nil)
 	result, httpErr := controller.UpdateInterestStatus(args)
 
 	assert.Nil(t, result)
 	assert.NotNil(t, httpErr)
 	assert.Equal(t, 404, httpErr.StatusCode)
+
+	mockRepo.AssertExpectations(t)
+}
+
+func Test_JobSlotRentalsController_CreateInterest_FiresNotification(t *testing.T) {
+	mockRepo := new(MockJobSlotRentalsRepository)
+	mockNotifier := new(MockJobSlotInterestNotifier)
+	mockRouter := &MockRouter{}
+
+	userID := int64(123)
+	listingID := int64(1)
+
+	listing := &models.JobSlotRentalListing{
+		ID:            listingID,
+		UserID:        999,
+		CharacterID:   9990,
+		CharacterName: "Seller Character",
+		ActivityType:  "manufacturing",
+		SlotsListed:   3,
+		PriceAmount:   100000,
+		PricingUnit:   "per_slot_day",
+		IsActive:      true,
+	}
+
+	mockRepo.On("GetByID", mock.Anything, listingID).Return(listing, nil)
+	mockRepo.On("CreateInterest", mock.Anything, mock.MatchedBy(func(interest *models.JobSlotInterestRequest) bool {
+		return interest.ListingID == listingID &&
+			interest.RequesterUserID == userID &&
+			interest.SlotsRequested == 2 &&
+			interest.Status == "pending"
+	})).Return(nil)
+	// Goroutine call — use Maybe() because timing is uncertain
+	mockNotifier.On("NotifyJobSlotInterestReceived", mock.Anything, mock.Anything, listing).Return().Maybe()
+
+	body := map[string]interface{}{
+		"listingId":      listingID,
+		"slotsRequested": 2,
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("POST", "/v1/job-slots/interest", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{},
+	}
+
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, mockNotifier)
+	result, httpErr := controller.CreateInterest(args)
+
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	mockRepo.AssertExpectations(t)
+}
+
+func Test_JobSlotRentalsController_UpdateInterestStatus_AcceptedFiresNotification(t *testing.T) {
+	mockRepo := new(MockJobSlotRentalsRepository)
+	mockNotifier := new(MockJobSlotInterestNotifier)
+	mockRouter := &MockRouter{}
+
+	userID := int64(123)
+	interestID := int64(1)
+
+	enrichedInterest := &models.JobSlotInterestRequest{
+		ID:                   interestID,
+		ListingID:            10,
+		RequesterUserID:      999,
+		RequesterName:        "Buyer User",
+		SlotsRequested:       2,
+		Status:               "accepted",
+		ListingActivityType:  "manufacturing",
+		ListingCharacterName: "Seller Character",
+		ListingOwnerName:     "Seller User",
+		ListingPriceAmount:   100000,
+		ListingPricingUnit:   "per_slot_day",
+	}
+
+	mockRepo.On("UpdateInterestStatus", mock.Anything, interestID, userID, "accepted").Return(nil)
+	// Goroutine calls — use Maybe() because timing is uncertain
+	mockRepo.On("GetInterestByID", mock.Anything, interestID).Return(enrichedInterest, nil).Maybe()
+	mockNotifier.On("NotifyJobSlotInterestStatusUpdated", mock.Anything, enrichedInterest, "accepted").Return().Maybe()
+
+	body := map[string]interface{}{
+		"status": "accepted",
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("PUT", "/v1/job-slots/interest/1/status", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "1"},
+	}
+
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, mockNotifier)
+	result, httpErr := controller.UpdateInterestStatus(args)
+
+	assert.Nil(t, httpErr)
+	assert.Nil(t, result)
+
+	// The sync call must be satisfied
+	mockRepo.AssertCalled(t, "UpdateInterestStatus", mock.Anything, interestID, userID, "accepted")
+}
+
+func Test_JobSlotRentalsController_UpdateInterestStatus_WithdrawnDoesNotFireNotification(t *testing.T) {
+	mockRepo := new(MockJobSlotRentalsRepository)
+	mockNotifier := new(MockJobSlotInterestNotifier)
+	mockRouter := &MockRouter{}
+
+	userID := int64(123)
+	interestID := int64(1)
+
+	mockRepo.On("UpdateInterestStatus", mock.Anything, interestID, userID, "withdrawn").Return(nil)
+	// No GetInterestByID or notifier call expected for "withdrawn"
+
+	body := map[string]interface{}{
+		"status": "withdrawn",
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("PUT", "/v1/job-slots/interest/1/status", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "1"},
+	}
+
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, mockNotifier)
+	result, httpErr := controller.UpdateInterestStatus(args)
+
+	assert.Nil(t, httpErr)
+	assert.Nil(t, result)
+
+	mockRepo.AssertExpectations(t)
+	mockNotifier.AssertNotCalled(t, "NotifyJobSlotInterestStatusUpdated")
+}
+
+func Test_JobSlotRentalsController_UpdateInterestStatus_DeclinedFiresNotification(t *testing.T) {
+	mockRepo := new(MockJobSlotRentalsRepository)
+	mockNotifier := new(MockJobSlotInterestNotifier)
+	mockRouter := &MockRouter{}
+
+	userID := int64(123)
+	interestID := int64(2)
+
+	enrichedInterest := &models.JobSlotInterestRequest{
+		ID:                   interestID,
+		ListingID:            10,
+		RequesterUserID:      999,
+		RequesterName:        "Buyer User",
+		SlotsRequested:       1,
+		Status:               "declined",
+		ListingActivityType:  "reaction",
+		ListingCharacterName: "Seller Character",
+		ListingOwnerName:     "Seller User",
+		ListingPriceAmount:   50000,
+		ListingPricingUnit:   "per_job",
+	}
+
+	mockRepo.On("UpdateInterestStatus", mock.Anything, interestID, userID, "declined").Return(nil)
+	// Goroutine calls — use Maybe() because timing is uncertain
+	mockRepo.On("GetInterestByID", mock.Anything, interestID).Return(enrichedInterest, nil).Maybe()
+	mockNotifier.On("NotifyJobSlotInterestStatusUpdated", mock.Anything, enrichedInterest, "declined").Return().Maybe()
+
+	body := map[string]interface{}{
+		"status": "declined",
+	}
+	bodyBytes, _ := json.Marshal(body)
+
+	req := httptest.NewRequest("PUT", "/v1/job-slots/interest/2/status", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+
+	args := &web.HandlerArgs{
+		Request: req,
+		User:    &userID,
+		Params:  map[string]string{"id": "2"},
+	}
+
+	controller := controllers.NewJobSlotRentals(mockRouter, mockRepo, &MockContactPermissionsRepository{}, mockNotifier)
+	result, httpErr := controller.UpdateInterestStatus(args)
+
+	assert.Nil(t, httpErr)
+	assert.Nil(t, result)
 
 	mockRepo.AssertExpectations(t)
 }

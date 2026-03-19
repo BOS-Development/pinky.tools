@@ -410,6 +410,86 @@ func Test_JobSlotRentalsGetInterestsByRequester(t *testing.T) {
 	assert.Equal(t, "Test User", interests[0].ListingOwnerName)
 }
 
+func Test_JobSlotRentalsGetInterestByID(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	sellerUserID := int64(9000)
+	sellerCharID := int64(90000)
+	buyerUserID := int64(9001)
+	setupJobSlotRentalTestData(t, db, sellerUserID, sellerCharID)
+
+	// Create buyer user
+	userRepo := repositories.NewUserRepository(db)
+	buyer := &repositories.User{ID: buyerUserID, Name: "Buyer User"}
+	err = userRepo.Add(context.Background(), buyer)
+	assert.NoError(t, err)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	// Create listing
+	locationID := int64(30000142)
+	listing := &models.JobSlotRentalListing{
+		UserID:       sellerUserID,
+		CharacterID:  sellerCharID,
+		ActivityType: "manufacturing",
+		SlotsListed:  3,
+		PriceAmount:  100000,
+		PricingUnit:  "per_slot_day",
+		LocationID:   &locationID,
+		IsActive:     true,
+	}
+
+	err = repo.Create(context.Background(), listing)
+	assert.NoError(t, err)
+
+	// Create interest
+	durationDays := 14
+	msg := "Looking for manufacturing slots"
+	interest := &models.JobSlotInterestRequest{
+		ListingID:       listing.ID,
+		RequesterUserID: buyerUserID,
+		SlotsRequested:  2,
+		DurationDays:    &durationDays,
+		Message:         &msg,
+		Status:          "pending",
+	}
+
+	err = repo.CreateInterest(context.Background(), interest)
+	assert.NoError(t, err)
+	assert.NotZero(t, interest.ID)
+
+	// GetInterestByID should return enriched interest
+	enriched, err := repo.GetInterestByID(context.Background(), interest.ID)
+	assert.NoError(t, err)
+	assert.NotNil(t, enriched)
+
+	assert.Equal(t, interest.ID, enriched.ID)
+	assert.Equal(t, listing.ID, enriched.ListingID)
+	assert.Equal(t, buyerUserID, enriched.RequesterUserID)
+	assert.Equal(t, "Buyer User", enriched.RequesterName)
+	assert.Equal(t, 2, enriched.SlotsRequested)
+	assert.Equal(t, "pending", enriched.Status)
+
+	// Enriched listing fields
+	assert.Equal(t, "manufacturing", enriched.ListingActivityType)
+	assert.Equal(t, "Test Character", enriched.ListingCharacterName)
+	assert.Equal(t, "Test User", enriched.ListingOwnerName)
+	assert.Equal(t, float64(100000), enriched.ListingPriceAmount)
+	assert.Equal(t, "per_slot_day", enriched.ListingPricingUnit)
+}
+
+func Test_JobSlotRentalsGetInterestByID_NotFound(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	_, err = repo.GetInterestByID(context.Background(), 999999)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "interest request not found")
+}
+
 func Test_JobSlotRentalsUpdateInterestStatus(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)

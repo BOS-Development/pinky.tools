@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"strconv"
 
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
+	"github.com/annymsMthd/industry-tool/internal/updaters"
 	"github.com/annymsMthd/industry-tool/internal/web"
 	"github.com/pkg/errors"
 )
@@ -23,17 +25,20 @@ type JobSlotRentalsRepository interface {
 	GetInterestsByRequester(ctx context.Context, requesterUserID int64) ([]*models.JobSlotInterestRequest, error)
 	UpdateInterestStatus(ctx context.Context, interestID int64, userID int64, status string) error
 	GetReceivedInterests(ctx context.Context, userID int64) ([]*models.JobSlotInterestRequest, error)
+	GetInterestByID(ctx context.Context, interestID int64) (*models.JobSlotInterestRequest, error)
 }
 
 type JobSlotRentals struct {
 	repository            JobSlotRentalsRepository
 	permissionsRepository ContactPermissionsRepository
+	notifier              updaters.JobSlotInterestNotifier
 }
 
-func NewJobSlotRentals(router Routerer, repository JobSlotRentalsRepository, permissionsRepository ContactPermissionsRepository) *JobSlotRentals {
+func NewJobSlotRentals(router Routerer, repository JobSlotRentalsRepository, permissionsRepository ContactPermissionsRepository, notifier updaters.JobSlotInterestNotifier) *JobSlotRentals {
 	controller := &JobSlotRentals{
 		repository:            repository,
 		permissionsRepository: permissionsRepository,
+		notifier:              notifier,
 	}
 
 	router.RegisterRestAPIRoute("/v1/job-slots/inventory", web.AuthAccessUser, controller.GetSlotInventory, "GET")
@@ -335,6 +340,10 @@ func (c *JobSlotRentals) CreateInterest(args *web.HandlerArgs) (any, *web.HttpEr
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to create interest request")}
 	}
 
+	if c.notifier != nil {
+		go c.notifier.NotifyJobSlotInterestReceived(args.Request.Context(), interest, listing)
+	}
+
 	return interest, nil
 }
 
@@ -415,6 +424,15 @@ func (c *JobSlotRentals) UpdateInterestStatus(args *web.HandlerArgs) (any, *web.
 			return nil, &web.HttpError{StatusCode: 404, Error: err}
 		}
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update interest status")}
+	}
+
+	if c.notifier != nil && (req.Status == "accepted" || req.Status == "declined") {
+		enriched, err := c.repository.GetInterestByID(args.Request.Context(), interestID)
+		if err != nil {
+			log.Error("failed to get enriched interest for notification", "interest_id", interestID, "error", err)
+		} else {
+			go c.notifier.NotifyJobSlotInterestStatusUpdated(args.Request.Context(), enriched, req.Status)
+		}
 	}
 
 	return nil, nil

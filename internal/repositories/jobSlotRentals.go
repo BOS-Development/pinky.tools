@@ -719,6 +719,62 @@ func (r *JobSlotRentals) UpdateInterestStatus(ctx context.Context, interestID in
 	return nil
 }
 
+// GetInterestByID returns a single interest request enriched with requester and listing details
+func (r *JobSlotRentals) GetInterestByID(ctx context.Context, interestID int64) (*models.JobSlotInterestRequest, error) {
+	query := `
+		SELECT
+			i.id,
+			i.listing_id,
+			i.requester_user_id,
+			u1.name AS requester_name,
+			i.slots_requested,
+			i.duration_days,
+			i.message,
+			i.status,
+			i.created_at,
+			i.updated_at,
+			l.activity_type AS listing_activity_type,
+			c.name AS listing_character_name,
+			u2.name AS listing_owner_name,
+			l.price_amount AS listing_price_amount,
+			l.pricing_unit AS listing_pricing_unit
+		FROM job_slot_interest_requests i
+		JOIN users u1 ON i.requester_user_id = u1.id
+		JOIN job_slot_rental_listings l ON i.listing_id = l.id
+		JOIN characters c ON l.character_id = c.id AND c.user_id = l.user_id
+		JOIN users u2 ON l.user_id = u2.id
+		WHERE i.id = $1
+	`
+
+	var interest models.JobSlotInterestRequest
+	err := r.db.QueryRowContext(ctx, query, interestID).Scan(
+		&interest.ID,
+		&interest.ListingID,
+		&interest.RequesterUserID,
+		&interest.RequesterName,
+		&interest.SlotsRequested,
+		&interest.DurationDays,
+		&interest.Message,
+		&interest.Status,
+		&interest.CreatedAt,
+		&interest.UpdatedAt,
+		&interest.ListingActivityType,
+		&interest.ListingCharacterName,
+		&interest.ListingOwnerName,
+		&interest.ListingPriceAmount,
+		&interest.ListingPricingUnit,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.New("interest request not found")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get interest request by id")
+	}
+
+	return &interest, nil
+}
+
 // GetReceivedInterests returns all interests across all of a user's listings
 func (r *JobSlotRentals) GetReceivedInterests(ctx context.Context, userID int64) ([]*models.JobSlotInterestRequest, error) {
 	query := `

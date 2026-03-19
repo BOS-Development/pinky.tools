@@ -2,15 +2,15 @@
 
 ## Status
 
-- **Phase**: 1 - Matchmaking Board (Implemented)
-- **Scope**: Listing creation, interest requests, permission-gated browsing
-- **Future**: Phase 2 will add in-game job execution tracking and contract integration
+- **Phase**: 2 - Discord Notifications (Implemented)
+- **Scope**: Listing creation, interest requests, permission-gated browsing, Discord notifications for interest events
+- **Future**: Phase 3 will add ESI job execution tracking, contract integration, and auto-contract generation
 
 ## Overview
 
 A marketplace where players with idle industry job slots can rent them out to other players. Characters earn job slots through skills, but often leave slots unused. This feature allows slot holders to monetize idle capacity while allowing other players to access additional slots without training new characters.
 
-Phase 1 is a pure matchmaking board: users list idle slots with flexible pricing, other users express interest, and coordination happens out-of-band (Discord, in-game). Phase 2 will add direct job execution and ESI contract integration for frictionless workflows.
+Phase 1 was a pure matchmaking board: users list idle slots with flexible pricing, other users express interest, and coordination happened out-of-band (Discord, in-game). Phase 2 added Discord notifications for interest events, alerting renters and sellers in real-time when interest is received or status changes. Phase 3 will add direct ESI job execution and contract integration for frictionless workflows.
 
 ## Key Decisions
 
@@ -173,6 +173,34 @@ Allowed transitions:
 - `pending` → `accepted`, `declined`
 - `pending`, `accepted`, `declined` → `withdrawn` (by requester)
 
+## Discord Notifications (Phase 2)
+
+Two new event types were added to the Discord notification system for real-time interest updates:
+
+### `job_slot_interest_received`
+
+Fires when a renter expresses interest in a listing. Notifies the **listing owner** (seller).
+
+- **Trigger**: New interest request is created (status `pending`)
+- **Recipient**: User who created the listing
+- **Content**: Requester name, listing details (character, activity type, slots listed), slots requested, duration
+
+### `job_slot_interest_updated`
+
+Fires when a seller accepts or declines an interest request. Notifies the **requester** (renter). Does NOT fire for `withdrawn` status.
+
+- **Trigger**: Interest status changes to `accepted` or `declined`
+- **Recipient**: User who created the interest request
+- **Content**: Action taken (accepted/declined), listing details, seller name, new status
+
+### Implementation
+
+Both event notifications are handled as **non-blocking goroutines** (fire-and-forget):
+- Notification is sent in a background goroutine; failure does not affect the request outcome
+- The API call succeeds regardless of notification delivery status
+- Users configure both event types in **Settings → Discord Notifications** like any other event type
+- If a user hasn't linked Discord or disabled these events, the notification is silently skipped
+
 ## File Structure
 
 ### Backend
@@ -192,7 +220,7 @@ Allowed transitions:
   - `CreateListing`, `UpdateListing`, `GetListingByID`, `GetListingsByUser`
   - `DeleteListing` (soft-delete)
   - `GetAllListingsForBrowse` (with contact permission filtering)
-  - `CreateInterestRequest`, `UpdateInterestStatus`, `GetInterestByID`
+  - `CreateInterestRequest`, `UpdateInterestStatus`, `GetInterestByID` (returns enriched interest with requester name and listing details)
   - `GetInterestBySender`, `GetInterestByListing` (for received requests)
   - Slot inventory calculation queries
 
@@ -201,6 +229,13 @@ Allowed transitions:
   - `GetSlotInventory`, `GetListings`, `CreateListing`, `UpdateListing`, `DeleteListing`
   - `BrowseListings`
   - `ExpressInterest`, `GetSentInterestRequests`, `GetReceivedInterestRequests`, `UpdateInterestStatus`
+
+**Notifications (Phase 2):**
+- `internal/updaters/notifications.go` — Discord event notifiers:
+  - `JobSlotInterestNotifier` interface — abstraction for notification delivery
+  - `NotifyJobSlotInterestReceived` — builds and sends `job_slot_interest_received` embed; runs in non-blocking goroutine
+  - `NotifyJobSlotInterestStatusUpdated` — builds and sends `job_slot_interest_updated` embed for `accepted`/`declined` statuses; runs in non-blocking goroutine
+  - Embed builders construct rich Discord messages with relevant context
 
 **Wiring:**
 - `cmd/industry-tool/cmd/root.go` — Register `jobSlotRentals` controller in router
@@ -267,8 +302,8 @@ Location IDs are stored in listings. Frontend displays the location ID as-is; fu
 
 ## Open Questions / Future Work
 
-- **Phase 2**: ESI job execution integration — allow renters to submit jobs directly to seller's character
-- **Phase 2**: Auto-contract generation — system creates and manages ESI contracts for payment
-- **Phase 2**: Location name resolution — bulk endpoint for station/structure names
-- **Phase 3**: Reputation system — renter/seller ratings to combat fraud
-- **Phase 3**: Trust collateral — optional escrow or deposit to secure rental terms
+- **Phase 3**: ESI job execution integration — allow renters to submit jobs directly to seller's character
+- **Phase 3**: Auto-contract generation — system creates and manages ESI contracts for payment
+- **Phase 3**: Location name resolution — bulk endpoint for station/structure names
+- **Phase 4**: Reputation system — renter/seller ratings to combat fraud
+- **Phase 4**: Trust collateral — optional escrow or deposit to secure rental terms

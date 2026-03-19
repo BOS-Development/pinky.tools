@@ -176,7 +176,11 @@ var rootCmd = &cobra.Command{
 		controllers.NewTransportation(router, transportProfilesRepo, jfRoutesRepo, transportJobsRepo, triggerConfigRepo, jobQueueRepository, marketPricesRepository, systemRepository, esiClient)
 
 		jobSlotRentalsRepository := repositories.NewJobSlotRentals(db)
-		controllers.NewJobSlotRentals(router, jobSlotRentalsRepository, contactPermissionsRepository)
+		var jobSlotInterestNotifier updaters.JobSlotInterestNotifier
+		if notificationsUpdater != nil {
+			jobSlotInterestNotifier = notificationsUpdater
+		}
+		controllers.NewJobSlotRentals(router, jobSlotRentalsRepository, contactPermissionsRepository, jobSlotInterestNotifier)
 
 		haulingRunsRepo := repositories.NewHaulingRuns(db)
 		haulingRunItemsRepo := repositories.NewHaulingRunItems(db)
