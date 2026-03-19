@@ -1,6 +1,12 @@
 import { test, expect } from '../fixtures/auth';
+import { setCharacterIndustryJobs, resetMockESI } from '../helpers/mock-esi';
 
 test.describe('Job Slot Rental Exchange', () => {
+  test.afterAll(async () => {
+    // Reset mock ESI state modified by "Bob can view running jobs" test
+    await resetMockESI();
+  });
+
   test('navigate to job slots page shows all tabs', async ({ alicePage }) => {
     await alicePage.goto('/job-slots');
 
@@ -8,6 +14,7 @@ test.describe('Job Slot Rental Exchange', () => {
     await expect(alicePage.getByRole('tab', { name: 'My Listings' })).toBeVisible();
     await expect(alicePage.getByRole('tab', { name: 'Browse Listings' })).toBeVisible();
     await expect(alicePage.getByRole('tab', { name: 'Interest Requests' })).toBeVisible();
+    await expect(alicePage.getByRole('tab', { name: 'Agreements' })).toBeVisible();
   });
 
   test('slot inventory tab shows character slot data', async ({ alicePage }) => {
@@ -440,12 +447,128 @@ test.describe('Job Slot Rental Exchange', () => {
     await expect(reactionRow).not.toBeVisible({ timeout: 10000 });
   });
 
+  test('Bob sees agreement after accepting Alice interest', async ({ bobPage }) => {
+    await bobPage.goto('/job-slots');
+    await bobPage.evaluate(() => localStorage.clear());
+    await bobPage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = bobPage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // The Agreements component has "As Seller" / "As Renter" sub-tabs.
+    // Bob is the seller, so "As Seller" should be active by default.
+    const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
+    await expect(asSellerTab).toBeVisible({ timeout: 10000 });
+
+    // Verify the agreement row shows Alice's name, active status, and activity type
+    await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
+    await expect(bobPage.getByText(/active/i).first()).toBeVisible({ timeout: 5000 });
+    await expect(bobPage.getByText(/Manufacturing/i).first()).toBeVisible();
+  });
+
+  test('Alice sees agreement as renter (read-only)', async ({ alicePage }) => {
+    await alicePage.goto('/job-slots');
+    await alicePage.evaluate(() => localStorage.clear());
+    await alicePage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = alicePage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // Click the "As Renter" sub-tab — Alice expressed interest so she is the renter
+    const asRenterTab = alicePage.getByRole('tab', { name: /As Renter/i });
+    await expect(asRenterTab).toBeVisible({ timeout: 10000 });
+    await asRenterTab.click();
+
+    // Bob is the slot owner/seller — his name should appear in the agreement row
+    await expect(alicePage.getByText('Bob Bravo').first()).toBeVisible({ timeout: 15000 });
+    await expect(alicePage.getByText(/active/i).first()).toBeVisible({ timeout: 5000 });
+
+    // Renter view is read-only: no "Mark Complete" or "Cancel" action buttons
+    await expect(alicePage.getByRole('button', { name: /Mark Complete/i })).not.toBeVisible();
+    await expect(alicePage.getByRole('button', { name: /Cancel/i })).not.toBeVisible();
+  });
+
+  test('Bob can view running jobs for active agreement', async ({ bobPage }) => {
+    // Set mock ESI industry jobs for Bob's character so the job panel has data
+    await setCharacterIndustryJobs(2002001, [
+      {
+        job_id: 9001,
+        installer_id: 2002001,
+        facility_id: 60003760,
+        station_id: 60003760,
+        activity_id: 1, // Manufacturing
+        blueprint_id: 1001,
+        blueprint_type_id: 588, // Rifter Blueprint
+        blueprint_location_id: 60003760,
+        output_location_id: 60003760,
+        runs: 10,
+        cost: 500000,
+        product_type_id: 587, // Rifter
+        status: 'active',
+        duration: 86400,
+        start_date: new Date(Date.now() - 3600000).toISOString(),
+        end_date: new Date(Date.now() + 82800000).toISOString(),
+      },
+    ]);
+
+    await bobPage.goto('/job-slots');
+    await bobPage.evaluate(() => localStorage.clear());
+    await bobPage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = bobPage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // "As Seller" sub-tab should be visible and active by default for Bob
+    const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
+    await expect(asSellerTab).toBeVisible({ timeout: 10000 });
+
+    // Find the agreement row and click "View Jobs"
+    await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
+    const agreementRow = bobPage.getByRole('row').filter({ hasText: 'Alice Stargazer' });
+    await agreementRow.getByRole('button', { name: /View Jobs/i }).click();
+
+    // A jobs panel should expand showing the mock job
+    await expect(bobPage.getByText(/Manufacturing/i).first()).toBeVisible({ timeout: 10000 });
+    await expect(bobPage.getByText(/10/i).first()).toBeVisible({ timeout: 5000 });
+  });
+
+  test('Bob can mark agreement as complete', async ({ bobPage }) => {
+    await bobPage.goto('/job-slots');
+    await bobPage.evaluate(() => localStorage.clear());
+    await bobPage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = bobPage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // "As Seller" sub-tab — Bob is the seller
+    const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
+    await expect(asSellerTab).toBeVisible({ timeout: 10000 });
+
+    // Find the active agreement row
+    await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
+    const agreementRow = bobPage.getByRole('row').filter({ hasText: 'Alice Stargazer' });
+
+    // Click Mark Complete
+    await agreementRow.getByRole('button', { name: /Mark Complete/i }).click();
+
+    // Verify status chip changes to "completed"
+    await expect(agreementRow.getByText(/completed/i)).toBeVisible({ timeout: 10000 });
+  });
+
   test('can switch between all job slot tabs', async ({ alicePage }) => {
     await alicePage.goto('/job-slots');
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/job-slots');
 
-    const tabs = ['Slot Inventory', 'My Listings', 'Browse Listings', 'Interest Requests'];
+    const tabs = ['Slot Inventory', 'My Listings', 'Browse Listings', 'Interest Requests', 'Agreements'];
 
     for (const tabName of tabs) {
       await alicePage.getByRole('tab', { name: tabName }).click();

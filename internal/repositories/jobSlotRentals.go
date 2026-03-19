@@ -306,13 +306,14 @@ func (r *JobSlotRentals) GetByUser(ctx context.Context, userID int64) ([]*models
 			l.price_amount,
 			l.pricing_unit,
 			l.location_id,
-			'' AS location_name,
+			COALESCE(s.name, '') AS location_name,
 			l.notes,
 			l.is_active,
 			l.created_at,
 			l.updated_at
 		FROM job_slot_rental_listings l
 		JOIN characters c ON l.character_id = c.id AND c.user_id = l.user_id
+		LEFT JOIN stations s ON s.station_id = l.location_id
 		WHERE l.user_id = $1 AND l.is_active = true
 		ORDER BY l.created_at DESC
 	`
@@ -368,13 +369,14 @@ func (r *JobSlotRentals) GetBrowsableListings(ctx context.Context, viewerUserID 
 			l.price_amount,
 			l.pricing_unit,
 			l.location_id,
-			'' AS location_name,
+			COALESCE(s.name, '') AS location_name,
 			l.notes,
 			l.is_active,
 			l.created_at,
 			l.updated_at
 		FROM job_slot_rental_listings l
 		JOIN characters c ON l.character_id = c.id AND c.user_id = l.user_id
+		LEFT JOIN stations s ON s.station_id = l.location_id
 		WHERE l.user_id = ANY($1) AND l.is_active = true
 		ORDER BY l.created_at DESC
 	`
@@ -514,13 +516,14 @@ func (r *JobSlotRentals) GetByID(ctx context.Context, listingID int64) (*models.
 			l.price_amount,
 			l.pricing_unit,
 			l.location_id,
-			'' AS location_name,
+			COALESCE(s.name, '') AS location_name,
 			l.notes,
 			l.is_active,
 			l.created_at,
 			l.updated_at
 		FROM job_slot_rental_listings l
 		JOIN characters c ON l.character_id = c.id AND c.user_id = l.user_id
+		LEFT JOIN stations s ON s.station_id = l.location_id
 		WHERE l.id = $1
 	`
 
@@ -1034,6 +1037,68 @@ func (r *JobSlotRentals) GetAgreements(ctx context.Context, userID int64, status
 // itoa converts an int to its string decimal representation.
 func itoa(n int) string {
 	return strconv.Itoa(n)
+}
+
+// ActiveAgreementCharacter holds character and renter info for an active rental agreement.
+type ActiveAgreementCharacter struct {
+	CharacterID   int64
+	CharacterName string
+	RenterUserID  int64
+	ActivityType  string
+}
+
+// GetActiveAgreementCharacters returns character IDs that have active rental agreements
+// along with the renter user ID and activity type for each agreement.
+func (r *JobSlotRentals) GetActiveAgreementCharacters(ctx context.Context) ([]*ActiveAgreementCharacter, error) {
+	query := `
+		SELECT DISTINCT l.character_id, c.name AS character_name, a.renter_user_id, l.activity_type
+		FROM job_slot_agreements a
+		JOIN job_slot_rental_listings l ON l.id = a.listing_id
+		JOIN characters c ON c.id = l.character_id
+		WHERE a.status = 'active'
+	`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query active agreement characters")
+	}
+	defer rows.Close()
+
+	result := []*ActiveAgreementCharacter{}
+	for rows.Next() {
+		var aac ActiveAgreementCharacter
+		if err := rows.Scan(&aac.CharacterID, &aac.CharacterName, &aac.RenterUserID, &aac.ActivityType); err != nil {
+			return nil, errors.Wrap(err, "failed to scan active agreement character")
+		}
+		result = append(result, &aac)
+	}
+
+	return result, nil
+}
+
+// HasJobBeenNotified checks if a job has already been notified for a character.
+func (r *JobSlotRentals) HasJobBeenNotified(ctx context.Context, characterID, jobID int64) (bool, error) {
+	var exists bool
+	err := r.db.QueryRowContext(ctx,
+		`SELECT EXISTS(SELECT 1 FROM job_slot_job_notifications WHERE character_id = $1 AND esi_job_id = $2)`,
+		characterID, jobID,
+	).Scan(&exists)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to check job notification")
+	}
+	return exists, nil
+}
+
+// MarkJobNotified records that a job has been notified.
+func (r *JobSlotRentals) MarkJobNotified(ctx context.Context, characterID, jobID int64) error {
+	_, err := r.db.ExecContext(ctx,
+		`INSERT INTO job_slot_job_notifications (character_id, esi_job_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+		characterID, jobID,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to mark job notified")
+	}
+	return nil
 }
 
 // UpdateAgreementStatus updates the status of an agreement (seller only).

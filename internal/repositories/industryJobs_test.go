@@ -279,6 +279,100 @@ func Test_IndustryJobsShouldGetActiveJobsForMatching(t *testing.T) {
 	assert.Equal(t, int64(100040), activeJobs[0].JobID)
 }
 
+func Test_IndustryJobsGetDeliveredJobsForCharacter(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	userRepo := repositories.NewUserRepository(db)
+	jobsRepo := repositories.NewIndustryJobs(db)
+
+	user := &repositories.User{ID: 6060, Name: "Delivered Jobs User"}
+	err = userRepo.Add(context.Background(), user)
+	assert.NoError(t, err)
+
+	now := time.Now().UTC().Truncate(time.Millisecond)
+	installerID := int64(60060)
+
+	jobs := []*models.IndustryJob{
+		{
+			JobID:               100060,
+			InstallerID:         installerID,
+			FacilityID:          60003760,
+			StationID:           60003760,
+			ActivityID:          1,
+			BlueprintID:         7777,
+			BlueprintTypeID:     787,
+			BlueprintLocationID: 60003760,
+			OutputLocationID:    60003760,
+			Runs:                5,
+			Status:              "delivered",
+			Duration:            3600,
+			StartDate:           now.Add(-2 * time.Hour),
+			EndDate:             now.Add(-time.Hour),
+		},
+		{
+			JobID:               100061,
+			InstallerID:         installerID,
+			FacilityID:          60003760,
+			StationID:           60003760,
+			ActivityID:          9,
+			BlueprintID:         8888,
+			BlueprintTypeID:     787,
+			BlueprintLocationID: 60003760,
+			OutputLocationID:    60003760,
+			Runs:                10,
+			Status:              "cancelled",
+			Duration:            7200,
+			StartDate:           now.Add(-4 * time.Hour),
+			EndDate:             now.Add(-3 * time.Hour),
+		},
+		{
+			JobID:               100062,
+			InstallerID:         installerID,
+			FacilityID:          60003760,
+			StationID:           60003760,
+			ActivityID:          1,
+			BlueprintID:         9999,
+			BlueprintTypeID:     787,
+			BlueprintLocationID: 60003760,
+			OutputLocationID:    60003760,
+			Runs:                1,
+			Status:              "active",
+			Duration:            3600,
+			StartDate:           now,
+			EndDate:             now.Add(time.Hour),
+		},
+	}
+
+	err = jobsRepo.UpsertJobs(context.Background(), user.ID, jobs)
+	assert.NoError(t, err)
+
+	delivered, err := jobsRepo.GetDeliveredJobsForCharacter(context.Background(), installerID)
+	assert.NoError(t, err)
+	assert.Len(t, delivered, 2)
+
+	statusMap := map[int64]string{}
+	for _, j := range delivered {
+		statusMap[j.JobID] = j.Status
+	}
+	assert.Equal(t, "delivered", statusMap[100060])
+	assert.Equal(t, "cancelled", statusMap[100061])
+	_, activePresent := statusMap[100062]
+	assert.False(t, activePresent, "active job should not appear in delivered results")
+}
+
+func Test_IndustryJobsGetDeliveredJobsForCharacter_Empty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	jobsRepo := repositories.NewIndustryJobs(db)
+
+	delivered, err := jobsRepo.GetDeliveredJobsForCharacter(context.Background(), 99999999)
+	assert.NoError(t, err)
+	assert.NotNil(t, delivered)
+	assert.Len(t, delivered, 0)
+}
+
 func Test_IndustryJobsShouldMapActivityNames(t *testing.T) {
 	db, err := setupDatabase(t)
 	assert.NoError(t, err)

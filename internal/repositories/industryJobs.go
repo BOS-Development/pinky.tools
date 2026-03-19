@@ -274,6 +274,31 @@ func (r *IndustryJobs) GetJobByID(ctx context.Context, jobID int64) (*models.Ind
 	return &job, nil
 }
 
+// GetDeliveredJobsForCharacter returns delivered and cancelled ESI industry jobs for a character,
+// enriched with blueprint/product names.
+func (r *IndustryJobs) GetDeliveredJobsForCharacter(ctx context.Context, characterID int64) ([]*models.IndustryJob, error) {
+	query := `
+		SELECT j.job_id, j.installer_id, j.user_id, j.facility_id, j.station_id,
+		       j.activity_id, j.blueprint_id, j.blueprint_type_id, j.blueprint_location_id,
+		       j.output_location_id, j.runs, j.cost, j.licensed_runs, j.probability,
+		       j.product_type_id, j.status, j.duration, j.start_date, j.end_date,
+		       j.pause_date, j.completed_date, j.completed_character_id, j.successful_runs,
+		       j.solar_system_id, j.source, j.updated_at,
+		       COALESCE(bp.type_name, ''),
+		       COALESCE(prod.type_name, ''),
+		       COALESCE(c.name, ''),
+		       ''
+		FROM esi_industry_jobs j
+		LEFT JOIN asset_item_types bp ON bp.type_id = j.blueprint_type_id
+		LEFT JOIN asset_item_types prod ON prod.type_id = j.product_type_id
+		LEFT JOIN characters c ON c.id = j.installer_id
+		WHERE j.installer_id = $1 AND j.status IN ('delivered', 'cancelled')
+		ORDER BY j.end_date DESC
+	`
+
+	return r.queryJobs(ctx, query, characterID)
+}
+
 // DeleteOldDeliveredJobs removes delivered/cancelled jobs older than the given cutoff.
 func (r *IndustryJobs) DeleteOldDeliveredJobs(ctx context.Context, userID int64, before time.Time) (int64, error) {
 	result, err := r.db.ExecContext(ctx, `

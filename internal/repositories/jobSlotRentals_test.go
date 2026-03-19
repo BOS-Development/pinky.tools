@@ -895,3 +895,135 @@ func Test_JobSlotRentalsGetAgreementJobsByID_EmptyJobs(t *testing.T) {
 	assert.NotNil(t, jobs)
 	assert.Len(t, jobs, 0)
 }
+
+// --- Feature 2: Active agreement characters and job notification tracking ---
+
+func Test_JobSlotRentalsGetActiveAgreementCharacters_Empty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	chars, err := repo.GetActiveAgreementCharacters(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, chars)
+	assert.Len(t, chars, 0)
+}
+
+func Test_JobSlotRentalsGetActiveAgreementCharacters_WithActiveAgreement(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	sellerUserID := int64(10100)
+	sellerCharID := int64(101000)
+	renterUserID := int64(10101)
+	_, interest := setupJobSlotAgreementTestData(t, db, sellerUserID, sellerCharID, renterUserID)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	// Before accepting, no active agreements
+	chars, err := repo.GetActiveAgreementCharacters(context.Background())
+	assert.NoError(t, err)
+	charIDs := make(map[int64]bool)
+	for _, c := range chars {
+		charIDs[c.CharacterID] = true
+	}
+	assert.False(t, charIDs[sellerCharID])
+
+	// Accept the interest to create an active agreement
+	_, err = repo.AcceptInterestWithAgreement(context.Background(), interest.ID, sellerUserID)
+	assert.NoError(t, err)
+
+	// Now the character should appear
+	chars, err = repo.GetActiveAgreementCharacters(context.Background())
+	assert.NoError(t, err)
+
+	found := false
+	for _, c := range chars {
+		if c.CharacterID == sellerCharID {
+			found = true
+			assert.Equal(t, "Test Character", c.CharacterName)
+			assert.Equal(t, renterUserID, c.RenterUserID)
+			assert.Equal(t, "manufacturing", c.ActivityType)
+		}
+	}
+	assert.True(t, found, "expected sellerCharID to appear in active agreement characters")
+}
+
+func Test_JobSlotRentalsGetActiveAgreementCharacters_CancelledAgreementExcluded(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	sellerUserID := int64(10200)
+	sellerCharID := int64(102000)
+	renterUserID := int64(10201)
+	_, interest := setupJobSlotAgreementTestData(t, db, sellerUserID, sellerCharID, renterUserID)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	agreement, err := repo.AcceptInterestWithAgreement(context.Background(), interest.ID, sellerUserID)
+	assert.NoError(t, err)
+
+	// Cancel it
+	err = repo.UpdateAgreementStatus(context.Background(), agreement.ID, sellerUserID, "cancelled", nil)
+	assert.NoError(t, err)
+
+	// Should not appear in active agreement characters
+	chars, err := repo.GetActiveAgreementCharacters(context.Background())
+	assert.NoError(t, err)
+	for _, c := range chars {
+		assert.NotEqual(t, sellerCharID, c.CharacterID)
+	}
+}
+
+func Test_JobSlotRentalsHasJobBeenNotified_FalseWhenNotNotified(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	notified, err := repo.HasJobBeenNotified(context.Background(), 10300, 999001)
+	assert.NoError(t, err)
+	assert.False(t, notified)
+}
+
+func Test_JobSlotRentalsMarkAndHasJobBeenNotified(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	charID := int64(10400)
+	jobID := int64(999002)
+
+	// Not yet notified
+	notified, err := repo.HasJobBeenNotified(context.Background(), charID, jobID)
+	assert.NoError(t, err)
+	assert.False(t, notified)
+
+	// Mark as notified
+	err = repo.MarkJobNotified(context.Background(), charID, jobID)
+	assert.NoError(t, err)
+
+	// Now it should be notified
+	notified, err = repo.HasJobBeenNotified(context.Background(), charID, jobID)
+	assert.NoError(t, err)
+	assert.True(t, notified)
+}
+
+func Test_JobSlotRentalsMarkJobNotified_Idempotent(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewJobSlotRentals(db)
+
+	charID := int64(10500)
+	jobID := int64(999003)
+
+	// Mark twice — should not error (ON CONFLICT DO NOTHING)
+	err = repo.MarkJobNotified(context.Background(), charID, jobID)
+	assert.NoError(t, err)
+
+	err = repo.MarkJobNotified(context.Background(), charID, jobID)
+	assert.NoError(t, err)
+}

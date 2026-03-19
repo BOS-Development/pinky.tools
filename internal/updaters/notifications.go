@@ -34,6 +34,11 @@ type PiStallNotifier interface {
 	NotifyPiStalls(ctx context.Context, userID int64, alerts []*PiStallAlert)
 }
 
+// JobSlotJobCompletedNotifier is the interface used by the job slot notifications runner
+type JobSlotJobCompletedNotifier interface {
+	NotifyJobSlotJobCompleted(ctx context.Context, renterUserID int64, characterName string, activityType string, productName string, runs int, endDate time.Time)
+}
+
 // PiStallAlert contains information about a single stalled planet
 type PiStallAlert struct {
 	CharacterName    string
@@ -307,6 +312,88 @@ func (u *NotificationsUpdater) NotifyJobSlotInterestStatusUpdated(ctx context.Co
 		if sendErr != nil {
 			log.Error("failed to send job slot interest status updated notification", "target_id", target.ID, "target_type", target.TargetType, "error", sendErr)
 		}
+	}
+}
+
+// NotifyJobSlotJobCompleted notifies the RENTER when a job on the character they're renting finishes
+func (u *NotificationsUpdater) NotifyJobSlotJobCompleted(ctx context.Context, renterUserID int64, characterName string, activityType string, productName string, runs int, endDate time.Time) {
+	targets, err := u.repo.GetActiveTargetsForEvent(ctx, renterUserID, "job_slot_job_completed")
+	if err != nil {
+		log.Error("failed to get notification targets for job_slot_job_completed", "user_id", renterUserID, "error", err)
+		return
+	}
+
+	if len(targets) == 0 {
+		return
+	}
+
+	embed := buildJobSlotJobCompletedEmbed(characterName, activityType, productName, runs, endDate, u.frontendURL)
+
+	for _, target := range targets {
+		var sendErr error
+		switch target.TargetType {
+		case "dm":
+			link, err := u.repo.GetLinkByUser(ctx, target.UserID)
+			if err != nil || link == nil {
+				log.Error("failed to get discord link for DM target", "user_id", target.UserID, "error", err)
+				continue
+			}
+			sendErr = u.discordClient.SendDM(ctx, link.DiscordUserID, embed)
+		case "channel":
+			if target.ChannelID == nil {
+				log.Error("channel target has no channel_id", "target_id", target.ID)
+				continue
+			}
+			sendErr = u.discordClient.SendChannelMessage(ctx, *target.ChannelID, embed)
+		default:
+			log.Error("unknown target type", "target_type", target.TargetType, "target_id", target.ID)
+			continue
+		}
+
+		if sendErr != nil {
+			log.Error("failed to send job slot job completed notification", "target_id", target.ID, "target_type", target.TargetType, "error", sendErr)
+		}
+	}
+}
+
+func buildJobSlotJobCompletedEmbed(characterName string, activityType string, productName string, runs int, endDate time.Time, frontendURL string) *client.DiscordEmbed {
+	embedURL := ""
+	if frontendURL != "" {
+		embedURL = frontendURL + "job-slots"
+	}
+
+	fields := []client.DiscordEmbedField{
+		{
+			Name:   "Activity",
+			Value:  activityType,
+			Inline: true,
+		},
+		{
+			Name:   "Item",
+			Value:  productName,
+			Inline: true,
+		},
+		{
+			Name:   "Runs",
+			Value:  fmt.Sprintf("%d", runs),
+			Inline: true,
+		},
+		{
+			Name:   "Completed",
+			Value:  endDate.UTC().Format("Jan 2, 2006 15:04 UTC"),
+			Inline: false,
+		},
+	}
+
+	return &client.DiscordEmbed{
+		Title:       "Industry Job Completed",
+		Description: fmt.Sprintf("A job on **%s**'s character has finished", characterName),
+		URL:         embedURL,
+		Color:       0x10b981, // Green
+		Fields:      fields,
+		Footer: &client.DiscordEmbedFooter{
+			Text: fmt.Sprintf("Pinky.Tools • %s", time.Now().UTC().Format("Jan 2, 2006 15:04 UTC")),
+		},
 	}
 }
 
