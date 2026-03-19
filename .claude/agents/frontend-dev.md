@@ -417,6 +417,29 @@ Snapshot tests that render timestamps or dates can produce different output depe
 
 Both must be set; setting only one will still produce mismatches between local and Docker runs.
 
+### Nested API Route Auth Import Path — CRITICAL
+
+API routes in `pages/api/` that use NextAuth's `getServerSession` must import from `../../auth/[...nextauth]` (relative to the file). **The number of `../` levels must match the directory depth of the API route file, not the folder nesting.**
+
+Count from the API route file up to `pages/api/`, then add one more level to reach `auth/[...nextauth]`:
+
+| File location | Correct import |
+|---|---|
+| `pages/api/foo/action.ts` | `../auth/[...nextauth]` |
+| `pages/api/foo/[id]/action.ts` | `../../auth/[...nextauth]` |
+| `pages/api/foo/bar/[id]/action.ts` | `../../../auth/[...nextauth]` |
+
+```ts
+// File: pages/api/job-slots/agreements/[id]/complete.ts
+// Depth from pages/api: foo/bar/[id] = 3 levels deep → 3 × ../
+import { authOptions } from '../../../auth/[...nextauth]';
+
+// BAD — one too many ../ for a 3-level-deep route
+import { authOptions } from '../../../../auth/[...nextauth]';
+```
+
+A wrong path causes a runtime import error that is invisible during Jest tests but fails immediately when the route is called in the browser or E2E tests.
+
 ### Running tests
 
 - **Full suite**: `make test-frontend` (runs all Jest tests in Docker)

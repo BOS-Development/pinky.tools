@@ -421,6 +421,36 @@ sde_categories → sde_groups → asset_item_types
 sde_blueprints → sde_blueprint_activities → materials/products/skills
 ```
 
+## Notification After Create — CRITICAL Anti-Pattern
+
+When a handler creates a new record and immediately fires a Discord notification (or any notifier), **never pass the freshly-constructed struct** to the notifier. A freshly-built struct only has the fields you set directly — JOIN-populated fields (e.g., `RequesterName`, `OwnerName`, relationship names) will be empty strings or zero values.
+
+**Always call `GetByID` (or an equivalent enriched fetch) first to get the fully-populated model, then pass that to the notifier:**
+
+```go
+// BAD — freshly-constructed struct has empty RequesterName
+newRecord := &models.JobSlotInterest{
+    SlotID:      req.SlotID,
+    RequesterID: userID,
+}
+if err := r.repo.Create(ctx, newRecord); err != nil {
+    return nil, err
+}
+go r.notifier.NotifyInterestReceived(ctx, newRecord) // RequesterName is ""
+
+// GOOD — fetch enriched record first, then notify
+created, err := r.repo.Create(ctx, &models.JobSlotInterest{SlotID: req.SlotID, RequesterID: userID})
+if err != nil {
+    return nil, err
+}
+enriched, err := r.repo.GetByID(ctx, created.ID, userID)
+if err == nil {
+    go r.notifier.NotifyInterestReceived(ctx, enriched) // RequesterName populated
+}
+```
+
+This applies to any notification that includes human-readable names resolved via SQL JOINs.
+
 ## Output
 
 When you complete work, summarize:
