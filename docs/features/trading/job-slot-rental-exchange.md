@@ -3,14 +3,14 @@
 ## Status
 
 - **Phase**: 2 - Discord Notifications (Implemented)
-- **Scope**: Listing creation, interest requests, permission-gated browsing, Discord notifications for interest events
-- **Future**: Phase 3 will add ESI job execution tracking, contract integration, and auto-contract generation
+- **Current Scope**: Listing creation, interest requests, permission-gated browsing, Discord notifications for interest events
+- **Phase 3 (Planned)**: Rental agreements, ESI job tracking (read-only), Discord job completion notifications
 
 ## Overview
 
 A marketplace where players with idle industry job slots can rent them out to other players. Characters earn job slots through skills, but often leave slots unused. This feature allows slot holders to monetize idle capacity while allowing other players to access additional slots without training new characters.
 
-Phase 1 was a pure matchmaking board: users list idle slots with flexible pricing, other users express interest, and coordination happened out-of-band (Discord, in-game). Phase 2 added Discord notifications for interest events, alerting renters and sellers in real-time when interest is received or status changes. Phase 3 will add direct ESI job execution and contract integration for frictionless workflows.
+Phase 1 was a pure matchmaking board: users list idle slots with flexible pricing, other users express interest, and coordination happened out-of-band (Discord, in-game). Phase 2 added Discord notifications for interest events, alerting renters and sellers in real-time when interest is received or status changes. Phase 3 will formalize accepted agreements into tracked deals and add read-only ESI job tracking for visibility into running rental jobs.
 
 ## Key Decisions
 
@@ -33,6 +33,10 @@ Phase 1 was a pure matchmaking board: users list idle slots with flexible pricin
 6. **Phase 1 is matchmaking only** — No ESI job execution, no automatic contracts, no in-game tracking. Renters and sellers coordinate timing and payment out-of-band. Phase 2 will integrate with industry jobs and contracts.
 
 7. **Soft-delete listings** — Listings are deactivated (not deleted) to preserve history and prevent accidental re-publication.
+
+8. **Phase 3: Manual contracts** — ESI cannot create contracts via API, so contracts remain manual in-game. The agreement tracks which interest request was accepted, and the slot owner is responsible for creating a contract in-game (or using cash trade for payment). Phase 3 focuses on job visibility and agreement tracking, not payment automation.
+
+9. **Phase 3: Read-only ESI job tracking** — Phase 3 reads industry jobs from the slot owner's ESI (who is executing the rented-out jobs), but does not submit or modify jobs. Job submission remains the renter's responsibility in-game.
 
 ## Schema
 
@@ -76,6 +80,34 @@ Represents interest from a renter to contact a listing owner.
 
 `contact_permissions` table gains new service type:
 - `job_slot_browse` — Users who grant this permission allow their contact listings to be browsed in the rental exchange
+
+### `job_slot_agreements` (NEW — Phase 3)
+
+Represents a formalized rental deal between a slot owner and a renter.
+
+- `id` (bigint, PK)
+- `interest_request_id` (bigint, FK job_slot_interest_requests) — the interest request that triggered this agreement
+- `listing_id` (bigint, FK job_slot_rental_listings) — the listing being rented
+- `seller_user_id` (bigint, FK users) — slot owner (seller)
+- `renter_user_id` (bigint, FK users) — person renting slots (renter)
+- `slots_agreed` (int) — number of slots committed in this deal
+- `price_amount` (numeric(12,2)) — total ISK amount or unit cost
+- `pricing_unit` (varchar) — enum: `per_slot_day`, `per_job`, `flat_fee` (copied from listing at time of agreement)
+- `agreed_at` (timestamp) — when the agreement was created
+- `expected_end_at` (timestamp, nullable) — optional agreed end date for the rental period
+- `status` (varchar) — enum: `active`, `completed`, `cancelled` — lifecycle state of the agreement
+- `cancellation_reason` (text, nullable) — reason if cancelled
+- `created_at`, `updated_at` (timestamps)
+
+**Indexes:**
+- Foreign keys: interest_request, listing, seller_user, renter_user
+- Composite: `(seller_user_id, status)` — for listing agreements by seller and status
+- Composite: `(renter_user_id, status)` — for listing agreements by renter and status
+
+**Lifecycle:**
+- Created automatically (atomic transaction) when an interest request status transitions to `accepted`
+- Seller can mark `completed` or `cancelled`
+- Renter can optionally request cancellation (separate cancel endpoint or status update permission)
 
 ## API Endpoints
 
@@ -173,6 +205,115 @@ Allowed transitions:
 - `pending` → `accepted`, `declined`
 - `pending`, `accepted`, `declined` → `withdrawn` (by requester)
 
+## Rental Agreements (Phase 3)
+
+### Agreement Creation
+
+When a seller accepts an interest request, a corresponding rental agreement is automatically created in the same database transaction:
+1. Interest status transitions from `pending` to `accepted`
+2. New row is inserted into `job_slot_agreements` with the agreement details copied from the interest request and listing
+3. Agreement starts in `active` status
+4. Both events (interest accepted + agreement created) fire Discord notifications
+
+### Agreement Lifecycle
+
+**Seller actions:**
+- Mark agreement as `completed` once the rental period ends or all runs are finished
+- Mark agreement as `cancelled` (with optional reason) if terms change or renter defaults
+
+**Renter actions:**
+- View active and past agreements
+- Optionally request cancellation (no automatic action — seller decides)
+
+**Tracking:**
+- Sellers see active agreements to know how many slots are committed (against `job_slot_agreements` with status `active`)
+- Renters see which deals are active and which have ended
+- Both can reference ESI job data to see what's actually running
+
+### API Endpoints (Phase 3)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/job-slots/agreements` | Get user's agreements (as seller or renter) with filter by status |
+| PUT | `/v1/job-slots/agreements/{id}/status` | Update agreement status to `completed` or `cancelled` |
+| GET | `/v1/job-slots/agreements/{id}/jobs` | Get ESI industry jobs for the listing's character (owner's view of running rental jobs) |
+
+**GET /v1/job-slots/agreements query params:**
+- `status` (optional) — filter: `active`, `completed`, `cancelled`
+- `role` (optional) — `seller` or `renter` (defaults to both)
+
+**GET /v1/job-slots/agreements response:**
+```json
+{
+  "agreements": [
+    {
+      "id": 42,
+      "interest_request_id": 5,
+      "listing_id": 10,
+      "seller_user_id": 1,
+      "seller_name": "SlotOwner",
+      "renter_user_id": 2,
+      "renter_name": "RenterName",
+      "slots_agreed": 2,
+      "price_amount": 5000000,
+      "pricing_unit": "per_job",
+      "agreed_at": "2026-03-15T10:00:00Z",
+      "expected_end_at": "2026-03-22T10:00:00Z",
+      "status": "active",
+      "created_at": "2026-03-15T10:00:00Z",
+      "updated_at": "2026-03-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+**PUT /v1/job-slots/agreements/{id}/status body:**
+```json
+{
+  "status": "completed",
+  "cancellation_reason": null
+}
+```
+or
+```json
+{
+  "status": "cancelled",
+  "cancellation_reason": "Renter no longer needs slots"
+}
+```
+
+**GET /v1/job-slots/agreements/{id}/jobs response:**
+```json
+{
+  "agreement_id": 42,
+  "character_id": 123,
+  "jobs": [
+    {
+      "job_id": 987,
+      "activity_id": 1,
+      "activity_name": "Manufacturing",
+      "blueprint_id": 456,
+      "blueprint_name": "Rifter Blueprint",
+      "location_id": 60003760,
+      "runs": 10,
+      "start_date": "2026-03-15T12:00:00Z",
+      "end_date": "2026-03-17T14:30:00Z",
+      "status": "active"
+    }
+  ]
+}
+```
+
+## ESI Industry Job Tracking (Phase 3)
+
+The slot owner can pull their character's industry jobs via ESI to see what rental jobs are running. Each agreement links to the listing's character, and the owner can view that character's job list to confirm slots are in use.
+
+**Data source:** ESI `/characters/{character_id}/industry/jobs/` endpoint
+
+**Caching:** Short TTL (5 minutes) to balance visibility with ESI rate limits
+
+**Permissions:** Only the slot owner (seller) can view jobs for a listing character. Renters see agreement details but not the live job list (to avoid exposing the seller's ESI token or other sensitive job data).
+
 ## Discord Notifications (Phase 2)
 
 Two new event types were added to the Discord notification system for real-time interest updates:
@@ -193,13 +334,24 @@ Fires when a seller accepts or declines an interest request. Notifies the **requ
 - **Recipient**: User who created the interest request
 - **Content**: Action taken (accepted/declined), listing details, seller name, new status
 
+### `job_slot_job_completed` (Phase 3)
+
+Fires when the system detects (via ESI polling) that a job has completed on a rented-out character.
+
+- **Trigger**: ESI job status transitions to `delivered` or `cancelled` (detected during routine job sync)
+- **Recipient**: Renter (optional — seller also receives if configured)
+- **Content**: Job summary (item, runs completed, location), agreement details, seller name
+- **Polling**: Seller's industry jobs are polled on a background interval (e.g., 15 min) to detect completion
+- **Notification**: Sent as a non-blocking goroutine; failure does not impact polling
+
 ### Implementation
 
-Both event notifications are handled as **non-blocking goroutines** (fire-and-forget):
+All event notifications are handled as **non-blocking goroutines** (fire-and-forget):
 - Notification is sent in a background goroutine; failure does not affect the request outcome
 - The API call succeeds regardless of notification delivery status
-- Users configure both event types in **Settings → Discord Notifications** like any other event type
-- If a user hasn't linked Discord or disabled these events, the notification is silently skipped
+- Users configure event types in **Settings → Discord Notifications** like any other event type
+- If a user hasn't linked Discord or disabled events, the notification is silently skipped
+- Phase 3 adds `job_slot_job_completed` as a new configurable event type
 
 ## File Structure
 
@@ -300,10 +452,17 @@ Location IDs are stored in listings. Frontend displays the location ID as-is; fu
 - Interest request workflow: `e2e/tests/job-slot-interest.spec.ts`
 - Permission-gated browsing: `e2e/tests/job-slot-browsing.spec.ts`
 
+## Phase 3 Key Decisions
+
+- **Agreements are auto-created on acceptance** — when a seller accepts an interest request, the agreement row is created atomically in the same transaction
+- **ESI contracts are manual** — ESI API cannot create contracts, so contract creation and payment transfer remain manual in-game activities (or cash trade). Phase 3 does not automate payment
+- **Job tracking is read-only** — Phase 3 reads ESI job data to show what's running but does not submit, cancel, or modify jobs. The renter submits jobs in-game on the seller's character
+- **Only seller can view ESI jobs** — To prevent renters from seeing the seller's full job list or ESI token leakage, only the slot owner (seller) views ESI job data for a listing character
+- **Job polling is background interval** — Job completion detection runs on a scheduled background interval (e.g., 15 min), not real-time. Polling is per-seller, aggregating all their listing characters
+
 ## Open Questions / Future Work
 
-- **Phase 3**: ESI job execution integration — allow renters to submit jobs directly to seller's character
-- **Phase 3**: Auto-contract generation — system creates and manages ESI contracts for payment
 - **Phase 3**: Location name resolution — bulk endpoint for station/structure names
 - **Phase 4**: Reputation system — renter/seller ratings to combat fraud
 - **Phase 4**: Trust collateral — optional escrow or deposit to secure rental terms
+- **Phase 4**: In-game job submission — allow renters to submit jobs directly via API (requires ESI account delegation or advanced OAuth scopes)
