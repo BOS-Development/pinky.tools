@@ -9,6 +9,7 @@ import SlotInventoryPanel from "@industry-tool/components/job-slots/SlotInventor
 import MyListings from "@industry-tool/components/job-slots/MyListings";
 import ListingsBrowser from "@industry-tool/components/job-slots/ListingsBrowser";
 import InterestRequests from "@industry-tool/components/job-slots/InterestRequests";
+import Agreements from "@industry-tool/components/job-slots/Agreements";
 
 export default function JobSlotExchangePage() {
   const { status } = useSession();
@@ -42,11 +43,13 @@ export default function JobSlotExchangePage() {
             <TabsTrigger value="my-listings">My Listings</TabsTrigger>
             <TabsTrigger value="browse">Browse Listings</TabsTrigger>
             <TabsTrigger value="interest">Interest Requests</TabsTrigger>
+            <TabsTrigger value="agreements">Agreements</TabsTrigger>
           </TabsList>
           <TabsContent value="inventory"><SlotInventoryPanel /></TabsContent>
           <TabsContent value="my-listings"><MyListings /></TabsContent>
           <TabsContent value="browse"><ListingsBrowser /></TabsContent>
           <TabsContent value="interest"><InterestRequests /></TabsContent>
+          <TabsContent value="agreements"><Agreements /></TabsContent>
         </Tabs>
       </div>
     </>

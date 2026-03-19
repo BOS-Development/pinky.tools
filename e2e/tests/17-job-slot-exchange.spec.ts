@@ -1,6 +1,7 @@
 import { test, expect } from '../fixtures/auth';
 
 test.describe('Job Slot Rental Exchange', () => {
+
   test('navigate to job slots page shows all tabs', async ({ alicePage }) => {
     await alicePage.goto('/job-slots');
 
@@ -8,6 +9,7 @@ test.describe('Job Slot Rental Exchange', () => {
     await expect(alicePage.getByRole('tab', { name: 'My Listings' })).toBeVisible();
     await expect(alicePage.getByRole('tab', { name: 'Browse Listings' })).toBeVisible();
     await expect(alicePage.getByRole('tab', { name: 'Interest Requests' })).toBeVisible();
+    await expect(alicePage.getByRole('tab', { name: 'Agreements' })).toBeVisible();
   });
 
   test('slot inventory tab shows character slot data', async ({ alicePage }) => {
@@ -440,12 +442,112 @@ test.describe('Job Slot Rental Exchange', () => {
     await expect(reactionRow).not.toBeVisible({ timeout: 10000 });
   });
 
+  test('Bob sees agreement after accepting Alice interest', async ({ bobPage }) => {
+    await bobPage.goto('/job-slots');
+    await bobPage.evaluate(() => localStorage.clear());
+    await bobPage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = bobPage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // The Agreements component has "As Seller" / "As Renter" sub-tabs.
+    // Bob is the seller, so "As Seller" should be active by default.
+    const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
+    await expect(asSellerTab).toBeVisible({ timeout: 10000 });
+
+    // Verify the agreement row shows Alice's name, active status, and activity type
+    await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
+    await expect(bobPage.getByText(/active/i).first()).toBeVisible({ timeout: 5000 });
+    await expect(bobPage.getByText(/Manufacturing/i).first()).toBeVisible();
+  });
+
+  test('Alice sees agreement as renter (read-only)', async ({ alicePage }) => {
+    await alicePage.goto('/job-slots');
+    await alicePage.evaluate(() => localStorage.clear());
+    await alicePage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = alicePage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // Click the "As Renter" sub-tab — Alice expressed interest so she is the renter
+    const asRenterTab = alicePage.getByRole('tab', { name: /As Renter/i });
+    await expect(asRenterTab).toBeVisible({ timeout: 10000 });
+    await asRenterTab.click();
+
+    // Bob is the slot owner/seller — his name should appear in the agreement row
+    await expect(alicePage.getByText('Bob Bravo').first()).toBeVisible({ timeout: 15000 });
+    await expect(alicePage.getByText(/active/i).first()).toBeVisible({ timeout: 5000 });
+
+    // Renter view is read-only: no "Mark Complete" or "Cancel" action buttons
+    await expect(alicePage.getByRole('button', { name: /Mark Complete/i })).not.toBeVisible();
+    await expect(alicePage.getByRole('button', { name: /Cancel/i })).not.toBeVisible();
+  });
+
+  test('Bob can view running jobs for active agreement', async ({ bobPage }) => {
+    test.setTimeout(60000);
+
+    await bobPage.goto('/job-slots');
+    await bobPage.evaluate(() => localStorage.clear());
+    await bobPage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = bobPage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // "As Seller" sub-tab should be visible and active by default for Bob
+    const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
+    await expect(asSellerTab).toBeVisible({ timeout: 10000 });
+
+    // Find the agreement row and click the Jobs toggle button
+    await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
+    const agreementRow = bobPage.getByRole('row').filter({ hasText: 'Alice Stargazer' });
+    await agreementRow.getByRole('button', { name: /Jobs/i }).click();
+
+    // The jobs panel should expand — with no ESI jobs synced it shows the empty state
+    await expect(bobPage.getByText('No active jobs found for this character.')).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Bob can mark agreement as complete', async ({ bobPage }) => {
+    test.setTimeout(60000);
+
+    // Accept the native browser confirm dialog triggered by the Complete button
+    bobPage.on('dialog', (dialog) => dialog.accept());
+
+    await bobPage.goto('/job-slots');
+    await bobPage.evaluate(() => localStorage.clear());
+    await bobPage.goto('/job-slots');
+
+    // Navigate to Agreements tab
+    const agreementsTab = bobPage.getByRole('tab', { name: 'Agreements' });
+    await expect(agreementsTab).toBeVisible({ timeout: 10000 });
+    await agreementsTab.click();
+
+    // "As Seller" sub-tab — Bob is the seller
+    const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
+    await expect(asSellerTab).toBeVisible({ timeout: 10000 });
+
+    // Find the active agreement row
+    await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
+    const agreementRow = bobPage.getByRole('row').filter({ hasText: 'Alice Stargazer' });
+
+    // Click Complete (marks the agreement as complete)
+    await agreementRow.getByRole('button', { name: /^Complete$/i }).click();
+
+    // Verify status chip changes to "completed"
+    await expect(agreementRow.getByText(/completed/i)).toBeVisible({ timeout: 10000 });
+  });
+
   test('can switch between all job slot tabs', async ({ alicePage }) => {
     await alicePage.goto('/job-slots');
     await alicePage.evaluate(() => localStorage.clear());
     await alicePage.goto('/job-slots');
 
-    const tabs = ['Slot Inventory', 'My Listings', 'Browse Listings', 'Interest Requests'];
+    const tabs = ['Slot Inventory', 'My Listings', 'Browse Listings', 'Interest Requests', 'Agreements'];
 
     for (const tabName of tabs) {
       await alicePage.getByRole('tab', { name: tabName }).click();

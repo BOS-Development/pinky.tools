@@ -1300,6 +1300,49 @@ type UpdateInterestStatusRequest struct {
 	Status string `json:"status"`
 }
 
+type JobSlotAgreement struct {
+	ID                int64      `json:"id"`
+	InterestRequestID int64      `json:"interestRequestId"`
+	ListingID         int64      `json:"listingId"`
+	SellerUserID      int64      `json:"sellerUserId"`
+	SellerName        string     `json:"sellerName"`
+	RenterUserID      int64      `json:"renterUserId"`
+	RenterName        string     `json:"renterName"`
+	SlotsAgreed       int        `json:"slotsAgreed"`
+	PriceAmount       float64    `json:"priceAmount"`
+	PricingUnit       string     `json:"pricingUnit"`
+	AgreedAt          time.Time  `json:"agreedAt"`
+	ExpectedEndAt     *time.Time `json:"expectedEndAt"`
+	Status            string     `json:"status"`
+	CancellationReason *string   `json:"cancellationReason"`
+	// Enriched
+	ActivityType  string    `json:"activityType"`
+	CharacterName string    `json:"characterName"`
+	CharacterID   int64     `json:"characterId"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
+type UpdateAgreementStatusRequest struct {
+	Status             string  `json:"status"`
+	CancellationReason *string `json:"cancellationReason"`
+}
+
+type AgreementJob struct {
+	JobID             int64     `json:"jobId"`
+	ActivityID        int       `json:"activityId"`
+	ActivityName      string    `json:"activityName"`
+	BlueprintTypeID   int64     `json:"blueprintTypeId"`
+	BlueprintTypeName string    `json:"blueprintTypeName"`
+	ProductTypeID     *int64    `json:"productTypeId"`
+	ProductTypeName   string    `json:"productTypeName"`
+	Runs              int       `json:"runs"`
+	StartDate         time.Time `json:"startDate"`
+	EndDate           time.Time `json:"endDate"`
+	Status            string    `json:"status"`
+	LocationID        int64     `json:"locationId"`
+}
+
 // HaulingRun represents a hauling trip in EVE Online
 type HaulingRun struct {
 	ID               int64             `json:"id"`

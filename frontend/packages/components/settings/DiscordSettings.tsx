@@ -56,6 +56,9 @@ const EVENT_TYPES = [
   { value: 'purchase_created', label: 'New Purchase' },
   { value: 'contract_created', label: 'Contract Created' },
   { value: 'pi_stall', label: 'PI Stall Alert' },
+  { value: 'job_slot_interest_received', label: 'Job Slot Interest Received' },
+  { value: 'job_slot_interest_updated', label: 'Job Slot Interest Updated' },
+  { value: 'job_slot_job_completed', label: 'Job Slot Job Completed' },
 ];
 
 const DISCORD_ERROR_MESSAGES: Record<string, string> = {

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"strconv"
 
+	log "github.com/annymsMthd/industry-tool/internal/logging"
 	"github.com/annymsMthd/industry-tool/internal/models"
+	"github.com/annymsMthd/industry-tool/internal/updaters"
 	"github.com/annymsMthd/industry-tool/internal/web"
 	"github.com/pkg/errors"
 )
@@ -23,17 +25,25 @@ type JobSlotRentalsRepository interface {
 	GetInterestsByRequester(ctx context.Context, requesterUserID int64) ([]*models.JobSlotInterestRequest, error)
 	UpdateInterestStatus(ctx context.Context, interestID int64, userID int64, status string) error
 	GetReceivedInterests(ctx context.Context, userID int64) ([]*models.JobSlotInterestRequest, error)
+	GetInterestByID(ctx context.Context, interestID int64) (*models.JobSlotInterestRequest, error)
+	// Phase 3: Agreements
+	AcceptInterestWithAgreement(ctx context.Context, interestID int64, sellerUserID int64) (*models.JobSlotAgreement, error)
+	GetAgreements(ctx context.Context, userID int64, statusFilter string, role string) ([]*models.JobSlotAgreement, error)
+	UpdateAgreementStatus(ctx context.Context, agreementID int64, userID int64, newStatus string, reason *string) error
+	GetAgreementJobsByID(ctx context.Context, agreementID int64, userID int64) ([]*models.AgreementJob, error)
 }
 
 type JobSlotRentals struct {
 	repository            JobSlotRentalsRepository
 	permissionsRepository ContactPermissionsRepository
+	notifier              updaters.JobSlotInterestNotifier
 }
 
-func NewJobSlotRentals(router Routerer, repository JobSlotRentalsRepository, permissionsRepository ContactPermissionsRepository) *JobSlotRentals {
+func NewJobSlotRentals(router Routerer, repository JobSlotRentalsRepository, permissionsRepository ContactPermissionsRepository, notifier updaters.JobSlotInterestNotifier) *JobSlotRentals {
 	controller := &JobSlotRentals{
 		repository:            repository,
 		permissionsRepository: permissionsRepository,
+		notifier:              notifier,
 	}
 
 	router.RegisterRestAPIRoute("/v1/job-slots/inventory", web.AuthAccessUser, controller.GetSlotInventory, "GET")
@@ -46,6 +56,9 @@ func NewJobSlotRentals(router Routerer, repository JobSlotRentalsRepository, per
 	router.RegisterRestAPIRoute("/v1/job-slots/interest/sent", web.AuthAccessUser, controller.GetSentInterests, "GET")
 	router.RegisterRestAPIRoute("/v1/job-slots/interest/received", web.AuthAccessUser, controller.GetReceivedInterests, "GET")
 	router.RegisterRestAPIRoute("/v1/job-slots/interest/{id}/status", web.AuthAccessUser, controller.UpdateInterestStatus, "PUT")
+	router.RegisterRestAPIRoute("/v1/job-slots/agreements", web.AuthAccessUser, controller.GetAgreements, "GET")
+	router.RegisterRestAPIRoute("/v1/job-slots/agreements/{id}/status", web.AuthAccessUser, controller.UpdateAgreementStatus, "PUT")
+	router.RegisterRestAPIRoute("/v1/job-slots/agreements/{id}/jobs", web.AuthAccessUser, controller.GetAgreementJobs, "GET")
 
 	return controller
 }
@@ -335,6 +348,15 @@ func (c *JobSlotRentals) CreateInterest(args *web.HandlerArgs) (any, *web.HttpEr
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to create interest request")}
 	}
 
+	if c.notifier != nil {
+		enriched, err := c.repository.GetInterestByID(args.Request.Context(), interest.ID)
+		if err != nil {
+			log.Error("failed to get enriched interest for notification", "interest_id", interest.ID, "error", err)
+		} else {
+			go c.notifier.NotifyJobSlotInterestReceived(args.Request.Context(), enriched, listing)
+		}
+	}
+
 	return interest, nil
 }
 
@@ -410,6 +432,30 @@ func (c *JobSlotRentals) UpdateInterestStatus(args *web.HandlerArgs) (any, *web.
 		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("invalid status")}
 	}
 
+	if req.Status == "accepted" {
+		_, err := c.repository.AcceptInterestWithAgreement(args.Request.Context(), interestID, userID)
+		if err != nil {
+			if err.Error() == "interest request not found or user not authorized" {
+				return nil, &web.HttpError{StatusCode: 404, Error: err}
+			}
+			if err.Error() == "interest request is not pending" {
+				return nil, &web.HttpError{StatusCode: 409, Error: err}
+			}
+			return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to accept interest request")}
+		}
+
+		if c.notifier != nil {
+			enriched, err := c.repository.GetInterestByID(args.Request.Context(), interestID)
+			if err != nil {
+				log.Error("failed to get enriched interest for notification", "interest_id", interestID, "error", err)
+			} else {
+				go c.notifier.NotifyJobSlotInterestStatusUpdated(args.Request.Context(), enriched, "accepted")
+			}
+		}
+
+		return nil, nil
+	}
+
 	if err := c.repository.UpdateInterestStatus(args.Request.Context(), interestID, userID, req.Status); err != nil {
 		if err.Error() == "interest request not found or user not authorized" {
 			return nil, &web.HttpError{StatusCode: 404, Error: err}
@@ -417,5 +463,106 @@ func (c *JobSlotRentals) UpdateInterestStatus(args *web.HandlerArgs) (any, *web.
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update interest status")}
 	}
 
+	if c.notifier != nil && req.Status == "declined" {
+		enriched, err := c.repository.GetInterestByID(args.Request.Context(), interestID)
+		if err != nil {
+			log.Error("failed to get enriched interest for notification", "interest_id", interestID, "error", err)
+		} else {
+			go c.notifier.NotifyJobSlotInterestStatusUpdated(args.Request.Context(), enriched, req.Status)
+		}
+	}
+
 	return nil, nil
+}
+
+// GetAgreements returns all agreements for the authenticated user
+func (c *JobSlotRentals) GetAgreements(args *web.HandlerArgs) (any, *web.HttpError) {
+	if args.User == nil {
+		return nil, &web.HttpError{StatusCode: 401, Error: errors.New("unauthorized")}
+	}
+
+	userID := *args.User
+	statusFilter := args.Request.URL.Query().Get("status")
+	role := args.Request.URL.Query().Get("role")
+
+	agreements, err := c.repository.GetAgreements(args.Request.Context(), userID, statusFilter, role)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get agreements")}
+	}
+
+	return agreements, nil
+}
+
+// UpdateAgreementStatus updates the status of an agreement (seller only)
+func (c *JobSlotRentals) UpdateAgreementStatus(args *web.HandlerArgs) (any, *web.HttpError) {
+	if args.User == nil {
+		return nil, &web.HttpError{StatusCode: 401, Error: errors.New("unauthorized")}
+	}
+
+	userID := *args.User
+
+	agreementIDStr, ok := args.Params["id"]
+	if !ok {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("agreement ID is required")}
+	}
+
+	agreementID, err := strconv.ParseInt(agreementIDStr, 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("invalid agreement ID")}
+	}
+
+	var req models.UpdateAgreementStatusRequest
+	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
+	}
+
+	if req.Status != "completed" && req.Status != "cancelled" {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("status must be 'completed' or 'cancelled'")}
+	}
+
+	if err := c.repository.UpdateAgreementStatus(args.Request.Context(), agreementID, userID, req.Status, req.CancellationReason); err != nil {
+		switch err.Error() {
+		case "agreement not found":
+			return nil, &web.HttpError{StatusCode: 404, Error: err}
+		case "not authorized to update this agreement":
+			return nil, &web.HttpError{StatusCode: 403, Error: err}
+		case "only active agreements can be updated":
+			return nil, &web.HttpError{StatusCode: 409, Error: err}
+		}
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update agreement status")}
+	}
+
+	return nil, nil
+}
+
+// GetAgreementJobs returns active ESI industry jobs for the character on an agreement's listing (seller only)
+func (c *JobSlotRentals) GetAgreementJobs(args *web.HandlerArgs) (any, *web.HttpError) {
+	if args.User == nil {
+		return nil, &web.HttpError{StatusCode: 401, Error: errors.New("unauthorized")}
+	}
+
+	userID := *args.User
+
+	agreementIDStr, ok := args.Params["id"]
+	if !ok {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("agreement ID is required")}
+	}
+
+	agreementID, err := strconv.ParseInt(agreementIDStr, 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("invalid agreement ID")}
+	}
+
+	jobs, err := c.repository.GetAgreementJobsByID(args.Request.Context(), agreementID, userID)
+	if err != nil {
+		switch err.Error() {
+		case "agreement not found":
+			return nil, &web.HttpError{StatusCode: 404, Error: err}
+		case "not authorized to view jobs for this agreement":
+			return nil, &web.HttpError{StatusCode: 403, Error: err}
+		}
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get agreement jobs")}
+	}
+
+	return jobs, nil
 }
