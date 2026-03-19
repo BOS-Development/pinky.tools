@@ -349,7 +349,12 @@ func (c *JobSlotRentals) CreateInterest(args *web.HandlerArgs) (any, *web.HttpEr
 	}
 
 	if c.notifier != nil {
-		go c.notifier.NotifyJobSlotInterestReceived(args.Request.Context(), interest, listing)
+		enriched, err := c.repository.GetInterestByID(args.Request.Context(), interest.ID)
+		if err != nil {
+			log.Error("failed to get enriched interest for notification", "interest_id", interest.ID, "error", err)
+		} else {
+			go c.notifier.NotifyJobSlotInterestReceived(args.Request.Context(), enriched, listing)
+		}
 	}
 
 	return interest, nil

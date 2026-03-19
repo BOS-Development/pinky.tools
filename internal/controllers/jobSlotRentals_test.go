@@ -827,6 +827,15 @@ func Test_JobSlotRentalsController_CreateInterest_FiresNotification(t *testing.T
 		IsActive:      true,
 	}
 
+	enrichedInterest := &models.JobSlotInterestRequest{
+		ID:              1,
+		ListingID:       listingID,
+		RequesterUserID: userID,
+		RequesterName:   "Requester User",
+		SlotsRequested:  2,
+		Status:          "pending",
+	}
+
 	mockRepo.On("GetByID", mock.Anything, listingID).Return(listing, nil)
 	mockRepo.On("CreateInterest", mock.Anything, mock.MatchedBy(func(interest *models.JobSlotInterestRequest) bool {
 		return interest.ListingID == listingID &&
@@ -834,6 +843,8 @@ func Test_JobSlotRentalsController_CreateInterest_FiresNotification(t *testing.T
 			interest.SlotsRequested == 2 &&
 			interest.Status == "pending"
 	})).Return(nil)
+	// GetInterestByID is called to fetch enriched interest (with RequesterName) before notifying
+	mockRepo.On("GetInterestByID", mock.Anything, mock.AnythingOfType("int64")).Return(enrichedInterest, nil).Maybe()
 	// Goroutine call — use Maybe() because timing is uncertain
 	mockNotifier.On("NotifyJobSlotInterestReceived", mock.Anything, mock.Anything, listing).Return().Maybe()
 
