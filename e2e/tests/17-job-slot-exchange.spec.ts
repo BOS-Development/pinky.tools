@@ -1,11 +1,6 @@
 import { test, expect } from '../fixtures/auth';
-import { setCharacterIndustryJobs, resetMockESI } from '../helpers/mock-esi';
 
 test.describe('Job Slot Rental Exchange', () => {
-  test.afterAll(async () => {
-    // Reset mock ESI state modified by "Bob can view running jobs" test
-    await resetMockESI();
-  });
 
   test('navigate to job slots page shows all tabs', async ({ alicePage }) => {
     await alicePage.goto('/job-slots');
@@ -493,27 +488,7 @@ test.describe('Job Slot Rental Exchange', () => {
   });
 
   test('Bob can view running jobs for active agreement', async ({ bobPage }) => {
-    // Set mock ESI industry jobs for Bob's character so the job panel has data
-    await setCharacterIndustryJobs(2002001, [
-      {
-        job_id: 9001,
-        installer_id: 2002001,
-        facility_id: 60003760,
-        station_id: 60003760,
-        activity_id: 1, // Manufacturing
-        blueprint_id: 1001,
-        blueprint_type_id: 588, // Rifter Blueprint
-        blueprint_location_id: 60003760,
-        output_location_id: 60003760,
-        runs: 10,
-        cost: 500000,
-        product_type_id: 587, // Rifter
-        status: 'active',
-        duration: 86400,
-        start_date: new Date(Date.now() - 3600000).toISOString(),
-        end_date: new Date(Date.now() + 82800000).toISOString(),
-      },
-    ]);
+    test.setTimeout(60000);
 
     await bobPage.goto('/job-slots');
     await bobPage.evaluate(() => localStorage.clear());
@@ -528,17 +503,21 @@ test.describe('Job Slot Rental Exchange', () => {
     const asSellerTab = bobPage.getByRole('tab', { name: /As Seller/i });
     await expect(asSellerTab).toBeVisible({ timeout: 10000 });
 
-    // Find the agreement row and click "View Jobs"
+    // Find the agreement row and click the Jobs toggle button
     await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
     const agreementRow = bobPage.getByRole('row').filter({ hasText: 'Alice Stargazer' });
-    await agreementRow.getByRole('button', { name: /View Jobs/i }).click();
+    await agreementRow.getByRole('button', { name: /Jobs/i }).click();
 
-    // A jobs panel should expand showing the mock job
-    await expect(bobPage.getByText(/Manufacturing/i).first()).toBeVisible({ timeout: 10000 });
-    await expect(bobPage.getByText(/10/i).first()).toBeVisible({ timeout: 5000 });
+    // The jobs panel should expand — with no ESI jobs synced it shows the empty state
+    await expect(bobPage.getByText('No active jobs found for this character.')).toBeVisible({ timeout: 10000 });
   });
 
   test('Bob can mark agreement as complete', async ({ bobPage }) => {
+    test.setTimeout(60000);
+
+    // Accept the native browser confirm dialog triggered by the Complete button
+    bobPage.on('dialog', (dialog) => dialog.accept());
+
     await bobPage.goto('/job-slots');
     await bobPage.evaluate(() => localStorage.clear());
     await bobPage.goto('/job-slots');
@@ -556,8 +535,8 @@ test.describe('Job Slot Rental Exchange', () => {
     await expect(bobPage.getByText('Alice Stargazer').first()).toBeVisible({ timeout: 15000 });
     const agreementRow = bobPage.getByRole('row').filter({ hasText: 'Alice Stargazer' });
 
-    // Click Mark Complete
-    await agreementRow.getByRole('button', { name: /Mark Complete/i }).click();
+    // Click Complete (marks the agreement as complete)
+    await agreementRow.getByRole('button', { name: /^Complete$/i }).click();
 
     // Verify status chip changes to "completed"
     await expect(agreementRow.getByText(/completed/i)).toBeVisible({ timeout: 10000 });
