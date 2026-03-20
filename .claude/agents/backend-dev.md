@@ -196,6 +196,78 @@ When moving code from one package to another (e.g., extracting shared logic from
 
 Current services:
 - `jobGeneration.go` — Production plan job generation: `WalkAndMergeSteps`, `SimulateAssignment`, `EstimateWallClock`, `FormatLocation`
+- `arbiter.go` — T2 opportunity scanning: `ScanOpportunities` — stateless calculation service (see pattern below)
+
+### Stateless Calculation Services
+
+For complex multi-step calculations that don't need DB side effects, create a pure function in `internal/services/` rather than wiring through the production plan system:
+
+```go
+// Takes all inputs as parameters, returns result — no DB writes
+func ScanOpportunities(ctx context.Context, userID int64, settings *models.ArbiterSettings, repo ArbiterRepository) (*models.ArbiterScanResult, error)
+```
+
+Key characteristics:
+- Bulk-load all data up front (prices, blueprints, decryptors) in one pass — avoid N+1 queries
+- Use a context struct to accumulate lazily-cached state during recursion
+- Controller calls directly — no runner or background job needed for on-demand calculations
+- Define a narrow repository interface in the service file for only the methods it needs
+
+### Feature Gate Pattern
+
+For user-specific features that should be hidden from most users:
+
+1. Add `feature_enabled BOOLEAN NOT NULL DEFAULT FALSE` to `users` table (via migration)
+2. Add a `GetFeatureEnabled(ctx, userID)` method to the repository
+3. Implement a private `checkFeatureGate` helper on the controller that returns 403:
+```go
+func (c *ArbiterController) checkFeatureGate(ctx context.Context, userID int64) *web.HttpError {
+    enabled, err := c.repo.GetArbiterEnabled(ctx, userID)
+    if err != nil {
+        return web.NewHttpError(http.StatusInternalServerError, "failed to check feature access")
+    }
+    if !enabled {
+        return web.NewHttpError(http.StatusForbidden, "Arbiter feature not enabled for this user")
+    }
+    return nil
+}
+```
+4. Call at the top of every handler before any other logic
+
+### WithXxx Optional Dependency Injection Pattern
+
+For optional post-processing steps in updaters (e.g., populating a derived table after the main import):
+
+```go
+// Define an interface for the optional dependency
+type SdeDecryptorRepository interface {
+    UpsertDecryptors(ctx context.Context) error
+}
+
+// Add optional field to updater struct
+type Sde struct {
+    decryptorRepository SdeDecryptorRepository // nil if not wired
+    // ...
+}
+
+// Fluent setter — called in root.go when the repo is available
+func (u *Sde) WithDecryptorRepository(r SdeDecryptorRepository) *Sde {
+    u.decryptorRepository = r
+    return u
+}
+
+// Nil-check before calling in Update()
+if u.decryptorRepository != nil {
+    if err := u.decryptorRepository.UpsertDecryptors(ctx); err != nil {
+        return errors.Wrap(err, "failed to upsert decryptors")
+    }
+}
+```
+
+Wire in `root.go`:
+```go
+sdeUpdater := updaters.NewSde(...).WithDecryptorRepository(arbiterRepository)
+```
 
 ## Testing
 
