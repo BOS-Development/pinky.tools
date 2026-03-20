@@ -22,6 +22,9 @@ type ArbiterScanRepository interface {
 	GetBestInventionCharacter(ctx context.Context, userID int64, blueprintTypeID int64) (*models.InventionCharacter, error)
 	GetCostIndexForSystem(ctx context.Context, systemID int64, activity string) (float64, error)
 	GetAdjustedPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]float64, error)
+	GetDemandStats(ctx context.Context, typeIDs []int64) (map[int64]*models.DemandStats, error)
+	GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
+	GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 }
 
 // ArbiterBOMRepository is the interface needed for building a BOM tree.
@@ -44,29 +47,74 @@ type bomResult struct {
 // arbiterContext holds all pre-loaded (and lazily cached) data for a single scan run.
 type arbiterContext struct {
 	settings       *models.ArbiterSettings
+	taxProfile     *models.ArbiterTaxProfile
 	prices         map[int64]*models.MarketPrice
 	adjustedPrices map[int64]float64
 	repo           ArbiterScanRepository
 	ctx            context.Context
 }
 
-// getPrice returns the Jita sell price for a type, fetching lazily if needed.
-func (ac *arbiterContext) getPrice(typeID int64) float64 {
+// loadPrice fetches the price record for a typeID, lazily fetching if missing.
+func (ac *arbiterContext) loadPrice(typeID int64) *models.MarketPrice {
 	if mp, ok := ac.prices[typeID]; ok {
-		if mp.SellPrice != nil {
-			return *mp.SellPrice
-		}
-		return 0
+		return mp
 	}
-	// Lazily fetch
 	newPrices, err := ac.repo.GetMarketPricesForTypes(ac.ctx, []int64{typeID})
 	if err == nil {
 		for k, v := range newPrices {
 			ac.prices[k] = v
 		}
-		if mp, ok := ac.prices[typeID]; ok && mp.SellPrice != nil {
-			return *mp.SellPrice
+		if mp, ok := ac.prices[typeID]; ok {
+			return mp
 		}
+	}
+	return nil
+}
+
+// getPrice returns the Jita sell price for a type (used for decryptor cost lookups).
+func (ac *arbiterContext) getPrice(typeID int64) float64 {
+	mp := ac.loadPrice(typeID)
+	if mp == nil {
+		return 0
+	}
+	if mp.SellPrice != nil {
+		return *mp.SellPrice
+	}
+	return 0
+}
+
+// getInputPrice returns price for input materials, respecting InputPriceType.
+func (ac *arbiterContext) getInputPrice(typeID int64) float64 {
+	mp := ac.loadPrice(typeID)
+	if mp == nil {
+		return 0
+	}
+	if ac.taxProfile.InputPriceType == "buy" {
+		if mp.BuyPrice != nil {
+			return *mp.BuyPrice
+		}
+		return 0
+	}
+	if mp.SellPrice != nil {
+		return *mp.SellPrice
+	}
+	return 0
+}
+
+// getOutputPrice returns price for the T2 product being sold, respecting OutputPriceType.
+func (ac *arbiterContext) getOutputPrice(typeID int64) float64 {
+	mp := ac.loadPrice(typeID)
+	if mp == nil {
+		return 0
+	}
+	if ac.taxProfile.OutputPriceType == "buy" {
+		if mp.BuyPrice != nil {
+			return *mp.BuyPrice
+		}
+		return 0
+	}
+	if mp.SellPrice != nil {
+		return *mp.SellPrice
 	}
 	return 0
 }
@@ -86,8 +134,21 @@ func (ac *arbiterContext) getAdjustedPrice(typeID int64) float64 {
 	return 0
 }
 
+// defaultTaxProfile returns a default tax profile with sensible defaults.
+func defaultTaxProfile() *models.ArbiterTaxProfile {
+	return &models.ArbiterTaxProfile{
+		InputPriceType:  "sell",
+		OutputPriceType: "sell",
+		SalesTaxRate:    3.6,
+		BrokerFeeRate:   0,
+	}
+}
+
 // ScanOpportunities runs the full Arbiter scan and returns ranked T2 opportunities.
-func ScanOpportunities(ctx context.Context, userID int64, settings *models.ArbiterSettings, repo ArbiterScanRepository) (*models.ArbiterScanResult, error) {
+func ScanOpportunities(ctx context.Context, userID int64, settings *models.ArbiterSettings, taxProfile *models.ArbiterTaxProfile, repo ArbiterScanRepository) (*models.ArbiterScanResult, error) {
+	if taxProfile == nil {
+		taxProfile = defaultTaxProfile()
+	}
 	items, err := repo.GetT2BlueprintsForScan(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get T2 blueprints")
@@ -121,8 +182,36 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 		return nil, errors.Wrap(err, "failed to load adjusted prices")
 	}
 
+	// Bulk-load demand stats (30d history + order book volume).
+	// Fallback: use daily_volume from market_prices when history is empty (new installs).
+	demandStats, err := repo.GetDemandStats(ctx, typeIDs)
+	if err != nil {
+		demandStats = map[int64]*models.DemandStats{}
+	}
+	// Fill in missing demand from market_prices.daily_volume as fallback
+	for _, typeID := range typeIDs {
+		if ds, ok := demandStats[typeID]; ok && ds.DemandPerDay > 0 {
+			continue
+		}
+		if mp, ok := prices[typeID]; ok && mp.DailyVolume != nil && *mp.DailyVolume > 0 {
+			vol := float64(*mp.DailyVolume)
+			if existing, ok := demandStats[typeID]; ok {
+				existing.DemandPerDay = vol
+				if existing.OrderBookVolume > 0 {
+					existing.DaysOfSupply = float64(existing.OrderBookVolume) / vol
+				}
+			} else {
+				demandStats[typeID] = &models.DemandStats{
+					TypeID:       typeID,
+					DemandPerDay: vol,
+				}
+			}
+		}
+	}
+
 	ac := &arbiterContext{
 		settings:       settings,
+		taxProfile:     taxProfile,
 		prices:         prices,
 		adjustedPrices: adjustedPrices,
 		repo:           repo,
@@ -145,18 +234,16 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 		if err != nil || opp == nil {
 			continue
 		}
+		// Apply demand stats
+		if ds, ok := demandStats[item.ProductTypeID]; ok {
+			opp.DemandPerDay = math.Round(ds.DemandPerDay*100) / 100
+			opp.DaysOfSupply = math.Round(ds.DaysOfSupply*100) / 100
+		}
 		opportunities = append(opportunities, opp)
 	}
 
 	sort.Slice(opportunities, func(i, j int) bool {
-		pi, pj := float64(0), float64(0)
-		if opportunities[i].BestDecryptor != nil {
-			pi = opportunities[i].BestDecryptor.Profit
-		}
-		if opportunities[j].BestDecryptor != nil {
-			pj = opportunities[j].BestDecryptor.Profit
-		}
-		return pi > pj
+		return opportunities[i].Profit > opportunities[j].Profit
 	})
 
 	result := &models.ArbiterScanResult{
@@ -211,14 +298,14 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 
 	noDecOpt, err := calculateDecryptorOption(ac, item, &models.Decryptor{
 		ProbabilityMultiplier: 1.0,
-	}, nil, effectiveChance, copyAndDatacoreCost, jitaSell, buildTime)
+	}, nil, effectiveChance, copyAndDatacoreCost, buildTime)
 	if err == nil && noDecOpt != nil {
 		allOptions = append(allOptions, noDecOpt)
 	}
 
 	for _, dec := range decryptors {
 		d := dec
-		opt, err := calculateDecryptorOption(ac, item, d, &d.TypeID, effectiveChance, copyAndDatacoreCost, jitaSell, buildTime)
+		opt, err := calculateDecryptorOption(ac, item, d, &d.TypeID, effectiveChance, copyAndDatacoreCost, buildTime)
 		if err == nil && opt != nil {
 			allOptions = append(allOptions, opt)
 		}
@@ -235,13 +322,33 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		}
 	}
 
+	outputPrice := ac.getOutputPrice(item.ProductTypeID)
+	revenue := outputPrice * float64(best.ResultingRuns)
+	salesTaxRate := ac.taxProfile.SalesTaxRate / 100.0
+	brokerFeeRate := ac.taxProfile.BrokerFeeRate / 100.0
+	salesTax := revenue * salesTaxRate
+	brokerFee := revenue * brokerFeeRate
+
 	return &models.ArbiterOpportunity{
 		ProductTypeID: item.ProductTypeID,
 		ProductName:   item.ProductName,
 		Category:      item.Category,
-		TechLevel:     "T2",
+		TechLevel:     "Tech II",
 		JitaSellPrice: jitaSell,
 		JitaBuyPrice:  jitaBuy,
+		Duration:      best.BuildTimeSec,
+		Runs:          best.ResultingRuns,
+		ME:            best.ME,
+		TE:            best.TE,
+		MaterialCost:  best.MaterialCost,
+		JobCost:       best.JobCost,
+		InventionCost: best.InventionCost,
+		TotalCost:     best.TotalCost,
+		Revenue:       math.Round(revenue*100) / 100,
+		SalesTax:      math.Round(salesTax*100) / 100,
+		BrokerFee:     math.Round(brokerFee*100) / 100,
+		Profit:        best.Profit,
+		ROI:           best.ROI,
 		BestDecryptor: best,
 		AllDecryptors: allOptions,
 	}, nil
@@ -254,7 +361,6 @@ func calculateDecryptorOption(
 	decryptorTypeID *int64,
 	effectiveChance float64,
 	copyAndDatacoreCost float64,
-	jitaSellPrice float64,
 	buildTime int64,
 ) (*models.DecryptorOption, error) {
 	chanceMod := effectiveChance * decryptor.ProbabilityMultiplier
@@ -289,8 +395,14 @@ func calculateDecryptorOption(
 	}
 
 	totalCost := bom.MaterialCost + bom.JobCost + inventionCost
-	profit := jitaSellPrice - totalCost
-	var roi float64
+	outputPrice := ac.getOutputPrice(item.ProductTypeID)
+	revenue := outputPrice * float64(resultRuns)
+	salesTaxRate := ac.taxProfile.SalesTaxRate / 100.0
+	brokerFeeRate := ac.taxProfile.BrokerFeeRate / 100.0
+	salesTax := revenue * salesTaxRate
+	brokerFee := revenue * brokerFeeRate
+	profit := revenue - totalCost - salesTax - brokerFee
+	roi := 0.0
 	if totalCost > 0 {
 		roi = profit / totalCost * 100.0
 	}
@@ -355,7 +467,7 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 
 	var dataCoreCost float64
 	for _, m := range datecoreMats {
-		dataCoreCost += ac.getPrice(m.TypeID) * float64(m.Quantity)
+		dataCoreCost += ac.getInputPrice(m.TypeID) * float64(m.Quantity)
 	}
 
 	// Copy cost: approximate using invention system cost index if configured
@@ -374,65 +486,196 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 	return dataCoreCost + copyCost, nil
 }
 
-// calculateFinalBOM computes the material + job cost for building the T2 product.
-// Uses only the T2 blueprint's direct materials (one level deep), buying sub-materials at market.
+// levelSettings holds the structure/rig/system configuration for a given manufacturing depth.
+type levelSettings struct {
+	structure string
+	rig       string
+	systemID  *int64
+}
+
+// settingsForDepth returns the structure settings to apply at a given recursion depth.
+// depth 0 = final T2 build, depth 1 = T2 component build, depth >= 2 = reaction.
+func (ac *arbiterContext) settingsForDepth(depth int) levelSettings {
+	s := ac.settings
+	switch depth {
+	case 0:
+		return levelSettings{s.FinalStructure, s.FinalRig, s.FinalSystemID}
+	case 1:
+		return levelSettings{s.ComponentStructure, s.ComponentRig, s.ComponentSystemID}
+	default: // depth >= 2 = reactions
+		return levelSettings{s.ReactionStructure, s.ReactionRig, s.ReactionSystemID}
+	}
+}
+
+// calcChainCost returns the total material cost and job cost to produce qty units of a product
+// using blueprintTypeID at the given depth. Recursively builds sub-components up to maxDepth.
+func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int) (materialCost float64, jobCost float64, buildTimeSec int64) {
+	const maxDepth = 4
+
+	if depth >= maxDepth || blueprintTypeID == 0 {
+		return 0, 0, 0
+	}
+
+	lvl := ac.settingsForDepth(depth)
+
+	// Try manufacturing activity first, then reaction
+	mats, err := ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, blueprintTypeID, "manufacturing")
+	activity := "manufacturing"
+	if err != nil || len(mats) == 0 {
+		mats, err = ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, blueprintTypeID, "reaction")
+		activity = "reaction"
+		if err != nil || len(mats) == 0 {
+			return 0, 0, 0
+		}
+	}
+
+	// Ensure prices are loaded for all materials
+	matTypeIDs := make([]int64, 0, len(mats))
+	for _, m := range mats {
+		matTypeIDs = append(matTypeIDs, m.TypeID)
+	}
+	if len(matTypeIDs) > 0 {
+		newPrices, _ := ac.repo.GetMarketPricesForTypes(ac.ctx, matTypeIDs)
+		for k, v := range newPrices {
+			ac.prices[k] = v
+		}
+		newAdj, _ := ac.repo.GetAdjustedPricesForTypes(ac.ctx, matTypeIDs)
+		for k, v := range newAdj {
+			ac.adjustedPrices[k] = v
+		}
+	}
+
+	// Determine how many units this blueprint produces per run (reactions: 50–150; manufacturing: usually 1).
+	// We need this to convert "units needed" into "runs needed".
+	productQtyPerRun := 1
+	if prod, perr := ac.repo.GetBlueprintProductForActivity(ac.ctx, blueprintTypeID, activity); perr == nil && prod != nil && prod.Quantity > 1 {
+		productQtyPerRun = prod.Quantity
+	}
+	runs := (qty + productQtyPerRun - 1) / productQtyPerRun // ceil(qty / productQtyPerRun)
+
+	var meFactor float64
+	if activity == "manufacturing" {
+		meFactor = calculator.ComputeManufacturingME(0, lvl.structure, lvl.rig, "null")
+	} else {
+		meFactor = calculator.ComputeMEFactor(lvl.rig, "null")
+	}
+
+	var totalMatCost, totalJobCost float64
+	var eiv float64
+
+	for _, m := range mats {
+		batchQty := int(calculator.ComputeBatchQty(runs, m.Quantity, meFactor))
+
+		// Try to find a manufacturing sub-blueprint first, then a reaction blueprint
+		subBpID, err := ac.repo.GetBlueprintForProduct(ac.ctx, m.TypeID)
+		if err != nil {
+			subBpID = 0
+		}
+		if subBpID == 0 {
+			subBpID, err = ac.repo.GetReactionBlueprintForProduct(ac.ctx, m.TypeID)
+			if err != nil {
+				subBpID = 0
+			}
+		}
+
+		if subBpID != 0 {
+			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, depth+1)
+			totalMatCost += subMat
+			totalJobCost += subJob
+		} else {
+			totalMatCost += ac.getInputPrice(m.TypeID) * float64(batchQty)
+		}
+
+		adjPrice := ac.getAdjustedPrice(m.TypeID)
+		eiv += float64(m.Quantity) * adjPrice
+	}
+
+	// Job cost for this level
+	if lvl.systemID != nil {
+		costIdx, err := ac.repo.GetCostIndexForSystem(ac.ctx, *lvl.systemID, activity)
+		if err == nil && costIdx > 0 {
+			if activity == "manufacturing" {
+				structBonus := calculator.ManufacturingStructureCostBonus(lvl.structure)
+				totalJobCost += (eiv*costIdx*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
+			} else {
+				// Reactions: EIV × (cost_index + scc_surcharge) per run
+				totalJobCost += eiv * (costIdx + calculator.SccSurchargeRate) * float64(runs)
+			}
+		}
+	}
+
+	buildTime, _ := ac.repo.GetBlueprintActivityTime(ac.ctx, blueprintTypeID, activity)
+
+	return totalMatCost, totalJobCost, buildTime * int64(runs)
+}
+
+// calculateFinalBOM computes the full production chain material + job cost for building the T2 product.
+// It applies the correct ME from the T2 BPC at the final level, then recursively builds sub-components
+// (T2 components at depth=1, reactions at depth=2) using the appropriate structure settings.
 func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me int, runs int) (*bomResult, error) {
 	structure := ac.settings.FinalStructure
 	rig := ac.settings.FinalRig
 	systemID := ac.settings.FinalSystemID
 
-	// Derive security class from system if system is set
-	security := "null"
-	if systemID != nil {
-		security = deriveSecurityClassFromSettings(ac)
-	}
-
-	meFactor := calculator.ComputeManufacturingME(me, structure, rig, security)
+	meFactor := calculator.ComputeManufacturingME(me, structure, rig, "null")
 
 	mats, err := ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, item.BlueprintTypeID, "manufacturing")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get T2 manufacturing materials")
 	}
 
-	// Ensure material prices are loaded
+	// Ensure prices are loaded for direct materials
 	matTypeIDs := make([]int64, 0, len(mats))
 	for _, m := range mats {
 		matTypeIDs = append(matTypeIDs, m.TypeID)
 	}
 	if len(matTypeIDs) > 0 {
-		newPrices, err := ac.repo.GetMarketPricesForTypes(ac.ctx, matTypeIDs)
-		if err == nil {
-			for k, v := range newPrices {
-				ac.prices[k] = v
-			}
+		newPrices, _ := ac.repo.GetMarketPricesForTypes(ac.ctx, matTypeIDs)
+		for k, v := range newPrices {
+			ac.prices[k] = v
 		}
-		// Also ensure adjusted prices
-		newAdj, err := ac.repo.GetAdjustedPricesForTypes(ac.ctx, matTypeIDs)
-		if err == nil {
-			for k, v := range newAdj {
-				ac.adjustedPrices[k] = v
-			}
+		newAdj, _ := ac.repo.GetAdjustedPricesForTypes(ac.ctx, matTypeIDs)
+		for k, v := range newAdj {
+			ac.adjustedPrices[k] = v
 		}
 	}
 
-	var totalMatCost float64
+	var totalMatCost, totalJobCost float64
 	var eiv float64
 
 	for _, m := range mats {
-		batchQty := calculator.ComputeBatchQty(runs, m.Quantity, meFactor)
-		price := ac.getPrice(m.TypeID)
-		totalMatCost += price * float64(batchQty)
+		batchQty := int(calculator.ComputeBatchQty(runs, m.Quantity, meFactor))
+
+		// Recurse into sub-components starting at depth=1 (component level)
+		subBpID, err := ac.repo.GetBlueprintForProduct(ac.ctx, m.TypeID)
+		if err != nil {
+			subBpID = 0
+		}
+		if subBpID == 0 {
+			subBpID, err = ac.repo.GetReactionBlueprintForProduct(ac.ctx, m.TypeID)
+			if err != nil {
+				subBpID = 0
+			}
+		}
+
+		if subBpID != 0 {
+			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, 1)
+			totalMatCost += subMat
+			totalJobCost += subJob
+		} else {
+			totalMatCost += ac.getInputPrice(m.TypeID) * float64(batchQty)
+		}
 
 		adjPrice := ac.getAdjustedPrice(m.TypeID)
 		eiv += float64(m.Quantity) * adjPrice
 	}
 
-	var jobCost float64
+	// Final manufacturing job cost
 	if systemID != nil {
 		costIndex, err := ac.repo.GetCostIndexForSystem(ac.ctx, *systemID, "manufacturing")
 		if err == nil && costIndex > 0 {
 			structBonus := calculator.ManufacturingStructureCostBonus(structure)
-			jobCost = (eiv*costIndex*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
+			totalJobCost += (eiv*costIndex*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
 		}
 	}
 
@@ -443,7 +686,7 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 
 	return &bomResult{
 		MaterialCost: totalMatCost,
-		JobCost:      jobCost,
+		JobCost:      totalJobCost,
 		BuildTimeSec: buildTime * int64(runs),
 	}, nil
 }

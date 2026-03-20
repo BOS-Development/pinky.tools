@@ -365,6 +365,23 @@ func (r *ArbiterRepository) GetBlueprintForProduct(ctx context.Context, productT
 	return bpID, nil
 }
 
+// GetReactionBlueprintForProduct returns the blueprint type ID that reacts/produces the given product type.
+// Returns 0 if no reaction blueprint found.
+func (r *ArbiterRepository) GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
+	var bpID int64
+	err := r.db.QueryRowContext(ctx,
+		`SELECT blueprint_type_id FROM sde_blueprint_products WHERE type_id = $1 AND activity = 'reaction' LIMIT 1`,
+		productTypeID,
+	).Scan(&bpID)
+	if err == sql.ErrNoRows {
+		return 0, nil
+	}
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to query reaction blueprint for product")
+	}
+	return bpID, nil
+}
+
 // GetBestInventionCharacter returns the character with the highest invention chance for a blueprint.
 // Considers Racial Encryption Methods skill and two Science skills required by the blueprint.
 func (r *ArbiterRepository) GetBestInventionCharacter(ctx context.Context, userID int64, blueprintTypeID int64) (*models.InventionCharacter, error) {

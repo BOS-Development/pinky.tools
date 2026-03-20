@@ -286,7 +286,15 @@ func (c *Arbiter) GetArbiterOpportunities(args *web.HandlerArgs) (any, *web.Http
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get arbiter settings")}
 	}
 
-	result, err := services.ScanOpportunities(ctx, userID, settings, c.scanRepo)
+	var taxProfile *models.ArbiterTaxProfile
+	if c.taxRepo != nil {
+		taxProfile, err = c.taxRepo.GetTaxProfile(ctx, userID)
+		if err != nil {
+			return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get tax profile")}
+		}
+	}
+
+	result, err := services.ScanOpportunities(ctx, userID, settings, taxProfile, c.scanRepo)
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to scan opportunities")}
 	}

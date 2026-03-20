@@ -111,6 +111,24 @@ func (m *MockArbiterScanRepository) GetAdjustedPricesForTypes(ctx context.Contex
 	return args.Get(0).(map[int64]float64), args.Error(1)
 }
 
+func (m *MockArbiterScanRepository) GetDemandStats(ctx context.Context, typeIDs []int64) (map[int64]*models.DemandStats, error) {
+	args := m.Called(ctx, typeIDs)
+	if args.Get(0) == nil {
+		return map[int64]*models.DemandStats{}, args.Error(1)
+	}
+	return args.Get(0).(map[int64]*models.DemandStats), args.Error(1)
+}
+
+func (m *MockArbiterScanRepository) GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
+	args := m.Called(ctx, productTypeID)
+	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockArbiterScanRepository) GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
+	args := m.Called(ctx, productTypeID)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 // Ensure MockArbiterScanRepository satisfies services.ArbiterScanRepository
 var _ services.ArbiterScanRepository = &MockArbiterScanRepository{}
 
@@ -570,6 +588,82 @@ func Test_ArbiterGetOpportunities_Returns200_WithEmptyResults(t *testing.T) {
 
 	mocks.settings.AssertExpectations(t)
 	mocks.scan.AssertExpectations(t)
+}
+
+func Test_ArbiterGetOpportunities_LoadsTaxProfile_WhenTaxRepoSet(t *testing.T) {
+	c, mocks := setupArbiterControllerFull()
+	userID := int64(100)
+
+	defaultSettings := &models.ArbiterSettings{
+		UserID:             userID,
+		ReactionStructure:  "athanor",
+		ReactionRig:        "t1",
+		InventionStructure: "raitaru",
+		InventionRig:       "t1",
+		ComponentStructure: "raitaru",
+		ComponentRig:       "t2",
+		FinalStructure:     "raitaru",
+		FinalRig:           "t2",
+	}
+	taxProfile := &models.ArbiterTaxProfile{
+		UserID:          userID,
+		SalesTaxRate:    3.6,
+		BrokerFeeRate:   1.0,
+		InputPriceType:  "sell",
+		OutputPriceType: "sell",
+	}
+
+	mocks.settings.On("GetArbiterEnabled", mock.Anything, userID).Return(true, nil)
+	mocks.settings.On("GetArbiterSettings", mock.Anything, userID).Return(defaultSettings, nil)
+	mocks.tax.On("GetTaxProfile", mock.Anything, userID).Return(taxProfile, nil)
+	mocks.scan.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{}, nil)
+
+	req := httptest.NewRequest("GET", "/v1/arbiter/opportunities", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := c.GetArbiterOpportunities(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	scanResult, ok := result.(*models.ArbiterScanResult)
+	assert.True(t, ok)
+	assert.Equal(t, 0, scanResult.TotalScanned)
+
+	mocks.settings.AssertExpectations(t)
+	mocks.tax.AssertExpectations(t)
+	mocks.scan.AssertExpectations(t)
+}
+
+func Test_ArbiterGetOpportunities_Returns500_WhenTaxProfileFails(t *testing.T) {
+	c, mocks := setupArbiterControllerFull()
+	userID := int64(100)
+
+	defaultSettings := &models.ArbiterSettings{
+		UserID:             userID,
+		ReactionStructure:  "athanor",
+		ReactionRig:        "t1",
+		InventionStructure: "raitaru",
+		InventionRig:       "t1",
+		ComponentStructure: "raitaru",
+		ComponentRig:       "t2",
+		FinalStructure:     "raitaru",
+		FinalRig:           "t2",
+	}
+
+	mocks.settings.On("GetArbiterEnabled", mock.Anything, userID).Return(true, nil)
+	mocks.settings.On("GetArbiterSettings", mock.Anything, userID).Return(defaultSettings, nil)
+	mocks.tax.On("GetTaxProfile", mock.Anything, userID).Return((*models.ArbiterTaxProfile)(nil), errors.New("db error"))
+
+	req := httptest.NewRequest("GET", "/v1/arbiter/opportunities", nil)
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := c.GetArbiterOpportunities(args)
+	assert.Nil(t, result)
+	assert.NotNil(t, httpErr)
+	assert.Equal(t, 500, httpErr.StatusCode)
+
+	mocks.settings.AssertExpectations(t)
+	mocks.tax.AssertExpectations(t)
 }
 
 // --- Scopes ---

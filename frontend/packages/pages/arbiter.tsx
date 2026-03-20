@@ -2259,7 +2259,7 @@ export default function ArbiterPage() {
             <div className="flex flex-col items-center justify-center py-16 gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-text-secondary">
-                Scanning blueprints... this may take 10–30 seconds
+                Scanning blueprints... this may take several minutes
               </p>
             </div>
           ) : scanError ? (
