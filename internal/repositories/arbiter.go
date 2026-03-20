@@ -110,9 +110,25 @@ ON CONFLICT (user_id) DO UPDATE SET
 // GetDecryptors returns all decryptors from sde_decryptors.
 func (r *ArbiterRepository) GetDecryptors(ctx context.Context) ([]*models.Decryptor, error) {
 	query := `
-SELECT type_id, name, probability_multiplier, me_modifier, te_modifier, run_modifier
+SELECT
+  type_id,
+  REPLACE(name, ' Decryptor', '') AS name,
+  probability_multiplier,
+  me_modifier,
+  te_modifier,
+  run_modifier
 FROM sde_decryptors
-ORDER BY name
+WHERE name IN (
+  'Accelerant Decryptor',
+  'Attainment Decryptor',
+  'Augmentation Decryptor',
+  'Optimized Attainment Decryptor',
+  'Optimized Augmentation Decryptor',
+  'Parity Decryptor',
+  'Process Decryptor',
+  'Symmetry Decryptor'
+)
+ORDER BY run_modifier DESC
 `
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
