@@ -19,15 +19,7 @@ export default async function handler(
   }
 
   try {
-    const params = new URLSearchParams();
-    if (req.query.scope_id) params.set("scope_id", String(req.query.scope_id));
-    if (req.query.input_price) params.set("input_price", String(req.query.input_price));
-    if (req.query.output_price) params.set("output_price", String(req.query.output_price));
-    if (req.query.decryptor_type_id) params.set("decryptor_type_id", String(req.query.decryptor_type_id));
-
-    const url = `${backend}v1/arbiter/opportunities?${params.toString()}`;
-
-    const response = await fetch(url, {
+    const response = await fetch(`${backend}v1/arbiter/decryptors`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -44,7 +36,7 @@ export default async function handler(
     const data = await response.json();
     return res.status(200).json(data);
   } catch (error) {
-    console.error("Arbiter opportunities API error:", error);
-    return res.status(500).json({ error: "Failed to fetch arbiter opportunities" });
+    console.error("Arbiter decryptors API error:", error);
+    return res.status(500).json({ error: "Failed to fetch decryptors" });
   }
 }

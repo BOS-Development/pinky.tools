@@ -1,0 +1,478 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ArbiterListsPage renders loading state 1`] = `
+<div>
+  <div
+    data-testid="loading"
+  />
+</div>
+`;
+
+exports[`ArbiterListsPage renders page with whitelist and blacklist after load 1`] = `
+<div>
+  <nav
+    data-testid="navbar"
+  />
+  <div
+    class="px-4 pb-8 bg-background-void min-h-screen"
+  >
+    <div
+      class="flex items-center gap-3 py-3"
+    >
+      <a
+        href="/arbiter"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-arrow-left h-5 w-5"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m12 19-7-7 7-7"
+          />
+          <path
+            d="M19 12H5"
+          />
+        </svg>
+      </a>
+      <h1
+        class="text-xl font-semibold text-text-heading"
+      >
+        Arbiter Lists
+      </h1>
+      <span
+        class="text-sm text-text-muted"
+      >
+        Whitelist & Blacklist Management
+      </span>
+    </div>
+    <div
+      class="grid grid-cols-2 gap-6"
+    >
+      <div
+        class="border border-overlay-subtle rounded-lg bg-background-panel"
+      >
+        <div
+          class="px-4 py-3 border-b border-overlay-subtle"
+        >
+          <h2
+            class="text-sm font-semibold text-teal-success"
+          >
+            Whitelist (
+            2
+            )
+          </h2>
+          <p
+            class="text-xs text-text-muted mt-0.5"
+          >
+            When "Use Whitelist" is enabled, only these items will appear in results.
+          </p>
+        </div>
+        <div
+          class="px-4 py-3 border-b border-overlay-subtle"
+        >
+          <div
+            class="relative"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m21 21-4.34-4.34"
+              />
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+              />
+            </svg>
+            <input
+              class="flex w-full rounded-sm border border-[var(--color-border-dim)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-8 h-8 text-sm bg-background-elevated"
+              placeholder="Search items to add..."
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="px-4 py-2 border-b border-overlay-subtle"
+        >
+          <div
+            class="relative"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m21 21-4.34-4.34"
+              />
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+              />
+            </svg>
+            <input
+              class="flex w-full rounded-sm border border-[var(--color-border-dim)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-8 h-7 text-xs bg-background-elevated"
+              placeholder="Filter list..."
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="overflow-y-auto max-h-[500px]"
+        >
+          <div
+            class="relative w-full overflow-auto"
+          >
+            <table
+              class="w-full caption-bottom text-sm"
+            >
+              <thead
+                class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+              >
+                <tr
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-transparent"
+                >
+                  <th
+                    class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                  >
+                    Item
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted text-right"
+                  >
+                    Type ID
+                  </th>
+                  <th
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 w-10"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="[&_tr:last-child]:border-0"
+              >
+                <tr
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-interactive-hover"
+                >
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-primary"
+                  >
+                    <span
+                      class="flex items-center gap-2"
+                    >
+                      <img
+                        alt="Widow"
+                        class="w-5 h-5 rounded flex-shrink-0"
+                        src="https://images.evetech.net/types/22436/icon?size=32"
+                      />
+                      Widow
+                    </span>
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted text-right font-mono"
+                  >
+                    22436
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-right"
+                  >
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-6 w-6 text-text-muted hover:text-rose-danger"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-x h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6 6 18"
+                        />
+                        <path
+                          d="m6 6 12 12"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+                <tr
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-interactive-hover"
+                >
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-primary"
+                  >
+                    <span
+                      class="flex items-center gap-2"
+                    >
+                      <img
+                        alt="Vagabond"
+                        class="w-5 h-5 rounded flex-shrink-0"
+                        src="https://images.evetech.net/types/12005/icon?size=32"
+                      />
+                      Vagabond
+                    </span>
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted text-right font-mono"
+                  >
+                    12005
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-right"
+                  >
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-6 w-6 text-text-muted hover:text-rose-danger"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-x h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6 6 18"
+                        />
+                        <path
+                          d="m6 6 12 12"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div
+        class="border border-overlay-subtle rounded-lg bg-background-panel"
+      >
+        <div
+          class="px-4 py-3 border-b border-overlay-subtle"
+        >
+          <h2
+            class="text-sm font-semibold text-rose-danger"
+          >
+            Blacklist (
+            1
+            )
+          </h2>
+          <p
+            class="text-xs text-text-muted mt-0.5"
+          >
+            When "Use Blacklist" is enabled, these items will be hidden from results.
+          </p>
+        </div>
+        <div
+          class="px-4 py-3 border-b border-overlay-subtle"
+        >
+          <div
+            class="relative"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m21 21-4.34-4.34"
+              />
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+              />
+            </svg>
+            <input
+              class="flex w-full rounded-sm border border-[var(--color-border-dim)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-8 h-8 text-sm bg-background-elevated"
+              placeholder="Search items to add..."
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="px-4 py-2 border-b border-overlay-subtle"
+        >
+          <div
+            class="relative"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m21 21-4.34-4.34"
+              />
+              <circle
+                cx="11"
+                cy="11"
+                r="8"
+              />
+            </svg>
+            <input
+              class="flex w-full rounded-sm border border-[var(--color-border-dim)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-8 h-7 text-xs bg-background-elevated"
+              placeholder="Filter list..."
+              value=""
+            />
+          </div>
+        </div>
+        <div
+          class="overflow-y-auto max-h-[500px]"
+        >
+          <div
+            class="relative w-full overflow-auto"
+          >
+            <table
+              class="w-full caption-bottom text-sm"
+            >
+              <thead
+                class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+              >
+                <tr
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-transparent"
+                >
+                  <th
+                    class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                  >
+                    Item
+                  </th>
+                  <th
+                    class="h-10 px-2 align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted text-right"
+                  >
+                    Type ID
+                  </th>
+                  <th
+                    class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 text-xs uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 w-10"
+                  />
+                </tr>
+              </thead>
+              <tbody
+                class="[&_tr:last-child]:border-0"
+              >
+                <tr
+                  class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-interactive-hover"
+                >
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-primary"
+                  >
+                    <span
+                      class="flex items-center gap-2"
+                    >
+                      <img
+                        alt="Ibis"
+                        class="w-5 h-5 rounded flex-shrink-0"
+                        src="https://images.evetech.net/types/55555/icon?size=32"
+                      />
+                      Ibis
+                    </span>
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted text-right font-mono"
+                  >
+                    55555
+                  </td>
+                  <td
+                    class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-right"
+                  >
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-[var(--color-surface-elevated)] h-6 w-6 text-text-muted hover:text-rose-danger"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-x h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M18 6 6 18"
+                        />
+                        <path
+                          d="m6 6 12 12"
+                        />
+                      </svg>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ArbiterListsPage renders unauthorized state 1`] = `
+<div>
+  <div
+    data-testid="unauthorized"
+  />
+</div>
+`;

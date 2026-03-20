@@ -24,6 +24,16 @@ type ArbiterScanRepository interface {
 	GetAdjustedPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]float64, error)
 }
 
+// ArbiterBOMRepository is the interface needed for building a BOM tree.
+type ArbiterBOMRepository interface {
+	GetBlueprintMaterialsForActivity(ctx context.Context, blueprintTypeID int64, activity string) ([]*models.BlueprintMaterial, error)
+	GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
+	GetMarketPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]*models.MarketPrice, error)
+	GetAdjustedPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]float64, error)
+	GetBlueprintActivityTime(ctx context.Context, blueprintTypeID int64, activity string) (int64, error)
+	GetCostIndexForSystem(ctx context.Context, systemID int64, activity string) (float64, error)
+}
+
 // bomResult holds the accumulated material and job cost for a BOM tree calculation.
 type bomResult struct {
 	MaterialCost float64
@@ -229,6 +239,7 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		ProductTypeID: item.ProductTypeID,
 		ProductName:   item.ProductName,
 		Category:      item.Category,
+		TechLevel:     "T2",
 		JitaSellPrice: jitaSell,
 		JitaBuyPrice:  jitaBuy,
 		BestDecryptor: best,
@@ -308,6 +319,8 @@ func calculateDecryptorOption(
 		RunModifier:           decryptor.RunModifier,
 		ResultingME:           resultME,
 		ResultingRuns:         resultRuns,
+		ME:                    resultME,
+		TE:                    decryptor.TEModifier,
 		InventionCost:         math.Round(inventionCost*100) / 100,
 		MaterialCost:          math.Round(bom.MaterialCost*100) / 100,
 		JobCost:               math.Round(bom.JobCost*100) / 100,
@@ -366,8 +379,13 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me int, runs int) (*bomResult, error) {
 	structure := ac.settings.FinalStructure
 	rig := ac.settings.FinalRig
-	security := ac.settings.FinalSecurity
 	systemID := ac.settings.FinalSystemID
+
+	// Derive security class from system if system is set
+	security := "null"
+	if systemID != nil {
+		security = deriveSecurityClassFromSettings(ac)
+	}
 
 	meFactor := calculator.ComputeManufacturingME(me, structure, rig, security)
 
@@ -428,4 +446,271 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 		JobCost:      jobCost,
 		BuildTimeSec: buildTime * int64(runs),
 	}, nil
+}
+
+// deriveSecurityClassFromSettings returns a security class string from settings.
+// Since security fields were removed from the model, we use a sensible default.
+func deriveSecurityClassFromSettings(ac *arbiterContext) string {
+	// Without the security columns, we can't determine it from settings.
+	// The security class must be derived from the system at runtime.
+	// Default to "null" (most conservative for ME bonus calculations).
+	return "null"
+}
+
+// --- BOM tree ---
+
+// bomTreeContext holds shared state for building a BOM tree.
+type bomTreeContext struct {
+	ctx            context.Context
+	repo           ArbiterBOMRepository
+	settings       *models.ArbiterSettings
+	prices         map[int64]*models.MarketPrice
+	adjustedPrices map[int64]float64
+	blacklist      map[int64]bool
+	whitelist      map[int64]bool
+	assets         map[int64]int64
+	inputPriceType string
+	buildAll       bool
+}
+
+// getInputPrice returns the price to use for material cost based on inputPriceType.
+func (btc *bomTreeContext) getInputPrice(typeID int64) float64 {
+	mp, ok := btc.prices[typeID]
+	if !ok {
+		// Lazily fetch
+		newPrices, err := btc.repo.GetMarketPricesForTypes(btc.ctx, []int64{typeID})
+		if err == nil {
+			for k, v := range newPrices {
+				btc.prices[k] = v
+			}
+		}
+		mp = btc.prices[typeID]
+	}
+	if mp == nil {
+		return 0
+	}
+	if btc.inputPriceType == "buy" {
+		if mp.BuyPrice != nil {
+			return *mp.BuyPrice
+		}
+		return 0
+	}
+	// default: sell
+	if mp.SellPrice != nil {
+		return *mp.SellPrice
+	}
+	return 0
+}
+
+// getBuyPrice returns the sell price (what it costs to buy from market).
+func (btc *bomTreeContext) getBuyPrice(typeID int64) float64 {
+	mp, ok := btc.prices[typeID]
+	if !ok {
+		newPrices, err := btc.repo.GetMarketPricesForTypes(btc.ctx, []int64{typeID})
+		if err == nil {
+			for k, v := range newPrices {
+				btc.prices[k] = v
+			}
+		}
+		mp = btc.prices[typeID]
+	}
+	if mp == nil {
+		return 0
+	}
+	if mp.SellPrice != nil {
+		return *mp.SellPrice
+	}
+	return 0
+}
+
+// BuildBOMTree builds a full recursive BOM tree for a product.
+// blueprintTypeID is the blueprint used to manufacture the product.
+// qty is the number of units needed.
+// depth prevents infinite recursion (max 10).
+func BuildBOMTree(
+	ctx context.Context,
+	blueprintTypeID int64,
+	productTypeID int64,
+	productName string,
+	qty int64,
+	me int,
+	repo ArbiterBOMRepository,
+	settings *models.ArbiterSettings,
+	blacklist map[int64]bool,
+	whitelist map[int64]bool,
+	assets map[int64]int64,
+	inputPriceType string,
+	buildAll bool,
+) (*models.BOMNode, error) {
+	prices, err := repo.GetMarketPricesForTypes(ctx, []int64{productTypeID})
+	if err != nil {
+		prices = map[int64]*models.MarketPrice{}
+	}
+	adjPrices, err := repo.GetAdjustedPricesForTypes(ctx, []int64{productTypeID})
+	if err != nil {
+		adjPrices = map[int64]float64{}
+	}
+
+	btc := &bomTreeContext{
+		ctx:            ctx,
+		repo:           repo,
+		settings:       settings,
+		prices:         prices,
+		adjustedPrices: adjPrices,
+		blacklist:      blacklist,
+		whitelist:      whitelist,
+		assets:         assets,
+		inputPriceType: inputPriceType,
+		buildAll:       buildAll,
+	}
+
+	return buildBOMNode(btc, blueprintTypeID, productTypeID, productName, qty, me, 0)
+}
+
+// buildBOMNode recursively builds a BOM node.
+func buildBOMNode(
+	btc *bomTreeContext,
+	blueprintTypeID int64,
+	productTypeID int64,
+	productName string,
+	qty int64,
+	me int,
+	depth int,
+) (*models.BOMNode, error) {
+	const maxDepth = 10
+
+	buyPrice := btc.getBuyPrice(productTypeID)
+	available := btc.assets[productTypeID]
+	needed := qty
+	delta := needed - available
+	if delta < 0 {
+		delta = 0
+	}
+
+	isBlacklisted := btc.blacklist[productTypeID]
+	isWhitelisted := btc.whitelist[productTypeID]
+
+	// build_all forces every node to be treated as whitelisted unless explicitly blacklisted
+	if btc.buildAll && !isBlacklisted {
+		isWhitelisted = true
+	}
+
+	node := &models.BOMNode{
+		TypeID:        productTypeID,
+		Name:          productName,
+		Quantity:      qty,
+		Available:     available,
+		Needed:        needed,
+		Delta:         delta,
+		UnitBuyPrice:  buyPrice,
+		IsBlacklisted: isBlacklisted,
+		IsWhitelisted: isWhitelisted,
+		Children:      []*models.BOMNode{},
+	}
+
+	// If depth limit reached, or no blueprint, or blacklisted → buy
+	if depth >= maxDepth || blueprintTypeID == 0 || isBlacklisted {
+		if isBlacklisted {
+			node.Decision = "buy_override"
+		} else {
+			node.Decision = "buy"
+		}
+		return node, nil
+	}
+
+	// Get materials for this blueprint
+	mats, err := btc.repo.GetBlueprintMaterialsForActivity(btc.ctx, blueprintTypeID, "manufacturing")
+	if err != nil {
+		node.Decision = "buy"
+		return node, nil
+	}
+	if len(mats) == 0 {
+		node.Decision = "buy"
+		return node, nil
+	}
+
+	// Calculate build cost for the materials
+	structure := btc.settings.FinalStructure
+	rig := btc.settings.FinalRig
+	meFactor := calculator.ComputeManufacturingME(me, structure, rig, "null")
+
+	var buildCost float64
+	children := []*models.BOMNode{}
+
+	for _, mat := range mats {
+		batchQty := calculator.ComputeBatchQty(int(qty), mat.Quantity, meFactor)
+		matBuyPrice := btc.getBuyPrice(mat.TypeID)
+		matBuildCost := matBuyPrice // default: buy
+
+		// Check if this material has a blueprint for sub-building
+		subBpID, err := btc.repo.GetBlueprintForProduct(btc.ctx, mat.TypeID)
+		if err != nil {
+			subBpID = 0
+		}
+
+		var childNode *models.BOMNode
+		if subBpID != 0 && depth+1 < maxDepth && !btc.blacklist[mat.TypeID] {
+			// Recurse to build sub-tree
+			childNode, err = buildBOMNode(btc, subBpID, mat.TypeID, mat.TypeName, int64(batchQty), 0, depth+1)
+			if err != nil || childNode == nil {
+				childNode = &models.BOMNode{
+					TypeID:       mat.TypeID,
+					Name:         mat.TypeName,
+					Quantity:     int64(batchQty),
+					Available:    btc.assets[mat.TypeID],
+					Needed:       int64(batchQty),
+					UnitBuyPrice: matBuyPrice,
+					Decision:     "buy",
+					Children:     []*models.BOMNode{},
+				}
+			}
+			if childNode.Decision == "build" || childNode.Decision == "build_override" {
+				matBuildCost = childNode.UnitBuildCost
+			}
+		} else {
+			childNode = &models.BOMNode{
+				TypeID:       mat.TypeID,
+				Name:         mat.TypeName,
+				Quantity:     int64(batchQty),
+				Available:    btc.assets[mat.TypeID],
+				Needed:       int64(batchQty),
+				UnitBuyPrice: matBuyPrice,
+				Decision:     "buy",
+				Children:     []*models.BOMNode{},
+			}
+			if btc.blacklist[mat.TypeID] {
+				childNode.Decision = "buy_override"
+			}
+		}
+
+		buildCost += matBuildCost * float64(batchQty)
+		children = append(children, childNode)
+	}
+
+	// Compute per-unit build cost
+	var unitBuildCost float64
+	if qty > 0 {
+		unitBuildCost = buildCost / float64(qty)
+	}
+	node.UnitBuildCost = math.Round(unitBuildCost*100) / 100
+	node.Children = children
+
+	// Decide: build or buy
+	if isWhitelisted {
+		node.Decision = "build_override"
+	} else if isBlacklisted {
+		node.Decision = "buy_override"
+	} else if unitBuildCost > 0 && buyPrice > 0 {
+		if unitBuildCost < buyPrice {
+			node.Decision = "build"
+		} else {
+			node.Decision = "buy"
+		}
+	} else if unitBuildCost > 0 {
+		node.Decision = "build"
+	} else {
+		node.Decision = "buy"
+	}
+
+	return node, nil
 }

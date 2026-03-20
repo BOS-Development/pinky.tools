@@ -97,6 +97,11 @@ func Test_MarketPricesUpdaterShouldUpdateJitaMarket(t *testing.T) {
 		}).
 		Times(1)
 
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
+		Times(1)
+
 	// Create updater
 	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
 
@@ -286,6 +291,11 @@ func Test_MarketPricesUpdater_EmptyOrders(t *testing.T) {
 		}).
 		Times(1)
 
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
+		Times(1)
+
 	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
 
 	err := updater.UpdateJitaMarket(context.Background())
@@ -332,6 +342,11 @@ func Test_MarketPricesUpdater_OnlyBuyOrders(t *testing.T) {
 		}).
 		Times(1)
 
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
+		Times(1)
+
 	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
 
 	err := updater.UpdateJitaMarket(context.Background())
@@ -376,6 +391,11 @@ func Test_MarketPricesUpdater_OnlySellOrders(t *testing.T) {
 			assert.Equal(t, 5.50, *prices[0].SellPrice) // Lowest sell order
 			return nil
 		}).
+		Times(1)
+
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
 		Times(1)
 
 	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
@@ -429,6 +449,11 @@ func Test_MarketPricesUpdater_MultiplePricesPicksBest(t *testing.T) {
 			assert.Equal(t, int64(7400), *prices[0].DailyVolume)
 			return nil
 		}).
+		Times(1)
+
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
 		Times(1)
 
 	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
@@ -532,6 +557,11 @@ func Test_MarketPricesUpdater_FiltersNonJitaOrders(t *testing.T) {
 
 			return nil
 		}).
+		Times(1)
+
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
 		Times(1)
 
 	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)

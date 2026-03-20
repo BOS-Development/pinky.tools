@@ -19,6 +19,7 @@ type MarketPricesRepository interface {
 	UpsertPrices(ctx context.Context, prices []models.MarketPrice) error
 	DeleteAllForRegion(ctx context.Context, regionID int64) error
 	GetLastUpdateTime(ctx context.Context, regionID int64) (*time.Time, error)
+	InsertPriceHistorySnapshot(ctx context.Context, snapshotDate time.Time) error
 }
 
 type MarketPricesEsiClient interface {
@@ -94,6 +95,7 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 		bestBuy := 0.0
 		bestSell := math.MaxFloat64
 		totalVolume := int64(0)
+		orderBookVolume := int64(0)
 
 		for _, order := range typeOrders {
 			totalVolume += order.VolumeRemain
@@ -108,6 +110,8 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 				if order.Price < bestSell {
 					bestSell = order.Price
 				}
+				// Accumulate sell-side order book volume (D.O.S. denominator)
+				orderBookVolume += order.VolumeRemain
 			}
 		}
 
@@ -123,11 +127,12 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 		}
 
 		prices = append(prices, models.MarketPrice{
-			TypeID:      typeID,
-			RegionID:    JitaRegionID,
-			BuyPrice:    buyPrice,
-			SellPrice:   sellPrice,
-			DailyVolume: &totalVolume,
+			TypeID:          typeID,
+			RegionID:        JitaRegionID,
+			BuyPrice:        buyPrice,
+			SellPrice:       sellPrice,
+			DailyVolume:     &totalVolume,
+			OrderBookVolume: &orderBookVolume,
 		})
 	}
 
@@ -141,6 +146,12 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 	err = u.marketPricesRepo.UpsertPrices(ctx, prices)
 	if err != nil {
 		return errors.Wrap(err, "failed to upsert market prices")
+	}
+
+	// Snapshot today's prices into history (once per day — ON CONFLICT DO NOTHING)
+	if err := u.marketPricesRepo.InsertPriceHistorySnapshot(ctx, time.Now()); err != nil {
+		log.Error("failed to insert price history snapshot", "error", err)
+		// Non-fatal — continue
 	}
 
 	if u.autoSellSyncer != nil {

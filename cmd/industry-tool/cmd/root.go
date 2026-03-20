@@ -180,7 +180,7 @@ var rootCmd = &cobra.Command{
 		jobSlotRentalsRepository := repositories.NewJobSlotRentals(db)
 		controllers.NewJobSlotRentals(router, jobSlotRentalsRepository, contactPermissionsRepository)
 
-		controllers.NewArbiter(router, arbiterRepository, arbiterRepository)
+		controllers.NewArbiterFull(router, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository)
 
 		haulingRunsRepo := repositories.NewHaulingRuns(db)
 		haulingRunItemsRepo := repositories.NewHaulingRunItems(db)
