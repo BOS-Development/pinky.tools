@@ -383,6 +383,129 @@ describe('ArbiterPage', () => {
     expect(screen.getByText('Caldari Navy Kinetic Plating')).toBeInTheDocument();
   });
 
+  it('filters by search text', async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { name: 'Test User' }, providerAccountId: '12345' } as any,
+      status: 'authenticated',
+      update: jest.fn(),
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOpportunitiesResponse,
+    } as Response);
+
+    render(<ArbiterPage />);
+    fireEvent.click(screen.getByRole('button', { name: /scan opportunities/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Vagabond')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search items...');
+    fireEvent.change(searchInput, { target: { value: 'vagabond' } });
+
+    expect(screen.getByText('Vagabond')).toBeInTheDocument();
+    expect(screen.queryByText('Caldari Navy Kinetic Plating')).not.toBeInTheDocument();
+  });
+
+  it('clears search text with clear button', async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { name: 'Test User' }, providerAccountId: '12345' } as any,
+      status: 'authenticated',
+      update: jest.fn(),
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOpportunitiesResponse,
+    } as Response);
+
+    render(<ArbiterPage />);
+    fireEvent.click(screen.getByRole('button', { name: /scan opportunities/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Vagabond')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText('Search items...');
+    fireEvent.change(searchInput, { target: { value: 'vagabond' } });
+
+    const clearButton = screen.getByRole('button', { name: /clear search/i });
+    fireEvent.click(clearButton);
+
+    expect(screen.getByText('Vagabond')).toBeInTheDocument();
+    expect(screen.getByText('Caldari Navy Kinetic Plating')).toBeInTheDocument();
+  });
+
+  it('renders search input in opportunities section', () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { name: 'Test User' }, providerAccountId: '12345' } as any,
+      status: 'authenticated',
+      update: jest.fn(),
+    });
+    render(<ArbiterPage />);
+    expect(screen.getByPlaceholderText('Search items...')).toBeInTheDocument();
+  });
+
+  it('shows category sort button in table header after scan', async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { name: 'Test User' }, providerAccountId: '12345' } as any,
+      status: 'authenticated',
+      update: jest.fn(),
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOpportunitiesResponse,
+    } as Response);
+
+    render(<ArbiterPage />);
+    fireEvent.click(screen.getByRole('button', { name: /scan opportunities/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Vagabond')).toBeInTheDocument();
+    });
+
+    // Category header is a button with text "Category"
+    const catSortBtn = screen.getByRole('button', { name: /^category$/i });
+    expect(catSortBtn).toBeInTheDocument();
+  });
+
+  it('cycles category sort on header click', async () => {
+    mockUseSession.mockReturnValue({
+      data: { user: { name: 'Test User' }, providerAccountId: '12345' } as any,
+      status: 'authenticated',
+      update: jest.fn(),
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockOpportunitiesResponse,
+    } as Response);
+
+    render(<ArbiterPage />);
+    fireEvent.click(screen.getByRole('button', { name: /scan opportunities/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Vagabond')).toBeInTheDocument();
+    });
+
+    // Category sort cycles: none -> ships_first -> modules_first -> none
+    // The button title changes with each state
+    const catSortBtn = screen.getByRole('button', { name: /^category$/i });
+    expect(catSortBtn).toHaveAttribute('title', 'Sort: ships first');
+
+    fireEvent.click(catSortBtn);
+    expect(catSortBtn).toHaveAttribute('title', 'Sort: modules first');
+
+    fireEvent.click(catSortBtn);
+    expect(catSortBtn).toHaveAttribute('title', 'Remove category sort');
+
+    fireEvent.click(catSortBtn);
+    expect(catSortBtn).toHaveAttribute('title', 'Sort: ships first');
+  });
+
   it('saves settings on button click', async () => {
     mockUseSession.mockReturnValue({
       data: { user: { name: 'Test User' }, providerAccountId: '12345' } as any,

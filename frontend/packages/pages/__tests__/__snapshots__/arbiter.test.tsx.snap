@@ -804,6 +804,41 @@ exports[`ArbiterPage renders initial authenticated state with empty results 1`] 
         </div>
       </div>
       <div
+        class="px-4 py-2 border-b border-overlay-subtle"
+      >
+        <div
+          class="relative max-w-xs"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m21 21-4.34-4.34"
+            />
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+            />
+          </svg>
+          <input
+            class="flex w-full rounded-sm border px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-8 h-8 text-sm bg-background-elevated border-overlay-subtle"
+            placeholder="Search items..."
+            value=""
+          />
+        </div>
+      </div>
+      <div
         class="flex flex-col items-center justify-center py-16 gap-2"
       >
         <p
@@ -1629,6 +1664,41 @@ exports[`ArbiterPage renders opportunities table after successful scan 1`] = `
         </div>
       </div>
       <div
+        class="px-4 py-2 border-b border-overlay-subtle"
+      >
+        <div
+          class="relative max-w-xs"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m21 21-4.34-4.34"
+            />
+            <circle
+              cx="11"
+              cy="11"
+              r="8"
+            />
+          </svg>
+          <input
+            class="flex w-full rounded-sm border px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-8 h-8 text-sm bg-background-elevated border-overlay-subtle"
+            placeholder="Search items..."
+            value=""
+          />
+        </div>
+      </div>
+      <div
         class="flex items-center gap-4 px-4 py-2 border-b border-overlay-subtle text-xs text-text-muted"
       >
         <span>
@@ -1675,7 +1745,32 @@ exports[`ArbiterPage renders opportunities table after successful scan 1`] = `
               <th
                 class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
               >
-                Category
+                <button
+                  class="flex items-center gap-0.5 hover:text-text-primary transition-colors"
+                  title="Sort: ships first"
+                >
+                  Category
+                  <svg
+                    aria-hidden="true"
+                    class="lucide lucide-chevrons-up-down h-3 w-3 inline-block ml-1 opacity-40"
+                    fill="none"
+                    height="24"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    viewBox="0 0 24 24"
+                    width="24"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="m7 15 5 5 5-5"
+                    />
+                    <path
+                      d="m7 9 5-5 5 5"
+                    />
+                  </svg>
+                </button>
               </th>
               <th
                 class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"

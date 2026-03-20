@@ -332,7 +332,7 @@ LIMIT 3
 	charQuery := `
 SELECT
 	c.id,
-	c.character_name,
+	c.name,
 	cs.skill_id,
 	COALESCE(cs.active_level, 0)
 FROM characters c

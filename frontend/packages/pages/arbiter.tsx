@@ -29,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, ChevronDown, ChevronUp, ChevronRight, Settings2 } from "lucide-react";
+import { Loader2, ChevronDown, ChevronUp, ChevronRight, Settings2, Search, X, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // --- Types ---
@@ -141,6 +141,7 @@ const DEFAULT_SETTINGS: ArbiterSettings = {
 
 type SortField = "profit" | "roi" | "isk_per_day";
 type FilterCategory = "all" | "ship" | "module";
+type CategorySort = "none" | "ships_first" | "modules_first";
 
 // --- StructureSection ---
 
@@ -419,6 +420,8 @@ export default function ArbiterPage() {
 
   const [filter, setFilter] = useState<FilterCategory>("all");
   const [sortBy, setSortBy] = useState<SortField>("profit");
+  const [categorySort, setCategorySort] = useState<CategorySort>("none");
+  const [search, setSearch] = useState("");
 
   const handleSettingChange = useCallback(
     (key: keyof ArbiterSettings, value: string | number) => {
@@ -495,12 +498,21 @@ export default function ArbiterPage() {
   }
 
   // Filter + sort
+  const searchLower = search.toLowerCase();
   const filtered = (opportunities?.opportunities ?? []).filter((o) => {
-    if (filter === "all") return true;
-    return o.category === filter;
+    if (filter !== "all" && o.category !== filter) return false;
+    if (searchLower && !o.product_name.toLowerCase().includes(searchLower)) return false;
+    return true;
   });
 
   const sorted = [...filtered].sort((a, b) => {
+    // Category sort takes precedence when active
+    if (categorySort !== "none") {
+      const aIsShip = a.category === "ship" ? 0 : 1;
+      const bIsShip = b.category === "ship" ? 0 : 1;
+      if (categorySort === "ships_first" && aIsShip !== bIsShip) return aIsShip - bIsShip;
+      if (categorySort === "modules_first" && aIsShip !== bIsShip) return bIsShip - aIsShip;
+    }
     switch (sortBy) {
       case "roi":
         return b.best_decryptor.roi - a.best_decryptor.roi;
@@ -510,6 +522,20 @@ export default function ArbiterPage() {
         return b.best_decryptor.profit - a.best_decryptor.profit;
     }
   });
+
+  const handleCategorySort = () => {
+    setCategorySort((prev) => {
+      if (prev === "none") return "ships_first";
+      if (prev === "ships_first") return "modules_first";
+      return "none";
+    });
+  };
+
+  const categorySortIcon = categorySort === "ships_first"
+    ? <ChevronUp className="h-3 w-3 inline-block ml-1" />
+    : categorySort === "modules_first"
+    ? <ChevronDown className="h-3 w-3 inline-block ml-1" />
+    : <ChevronsUpDown className="h-3 w-3 inline-block ml-1 opacity-40" />;
 
   const SortButton = ({
     field,
@@ -664,6 +690,28 @@ export default function ArbiterPage() {
             </div>
           </div>
 
+          {/* Search input */}
+          <div className="px-4 py-2 border-b border-overlay-subtle">
+            <div className="relative max-w-xs">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none" />
+              <Input
+                className="pl-8 pr-8 h-8 text-sm bg-background-elevated border-overlay-subtle"
+                placeholder="Search items..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors"
+                  aria-label="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Results */}
           {scanning ? (
             <div className="flex flex-col items-center justify-center py-16 gap-3">
@@ -685,7 +733,9 @@ export default function ArbiterPage() {
           ) : sorted.length === 0 ? (
             <div className="flex items-center justify-center py-12">
               <p className="text-sm text-text-secondary">
-                No profitable opportunities found with current market data
+                {search
+                  ? `No results matching "${search}"`
+                  : "No profitable opportunities found with current market data"}
               </p>
             </div>
           ) : (
@@ -703,6 +753,7 @@ export default function ArbiterPage() {
                   <span>
                     {sorted.length} result{sorted.length !== 1 ? "s" : ""}
                     {filter !== "all" ? ` (${filter}s)` : ""}
+                    {search ? ` matching "${search}"` : ""}
                   </span>
                 </div>
               )}
@@ -711,7 +762,22 @@ export default function ArbiterPage() {
                   <TableRow className="border-overlay-subtle hover:bg-transparent">
                     <TableHead className="py-2 w-8 text-xs text-text-muted">#</TableHead>
                     <TableHead className="py-2 text-xs text-text-muted">Item</TableHead>
-                    <TableHead className="py-2 text-xs text-text-muted">Category</TableHead>
+                    <TableHead className="py-2 text-xs text-text-muted">
+                      <button
+                        onClick={handleCategorySort}
+                        className="flex items-center gap-0.5 hover:text-text-primary transition-colors"
+                        title={
+                          categorySort === "none"
+                            ? "Sort: ships first"
+                            : categorySort === "ships_first"
+                            ? "Sort: modules first"
+                            : "Remove category sort"
+                        }
+                      >
+                        Category
+                        {categorySortIcon}
+                      </button>
+                    </TableHead>
                     <TableHead className="py-2 text-xs text-text-muted">Sell Price</TableHead>
                     <TableHead className="py-2 text-xs text-text-muted">Total Cost</TableHead>
                     <TableHead className="py-2 text-xs text-text-muted">Net Profit</TableHead>
