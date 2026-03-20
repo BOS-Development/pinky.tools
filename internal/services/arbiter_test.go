@@ -880,6 +880,105 @@ func Test_ScanOpportunities_RecursiveChain_BuysAtMarket_WhenNoBlueprintFound(t *
 	repo.AssertExpectations(t)
 }
 
+// Test_ScanOpportunities_ReactionProRating verifies that when a T2 component requires fewer
+// units than a reaction run produces, costs are scaled proportionally and not inflated by the
+// full run output. E.g. needing 1,000 units from a 10,000-unit reaction run should cost 10%
+// of the full run, not 100%.
+func Test_ScanOpportunities_ReactionProRating(t *testing.T) {
+	// Setup:
+	//   T2 product (typeID 7001, blueprint 7002, T1 blueprint 7003)
+	//   T2 blueprint requires 1,000x composite mat (typeID 7010)
+	//   Composite mat (7010) is produced by reaction blueprint (7011) at 10,000 units/run
+	//   Reaction blueprint requires 5x raw input (typeID 7020), market price 1,000 ISK each
+	//
+	// Full reaction run cost (inputs only, no adjusted prices / job cost):
+	//   5 raw × 1,000 ISK = 5,000 ISK per run → produces 10,000 units
+	//
+	// Pro-rated cost for 1,000 units (10% of run):
+	//   5,000 × (1,000/10,000) = 500 ISK
+	//
+	// Without the fix, we'd pay 5,000 ISK (10× inflation).
+
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	productSellPrice := float64(50_000_000) // generous sell price so opportunity appears
+	compMarketPrice := float64(10_000_000)  // high market price so build path is chosen
+	rawPrice := float64(1_000)
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       7001,
+		ProductName:         "T2 Armor Plate",
+		BlueprintTypeID:     7002,
+		T1BlueprintTypeID:   7003,
+		BaseInventionChance: 1.0,
+		BaseResultME:        0,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		7001: {TypeID: 7001, SellPrice: &productSellPrice},
+		7010: {TypeID: 7010, SellPrice: &compMarketPrice},
+		7020: {TypeID: 7020, SellPrice: &rawPrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(7003)).Return((*models.InventionCharacter)(nil), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7002), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7011), "reaction").Return(int64(3600), nil)
+
+	// Invention materials for T1 blueprint
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7003), "invention").Return([]*models.BlueprintMaterial{}, nil)
+
+	// T2 blueprint materials: 1,000x composite (7010)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7002), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 7010, TypeName: "Crystalline Carbonide", Quantity: 1000},
+		}, nil)
+
+	// Reaction blueprint (7011) requires 5x raw input, produces 10,000 composite per run
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7011), "reaction").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 7020, TypeName: "Raw Ore", Quantity: 5},
+		}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "manufacturing").Return([]*models.BlueprintMaterial{}, nil).Maybe()
+
+	// The reaction blueprint product: 10,000 units per run
+	reactionProduct := &models.BlueprintProduct{TypeID: 7010, Quantity: 10000}
+	repo.On("GetBlueprintProductForActivity", mock.Anything, int64(7011), "reaction").Return(reactionProduct, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+
+	// Composite mat (7010) has a reaction blueprint (7011), no manufacturing blueprint
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(7010)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(7010)).Return(int64(7011), nil)
+	// Raw input (7020) has no blueprint
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(7020)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(7020)).Return(int64(0), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+
+	// The reaction produces 10,000 units/run but we only need 1,000.
+	// With pro-rating: mat cost ≈ 5 raw × 1,000 ISK × (1,000/10,000) = 500 ISK.
+	// Without pro-rating: mat cost ≈ 5 raw × 1,000 ISK = 5,000 ISK (10× too high).
+	//
+	// The actual cost may include ME reductions and job costs, so we assert it is well
+	// below the inflated un-pro-rated ceiling (5,000 ISK), confirming the fix is active.
+	const inflatedCeiling = float64(5_000)
+	assert.Less(t, opp.MaterialCost, inflatedCeiling,
+		"Material cost should be pro-rated to 1,000/10,000 of the reaction run, not the full run cost")
+	assert.Greater(t, opp.MaterialCost, float64(0),
+		"Material cost should be positive")
+
+	repo.AssertExpectations(t)
+}
+
 func defaultArbiterSettings() *models.ArbiterSettings {
 	return &models.ArbiterSettings{
 		UserID:             1,

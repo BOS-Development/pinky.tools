@@ -712,8 +712,19 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 	}
 
 	buildTime := ac.getBlueprintTime(blueprintTypeID, activity)
+	totalBuildTime := buildTime * int64(runs)
 
-	return totalMatCost, totalJobCost, buildTime * int64(runs)
+	// Pro-rate costs: we computed for `runs × productQtyPerRun` units,
+	// but only `qty` are consumed. Scale proportionally.
+	// For manufacturing (productQtyPerRun=1), scale=1.0 (no change).
+	if productQtyPerRun > 1 && runs > 0 {
+		scale := float64(qty) / float64(runs*productQtyPerRun)
+		totalMatCost *= scale
+		totalJobCost *= scale
+		totalBuildTime = int64(math.Round(float64(totalBuildTime) * scale))
+	}
+
+	return totalMatCost, totalJobCost, totalBuildTime
 }
 
 // calculateFinalBOM computes the full production chain material + job cost for building the T2 product.
