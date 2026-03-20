@@ -28,6 +28,7 @@ type EveInventoryType struct {
 	PortionSize    *int
 	Published      *bool
 	MarketGroupID  *int64
+	MetaGroupID    *int64
 	GraphicID      *int64
 	RaceID         *int64
 	Description    *string
