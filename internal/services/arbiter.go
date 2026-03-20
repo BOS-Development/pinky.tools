@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"sort"
 	"time"
@@ -52,6 +53,52 @@ type arbiterContext struct {
 	adjustedPrices map[int64]float64
 	repo           ArbiterScanRepository
 	ctx            context.Context
+
+	// Blueprint data caches — avoid repeated DB roundtrips
+	bpMatsCache       map[string][]*models.BlueprintMaterial // key: "blueprintID:activity"
+	bpProductCache    map[string]*models.BlueprintProduct    // key: "blueprintID:activity"
+	bpTimeCache       map[string]int64                       // key: "blueprintID:activity"
+	bpForProductCache map[int64]int64                        // typeID → blueprintTypeID (0 = not found)
+	rxForProductCache map[int64]int64                        // typeID → reactionBlueprintTypeID (0 = not found)
+	costIndexCache    map[string]float64                     // key: "systemID:activity"
+}
+
+// ensurePrices loads market prices for any typeIDs not already cached in ac.prices.
+func (ac *arbiterContext) ensurePrices(typeIDs []int64) {
+	missing := make([]int64, 0, len(typeIDs))
+	for _, id := range typeIDs {
+		if _, ok := ac.prices[id]; !ok {
+			missing = append(missing, id)
+		}
+	}
+	if len(missing) == 0 {
+		return
+	}
+	newPrices, err := ac.repo.GetMarketPricesForTypes(ac.ctx, missing)
+	if err == nil {
+		for k, v := range newPrices {
+			ac.prices[k] = v
+		}
+	}
+}
+
+// ensureAdjustedPrices loads adjusted prices for any typeIDs not already cached.
+func (ac *arbiterContext) ensureAdjustedPrices(typeIDs []int64) {
+	missing := make([]int64, 0, len(typeIDs))
+	for _, id := range typeIDs {
+		if _, ok := ac.adjustedPrices[id]; !ok {
+			missing = append(missing, id)
+		}
+	}
+	if len(missing) == 0 {
+		return
+	}
+	newAdj, err := ac.repo.GetAdjustedPricesForTypes(ac.ctx, missing)
+	if err == nil {
+		for k, v := range newAdj {
+			ac.adjustedPrices[k] = v
+		}
+	}
 }
 
 // loadPrice fetches the price record for a typeID, lazily fetching if missing.
@@ -134,6 +181,84 @@ func (ac *arbiterContext) getAdjustedPrice(typeID int64) float64 {
 	return 0
 }
 
+// getBlueprintMaterials returns materials for a blueprint activity, using cache to avoid repeated DB calls.
+func (ac *arbiterContext) getBlueprintMaterials(blueprintTypeID int64, activity string) ([]*models.BlueprintMaterial, error) {
+	key := fmt.Sprintf("%d:%s", blueprintTypeID, activity)
+	if mats, ok := ac.bpMatsCache[key]; ok {
+		return mats, nil
+	}
+	mats, err := ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, blueprintTypeID, activity)
+	if err != nil {
+		return nil, err
+	}
+	ac.bpMatsCache[key] = mats
+	return mats, nil
+}
+
+// getBlueprintProduct returns the product for a blueprint activity, using cache to avoid repeated DB calls.
+func (ac *arbiterContext) getBlueprintProduct(blueprintTypeID int64, activity string) (*models.BlueprintProduct, error) {
+	key := fmt.Sprintf("%d:%s", blueprintTypeID, activity)
+	if prod, ok := ac.bpProductCache[key]; ok {
+		return prod, nil
+	}
+	prod, err := ac.repo.GetBlueprintProductForActivity(ac.ctx, blueprintTypeID, activity)
+	if err != nil {
+		return nil, err
+	}
+	ac.bpProductCache[key] = prod
+	return prod, nil
+}
+
+// getBlueprintTime returns the activity time for a blueprint, using cache to avoid repeated DB calls.
+func (ac *arbiterContext) getBlueprintTime(blueprintTypeID int64, activity string) int64 {
+	key := fmt.Sprintf("%d:%s", blueprintTypeID, activity)
+	if t, ok := ac.bpTimeCache[key]; ok {
+		return t
+	}
+	t, _ := ac.repo.GetBlueprintActivityTime(ac.ctx, blueprintTypeID, activity)
+	ac.bpTimeCache[key] = t
+	return t
+}
+
+// getBlueprintForProduct returns the manufacturing blueprint ID for a product type, using cache.
+// Returns 0 if not found.
+func (ac *arbiterContext) getBlueprintForProduct(typeID int64) int64 {
+	if id, ok := ac.bpForProductCache[typeID]; ok {
+		return id
+	}
+	id, err := ac.repo.GetBlueprintForProduct(ac.ctx, typeID)
+	if err != nil {
+		id = 0
+	}
+	ac.bpForProductCache[typeID] = id
+	return id
+}
+
+// getReactionForProduct returns the reaction blueprint ID for a product type, using cache.
+// Returns 0 if not found.
+func (ac *arbiterContext) getReactionForProduct(typeID int64) int64 {
+	if id, ok := ac.rxForProductCache[typeID]; ok {
+		return id
+	}
+	id, err := ac.repo.GetReactionBlueprintForProduct(ac.ctx, typeID)
+	if err != nil {
+		id = 0
+	}
+	ac.rxForProductCache[typeID] = id
+	return id
+}
+
+// getCostIndex returns the cost index for a system and activity, using cache to avoid repeated DB calls.
+func (ac *arbiterContext) getCostIndex(systemID int64, activity string) float64 {
+	key := fmt.Sprintf("%d:%s", systemID, activity)
+	if c, ok := ac.costIndexCache[key]; ok {
+		return c
+	}
+	c, _ := ac.repo.GetCostIndexForSystem(ac.ctx, systemID, activity)
+	ac.costIndexCache[key] = c
+	return c
+}
+
 // defaultTaxProfile returns a default tax profile with sensible defaults.
 func defaultTaxProfile() *models.ArbiterTaxProfile {
 	return &models.ArbiterTaxProfile{
@@ -210,12 +335,18 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 	}
 
 	ac := &arbiterContext{
-		settings:       settings,
-		taxProfile:     taxProfile,
-		prices:         prices,
-		adjustedPrices: adjustedPrices,
-		repo:           repo,
-		ctx:            ctx,
+		settings:          settings,
+		taxProfile:        taxProfile,
+		prices:            prices,
+		adjustedPrices:    adjustedPrices,
+		repo:              repo,
+		ctx:               ctx,
+		bpMatsCache:       map[string][]*models.BlueprintMaterial{},
+		bpProductCache:    map[string]*models.BlueprintProduct{},
+		bpTimeCache:       map[string]int64{},
+		bpForProductCache: map[int64]int64{},
+		rxForProductCache: map[int64]int64{},
+		costIndexCache:    map[string]float64{},
 	}
 
 	// Find best invention character using the first T1 blueprint as representative
@@ -288,10 +419,7 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 	}
 
 	// Manufacturing build time for the T2 product
-	buildTime, err := ac.repo.GetBlueprintActivityTime(ac.ctx, item.BlueprintTypeID, "manufacturing")
-	if err != nil {
-		buildTime = 0
-	}
+	buildTime := ac.getBlueprintTime(item.BlueprintTypeID, "manufacturing")
 
 	// Build all decryptor options: no-decryptor + each decryptor
 	allOptions := make([]*models.DecryptorOption, 0, len(decryptors)+1)
@@ -446,7 +574,7 @@ func calculateDecryptorOption(
 
 // calculateInventionBaseCost returns copy cost + datacore cost for one invention attempt.
 func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScanItem) (float64, error) {
-	datecoreMats, err := ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, item.T1BlueprintTypeID, "invention")
+	datecoreMats, err := ac.getBlueprintMaterials(item.T1BlueprintTypeID, "invention")
 	if err != nil {
 		return 0, errors.Wrap(err, "failed to get datacore materials")
 	}
@@ -456,14 +584,7 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 	for _, m := range datecoreMats {
 		datacoreTypeIDs = append(datacoreTypeIDs, m.TypeID)
 	}
-	if len(datacoreTypeIDs) > 0 {
-		newPrices, err := ac.repo.GetMarketPricesForTypes(ac.ctx, datacoreTypeIDs)
-		if err == nil {
-			for k, v := range newPrices {
-				ac.prices[k] = v
-			}
-		}
-	}
+	ac.ensurePrices(datacoreTypeIDs)
 
 	var dataCoreCost float64
 	for _, m := range datecoreMats {
@@ -473,9 +594,9 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 	// Copy cost: approximate using invention system cost index if configured
 	var copyCost float64
 	if ac.settings.InventionSystemID != nil {
-		copyIdx, err := ac.repo.GetCostIndexForSystem(ac.ctx, *ac.settings.InventionSystemID, "copying")
-		if err == nil && copyIdx > 0 {
-			t1Product, err := ac.repo.GetBlueprintProductForActivity(ac.ctx, item.T1BlueprintTypeID, "manufacturing")
+		copyIdx := ac.getCostIndex(*ac.settings.InventionSystemID, "copying")
+		if copyIdx > 0 {
+			t1Product, err := ac.getBlueprintProduct(item.T1BlueprintTypeID, "manufacturing")
 			if err == nil && t1Product != nil {
 				adjPrice := ac.getAdjustedPrice(t1Product.TypeID)
 				copyCost = adjPrice * copyIdx
@@ -519,10 +640,10 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 	lvl := ac.settingsForDepth(depth)
 
 	// Try manufacturing activity first, then reaction
-	mats, err := ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, blueprintTypeID, "manufacturing")
+	mats, err := ac.getBlueprintMaterials(blueprintTypeID, "manufacturing")
 	activity := "manufacturing"
 	if err != nil || len(mats) == 0 {
-		mats, err = ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, blueprintTypeID, "reaction")
+		mats, err = ac.getBlueprintMaterials(blueprintTypeID, "reaction")
 		activity = "reaction"
 		if err != nil || len(mats) == 0 {
 			return 0, 0, 0
@@ -534,21 +655,13 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 	for _, m := range mats {
 		matTypeIDs = append(matTypeIDs, m.TypeID)
 	}
-	if len(matTypeIDs) > 0 {
-		newPrices, _ := ac.repo.GetMarketPricesForTypes(ac.ctx, matTypeIDs)
-		for k, v := range newPrices {
-			ac.prices[k] = v
-		}
-		newAdj, _ := ac.repo.GetAdjustedPricesForTypes(ac.ctx, matTypeIDs)
-		for k, v := range newAdj {
-			ac.adjustedPrices[k] = v
-		}
-	}
+	ac.ensurePrices(matTypeIDs)
+	ac.ensureAdjustedPrices(matTypeIDs)
 
 	// Determine how many units this blueprint produces per run (reactions: 50–150; manufacturing: usually 1).
 	// We need this to convert "units needed" into "runs needed".
 	productQtyPerRun := 1
-	if prod, perr := ac.repo.GetBlueprintProductForActivity(ac.ctx, blueprintTypeID, activity); perr == nil && prod != nil && prod.Quantity > 1 {
+	if prod, perr := ac.getBlueprintProduct(blueprintTypeID, activity); perr == nil && prod != nil && prod.Quantity > 1 {
 		productQtyPerRun = prod.Quantity
 	}
 	runs := (qty + productQtyPerRun - 1) / productQtyPerRun // ceil(qty / productQtyPerRun)
@@ -567,15 +680,9 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 		batchQty := int(calculator.ComputeBatchQty(runs, m.Quantity, meFactor))
 
 		// Try to find a manufacturing sub-blueprint first, then a reaction blueprint
-		subBpID, err := ac.repo.GetBlueprintForProduct(ac.ctx, m.TypeID)
-		if err != nil {
-			subBpID = 0
-		}
+		subBpID := ac.getBlueprintForProduct(m.TypeID)
 		if subBpID == 0 {
-			subBpID, err = ac.repo.GetReactionBlueprintForProduct(ac.ctx, m.TypeID)
-			if err != nil {
-				subBpID = 0
-			}
+			subBpID = ac.getReactionForProduct(m.TypeID)
 		}
 
 		if subBpID != 0 {
@@ -592,8 +699,8 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 
 	// Job cost for this level
 	if lvl.systemID != nil {
-		costIdx, err := ac.repo.GetCostIndexForSystem(ac.ctx, *lvl.systemID, activity)
-		if err == nil && costIdx > 0 {
+		costIdx := ac.getCostIndex(*lvl.systemID, activity)
+		if costIdx > 0 {
 			if activity == "manufacturing" {
 				structBonus := calculator.ManufacturingStructureCostBonus(lvl.structure)
 				totalJobCost += (eiv*costIdx*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
@@ -604,7 +711,7 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 		}
 	}
 
-	buildTime, _ := ac.repo.GetBlueprintActivityTime(ac.ctx, blueprintTypeID, activity)
+	buildTime := ac.getBlueprintTime(blueprintTypeID, activity)
 
 	return totalMatCost, totalJobCost, buildTime * int64(runs)
 }
@@ -619,7 +726,7 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 
 	meFactor := calculator.ComputeManufacturingME(me, structure, rig, "null")
 
-	mats, err := ac.repo.GetBlueprintMaterialsForActivity(ac.ctx, item.BlueprintTypeID, "manufacturing")
+	mats, err := ac.getBlueprintMaterials(item.BlueprintTypeID, "manufacturing")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get T2 manufacturing materials")
 	}
@@ -629,16 +736,8 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 	for _, m := range mats {
 		matTypeIDs = append(matTypeIDs, m.TypeID)
 	}
-	if len(matTypeIDs) > 0 {
-		newPrices, _ := ac.repo.GetMarketPricesForTypes(ac.ctx, matTypeIDs)
-		for k, v := range newPrices {
-			ac.prices[k] = v
-		}
-		newAdj, _ := ac.repo.GetAdjustedPricesForTypes(ac.ctx, matTypeIDs)
-		for k, v := range newAdj {
-			ac.adjustedPrices[k] = v
-		}
-	}
+	ac.ensurePrices(matTypeIDs)
+	ac.ensureAdjustedPrices(matTypeIDs)
 
 	var totalMatCost, totalJobCost float64
 	var eiv float64
@@ -647,15 +746,9 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 		batchQty := int(calculator.ComputeBatchQty(runs, m.Quantity, meFactor))
 
 		// Recurse into sub-components starting at depth=1 (component level)
-		subBpID, err := ac.repo.GetBlueprintForProduct(ac.ctx, m.TypeID)
-		if err != nil {
-			subBpID = 0
-		}
+		subBpID := ac.getBlueprintForProduct(m.TypeID)
 		if subBpID == 0 {
-			subBpID, err = ac.repo.GetReactionBlueprintForProduct(ac.ctx, m.TypeID)
-			if err != nil {
-				subBpID = 0
-			}
+			subBpID = ac.getReactionForProduct(m.TypeID)
 		}
 
 		if subBpID != 0 {
@@ -672,17 +765,14 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 
 	// Final manufacturing job cost
 	if systemID != nil {
-		costIndex, err := ac.repo.GetCostIndexForSystem(ac.ctx, *systemID, "manufacturing")
-		if err == nil && costIndex > 0 {
+		costIndex := ac.getCostIndex(*systemID, "manufacturing")
+		if costIndex > 0 {
 			structBonus := calculator.ManufacturingStructureCostBonus(structure)
 			totalJobCost += (eiv*costIndex*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
 		}
 	}
 
-	buildTime, err := ac.repo.GetBlueprintActivityTime(ac.ctx, item.BlueprintTypeID, "manufacturing")
-	if err != nil {
-		buildTime = 0
-	}
+	buildTime := ac.getBlueprintTime(item.BlueprintTypeID, "manufacturing")
 
 	return &bomResult{
 		MaterialCost: totalMatCost,
