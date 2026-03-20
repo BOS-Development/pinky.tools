@@ -284,6 +284,48 @@ await expect(dialog).not.toBeVisible({ timeout: 5000 });
 page.on('dialog', dialog => dialog.accept());
 ```
 
+### Background Runner Data — Do Not Assert on Specific Records
+
+`esi_industry_jobs` (and similar tables populated by background runners) are only filled when the runner executes. In E2E tests, calling `setCharacterIndustryJobs()` via the admin API only controls what the mock ESI returns — it does NOT immediately insert rows into the database. The runner must actually fire and complete before the data appears.
+
+**Do NOT assert on specific job rows** unless you can wait with a retry loop for the runner to complete AND confirm the runner actually runs during the test. Instead:
+
+- Assert on the UI panel/section being visible (e.g., "Active Jobs" heading, "No active jobs" empty state)
+- Assert on the panel opening and closing
+- Assert on counts or empty states
+
+```typescript
+// BAD — assumes runner has already run and populated the table
+await expect(page.getByText('Rifter Manufacturing')).toBeVisible({ timeout: 5000 });
+
+// GOOD — assert on the panel/section presence, not specific job data
+const activeJobsSection = page.getByText('Active Industry Jobs');
+await expect(activeJobsSection).toBeVisible({ timeout: 5000 });
+// OR verify empty state if runner hasn't run
+await expect(page.getByText(/no active jobs/i)).toBeVisible({ timeout: 5000 });
+```
+
+If the test truly needs to verify job data is displayed, use a retry loop:
+```typescript
+await expect(async () => {
+  await page.reload();
+  await expect(page.getByText('Rifter', { exact: true })).toBeVisible({ timeout: 3000 });
+}).toPass({ timeout: 35000 });
+```
+
+### Always Verify Button Text Before Writing Selectors
+
+Before writing any `getByRole('button', { name: /text/i })` selector, **read the actual component source** or use the Playwright inspector to confirm the exact button label. Button text in this codebase is often shorter than expected:
+
+| What you might guess | Actual text |
+|---|---|
+| "Mark Complete" | "Complete" |
+| "View Jobs" | "Jobs" |
+| "Submit Interest" | "Express Interest" |
+| "Cancel Agreement" | "Cancel" |
+
+A wrong button name will silently not find the element and cause confusing timeout failures. When in doubt, use a partial regex (`/complete/i`) that is more permissive.
+
 ### shadcn/ui Dialogs with Required Field Dependencies
 
 Some dialogs (e.g., P&L entry) have Save buttons disabled until multiple required fields are set. The typical pattern:
