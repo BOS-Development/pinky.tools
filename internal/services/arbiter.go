@@ -643,7 +643,7 @@ func (ac *arbiterContext) settingsForDepth(depth int) levelSettings {
 // calcChainCost returns the total material cost and job cost to produce qty units of a product
 // using blueprintTypeID at the given depth. Recursively builds sub-components up to maxDepth.
 func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int) (materialCost float64, jobCost float64, buildTimeSec int64) {
-	const maxDepth = 4
+	const maxDepth = 10
 
 	if depth >= maxDepth || blueprintTypeID == 0 {
 		return 0, 0, 0
