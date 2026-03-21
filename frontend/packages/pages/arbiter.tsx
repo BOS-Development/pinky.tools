@@ -1084,7 +1084,20 @@ function WarehousePanel({
       delta_qty: m.quantity * qty,
       delta_cost: m.unit_price * m.quantity * qty,
     }));
-    return [...fromBom, ...fromInvention];
+    const merged = new Map<number, ShoppingListItem>();
+    for (const item of [...fromBom, ...fromInvention]) {
+      const existing = merged.get(item.type_id);
+      if (existing) {
+        existing.req_qty += item.req_qty;
+        existing.total_value += item.total_value;
+        existing.warehouse += item.warehouse;
+        existing.delta_qty += item.delta_qty;
+        existing.delta_cost += item.delta_cost;
+      } else {
+        merged.set(item.type_id, { ...item });
+      }
+    }
+    return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [bom, inventionMaterials, qty]);
 
   const totalCost = shoppingItems.reduce((s, i) => s + i.delta_cost, 0);
