@@ -979,29 +979,21 @@ func Test_ScanOpportunities_ReactionProRating(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
-func Test_ScanOpportunities_BuildAllFalse_BuysSubComponentsAtMarket(t *testing.T) {
-	// Verify that when buildAll=false, even if a sub-blueprint exists for a component,
-	// its market price is used instead of recursing into the build chain.
-	// Also verifies that with buildAll=true, the recursed build cost is used instead.
+func Test_ScanOpportunities_BuildIfProfitable_PicksCheaperOption(t *testing.T) {
+	// Verify the "build if profitable" logic for buildAll=false:
+	// for each sub-component that has a blueprint, compute both the recursive build cost AND
+	// the market buy price, and use whichever is cheaper.
+	// Also verifies that with buildAll=true, the build cost is always used regardless.
 	//
 	// Setup:
 	//   T2 product (typeID 8001, blueprint 8002, T1 blueprint 8003)
 	//   T2 blueprint requires 1x Component (typeID 8010)
 	//   Component (8010) has manufacturing blueprint (8011)
 	//   Component blueprint requires 5x Raw (typeID 8020) — raw has no blueprint
-	//
-	//   Component 8010 market price:  2_000_000 ISK
-	//   Raw 8020 market price:          100_000 ISK  → build cost = 5 × 100_000 = 500_000 ISK
-	//
-	// With buildAll=false: material cost for 1x Component = 2_000_000 (buy at market)
-	// With buildAll=true:  material cost for 1x Component = 500_000  (build from raw)
 
 	settings := defaultArbiterSettings()
 
 	productSellPrice := float64(20_000_000)
-	compMarketPrice := float64(2_000_000)
-	rawPrice := float64(100_000)
-
 	blueprint := &models.T2BlueprintScanItem{
 		ProductTypeID:       8001,
 		ProductName:         "T2 Test Module",
@@ -1013,7 +1005,9 @@ func Test_ScanOpportunities_BuildAllFalse_BuysSubComponentsAtMarket(t *testing.T
 		Category:            "module",
 	}
 
-	commonMocks := func(r *MockArbiterScanRepository) {
+	// commonMocks wires up everything except market prices for 8010 and 8020,
+	// and the sub-blueprint (8011) materials — those differ per scenario.
+	commonMocks := func(r *MockArbiterScanRepository, compMarketPrice, rawPrice float64) {
 		r.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
 		r.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
 		r.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
@@ -1034,48 +1028,85 @@ func Test_ScanOpportunities_BuildAllFalse_BuysSubComponentsAtMarket(t *testing.T
 		// Component 8010 has manufacturing blueprint 8011
 		r.On("GetBlueprintForProduct", mock.Anything, int64(8010)).Return(int64(8011), nil)
 		r.On("GetReactionBlueprintForProduct", mock.Anything, mock.Anything).Return(int64(0), nil).Maybe()
+		// Sub-blueprint (8011) materials: 5x Raw 8020
+		r.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8011), "manufacturing").Return(
+			[]*models.BlueprintMaterial{
+				{TypeID: 8020, TypeName: "Raw Material", Quantity: 5},
+			}, nil)
+		r.On("GetBlueprintActivityTime", mock.Anything, int64(8011), "manufacturing").Return(int64(3600), nil)
+		r.On("GetBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
+		r.On("GetReactionBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
 	}
 
-	// --- buildAll=false: component should be bought at market price ---
-	repoFalse := &MockArbiterScanRepository{}
-	commonMocks(repoFalse)
+	// --- Scenario 1: build cost < market → buildAll=false should use build cost ---
+	//   Component market price: 2_000_000 ISK
+	//   Raw price:                100_000 ISK → build cost = 5 × 100_000 = 500_000 ISK (cheaper)
+	t.Run("build cheaper than market — uses build cost", func(t *testing.T) {
+		compMarketPrice := float64(2_000_000)
+		rawPrice := float64(100_000)
 
-	resultFalse, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repoFalse)
-	require.NoError(t, err)
-	require.Len(t, resultFalse.Opportunities, 1)
+		repo := &MockArbiterScanRepository{}
+		commonMocks(repo, compMarketPrice, rawPrice)
 
-	oppFalse := resultFalse.Opportunities[0]
-	// With buildAll=false, component is bought at 2_000_000 market price.
-	// MaterialCost should be >= 2_000_000 (ME may slightly reduce qty but base qty=1).
-	assert.GreaterOrEqual(t, oppFalse.MaterialCost, float64(1_800_000),
-		"buildAll=false: material cost should reflect component market price (~2M)")
+		result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+		require.NoError(t, err)
+		require.Len(t, result.Opportunities, 1)
 
-	// GetBlueprintMaterialsForActivity for the sub-blueprint (8011) should NOT be called
-	repoFalse.AssertNotCalled(t, "GetBlueprintMaterialsForActivity", mock.Anything, int64(8011), mock.Anything)
+		opp := result.Opportunities[0]
+		// Build cost is ~500_000 (raw materials only, no system set so no job cost).
+		// Material cost should be well below the 2_000_000 market price.
+		assert.Less(t, opp.MaterialCost, float64(1_000_000),
+			"buildAll=false: build is cheaper, so material cost should use build cost (~500K)")
 
-	// --- buildAll=true: component should be built from raw materials ---
-	repoTrue := &MockArbiterScanRepository{}
-	commonMocks(repoTrue)
-	// Sub-blueprint (8011) materials: 5x Raw 8020
-	repoTrue.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8011), "manufacturing").Return(
-		[]*models.BlueprintMaterial{
-			{TypeID: 8020, TypeName: "Raw Material", Quantity: 5},
-		}, nil)
-	repoTrue.On("GetBlueprintActivityTime", mock.Anything, int64(8011), "manufacturing").Return(int64(3600), nil)
-	repoTrue.On("GetBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
-	repoTrue.On("GetReactionBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
+		repo.AssertExpectations(t)
+	})
 
-	resultTrue, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repoTrue)
-	require.NoError(t, err)
-	require.Len(t, resultTrue.Opportunities, 1)
+	// --- Scenario 2: market cheaper than build → buildAll=false should use market price ---
+	//   Component market price: 2_000_000 ISK
+	//   Raw price:                500_000 ISK → build cost = 5 × 500_000 = 2_500_000 ISK (more expensive)
+	t.Run("market cheaper than build — uses market price", func(t *testing.T) {
+		compMarketPrice := float64(2_000_000)
+		rawPrice := float64(500_000)
 
-	oppTrue := resultTrue.Opportunities[0]
-	// With buildAll=true, component is built from 5x Raw at 100_000 each = 500_000.
-	// MaterialCost should be much less than the 2_000_000 market price.
-	assert.Less(t, oppTrue.MaterialCost, float64(1_000_000),
-		"buildAll=true: material cost should reflect building sub-component from raw (~500K)")
+		repo := &MockArbiterScanRepository{}
+		commonMocks(repo, compMarketPrice, rawPrice)
 
-	repoTrue.AssertExpectations(t)
+		result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+		require.NoError(t, err)
+		require.Len(t, result.Opportunities, 1)
+
+		opp := result.Opportunities[0]
+		// Build cost is ~2_500_000 (more expensive than market at 2_000_000).
+		// Material cost should be ~2_000_000 (market price was chosen).
+		assert.GreaterOrEqual(t, opp.MaterialCost, float64(1_800_000),
+			"buildAll=false: market is cheaper, so material cost should use market price (~2M)")
+		assert.Less(t, opp.MaterialCost, float64(2_200_000),
+			"buildAll=false: market is cheaper, so material cost should be close to market price (~2M)")
+
+		repo.AssertExpectations(t)
+	})
+
+	// --- Scenario 3: buildAll=true always uses build cost regardless of market price ---
+	//   Same prices as Scenario 2: market is cheaper, but buildAll forces build cost
+	t.Run("buildAll=true always uses build cost", func(t *testing.T) {
+		compMarketPrice := float64(2_000_000)
+		rawPrice := float64(500_000)
+
+		repo := &MockArbiterScanRepository{}
+		commonMocks(repo, compMarketPrice, rawPrice)
+
+		result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repo)
+		require.NoError(t, err)
+		require.Len(t, result.Opportunities, 1)
+
+		opp := result.Opportunities[0]
+		// Build cost is ~2_500_000, market is 2_000_000.
+		// With buildAll=true the build cost is always used.
+		assert.GreaterOrEqual(t, opp.MaterialCost, float64(2_200_000),
+			"buildAll=true: should always use build cost even when market is cheaper")
+
+		repo.AssertExpectations(t)
+	})
 }
 
 func defaultArbiterSettings() *models.ArbiterSettings {

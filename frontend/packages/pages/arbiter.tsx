@@ -2160,16 +2160,31 @@ export default function ArbiterPage() {
               </SelectContent>
             </Select>
 
-            {/* Build All toggle */}
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={scanBuildAll}
-                onCheckedChange={setScanBuildAll}
-                id="scan-build-all"
-              />
-              <Label htmlFor="scan-build-all" className="text-sm cursor-pointer whitespace-nowrap">
+            {/* Build mode selector */}
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-text-muted">Chain:</span>
+              <button
+                onClick={() => setScanBuildAll(false)}
+                className={cn(
+                  "px-2.5 py-1 text-xs rounded border transition-colors",
+                  !scanBuildAll
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "border-overlay-subtle text-text-muted hover:border-overlay-medium",
+                )}
+              >
+                Build if Profitable
+              </button>
+              <button
+                onClick={() => setScanBuildAll(true)}
+                className={cn(
+                  "px-2.5 py-1 text-xs rounded border transition-colors",
+                  scanBuildAll
+                    ? "bg-primary/10 border-primary/30 text-primary"
+                    : "border-overlay-subtle text-text-muted hover:border-overlay-medium",
+                )}
+              >
                 Build All
-              </Label>
+              </button>
             </div>
 
             {/* Scan button */}

@@ -699,8 +699,19 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 
 		if subBpID != 0 {
 			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, depth+1)
-			totalMatCost += subMat
-			totalJobCost += subJob
+			if ac.buildAll {
+				totalMatCost += subMat
+				totalJobCost += subJob
+			} else {
+				// Build if profitable: pick whichever is cheaper
+				marketCost := ac.getInputPrice(m.TypeID) * float64(batchQty)
+				if subMat+subJob < marketCost {
+					totalMatCost += subMat
+					totalJobCost += subJob
+				} else {
+					totalMatCost += marketCost
+				}
+			}
 		} else {
 			totalMatCost += ac.getInputPrice(m.TypeID) * float64(batchQty)
 		}
@@ -775,10 +786,21 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 			subBpID = ac.getReactionForProduct(m.TypeID)
 		}
 
-		if subBpID != 0 && ac.buildAll {
+		if subBpID != 0 {
 			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, 1)
-			totalMatCost += subMat
-			totalJobCost += subJob
+			if ac.buildAll {
+				totalMatCost += subMat
+				totalJobCost += subJob
+			} else {
+				// Build if profitable: pick whichever is cheaper
+				marketCost := ac.getInputPrice(m.TypeID) * float64(batchQty)
+				if subMat+subJob < marketCost {
+					totalMatCost += subMat
+					totalJobCost += subJob
+				} else {
+					totalMatCost += marketCost
+				}
+			}
 		} else {
 			totalMatCost += ac.getInputPrice(m.TypeID) * float64(batchQty)
 		}

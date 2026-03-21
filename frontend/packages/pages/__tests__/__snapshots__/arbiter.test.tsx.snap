@@ -1007,18 +1007,23 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
           </div>
         </div>
         <div
-          class="flex items-center gap-2"
+          class="flex items-center gap-1.5"
         >
-          <input
-            data-testid="switch"
-            type="checkbox"
-          />
-          <label
-            class="font-medium text-[var(--color-text-secondary)] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-sm cursor-pointer whitespace-nowrap"
-            for="scan-build-all"
+          <span
+            class="text-xs text-text-muted"
+          >
+            Chain:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Build if Profitable
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
           >
             Build All
-          </label>
+          </button>
         </div>
         <button
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
@@ -2331,18 +2336,23 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
           </div>
         </div>
         <div
-          class="flex items-center gap-2"
+          class="flex items-center gap-1.5"
         >
-          <input
-            data-testid="switch"
-            type="checkbox"
-          />
-          <label
-            class="font-medium text-[var(--color-text-secondary)] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-sm cursor-pointer whitespace-nowrap"
-            for="scan-build-all"
+          <span
+            class="text-xs text-text-muted"
+          >
+            Chain:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Build if Profitable
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
           >
             Build All
-          </label>
+          </button>
         </div>
         <button
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
