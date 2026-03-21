@@ -129,6 +129,14 @@ func (m *MockArbiterScanRepository) GetReactionBlueprintForProduct(ctx context.C
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockArbiterScanRepository) GetMarketPricesLastUpdated(ctx context.Context) (*time.Time, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*time.Time), args.Error(1)
+}
+
 // Ensure MockArbiterScanRepository satisfies services.ArbiterScanRepository
 var _ services.ArbiterScanRepository = &MockArbiterScanRepository{}
 
@@ -585,6 +593,7 @@ func Test_ArbiterGetOpportunities_Returns200_WithEmptyResults(t *testing.T) {
 	mocks.settings.On("GetArbiterEnabled", mock.Anything, userID).Return(true, nil)
 	mocks.settings.On("GetArbiterSettings", mock.Anything, userID).Return(defaultSettings, nil)
 	mocks.scan.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{}, nil)
+	mocks.scan.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	req := httptest.NewRequest("GET", "/v1/arbiter/opportunities", nil)
 	args := &web.HandlerArgs{Request: req, User: &userID}
@@ -630,6 +639,7 @@ func Test_ArbiterGetOpportunities_LoadsTaxProfile_WhenTaxRepoSet(t *testing.T) {
 	mocks.settings.On("GetArbiterSettings", mock.Anything, userID).Return(defaultSettings, nil)
 	mocks.tax.On("GetTaxProfile", mock.Anything, userID).Return(taxProfile, nil)
 	mocks.scan.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{}, nil)
+	mocks.scan.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	req := httptest.NewRequest("GET", "/v1/arbiter/opportunities", nil)
 	args := &web.HandlerArgs{Request: req, User: &userID}

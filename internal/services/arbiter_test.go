@@ -3,6 +3,7 @@ package services_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/services"
@@ -101,6 +102,14 @@ func (m *MockArbiterScanRepository) GetReactionBlueprintForProduct(ctx context.C
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockArbiterScanRepository) GetMarketPricesLastUpdated(ctx context.Context) (*time.Time, error) {
+	args := m.Called(ctx)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*time.Time), args.Error(1)
+}
+
 // Ensure interface is satisfied
 var _ services.ArbiterScanRepository = &MockArbiterScanRepository{}
 
@@ -172,6 +181,7 @@ func Test_ScanOpportunities_ReturnsEmptyResult_WhenNoBlueprints(t *testing.T) {
 	settings := defaultArbiterSettings()
 
 	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{}, nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
 	require.NoError(t, err)
@@ -235,6 +245,7 @@ func Test_ScanOpportunities_ReturnsSortedByProfit(t *testing.T) {
 
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2001), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2002), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
 	require.NoError(t, err)
@@ -279,6 +290,7 @@ func Test_ScanOpportunities_NoDecryptorOption_IncludedByDefault(t *testing.T) {
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2001), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
 	require.NoError(t, err)
@@ -329,6 +341,7 @@ func Test_ScanOpportunities_TaxProfile_AffectsProfitCalculation(t *testing.T) {
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2001), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, taxProfile, false, repo)
 	require.NoError(t, err)
@@ -376,6 +389,7 @@ func Test_ScanOpportunities_MultiRunBPC_ProfitUsesFullRevenue(t *testing.T) {
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2002), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	// nil taxProfile → defaults: 3.6% sales tax, 0% broker fee
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
@@ -922,6 +936,7 @@ func Test_ScanOpportunities_RecursiveChain_BuildsSubComponents(t *testing.T) {
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5001)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5001)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(4001)).Return(int64(0), nil).Maybe()
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repo)
 	require.NoError(t, err)
@@ -978,6 +993,7 @@ func Test_ScanOpportunities_RecursiveChain_BuysAtMarket_WhenNoBlueprintFound(t *
 	// No manufacturing or reaction blueprint for this material
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(6010)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(6010)).Return(int64(0), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repo)
 	require.NoError(t, err)
@@ -1065,6 +1081,7 @@ func Test_ScanOpportunities_ReactionProRating(t *testing.T) {
 	// Raw input (7020) has no blueprint
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(7020)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(7020)).Return(int64(0), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repo)
 	require.NoError(t, err)
@@ -1144,6 +1161,7 @@ func Test_ScanOpportunities_BuildIfProfitable_PicksCheaperOption(t *testing.T) {
 		r.On("GetBlueprintActivityTime", mock.Anything, int64(8011), "manufacturing").Return(int64(3600), nil)
 		r.On("GetBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
 		r.On("GetReactionBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
+		r.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 	}
 
 	// --- Scenario 1: build cost < market → buildAll=false should use build cost ---
@@ -1255,6 +1273,7 @@ func Test_ScanOpportunities_InventionMaterials_Datacores_ScaledBySuccessRate(t *
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3001), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
 	require.NoError(t, err)
@@ -1317,6 +1336,7 @@ func Test_ScanOpportunities_InventionMaterials_Decryptor_AppendedWithScaledQty(t
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3002), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
 	require.NoError(t, err)
@@ -1376,6 +1396,7 @@ func Test_ScanOpportunities_InventionMaterials_NoDecryptorOption_HasEmptySlice(t
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3003), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3003), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
 	require.NoError(t, err)

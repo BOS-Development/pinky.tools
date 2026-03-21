@@ -614,6 +614,24 @@ WHERE type_id = ANY($1) AND region_id = 10000002
 	return prices, nil
 }
 
+// GetMarketPricesLastUpdated returns the most recent updated_at timestamp across all Jita market prices.
+func (r *ArbiterRepository) GetMarketPricesLastUpdated(ctx context.Context) (*time.Time, error) {
+	var t sql.NullTime
+	err := r.db.QueryRowContext(ctx,
+		`SELECT MAX(updated_at) FROM market_prices WHERE region_id = 10000002`,
+	).Scan(&t)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query market prices last updated")
+	}
+	if !t.Valid {
+		return nil, nil
+	}
+	return &t.Time, nil
+}
+
 // GetCostIndexForSystem returns the manufacturing/invention cost index for a system.
 func (r *ArbiterRepository) GetCostIndexForSystem(ctx context.Context, systemID int64, activity string) (float64, error) {
 	var costIndex float64

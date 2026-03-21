@@ -26,6 +26,7 @@ type ArbiterScanRepository interface {
 	GetDemandStats(ctx context.Context, typeIDs []int64) (map[int64]*models.DemandStats, error)
 	GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 	GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
+	GetMarketPricesLastUpdated(ctx context.Context) (*time.Time, error)
 }
 
 // ArbiterBOMRepository is the interface needed for building a BOM tree.
@@ -283,10 +284,12 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 	}
 
 	if len(items) == 0 {
+		pricesUpdatedAt, _ := repo.GetMarketPricesLastUpdated(ctx)
 		return &models.ArbiterScanResult{
-			Opportunities: []*models.ArbiterOpportunity{},
-			GeneratedAt:   time.Now(),
-			TotalScanned:  0,
+			Opportunities:   []*models.ArbiterOpportunity{},
+			GeneratedAt:     time.Now(),
+			TotalScanned:    0,
+			PricesUpdatedAt: pricesUpdatedAt,
 		}, nil
 	}
 
@@ -381,10 +384,13 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 		return opportunities[i].Profit > opportunities[j].Profit
 	})
 
+	pricesUpdatedAt, _ := repo.GetMarketPricesLastUpdated(ctx)
+
 	result := &models.ArbiterScanResult{
-		Opportunities: opportunities,
-		GeneratedAt:   time.Now(),
-		TotalScanned:  len(items),
+		Opportunities:   opportunities,
+		GeneratedAt:     time.Now(),
+		TotalScanned:    len(items),
+		PricesUpdatedAt: pricesUpdatedAt,
 	}
 	if bestChar != nil {
 		result.BestCharacterID = bestChar.CharacterID

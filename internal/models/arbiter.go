@@ -239,4 +239,5 @@ type ArbiterScanResult struct {
 	TotalScanned      int                   `json:"total_scanned"`
 	BestCharacterID   int64                 `json:"best_character_id"`
 	BestCharacterName string                `json:"best_character_name"`
+	PricesUpdatedAt   *time.Time            `json:"prices_updated_at"`
 }
