@@ -53,6 +53,7 @@ type ArbiterSettings struct {
 	FinalFacilityTax     float64 `json:"final_facility_tax"`
 	ComponentFacilityTax float64 `json:"component_facility_tax"`
 	ReactionFacilityTax  float64 `json:"reaction_facility_tax"`
+	InventionFacilityTax float64 `json:"invention_facility_tax"`
 
 	// Feature toggles
 	UseWhitelist    bool   `json:"use_whitelist"`

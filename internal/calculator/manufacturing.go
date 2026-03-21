@@ -112,6 +112,9 @@ func ManufacturingStructureCostBonus(structure string) float64 {
 	}
 }
 
+// ManufacturingSccSurchargeRate is 1.5% for manufacturing (reactions use 4% defined in reactions.go).
+const ManufacturingSccSurchargeRate = 0.015
+
 // ComputeManufacturingJobCost calculates the industry job cost for one run of a manufacturing job.
 // Uses base quantities (ME 0) for EIV calculation, same as reactions.
 // The structure cost bonus only reduces the system cost index portion:
@@ -126,7 +129,7 @@ func ComputeManufacturingJobCost(materials []*repositories.ManufacturingMaterial
 		eiv += float64(mat.Quantity) * adjPrice
 	}
 	structBonus := ManufacturingStructureCostBonus(structure)
-	return eiv*costIndex*(1.0-structBonus) + eiv*SccSurchargeRate + eiv*(facilityTax/100.0)
+	return eiv*costIndex*(1.0-structBonus) + eiv*ManufacturingSccSurchargeRate + eiv*(facilityTax/100.0)
 }
 
 // CalculateManufacturingJob calculates the full cost breakdown for a manufacturing job.

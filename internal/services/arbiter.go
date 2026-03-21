@@ -649,6 +649,20 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 		}
 	}
 
+	// Invention job cost: EIV of datacores × (cost_index + facility_tax + scc_surcharge)
+	if ac.settings.InventionSystemID != nil {
+		invIdx := ac.getCostIndex(*ac.settings.InventionSystemID, "invention")
+		if invIdx > 0 {
+			facilityTaxRate := ac.settings.InventionFacilityTax / 100.0
+			var invEIV float64
+			for _, m := range datecoreMats {
+				invEIV += float64(m.Quantity) * ac.getAdjustedPrice(m.TypeID)
+			}
+			inventionJobCost := invEIV * (invIdx + facilityTaxRate + calculator.SccSurchargeRate)
+			dataCoreCost += inventionJobCost
+		}
+	}
+
 	return dataCoreCost + copyCost, nil
 }
 
@@ -762,7 +776,7 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 			facilityTaxRate := lvl.facilityTax / 100.0
 			if activity == "manufacturing" {
 				structBonus := calculator.ManufacturingStructureCostBonus(lvl.structure)
-				totalJobCost += (eiv*costIdx*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.SccSurchargeRate) * float64(runs)
+				totalJobCost += (eiv*costIdx*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
 			} else {
 				// Reactions: EIV × (cost_index + facility_tax + scc_surcharge) per run
 				totalJobCost += eiv * (costIdx + facilityTaxRate + calculator.SccSurchargeRate) * float64(runs)
@@ -850,7 +864,7 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 		if costIndex > 0 {
 			structBonus := calculator.ManufacturingStructureCostBonus(structure)
 			facilityTaxRate := ac.settings.FinalFacilityTax / 100.0
-			totalJobCost += (eiv*costIndex*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.SccSurchargeRate) * float64(runs)
+			totalJobCost += (eiv*costIndex*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
 		}
 	}
 
