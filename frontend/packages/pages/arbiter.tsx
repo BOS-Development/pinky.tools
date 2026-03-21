@@ -129,6 +129,7 @@ export interface Opportunity {
   demand_per_day: number;
   days_of_supply: number;
   duration_sec: number;
+  base_runs: number;
   runs: number;
   me: number;
   te: number;
@@ -825,7 +826,7 @@ function OpportunityRow({
           />
         </TableCell>
         <TableCell className="py-2 text-sm text-text-secondary font-mono">
-          {opp.runs}
+          {opp.base_runs}
         </TableCell>
         <TableCell className="py-2">
           <span
@@ -862,6 +863,12 @@ function OpportunityRow({
         <TableCell className="py-2 text-sm text-text-secondary font-mono">
           {opp.te}
         </TableCell>
+        <TableCell className="py-2 text-sm text-text-secondary font-mono">
+          {opp.runs}
+        </TableCell>
+        <TableCell className="py-2 text-xs text-text-secondary truncate max-w-[100px]">
+          {opp.best_decryptor?.name ?? "None"}
+        </TableCell>
         <TableCell className="py-2 text-xs text-text-secondary">
           {opp.group}
         </TableCell>
@@ -883,7 +890,7 @@ function OpportunityRow({
 
       {expanded && (
         <TableRow className="bg-background-panel hover:bg-background-panel">
-          <TableCell colSpan={16} className="p-0">
+          <TableCell colSpan={18} className="p-0">
             <div className="border-t border-overlay-subtle">
               {/* BOM header */}
               <div className="flex items-center justify-between px-4 py-2 border-b border-overlay-subtle">
@@ -2318,6 +2325,8 @@ export default function ArbiterPage() {
                       <SortHeader field="profit" label="Profit" />
                       <TableHead className="py-2 text-xs text-text-muted">ME</TableHead>
                       <TableHead className="py-2 text-xs text-text-muted">TE</TableHead>
+                      <TableHead className="text-xs font-medium text-text-secondary py-2">Best Runs</TableHead>
+                      <TableHead className="text-xs font-medium text-text-secondary py-2">Decryptor</TableHead>
                       <TableHead className="py-2 text-xs text-text-muted">Group</TableHead>
                       <TableHead className="py-2 text-xs text-text-muted">Category</TableHead>
                     </TableRow>

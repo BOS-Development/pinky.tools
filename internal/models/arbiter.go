@@ -197,7 +197,8 @@ type ArbiterOpportunity struct {
 	DemandPerDay    float64            `json:"demand_per_day"`  // 30d avg daily volume
 	DaysOfSupply    float64            `json:"days_of_supply"`  // order_book_volume / demand
 	Duration        int64              `json:"duration_sec"`
-	Runs            int                `json:"runs"`
+	Runs            int                `json:"runs"`      // resulting runs with best decryptor
+	BaseRuns        int                `json:"base_runs"` // base invention result before decryptor (1 for ships, 10 for modules)
 	ME              int                `json:"me"`
 	TE              int                `json:"te"`
 	MaterialCost    float64            `json:"material_cost"`

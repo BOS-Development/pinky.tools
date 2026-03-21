@@ -2548,6 +2548,16 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                   TE
                 </th>
                 <th
+                  class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-xs font-medium text-text-secondary py-2"
+                >
+                  Best Runs
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-xs font-medium text-text-secondary py-2"
+                >
+                  Decryptor
+                </th>
+                <th
                   class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
                 >
                   Group
@@ -2634,9 +2644,7 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                 </td>
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
-                >
-                  1
-                </td>
+                />
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
                 >
@@ -2680,6 +2688,16 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
                 >
                   4
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  1
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary truncate max-w-[100px]"
+                >
+                  Accelerant Decryptor
                 </td>
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary"
@@ -2768,9 +2786,7 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                 </td>
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
-                >
-                  3
-                </td>
+                />
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
                 >
@@ -2814,6 +2830,16 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
                 >
                   2
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  3
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary truncate max-w-[100px]"
+                >
+                  None
                 </td>
                 <td
                   class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary"
