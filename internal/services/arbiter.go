@@ -890,16 +890,17 @@ func deriveSecurityClassFromSettings(ac *arbiterContext) string {
 
 // bomTreeContext holds shared state for building a BOM tree.
 type bomTreeContext struct {
-	ctx            context.Context
-	repo           ArbiterBOMRepository
-	settings       *models.ArbiterSettings
-	prices         map[int64]*models.MarketPrice
-	adjustedPrices map[int64]float64
-	blacklist      map[int64]bool
-	whitelist      map[int64]bool
-	assets         map[int64]int64
-	inputPriceType string
-	buildAll       bool
+	ctx             context.Context
+	repo            ArbiterBOMRepository
+	settings        *models.ArbiterSettings
+	prices          map[int64]*models.MarketPrice
+	adjustedPrices  map[int64]float64
+	blacklist        map[int64]bool
+	whitelist        map[int64]bool
+	assets           map[int64]int64
+	inputPriceType  string
+	buildAll        bool
+	bpProductCache  map[string]*models.BlueprintProduct
 }
 
 // getInputPrice returns the price to use for material cost based on inputPriceType.
@@ -991,6 +992,7 @@ func BuildBOMTree(
 		assets:         assets,
 		inputPriceType: inputPriceType,
 		buildAll:       buildAll,
+		bpProductCache: map[string]*models.BlueprintProduct{},
 	}
 
 	return buildBOMNode(btc, blueprintTypeID, productTypeID, productName, qty, me, 0)
@@ -1081,8 +1083,17 @@ func buildBOMNode(
 	}
 
 	productQtyPerRun := int64(1)
-	if prod, perr := btc.repo.GetBlueprintProductForActivity(btc.ctx, blueprintTypeID, activity); perr == nil && prod != nil && prod.Quantity > 1 {
-		productQtyPerRun = int64(prod.Quantity)
+	cacheKey := fmt.Sprintf("%d:%s", blueprintTypeID, activity)
+	if prod, ok := btc.bpProductCache[cacheKey]; ok {
+		if prod != nil && prod.Quantity > 1 {
+			productQtyPerRun = int64(prod.Quantity)
+		}
+	} else {
+		prod, _ := btc.repo.GetBlueprintProductForActivity(btc.ctx, blueprintTypeID, activity)
+		btc.bpProductCache[cacheKey] = prod
+		if prod != nil && prod.Quantity > 1 {
+			productQtyPerRun = int64(prod.Quantity)
+		}
 	}
 	runs := (qty + productQtyPerRun - 1) / productQtyPerRun // ceil(qty / productQtyPerRun)
 
