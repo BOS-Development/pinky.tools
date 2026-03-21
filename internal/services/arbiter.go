@@ -31,6 +31,7 @@ type ArbiterScanRepository interface {
 // ArbiterBOMRepository is the interface needed for building a BOM tree.
 type ArbiterBOMRepository interface {
 	GetBlueprintMaterialsForActivity(ctx context.Context, blueprintTypeID int64, activity string) ([]*models.BlueprintMaterial, error)
+	GetBlueprintProductForActivity(ctx context.Context, blueprintTypeID int64, activity string) (*models.BlueprintProduct, error)
 	GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 	GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 	GetMarketPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]*models.MarketPrice, error)
@@ -1064,11 +1065,17 @@ func buildBOMNode(
 		meFactor = calculator.ComputeMEFactor(rig, "null")
 	}
 
+	productQtyPerRun := int64(1)
+	if prod, perr := btc.repo.GetBlueprintProductForActivity(btc.ctx, blueprintTypeID, activity); perr == nil && prod != nil && prod.Quantity > 1 {
+		productQtyPerRun = int64(prod.Quantity)
+	}
+	runs := (qty + productQtyPerRun - 1) / productQtyPerRun // ceil(qty / productQtyPerRun)
+
 	var buildCost float64
 	children := []*models.BOMNode{}
 
 	for _, mat := range mats {
-		batchQty := calculator.ComputeBatchQty(int(qty), mat.Quantity, meFactor)
+		batchQty := calculator.ComputeBatchQty(int(runs), mat.Quantity, meFactor)
 		matBuyPrice := btc.getBuyPrice(mat.TypeID)
 		matBuildCost := matBuyPrice // default: buy
 

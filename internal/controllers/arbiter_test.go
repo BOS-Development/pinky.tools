@@ -262,6 +262,14 @@ func (m *MockArbiterBOMRepository) GetBlueprintMaterialsForActivity(ctx context.
 	return args.Get(0).([]*models.BlueprintMaterial), args.Error(1)
 }
 
+func (m *MockArbiterBOMRepository) GetBlueprintProductForActivity(ctx context.Context, blueprintTypeID int64, activity string) (*models.BlueprintProduct, error) {
+	args := m.Called(ctx, blueprintTypeID, activity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.BlueprintProduct), args.Error(1)
+}
+
 func (m *MockArbiterBOMRepository) GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
 	args := m.Called(ctx, productTypeID)
 	return args.Get(0).(int64), args.Error(1)
@@ -1134,6 +1142,7 @@ func Test_GetBOMTree_LoadsScopeAssets_WhenScopeIDProvided(t *testing.T) {
 	mocks.bom.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(prices, nil)
 	mocks.bom.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
 	mocks.bom.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	mocks.bom.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8002), "reaction").Return([]*models.BlueprintMaterial{}, nil)
 
 	req := httptest.NewRequest("GET", "/v1/arbiter/bom/9002?scope_id=42", nil)
 	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"typeID": "9002"}}
@@ -1181,6 +1190,8 @@ func Test_GetBOMTree_BuildAll_ForcesBuiltDecision(t *testing.T) {
 		[]*models.BlueprintMaterial{
 			{TypeID: 9004, TypeName: "Expensive Part", Quantity: 2},
 		}, nil)
+	mocks.bom.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	mocks.bom.On("GetReactionBlueprintForProduct", mock.Anything, int64(9004)).Return(int64(0), nil)
 
 	req := httptest.NewRequest("GET", "/v1/arbiter/bom/9003?build_all=true", nil)
 	args := &web.HandlerArgs{Request: req, User: &userID, Params: map[string]string{"typeID": "9003"}}

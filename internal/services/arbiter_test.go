@@ -118,6 +118,14 @@ func (m *MockArbiterBOMRepository) GetBlueprintMaterialsForActivity(ctx context.
 	return args.Get(0).([]*models.BlueprintMaterial), args.Error(1)
 }
 
+func (m *MockArbiterBOMRepository) GetBlueprintProductForActivity(ctx context.Context, blueprintTypeID int64, activity string) (*models.BlueprintProduct, error) {
+	args := m.Called(ctx, blueprintTypeID, activity)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.BlueprintProduct), args.Error(1)
+}
+
 func (m *MockArbiterBOMRepository) GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
 	args := m.Called(ctx, productTypeID)
 	return args.Get(0).(int64), args.Error(1)
@@ -476,6 +484,7 @@ func Test_BuildBOMTree_WhitelistForcesBuild(t *testing.T) {
 		[]*models.BlueprintMaterial{
 			{TypeID: 5004, TypeName: "Component", Quantity: 2},
 		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	// No sub-blueprint for the component
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5004)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5004)).Return(int64(0), nil)
@@ -524,6 +533,7 @@ func Test_BuildBOMTree_ChoosesBuild_WhenCheaperThanBuy(t *testing.T) {
 		[]*models.BlueprintMaterial{
 			{TypeID: 5006, TypeName: "Cheap Part", Quantity: 2},
 		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5006)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5006)).Return(int64(0), nil)
 
@@ -567,6 +577,7 @@ func Test_BuildBOMTree_ChoosesBuy_WhenCheaperThanBuild(t *testing.T) {
 		[]*models.BlueprintMaterial{
 			{TypeID: 5008, TypeName: "Expensive Part", Quantity: 2},
 		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5008)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5008)).Return(int64(0), nil)
 
@@ -654,6 +665,7 @@ func Test_BuildBOMTree_DepthLimit_StopsRecursion(t *testing.T) {
 		[]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return(
 		[]*models.BlueprintMaterial{}, nil).Maybe()
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	// Return a blueprint for sub-items (triggers recursion)
 	repo.On("GetBlueprintForProduct", mock.Anything, mock.Anything).Return(int64(7000), nil).Maybe()
 
@@ -695,6 +707,7 @@ func Test_BuildBOMTree_BuildAll_ForcesAllNodesToBuild(t *testing.T) {
 		[]*models.BlueprintMaterial{
 			{TypeID: 5021, TypeName: "Expensive Part", Quantity: 2},
 		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5021)).Return(int64(0), nil)
 	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5021)).Return(int64(0), nil)
 
@@ -792,6 +805,7 @@ func Test_BuildBOMTree_RecursesIntoReactionBlueprint(t *testing.T) {
 		[]*models.BlueprintMaterial{
 			{TypeID: 5031, TypeName: "Composite Mat", Quantity: 1},
 		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 
 	// Composite (5031): no manufacturing blueprint → falls through to reaction blueprint (6031)
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5031)).Return(int64(0), nil)
