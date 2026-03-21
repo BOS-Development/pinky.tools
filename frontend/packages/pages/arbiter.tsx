@@ -739,6 +739,7 @@ function OpportunityRow({
       if (scopeId) params.set("scope_id", String(scopeId));
       params.set("quantity", String(effectiveQty));
       params.set("build_all", String(buildAll));
+      params.set("me", String(opp.me));
       const res = await fetch(
         `/api/arbiter/${opp.product_type_id}/bom?${params.toString()}`,
       );
@@ -769,6 +770,7 @@ function OpportunityRow({
       if (scopeId) params.set("scope_id", String(scopeId));
       params.set("quantity", String(effectiveQty));
       params.set("build_all", String(newBuildAll));
+      params.set("me", String(opp.me));
       const res = await fetch(
         `/api/arbiter/${opp.product_type_id}/bom?${params.toString()}`,
       );
@@ -1050,6 +1052,7 @@ function WarehousePanel({
     const params = new URLSearchParams();
     if (scopeId) params.set("scope_id", String(scopeId));
     params.set("quantity", String(qty || 1));
+    params.set("me", String(selectedOpp.me));
     fetch(`/api/arbiter/${selectedOpp.product_type_id}/bom?${params.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setBom(data))

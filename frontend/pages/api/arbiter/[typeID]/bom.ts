@@ -18,13 +18,14 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { typeID, scope_id, quantity, build_all } = req.query;
+  const { typeID, scope_id, quantity, build_all, me } = req.query;
 
   try {
     const params = new URLSearchParams();
     if (scope_id) params.set("scope_id", String(scope_id));
     if (quantity) params.set("quantity", String(quantity));
     if (build_all) params.set("build_all", String(build_all));
+    if (me) params.set("me", String(me));
 
     const response = await fetch(
       `${backend}v1/arbiter/opportunities/${typeID}/bom?${params.toString()}`,
