@@ -267,6 +267,11 @@ func (m *MockArbiterBOMRepository) GetBlueprintForProduct(ctx context.Context, p
 	return args.Get(0).(int64), args.Error(1)
 }
 
+func (m *MockArbiterBOMRepository) GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
+	args := m.Called(ctx, productTypeID)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 func (m *MockArbiterBOMRepository) GetMarketPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]*models.MarketPrice, error) {
 	args := m.Called(ctx, typeIDs)
 	if args.Get(0) == nil {
