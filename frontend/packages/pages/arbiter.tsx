@@ -61,6 +61,7 @@ export interface ArbiterSettings {
   reaction_rig: string;
   reaction_system_id: number;
   reaction_system_name: string;
+  reaction_facility_tax: number;
   invention_structure: string;
   invention_rig: string;
   invention_system_id: number;
@@ -69,10 +70,12 @@ export interface ArbiterSettings {
   component_rig: string;
   component_system_id: number;
   component_system_name: string;
+  component_facility_tax: number;
   final_structure: string;
   final_rig: string;
   final_system_id: number;
   final_system_name: string;
+  final_facility_tax: number;
 }
 
 export interface TaxProfile {
@@ -199,6 +202,7 @@ const DEFAULT_SETTINGS: ArbiterSettings = {
   reaction_rig: "t2",
   reaction_system_id: 30000142,
   reaction_system_name: "Jita",
+  reaction_facility_tax: 0,
   invention_structure: "raitaru",
   invention_rig: "t1",
   invention_system_id: 30000142,
@@ -207,10 +211,12 @@ const DEFAULT_SETTINGS: ArbiterSettings = {
   component_rig: "t2",
   component_system_id: 30000142,
   component_system_name: "Jita",
+  component_facility_tax: 0,
   final_structure: "azbel",
   final_rig: "t2",
   final_system_id: 30000142,
   final_system_name: "Jita",
+  final_facility_tax: 0,
 };
 
 const DEFAULT_TAX_PROFILE: TaxProfile = {
@@ -360,6 +366,7 @@ interface StructureSectionProps {
   prefix: "reaction" | "invention" | "component" | "final";
   settings: ArbiterSettings;
   onChange: (key: keyof ArbiterSettings, value: string | number) => void;
+  facilityTaxKey?: keyof ArbiterSettings;
 }
 
 function StructureSection({
@@ -367,6 +374,7 @@ function StructureSection({
   prefix,
   settings,
   onChange,
+  facilityTaxKey,
 }: StructureSectionProps) {
   const structureKey = `${prefix}_structure` as keyof ArbiterSettings;
   const rigKey = `${prefix}_rig` as keyof ArbiterSettings;
@@ -427,6 +435,23 @@ function StructureSection({
           }}
         />
       </div>
+
+      {facilityTaxKey && (
+        <div className="space-y-1">
+          <Label className="text-xs text-text-secondary">Facility Tax %</Label>
+          <Input
+            type="number"
+            className="h-8 text-sm"
+            value={settings[facilityTaxKey] as number}
+            onChange={(e) =>
+              onChange(facilityTaxKey, parseFloat(e.target.value) || 0)
+            }
+            min={0}
+            max={10}
+            step={0.1}
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -1751,6 +1776,7 @@ export default function ArbiterPage() {
                         prefix="reaction"
                         settings={settings}
                         onChange={handleSettingChange}
+                        facilityTaxKey="reaction_facility_tax"
                       />
                       <StructureSection
                         title="Invention"
@@ -1763,12 +1789,14 @@ export default function ArbiterPage() {
                         prefix="component"
                         settings={settings}
                         onChange={handleSettingChange}
+                        facilityTaxKey="component_facility_tax"
                       />
                       <StructureSection
                         title="Final Build"
                         prefix="final"
                         settings={settings}
                         onChange={handleSettingChange}
+                        facilityTaxKey="final_facility_tax"
                       />
                     </div>
                   </TabsContent>

@@ -618,9 +618,10 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 
 // levelSettings holds the structure/rig/system configuration for a given manufacturing depth.
 type levelSettings struct {
-	structure string
-	rig       string
-	systemID  *int64
+	structure   string
+	rig         string
+	systemID    *int64
+	facilityTax float64 // % of EIV charged by structure owner
 }
 
 // settingsForDepth returns the structure settings to apply at a given recursion depth.
@@ -629,11 +630,11 @@ func (ac *arbiterContext) settingsForDepth(depth int) levelSettings {
 	s := ac.settings
 	switch depth {
 	case 0:
-		return levelSettings{s.FinalStructure, s.FinalRig, s.FinalSystemID}
+		return levelSettings{s.FinalStructure, s.FinalRig, s.FinalSystemID, s.FinalFacilityTax}
 	case 1:
-		return levelSettings{s.ComponentStructure, s.ComponentRig, s.ComponentSystemID}
+		return levelSettings{s.ComponentStructure, s.ComponentRig, s.ComponentSystemID, s.ComponentFacilityTax}
 	default: // depth >= 2 = reactions
-		return levelSettings{s.ReactionStructure, s.ReactionRig, s.ReactionSystemID}
+		return levelSettings{s.ReactionStructure, s.ReactionRig, s.ReactionSystemID, s.ReactionFacilityTax}
 	}
 }
 
@@ -710,12 +711,13 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 	if lvl.systemID != nil {
 		costIdx := ac.getCostIndex(*lvl.systemID, activity)
 		if costIdx > 0 {
+			facilityTaxRate := lvl.facilityTax / 100.0
 			if activity == "manufacturing" {
 				structBonus := calculator.ManufacturingStructureCostBonus(lvl.structure)
-				totalJobCost += (eiv*costIdx*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
+				totalJobCost += (eiv*costIdx*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.SccSurchargeRate) * float64(runs)
 			} else {
-				// Reactions: EIV × (cost_index + scc_surcharge) per run
-				totalJobCost += eiv * (costIdx + calculator.SccSurchargeRate) * float64(runs)
+				// Reactions: EIV × (cost_index + facility_tax + scc_surcharge) per run
+				totalJobCost += eiv * (costIdx + facilityTaxRate + calculator.SccSurchargeRate) * float64(runs)
 			}
 		}
 	}
@@ -788,7 +790,8 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 		costIndex := ac.getCostIndex(*systemID, "manufacturing")
 		if costIndex > 0 {
 			structBonus := calculator.ManufacturingStructureCostBonus(structure)
-			totalJobCost += (eiv*costIndex*(1.0-structBonus) + eiv*calculator.SccSurchargeRate) * float64(runs)
+			facilityTaxRate := ac.settings.FinalFacilityTax / 100.0
+			totalJobCost += (eiv*costIndex*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.SccSurchargeRate) * float64(runs)
 		}
 	}
 

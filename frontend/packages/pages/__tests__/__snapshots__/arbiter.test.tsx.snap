@@ -254,6 +254,23 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
                   </div>
                   <div
                     class="flex-1 min-w-[200px] space-y-3"
@@ -508,6 +525,23 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
                   </div>
                   <div
                     class="flex-1 min-w-[200px] space-y-3"
@@ -634,6 +668,23 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
                           />
                         </div>
                       </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
                     </div>
                   </div>
                 </div>
@@ -1513,6 +1564,23 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
                   </div>
                   <div
                     class="flex-1 min-w-[200px] space-y-3"
@@ -1767,6 +1835,23 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                         </div>
                       </div>
                     </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
                   </div>
                   <div
                     class="flex-1 min-w-[200px] space-y-3"
@@ -1893,6 +1978,23 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                           />
                         </div>
                       </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
                     </div>
                   </div>
                 </div>

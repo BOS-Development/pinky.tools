@@ -41,6 +41,11 @@ type ArbiterSettings struct {
 	FinalRig       string `json:"final_rig"`
 	FinalSystemID  *int64 `json:"final_system_id"`
 
+	// Facility tax rates (% of EIV charged by structure owner, e.g. 0.5 = 0.5%)
+	FinalFacilityTax     float64 `json:"final_facility_tax"`
+	ComponentFacilityTax float64 `json:"component_facility_tax"`
+	ReactionFacilityTax  float64 `json:"reaction_facility_tax"`
+
 	// Feature toggles
 	UseWhitelist    bool   `json:"use_whitelist"`
 	UseBlacklist    bool   `json:"use_blacklist"`

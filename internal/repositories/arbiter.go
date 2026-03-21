@@ -27,6 +27,7 @@ SELECT
 	invention_structure, invention_rig, invention_system_id,
 	component_structure, component_rig, component_system_id,
 	final_structure, final_rig, final_system_id,
+	final_facility_tax, component_facility_tax, reaction_facility_tax,
 	use_whitelist, use_blacklist, decryptor_type_id, default_scope_id
 FROM arbiter_settings
 WHERE user_id = $1
@@ -38,6 +39,7 @@ WHERE user_id = $1
 		&s.InventionStructure, &s.InventionRig, &s.InventionSystemID,
 		&s.ComponentStructure, &s.ComponentRig, &s.ComponentSystemID,
 		&s.FinalStructure, &s.FinalRig, &s.FinalSystemID,
+		&s.FinalFacilityTax, &s.ComponentFacilityTax, &s.ReactionFacilityTax,
 		&s.UseWhitelist, &s.UseBlacklist, &s.DecryptorTypeID, &s.DefaultScopeID,
 	)
 	if err == sql.ErrNoRows {
@@ -71,27 +73,31 @@ INSERT INTO arbiter_settings (
 	invention_structure, invention_rig, invention_system_id,
 	component_structure, component_rig, component_system_id,
 	final_structure, final_rig, final_system_id,
+	final_facility_tax, component_facility_tax, reaction_facility_tax,
 	use_whitelist, use_blacklist, decryptor_type_id, default_scope_id,
 	updated_at
-) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW())
+) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, NOW())
 ON CONFLICT (user_id) DO UPDATE SET
-	reaction_structure  = EXCLUDED.reaction_structure,
-	reaction_rig        = EXCLUDED.reaction_rig,
-	reaction_system_id  = EXCLUDED.reaction_system_id,
-	invention_structure = EXCLUDED.invention_structure,
-	invention_rig       = EXCLUDED.invention_rig,
-	invention_system_id = EXCLUDED.invention_system_id,
-	component_structure = EXCLUDED.component_structure,
-	component_rig       = EXCLUDED.component_rig,
-	component_system_id = EXCLUDED.component_system_id,
-	final_structure     = EXCLUDED.final_structure,
-	final_rig           = EXCLUDED.final_rig,
-	final_system_id     = EXCLUDED.final_system_id,
-	use_whitelist       = EXCLUDED.use_whitelist,
-	use_blacklist       = EXCLUDED.use_blacklist,
-	decryptor_type_id   = EXCLUDED.decryptor_type_id,
-	default_scope_id    = EXCLUDED.default_scope_id,
-	updated_at          = NOW()
+	reaction_structure    = EXCLUDED.reaction_structure,
+	reaction_rig          = EXCLUDED.reaction_rig,
+	reaction_system_id    = EXCLUDED.reaction_system_id,
+	invention_structure   = EXCLUDED.invention_structure,
+	invention_rig         = EXCLUDED.invention_rig,
+	invention_system_id   = EXCLUDED.invention_system_id,
+	component_structure   = EXCLUDED.component_structure,
+	component_rig         = EXCLUDED.component_rig,
+	component_system_id   = EXCLUDED.component_system_id,
+	final_structure       = EXCLUDED.final_structure,
+	final_rig             = EXCLUDED.final_rig,
+	final_system_id       = EXCLUDED.final_system_id,
+	final_facility_tax    = EXCLUDED.final_facility_tax,
+	component_facility_tax = EXCLUDED.component_facility_tax,
+	reaction_facility_tax = EXCLUDED.reaction_facility_tax,
+	use_whitelist         = EXCLUDED.use_whitelist,
+	use_blacklist         = EXCLUDED.use_blacklist,
+	decryptor_type_id     = EXCLUDED.decryptor_type_id,
+	default_scope_id      = EXCLUDED.default_scope_id,
+	updated_at            = NOW()
 `
 	_, err := r.db.ExecContext(ctx, query,
 		settings.UserID,
@@ -99,6 +105,7 @@ ON CONFLICT (user_id) DO UPDATE SET
 		settings.InventionStructure, settings.InventionRig, settings.InventionSystemID,
 		settings.ComponentStructure, settings.ComponentRig, settings.ComponentSystemID,
 		settings.FinalStructure, settings.FinalRig, settings.FinalSystemID,
+		settings.FinalFacilityTax, settings.ComponentFacilityTax, settings.ReactionFacilityTax,
 		settings.UseWhitelist, settings.UseBlacklist, settings.DecryptorTypeID, settings.DefaultScopeID,
 	)
 	if err != nil {
