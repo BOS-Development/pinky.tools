@@ -1332,6 +1332,7 @@ export default function ArbiterPage() {
   // Price toggles (no-rescan)
   const [inputPrice, setInputPrice] = useState<"sell" | "buy">("sell");
   const [outputPrice, setOutputPrice] = useState<"sell" | "buy">("buy");
+  const [scanBuildAll, setScanBuildAll] = useState(false);
 
   // Opportunities state
   const [opportunities, setOpportunities] = useState<OpportunitiesResponse | null>(null);
@@ -1459,6 +1460,7 @@ export default function ArbiterPage() {
       if (selectedDecryptorId !== "maximize_roi") {
         params.set("decryptor_type_id", selectedDecryptorId);
       }
+      if (scanBuildAll) params.set("build_all", "true");
 
       const res = await fetch(`/api/arbiter/opportunities?${params.toString()}`);
       if (!res.ok) {
@@ -1473,7 +1475,7 @@ export default function ArbiterPage() {
     } finally {
       setScanning(false);
     }
-  }, [selectedScopeId, inputPrice, outputPrice, selectedDecryptorId]);
+  }, [selectedScopeId, inputPrice, outputPrice, selectedDecryptorId, scanBuildAll]);
 
   const handleCreateScope = async () => {
     if (!newScopeName.trim()) return;
@@ -2157,6 +2159,18 @@ export default function ArbiterPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            {/* Build All toggle */}
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={scanBuildAll}
+                onCheckedChange={setScanBuildAll}
+                id="scan-build-all"
+              />
+              <Label htmlFor="scan-build-all" className="text-sm cursor-pointer whitespace-nowrap">
+                Build All
+              </Label>
+            </div>
 
             {/* Scan button */}
             <Button

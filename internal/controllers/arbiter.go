@@ -294,7 +294,8 @@ func (c *Arbiter) GetArbiterOpportunities(args *web.HandlerArgs) (any, *web.Http
 		}
 	}
 
-	result, err := services.ScanOpportunities(ctx, userID, settings, taxProfile, c.scanRepo)
+	buildAll := args.Request.URL.Query().Get("build_all") == "true"
+	result, err := services.ScanOpportunities(ctx, userID, settings, taxProfile, buildAll, c.scanRepo)
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to scan opportunities")}
 	}

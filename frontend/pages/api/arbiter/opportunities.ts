@@ -24,6 +24,7 @@ export default async function handler(
     if (req.query.input_price) params.set("input_price", String(req.query.input_price));
     if (req.query.output_price) params.set("output_price", String(req.query.output_price));
     if (req.query.decryptor_type_id) params.set("decryptor_type_id", String(req.query.decryptor_type_id));
+    if (req.query.build_all) params.set("build_all", String(req.query.build_all));
 
     const url = `${backend}v1/arbiter/opportunities?${params.toString()}`;
 

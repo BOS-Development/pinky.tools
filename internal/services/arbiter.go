@@ -61,6 +61,7 @@ type arbiterContext struct {
 	bpForProductCache map[int64]int64                        // typeID → blueprintTypeID (0 = not found)
 	rxForProductCache map[int64]int64                        // typeID → reactionBlueprintTypeID (0 = not found)
 	costIndexCache    map[string]float64                     // key: "systemID:activity"
+	buildAll          bool                                   // when false, buy sub-components from market instead of building full chain
 }
 
 // ensurePrices loads market prices for any typeIDs not already cached in ac.prices.
@@ -270,7 +271,7 @@ func defaultTaxProfile() *models.ArbiterTaxProfile {
 }
 
 // ScanOpportunities runs the full Arbiter scan and returns ranked T2 opportunities.
-func ScanOpportunities(ctx context.Context, userID int64, settings *models.ArbiterSettings, taxProfile *models.ArbiterTaxProfile, repo ArbiterScanRepository) (*models.ArbiterScanResult, error) {
+func ScanOpportunities(ctx context.Context, userID int64, settings *models.ArbiterSettings, taxProfile *models.ArbiterTaxProfile, buildAll bool, repo ArbiterScanRepository) (*models.ArbiterScanResult, error) {
 	if taxProfile == nil {
 		taxProfile = defaultTaxProfile()
 	}
@@ -347,6 +348,7 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 		bpForProductCache: map[int64]int64{},
 		rxForProductCache: map[int64]int64{},
 		costIndexCache:    map[string]float64{},
+		buildAll:          buildAll,
 	}
 
 	// Find best invention character using the first T1 blueprint as representative
@@ -773,7 +775,7 @@ func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me 
 			subBpID = ac.getReactionForProduct(m.TypeID)
 		}
 
-		if subBpID != 0 {
+		if subBpID != 0 && ac.buildAll {
 			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, 1)
 			totalMatCost += subMat
 			totalJobCost += subJob
