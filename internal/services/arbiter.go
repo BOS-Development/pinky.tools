@@ -498,6 +498,7 @@ func calculateDecryptorOption(
 	buildTime int64,
 ) (*models.DecryptorOption, error) {
 	chanceMod := effectiveChance * decryptor.ProbabilityMultiplier
+	chanceMod = math.Round(chanceMod*100) / 100
 
 	resultME := item.BaseResultME + decryptor.MEModifier
 	if resultME < 0 {
