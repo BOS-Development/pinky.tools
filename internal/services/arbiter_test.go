@@ -149,6 +149,11 @@ func (m *MockArbiterBOMRepository) GetCostIndexForSystem(ctx context.Context, sy
 	return args.Get(0).(float64), args.Error(1)
 }
 
+func (m *MockArbiterBOMRepository) GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
+	args := m.Called(ctx, productTypeID)
+	return args.Get(0).(int64), args.Error(1)
+}
+
 // Ensure interface is satisfied
 var _ services.ArbiterBOMRepository = &MockArbiterBOMRepository{}
 
@@ -391,6 +396,7 @@ func Test_BuildBOMTree_ReturnsLeafNode_WhenNoMaterials(t *testing.T) {
 		}, nil)
 	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6001), "reaction").Return([]*models.BlueprintMaterial{}, nil)
 
 	tree, err := services.BuildBOMTree(
 		context.Background(),
@@ -472,6 +478,7 @@ func Test_BuildBOMTree_WhitelistForcesBuild(t *testing.T) {
 		}, nil)
 	// No sub-blueprint for the component
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5004)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5004)).Return(int64(0), nil)
 
 	whitelist := map[int64]bool{5003: true}
 
@@ -518,6 +525,7 @@ func Test_BuildBOMTree_ChoosesBuild_WhenCheaperThanBuy(t *testing.T) {
 			{TypeID: 5006, TypeName: "Cheap Part", Quantity: 2},
 		}, nil)
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5006)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5006)).Return(int64(0), nil)
 
 	tree, err := services.BuildBOMTree(
 		context.Background(),
@@ -560,6 +568,7 @@ func Test_BuildBOMTree_ChoosesBuy_WhenCheaperThanBuild(t *testing.T) {
 			{TypeID: 5008, TypeName: "Expensive Part", Quantity: 2},
 		}, nil)
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5008)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5008)).Return(int64(0), nil)
 
 	tree, err := services.BuildBOMTree(
 		context.Background(),
@@ -594,6 +603,7 @@ func Test_BuildBOMTree_AvailableAssets_ReducesDelta(t *testing.T) {
 		}, nil)
 	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6009), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6009), "reaction").Return([]*models.BlueprintMaterial{}, nil)
 
 	// 5 units available, need 10 → delta = 5
 	assets := map[int64]int64{5009: 5}
@@ -642,6 +652,8 @@ func Test_BuildBOMTree_DepthLimit_StopsRecursion(t *testing.T) {
 	// Sub-items also have blueprints but return empty materials (simulating any nesting)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "manufacturing").Return(
 		[]*models.BlueprintMaterial{}, nil).Maybe()
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return(
+		[]*models.BlueprintMaterial{}, nil).Maybe()
 	// Return a blueprint for sub-items (triggers recursion)
 	repo.On("GetBlueprintForProduct", mock.Anything, mock.Anything).Return(int64(7000), nil).Maybe()
 
@@ -684,6 +696,7 @@ func Test_BuildBOMTree_BuildAll_ForcesAllNodesToBuild(t *testing.T) {
 			{TypeID: 5021, TypeName: "Expensive Part", Quantity: 2},
 		}, nil)
 	repo.On("GetBlueprintForProduct", mock.Anything, int64(5021)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5021)).Return(int64(0), nil)
 
 	// With buildAll=true, the root node should be "build_override" even though it's more expensive to build
 	tree, err := services.BuildBOMTree(
@@ -742,6 +755,87 @@ func Test_BuildBOMTree_BuildAll_RespectsBlacklist(t *testing.T) {
 	// Blacklist takes priority over buildAll
 	assert.Equal(t, "buy_override", tree.Decision)
 	assert.True(t, tree.IsBlacklisted)
+
+	repo.AssertExpectations(t)
+}
+
+func Test_BuildBOMTree_RecursesIntoReactionBlueprint(t *testing.T) {
+	// Verify that when a material has no manufacturing blueprint but does have a reaction blueprint,
+	// buildBOMNode recurses into the reaction rather than treating it as "buy".
+	//
+	// Setup:
+	//   Root product (typeID 5030) built via blueprint 6030
+	//   Blueprint 6030 requires 1x Composite (typeID 5031)
+	//   Composite 5031: no manufacturing blueprint, but has reaction blueprint 6031
+	//   Reaction blueprint 6031 requires 2x Raw (typeID 5032) — no blueprint
+	//
+	// If reaction recursion is broken, children[0] will be Decision="buy" (composite at market).
+	// If reaction recursion works, children[0] will be Decision="build" or "build_override"
+	// with its own children containing Raw (5032).
+	repo := &MockArbiterBOMRepository{}
+	settings := defaultArbiterSettings()
+
+	rootSellPrice := float64(10_000_000)
+	compositeSellPrice := float64(5_000_000) // expensive at market
+	rawSellPrice := float64(100_000)         // cheap raw → build cost much less than market
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			5030: {TypeID: 5030, SellPrice: &rootSellPrice},
+			5031: {TypeID: 5031, SellPrice: &compositeSellPrice},
+			5032: {TypeID: 5032, SellPrice: &rawSellPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+
+	// Root blueprint: manufacturing, requires 1x composite (5031)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6030), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 5031, TypeName: "Composite Mat", Quantity: 1},
+		}, nil)
+
+	// Composite (5031): no manufacturing blueprint → falls through to reaction blueprint (6031)
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(5031)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5031)).Return(int64(6031), nil)
+
+	// Reaction blueprint (6031): no manufacturing materials, has reaction materials
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6031), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(6031), "reaction").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 5032, TypeName: "Raw Input", Quantity: 2},
+		}, nil)
+
+	// Raw (5032): no blueprints
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(5032)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5032)).Return(int64(0), nil)
+
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		6030,
+		5030,
+		"Root Product",
+		1,
+		0,
+		repo,
+		settings,
+		map[int64]bool{},
+		map[int64]bool{},
+		map[int64]int64{},
+		"sell",
+		true, // buildAll so we can observe recursion without cost comparison
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+
+	// Root should be built
+	assert.Equal(t, "build_override", tree.Decision, "root product should be built (buildAll=true)")
+	require.Len(t, tree.Children, 1, "root should have one child (the composite)")
+
+	composite := tree.Children[0]
+	assert.Equal(t, int64(5031), composite.TypeID)
+	// Composite should recurse into reaction — decision should be build_override or build, not buy
+	assert.NotEqual(t, "buy", composite.Decision, "composite should recurse into reaction blueprint, not buy at market")
+	require.NotEmpty(t, composite.Children, "composite should have children from reaction blueprint")
+	assert.Equal(t, int64(5032), composite.Children[0].TypeID, "composite's child should be the raw reaction input")
 
 	repo.AssertExpectations(t)
 }

@@ -32,6 +32,7 @@ type ArbiterScanRepository interface {
 type ArbiterBOMRepository interface {
 	GetBlueprintMaterialsForActivity(ctx context.Context, blueprintTypeID int64, activity string) ([]*models.BlueprintMaterial, error)
 	GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
+	GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 	GetMarketPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]*models.MarketPrice, error)
 	GetAdjustedPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]float64, error)
 	GetBlueprintActivityTime(ctx context.Context, blueprintTypeID int64, activity string) (int64, error)
@@ -1029,21 +1030,38 @@ func buildBOMNode(
 		return node, nil
 	}
 
-	// Get materials for this blueprint
+	// Get materials for this blueprint — fall back to reaction if no manufacturing materials
 	mats, err := btc.repo.GetBlueprintMaterialsForActivity(btc.ctx, blueprintTypeID, "manufacturing")
-	if err != nil {
-		node.Decision = "buy"
-		return node, nil
-	}
-	if len(mats) == 0 {
-		node.Decision = "buy"
-		return node, nil
+	activity := "manufacturing"
+	if err != nil || len(mats) == 0 {
+		mats, err = btc.repo.GetBlueprintMaterialsForActivity(btc.ctx, blueprintTypeID, "reaction")
+		activity = "reaction"
+		if err != nil || len(mats) == 0 {
+			node.Decision = "buy"
+			return node, nil
+		}
 	}
 
-	// Calculate build cost for the materials
-	structure := btc.settings.FinalStructure
-	rig := btc.settings.FinalRig
-	meFactor := calculator.ComputeManufacturingME(me, structure, rig, "null")
+	// Use depth-appropriate structure/rig for ME factor
+	var structure, rig string
+	switch {
+	case depth == 0:
+		structure = btc.settings.FinalStructure
+		rig = btc.settings.FinalRig
+	case depth == 1:
+		structure = btc.settings.ComponentStructure
+		rig = btc.settings.ComponentRig
+	default:
+		structure = btc.settings.ReactionStructure
+		rig = btc.settings.ReactionRig
+	}
+
+	var meFactor float64
+	if activity == "manufacturing" {
+		meFactor = calculator.ComputeManufacturingME(me, structure, rig, "null")
+	} else {
+		meFactor = calculator.ComputeMEFactor(rig, "null")
+	}
 
 	var buildCost float64
 	children := []*models.BOMNode{}
@@ -1053,10 +1071,10 @@ func buildBOMNode(
 		matBuyPrice := btc.getBuyPrice(mat.TypeID)
 		matBuildCost := matBuyPrice // default: buy
 
-		// Check if this material has a blueprint for sub-building
+		// Check if this material has a blueprint for sub-building — try manufacturing first, then reaction
 		subBpID, err := btc.repo.GetBlueprintForProduct(btc.ctx, mat.TypeID)
-		if err != nil {
-			subBpID = 0
+		if err != nil || subBpID == 0 {
+			subBpID, _ = btc.repo.GetReactionBlueprintForProduct(btc.ctx, mat.TypeID)
 		}
 
 		var childNode *models.BOMNode
