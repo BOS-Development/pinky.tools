@@ -1062,6 +1062,7 @@ interface WarehousePanelProps {
   inputPrice: "sell" | "buy";
   buildAll: boolean;
   inventionMaterials: Array<{ type_id: number; name: string; quantity: number; unit_price: number }>;
+  runsPerBpc: number;
 }
 
 function WarehousePanel({
@@ -1071,6 +1072,7 @@ function WarehousePanel({
   inputPrice,
   buildAll,
   inventionMaterials,
+  runsPerBpc,
 }: WarehousePanelProps) {
   const [copied, setCopied] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
@@ -1099,15 +1101,16 @@ function WarehousePanel({
 
   const shoppingItems = useMemo<ShoppingListItem[]>(() => {
     const fromBom = bom ? collectShoppingItems(bom) : [];
+    const bpcsNeeded = Math.ceil(qty / (runsPerBpc || 1));
     const fromInvention: ShoppingListItem[] = inventionMaterials.map((m) => ({
       type_id: m.type_id,
       name: m.name,
-      req_qty: m.quantity * qty,
+      req_qty: m.quantity * bpcsNeeded,
       unit_price: m.unit_price,
-      total_value: m.unit_price * m.quantity * qty,
+      total_value: m.unit_price * m.quantity * bpcsNeeded,
       warehouse: 0,
-      delta_qty: m.quantity * qty,
-      delta_cost: m.unit_price * m.quantity * qty,
+      delta_qty: m.quantity * bpcsNeeded,
+      delta_cost: m.unit_price * m.quantity * bpcsNeeded,
     }));
     const merged = new Map<number, ShoppingListItem>();
     for (const item of [...fromBom, ...fromInvention]) {
@@ -1123,7 +1126,7 @@ function WarehousePanel({
       }
     }
     return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [bom, inventionMaterials, qty]);
+  }, [bom, inventionMaterials, qty, runsPerBpc]);
 
   const totalCost = shoppingItems.reduce((s, i) => s + i.delta_cost, 0);
 
@@ -2493,6 +2496,7 @@ export default function ArbiterPage() {
           inputPrice={inputPrice}
           buildAll={scanBuildAll}
           inventionMaterials={selectedOpp?.invention_materials ?? []}
+          runsPerBpc={selectedOpp?.runs ?? 1}
         />
       </div>
 
