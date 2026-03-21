@@ -445,7 +445,7 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 
 	var best *models.DecryptorOption
 	for _, opt := range allOptions {
-		if best == nil || opt.Profit > best.Profit {
+		if best == nil || opt.ROI > best.ROI {
 			best = opt
 		}
 	}
@@ -551,6 +551,14 @@ func calculateDecryptorOption(
 		name = decryptor.Name
 	}
 
+	resultTE := 4 + decryptor.TEModifier
+	if resultTE < 0 {
+		resultTE = 0
+	}
+	if resultTE > 20 {
+		resultTE = 20
+	}
+
 	return &models.DecryptorOption{
 		TypeID:                decryptorTypeID,
 		Name:                  name,
@@ -561,7 +569,7 @@ func calculateDecryptorOption(
 		ResultingME:           resultME,
 		ResultingRuns:         resultRuns,
 		ME:                    resultME,
-		TE:                    decryptor.TEModifier,
+		TE:                    resultTE,
 		InventionCost:         math.Round(inventionCost*100) / 100,
 		MaterialCost:          math.Round(bom.MaterialCost*100) / 100,
 		JobCost:               math.Round(bom.JobCost*100) / 100,
