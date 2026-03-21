@@ -1109,6 +1109,183 @@ func Test_ScanOpportunities_BuildIfProfitable_PicksCheaperOption(t *testing.T) {
 	})
 }
 
+// --- InventionMaterials tests ---
+
+func Test_ScanOpportunities_InventionMaterials_Datacores_ScaledBySuccessRate(t *testing.T) {
+	// With a 50% success rate, each datacore quantity should be doubled (ceil(qty/0.5)).
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	sellPrice := float64(50_000_000)
+	datacorePrice := float64(100_000)
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       2001,
+		ProductName:         "T2 Widget",
+		BlueprintTypeID:     3001,
+		T1BlueprintTypeID:   4001,
+		BaseInventionChance: 0.5, // 50% success rate (no character skills)
+		BaseResultME:        2,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		2001:  {TypeID: 2001, SellPrice: &sellPrice},
+		9901:  {TypeID: 9901, SellPrice: &datacorePrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(4001)).Return((*models.InventionCharacter)(nil), nil)
+
+	// Invention materials: 2x Datacore A (typeID 9901)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(4001), "invention").Return([]*models.BlueprintMaterial{
+		{TypeID: 9901, TypeName: "Datacore Alpha", Quantity: 2},
+	}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3001), "manufacturing").Return(int64(86400), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+	require.NotNil(t, opp.InventionMaterials)
+	require.Len(t, opp.InventionMaterials, 1)
+
+	dc := opp.InventionMaterials[0]
+	assert.Equal(t, int64(9901), dc.TypeID)
+	assert.Equal(t, "Datacore Alpha", dc.Name)
+	// ceil(2 / 0.5) = 4
+	assert.Equal(t, int64(4), dc.Quantity)
+	assert.Equal(t, datacorePrice, dc.UnitPrice)
+
+	repo.AssertExpectations(t)
+}
+
+func Test_ScanOpportunities_InventionMaterials_Decryptor_AppendedWithScaledQty(t *testing.T) {
+	// A decryptor should appear at the end of InventionMaterials with qty = ceil(1/success_rate).
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	sellPrice := float64(50_000_000)
+	decryptorPrice := float64(5_000_000)
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       2002,
+		ProductName:         "T2 Gadget",
+		BlueprintTypeID:     3002,
+		T1BlueprintTypeID:   4002,
+		BaseInventionChance: 1.0, // 100% so decryptor qty = ceil(1/1) = 1
+		BaseResultME:        2,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	decryptor := &models.Decryptor{
+		TypeID:                8001,
+		Name:                  "Accelerant Decryptor",
+		ProbabilityMultiplier: 1.5,
+		MEModifier:            2,
+		TEModifier:            -2,
+		RunModifier:           -1,
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{decryptor}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		2002: {TypeID: 2002, SellPrice: &sellPrice},
+		8001: {TypeID: 8001, SellPrice: &decryptorPrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(4002)).Return((*models.InventionCharacter)(nil), nil)
+
+	// No datacores — only the decryptor
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(4002), "invention").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3002), "manufacturing").Return(int64(86400), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+
+	// Find the decryptor option in AllDecryptors that uses this decryptor
+	var decOpt *models.DecryptorOption
+	for _, opt := range opp.AllDecryptors {
+		if opt.TypeID != nil && *opt.TypeID == 8001 {
+			decOpt = opt
+			break
+		}
+	}
+	require.NotNil(t, decOpt, "expected to find the decryptor option with TypeID 8001")
+
+	// DecryptorOption.InventionMaterials should contain just the decryptor
+	require.Len(t, decOpt.InventionMaterials, 1)
+	dm := decOpt.InventionMaterials[0]
+	assert.Equal(t, int64(8001), dm.TypeID)
+	assert.Equal(t, "Accelerant Decryptor", dm.Name)
+	// chance = 1.0 * 1.5 = 1.5 → ceil(1/1.5) = 1
+	assert.Equal(t, int64(1), dm.Quantity)
+	assert.Equal(t, decryptorPrice, dm.UnitPrice)
+
+	repo.AssertExpectations(t)
+}
+
+func Test_ScanOpportunities_InventionMaterials_NoDecryptorOption_HasEmptySlice(t *testing.T) {
+	// The no-decryptor option should have an empty (non-nil) InventionMaterials slice when there are no datacores.
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	sellPrice := float64(10_000_000)
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       2003,
+		ProductName:         "Plain Module",
+		BlueprintTypeID:     3003,
+		T1BlueprintTypeID:   4003,
+		BaseInventionChance: 1.0,
+		BaseResultME:        2,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		2003: {TypeID: 2003, SellPrice: &sellPrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(4003)).Return((*models.InventionCharacter)(nil), nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(4003), "invention").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3003), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3003), "manufacturing").Return(int64(86400), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+	// InventionMaterials should be a non-nil empty slice (not null in JSON)
+	assert.NotNil(t, opp.InventionMaterials)
+	assert.Empty(t, opp.InventionMaterials)
+
+	// AllDecryptors[0] is the no-decryptor option — also should have non-nil empty slice
+	require.Len(t, opp.AllDecryptors, 1)
+	assert.NotNil(t, opp.AllDecryptors[0].InventionMaterials)
+	assert.Empty(t, opp.AllDecryptors[0].InventionMaterials)
+
+	repo.AssertExpectations(t)
+}
+
 func defaultArbiterSettings() *models.ArbiterSettings {
 	return &models.ArbiterSettings{
 		UserID:             1,

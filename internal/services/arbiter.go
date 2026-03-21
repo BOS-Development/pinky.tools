@@ -478,10 +478,11 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		Revenue:       math.Round(revenue*100) / 100,
 		SalesTax:      math.Round(salesTax*100) / 100,
 		BrokerFee:     math.Round(brokerFee*100) / 100,
-		Profit:        best.Profit,
-		ROI:           best.ROI,
-		BestDecryptor: best,
-		AllDecryptors: allOptions,
+		Profit:             best.Profit,
+		ROI:                best.ROI,
+		BestDecryptor:      best,
+		AllDecryptors:      allOptions,
+		InventionMaterials: best.InventionMaterials,
 	}, nil
 }
 
@@ -519,6 +520,40 @@ func calculateDecryptorOption(
 		inventionCost = (copyAndDatacoreCost + decryptorCost) / chanceMod
 	}
 
+	// Resolve decryptor name before building the materials list so it can be used there.
+	name := "No Decryptor"
+	if decryptor.Name != "" {
+		name = decryptor.Name
+	}
+
+	// Build invention materials list: datacores scaled by 1/success_rate, plus decryptor if present.
+	inventionMats, _ := ac.getBlueprintMaterials(item.T1BlueprintTypeID, "invention")
+	inventionMaterials := make([]*models.InventionMaterial, 0, len(inventionMats)+1)
+	for _, m := range inventionMats {
+		var qty int64
+		if chanceMod > 0 {
+			qty = int64(math.Ceil(float64(m.Quantity) / chanceMod))
+		}
+		inventionMaterials = append(inventionMaterials, &models.InventionMaterial{
+			TypeID:    m.TypeID,
+			Name:      m.TypeName,
+			Quantity:  qty,
+			UnitPrice: ac.getPrice(m.TypeID),
+		})
+	}
+	if decryptorTypeID != nil {
+		var qty int64
+		if chanceMod > 0 {
+			qty = int64(math.Ceil(1.0 / chanceMod))
+		}
+		inventionMaterials = append(inventionMaterials, &models.InventionMaterial{
+			TypeID:    *decryptorTypeID,
+			Name:      name,
+			Quantity:  qty,
+			UnitPrice: decryptorCost,
+		})
+	}
+
 	// BOM for the final T2 product using the T2 blueprint and result ME
 	bom, err := calculateFinalBOM(ac, item, resultME, resultRuns)
 	if err != nil {
@@ -548,11 +583,6 @@ func calculateDecryptorOption(
 		iskPerDay = profit / (float64(buildTimeSec) / 86400.0)
 	}
 
-	name := "No Decryptor"
-	if decryptor.Name != "" {
-		name = decryptor.Name
-	}
-
 	resultTE := 4 + decryptor.TEModifier
 	if resultTE < 0 {
 		resultTE = 0
@@ -580,6 +610,7 @@ func calculateDecryptorOption(
 		ROI:                   math.Round(roi*100) / 100,
 		ISKPerDay:             math.Round(iskPerDay*100) / 100,
 		BuildTimeSec:          buildTimeSec,
+		InventionMaterials:    inventionMaterials,
 	}, nil
 }
 

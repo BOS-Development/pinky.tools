@@ -2,6 +2,14 @@ package models
 
 import "time"
 
+// InventionMaterial is a single material needed for invention, scaled by 1/success_rate.
+type InventionMaterial struct {
+	TypeID    int64   `json:"type_id"`
+	Name      string  `json:"name"`
+	Quantity  int64   `json:"quantity"`   // ceil(per_attempt_qty / success_rate)
+	UnitPrice float64 `json:"unit_price"` // Jita sell price
+}
+
 // BlueprintMaterial is an input material for an arbiter BOM calculation.
 type BlueprintMaterial struct {
 	TypeID   int64  `json:"type_id"`
@@ -117,8 +125,9 @@ type DecryptorOption struct {
 	TotalCost             float64 `json:"total_cost"`
 	Profit                float64 `json:"profit"`
 	ROI                   float64 `json:"roi"`
-	ISKPerDay             float64 `json:"isk_per_day"`
-	BuildTimeSec          int64   `json:"build_time_sec"`
+	ISKPerDay             float64              `json:"isk_per_day"`
+	BuildTimeSec          int64                `json:"build_time_sec"`
+	InventionMaterials    []*InventionMaterial `json:"invention_materials"`
 }
 
 // ArbiterScope is a named group of characters and/or corporations whose assets are pooled.
@@ -215,10 +224,11 @@ type ArbiterOpportunity struct {
 	BrokerFee       float64            `json:"broker_fee"`
 	Profit          float64            `json:"profit"`
 	ROI             float64            `json:"roi"`
-	BestDecryptor   *DecryptorOption   `json:"best_decryptor"`
-	AllDecryptors   []*DecryptorOption `json:"all_decryptors"`
-	IsBlacklisted   bool               `json:"is_blacklisted"`
-	IsWhitelisted   bool               `json:"is_whitelisted"`
+	BestDecryptor      *DecryptorOption     `json:"best_decryptor"`
+	AllDecryptors      []*DecryptorOption   `json:"all_decryptors"`
+	IsBlacklisted      bool                 `json:"is_blacklisted"`
+	IsWhitelisted      bool                 `json:"is_whitelisted"`
+	InventionMaterials []*InventionMaterial `json:"invention_materials"`
 }
 
 // ArbiterScanResult is the full result of a scan run.

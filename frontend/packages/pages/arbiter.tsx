@@ -149,6 +149,12 @@ export interface Opportunity {
   all_decryptors: DecryptorResult[];
   is_blacklisted: boolean;
   is_whitelisted: boolean;
+  invention_materials: Array<{
+    type_id: number;
+    name: string;
+    quantity: number;
+    unit_price: number;
+  }>;
 }
 
 export interface OpportunitiesResponse {
@@ -1029,6 +1035,8 @@ interface WarehousePanelProps {
   scopeId: number | null;
   qty: number;
   inputPrice: "sell" | "buy";
+  buildAll: boolean;
+  inventionMaterials: Array<{ type_id: number; name: string; quantity: number; unit_price: number }>;
 }
 
 function WarehousePanel({
@@ -1036,6 +1044,8 @@ function WarehousePanel({
   scopeId,
   qty,
   inputPrice,
+  buildAll,
+  inventionMaterials,
 }: WarehousePanelProps) {
   const [copied, setCopied] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
@@ -1051,20 +1061,31 @@ function WarehousePanel({
     const params = new URLSearchParams();
     if (scopeId) params.set("scope_id", String(scopeId));
     params.set("quantity", String(qty || 1));
+    params.set("build_all", String(buildAll));
     params.set("me", String(selectedOpp.me));
     fetch(`/api/arbiter/${selectedOpp.product_type_id}/bom?${params.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setBom(data))
       .catch(() => setBom(null))
       .finally(() => setBomLoading(false));
-  }, [selectedOpp?.product_type_id, scopeId, qty]);
+  }, [selectedOpp?.product_type_id, scopeId, qty, buildAll]);
 
   const ingredients = bom?.children ?? [];
 
   const shoppingItems = useMemo<ShoppingListItem[]>(() => {
-    if (!bom) return [];
-    return collectShoppingItems(bom);
-  }, [bom]);
+    const fromBom = bom ? collectShoppingItems(bom) : [];
+    const fromInvention: ShoppingListItem[] = inventionMaterials.map((m) => ({
+      type_id: m.type_id,
+      name: m.name,
+      req_qty: m.quantity * qty,
+      unit_price: m.unit_price,
+      total_value: m.unit_price * m.quantity * qty,
+      warehouse: 0,
+      delta_qty: m.quantity * qty,
+      delta_cost: m.unit_price * m.quantity * qty,
+    }));
+    return [...fromBom, ...fromInvention];
+  }, [bom, inventionMaterials, qty]);
 
   const totalCost = shoppingItems.reduce((s, i) => s + i.delta_cost, 0);
 
@@ -2446,6 +2467,8 @@ export default function ArbiterPage() {
               : 1
           }
           inputPrice={inputPrice}
+          buildAll={scanBuildAll}
+          inventionMaterials={selectedOpp?.invention_materials ?? []}
         />
       </div>
 
