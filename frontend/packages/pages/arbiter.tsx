@@ -66,6 +66,7 @@ export interface ArbiterSettings {
   invention_rig: string;
   invention_system_id: number;
   invention_system_name: string;
+  invention_facility_tax: number;
   component_structure: string;
   component_rig: string;
   component_system_id: number;
@@ -213,6 +214,7 @@ const DEFAULT_SETTINGS: ArbiterSettings = {
   invention_rig: "t1",
   invention_system_id: 30000142,
   invention_system_name: "Jita",
+  invention_facility_tax: 0,
   component_structure: "raitaru",
   component_rig: "t2",
   component_system_id: 30000142,
@@ -229,8 +231,8 @@ const DEFAULT_TAX_PROFILE: TaxProfile = {
   sales_tax_rate: 8,
   broker_fee_rate: 3,
   structure_broker_fee: 1,
-  input_price_type: "sell",
-  output_price_type: "buy",
+  input_price_type: "buy",
+  output_price_type: "sell",
   trader_character_id: null,
 };
 
@@ -1388,9 +1390,9 @@ export default function ArbiterPage() {
   const [selectedDecryptorId, setSelectedDecryptorId] = useState<string>("maximize_roi");
 
   // Price toggles (no-rescan)
-  const [inputPrice, setInputPrice] = useState<"sell" | "buy">("sell");
-  const [outputPrice, setOutputPrice] = useState<"sell" | "buy">("buy");
-  const [scanBuildAll, setScanBuildAll] = useState(false);
+  const [inputPrice, setInputPrice] = useState<"sell" | "buy">("buy");
+  const [outputPrice, setOutputPrice] = useState<"sell" | "buy">("sell");
+  const [scanBuildAll, setScanBuildAll] = useState(true);
 
   // Opportunities state
   const [opportunities, setOpportunities] = useState<OpportunitiesResponse | null>(null);
@@ -1843,6 +1845,7 @@ export default function ArbiterPage() {
                         prefix="invention"
                         settings={settings}
                         onChange={handleSettingChange}
+                        facilityTaxKey="invention_facility_tax"
                       />
                       <StructureSection
                         title="Component Build"
