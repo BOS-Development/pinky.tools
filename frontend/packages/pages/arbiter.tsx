@@ -50,6 +50,7 @@ import {
   Copy,
   Check,
   ExternalLink,
+  RefreshCw,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -163,6 +164,7 @@ export interface OpportunitiesResponse {
   generated_at: string;
   total_scanned: number;
   best_character_name: string;
+  prices_updated_at?: string | null;
 }
 
 export interface BomNode {
@@ -259,6 +261,27 @@ function getSecurityLabel(security: number): string {
   if (security > 0) return "Low";
   if (security === 0) return "W-Space";
   return "Null";
+}
+
+function formatRelativeTime(isoString: string): string {
+  const now = Date.now();
+  const then = new Date(isoString).getTime();
+  const diffMs = now - then;
+  const diffSec = Math.floor(diffMs / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHrs = Math.floor(diffMin / 60);
+  const diffDays = Math.floor(diffHrs / 24);
+
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffHrs < 24) return `${diffHrs}h ago`;
+  // Older than 24h — show absolute date
+  return new Date(isoString).toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 // ─── SystemSearch ─────────────────────────────────────────────────────────────
@@ -1399,6 +1422,10 @@ export default function ArbiterPage() {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
 
+  // Price refresh state
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
+  const [lastPricesUpdatedAt, setLastPricesUpdatedAt] = useState<string | null>(null);
+
   // Filters
   const [categoryFilters, setCategoryFilters] = useState<Set<string>>(
     new Set(["ship", "module"]),
@@ -1530,12 +1557,30 @@ export default function ArbiterPage() {
       }
       const data: OpportunitiesResponse = await res.json();
       setOpportunities(data);
+      if (data.prices_updated_at) {
+        setLastPricesUpdatedAt(data.prices_updated_at);
+      }
     } catch {
       setScanError("Failed to scan opportunities");
     } finally {
       setScanning(false);
     }
   }, [selectedScopeId, inputPrice, outputPrice, selectedDecryptorId, scanBuildAll]);
+
+  const handleRefreshPrices = useCallback(async () => {
+    setRefreshingPrices(true);
+    try {
+      const res = await fetch("/api/market-prices/update", { method: "POST" });
+      if (res.ok) {
+        // Re-trigger the scan after prices are refreshed
+        await handleScan();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setRefreshingPrices(false);
+    }
+  }, [handleScan]);
 
   const handleCreateScope = async () => {
     if (!newScopeName.trim()) return;
@@ -2181,6 +2226,47 @@ export default function ArbiterPage() {
               ) : null}
               {scanning ? "Scanning..." : "Scan Opportunities"}
             </Button>
+
+            {/* Refresh Prices button + last updated label */}
+            {(() => {
+              const pricesTs = lastPricesUpdatedAt ?? opportunities?.prices_updated_at ?? null;
+              const ageMs = pricesTs ? Date.now() - new Date(pricesTs).getTime() : Infinity;
+              const tooRecent = ageMs < 60 * 60 * 1000;
+              const disableRefresh = refreshingPrices || tooRecent;
+              return (
+                <div className="flex items-center gap-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={handleRefreshPrices}
+                          disabled={disableRefresh}
+                        >
+                          {refreshingPrices ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                          )}
+                          Refresh Prices
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {tooRecent && pricesTs
+                          ? `Prices updated ${formatRelativeTime(pricesTs)} — refresh available after 1h`
+                          : "Fetch latest Jita market prices, then re-scan"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  {pricesTs && (
+                    <span className="text-xs text-text-muted">
+                      Prices {formatRelativeTime(pricesTs)}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
           </div>
 
           {/* Right side: price toggles */}
