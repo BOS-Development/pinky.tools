@@ -200,6 +200,11 @@ type updateArbiterSettingsRequest struct {
 	FinalRig       string `json:"final_rig"`
 	FinalSystemID  *int64 `json:"final_system_id"`
 
+	FinalFacilityTax     float64 `json:"final_facility_tax"`
+	ComponentFacilityTax float64 `json:"component_facility_tax"`
+	ReactionFacilityTax  float64 `json:"reaction_facility_tax"`
+	InventionFacilityTax float64 `json:"invention_facility_tax"`
+
 	UseWhitelist    bool   `json:"use_whitelist"`
 	UseBlacklist    bool   `json:"use_blacklist"`
 	DecryptorTypeID *int64 `json:"decryptor_type_id"`
@@ -257,10 +262,14 @@ func (c *Arbiter) UpdateArbiterSettings(args *web.HandlerArgs) (any, *web.HttpEr
 		ComponentStructure: req.ComponentStructure,
 		ComponentRig:       req.ComponentRig,
 		ComponentSystemID:  req.ComponentSystemID,
-		FinalStructure:     req.FinalStructure,
-		FinalRig:           req.FinalRig,
-		FinalSystemID:      req.FinalSystemID,
-		UseWhitelist:       req.UseWhitelist,
+		FinalStructure:      req.FinalStructure,
+		FinalRig:            req.FinalRig,
+		FinalSystemID:       req.FinalSystemID,
+		FinalFacilityTax:    req.FinalFacilityTax,
+		ComponentFacilityTax: req.ComponentFacilityTax,
+		ReactionFacilityTax:  req.ReactionFacilityTax,
+		InventionFacilityTax: req.InventionFacilityTax,
+		UseWhitelist:        req.UseWhitelist,
 		UseBlacklist:       req.UseBlacklist,
 		DecryptorTypeID:    req.DecryptorTypeID,
 		DefaultScopeID:     req.DefaultScopeID,

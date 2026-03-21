@@ -559,6 +559,44 @@ func Test_ArbiterUpdateSettings_Returns200_WhenValid(t *testing.T) {
 	mocks.settings.AssertExpectations(t)
 }
 
+func Test_ArbiterUpdateSettings_AssignsFacilityTaxFields(t *testing.T) {
+	c, mocks := setupArbiterController()
+	userID := int64(100)
+
+	mocks.settings.On("GetArbiterEnabled", mock.Anything, userID).Return(true, nil)
+	mocks.settings.On("UpsertArbiterSettings", mock.Anything, mock.AnythingOfType("*models.ArbiterSettings")).Return(nil)
+
+	body, _ := json.Marshal(map[string]any{
+		"reaction_structure":    "tatara",
+		"reaction_rig":          "t2",
+		"invention_structure":   "raitaru",
+		"invention_rig":         "t1",
+		"component_structure":   "azbel",
+		"component_rig":         "t2",
+		"final_structure":       "sotiyo",
+		"final_rig":             "t2",
+		"final_facility_tax":    1.5,
+		"component_facility_tax": 0.5,
+		"reaction_facility_tax": 2.0,
+		"invention_facility_tax": 0.25,
+	})
+	req := httptest.NewRequest("PUT", "/v1/arbiter/settings", bytes.NewReader(body))
+	args := &web.HandlerArgs{Request: req, User: &userID}
+
+	result, httpErr := c.UpdateArbiterSettings(args)
+	assert.Nil(t, httpErr)
+	assert.NotNil(t, result)
+
+	s, ok := result.(*models.ArbiterSettings)
+	assert.True(t, ok)
+	assert.Equal(t, 1.5, s.FinalFacilityTax)
+	assert.Equal(t, 0.5, s.ComponentFacilityTax)
+	assert.Equal(t, 2.0, s.ReactionFacilityTax)
+	assert.Equal(t, 0.25, s.InventionFacilityTax)
+
+	mocks.settings.AssertExpectations(t)
+}
+
 func Test_ArbiterGetOpportunities_Returns403_WhenNotEnabled(t *testing.T) {
 	c, mocks := setupArbiterController()
 	userID := int64(100)
