@@ -764,52 +764,6 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
                       value="1"
                     />
                   </div>
-                  <div
-                    class="space-y-2 col-span-2"
-                  >
-                    <label
-                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
-                    >
-                      Input Price Type
-                    </label>
-                    <div
-                      class="flex gap-2"
-                    >
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
-                      >
-                        Jita Sell
-                      </button>
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
-                      >
-                        Jita Buy
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    class="space-y-2 col-span-2"
-                  >
-                    <label
-                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
-                    >
-                      Output Price Type
-                    </label>
-                    <div
-                      class="flex gap-2"
-                    >
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
-                      >
-                        Jita Sell
-                      </button>
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
-                      >
-                        Jita Buy
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
               <div
@@ -2109,52 +2063,6 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                       type="number"
                       value="1"
                     />
-                  </div>
-                  <div
-                    class="space-y-2 col-span-2"
-                  >
-                    <label
-                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
-                    >
-                      Input Price Type
-                    </label>
-                    <div
-                      class="flex gap-2"
-                    >
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
-                      >
-                        Jita Sell
-                      </button>
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
-                      >
-                        Jita Buy
-                      </button>
-                    </div>
-                  </div>
-                  <div
-                    class="space-y-2 col-span-2"
-                  >
-                    <label
-                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
-                    >
-                      Output Price Type
-                    </label>
-                    <div
-                      class="flex gap-2"
-                    >
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
-                      >
-                        Jita Sell
-                      </button>
-                      <button
-                        class="px-3 py-1.5 text-sm rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
-                      >
-                        Jita Buy
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
