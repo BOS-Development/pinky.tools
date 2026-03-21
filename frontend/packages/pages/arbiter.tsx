@@ -1038,6 +1038,7 @@ function WarehousePanel({
   inputPrice,
 }: WarehousePanelProps) {
   const [copied, setCopied] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
   const [bom, setBom] = useState<BomNode | null>(null);
   const [bomLoading, setBomLoading] = useState(false);
 
@@ -1074,6 +1075,15 @@ function WarehousePanel({
     navigator.clipboard.writeText(lines.join("\n")).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  function handleExportAll() {
+    const lines = shoppingItems
+      .map((i) => `${i.name} x ${i.req_qty}`);
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      setCopiedAll(true);
+      setTimeout(() => setCopiedAll(false), 2000);
     });
   }
 
@@ -1196,7 +1206,20 @@ function WarehousePanel({
                       ) : (
                         <Copy className="h-3 w-3" />
                       )}
-                      Multibuy
+                      Purchase Delta
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-6 text-xs gap-1"
+                      onClick={handleExportAll}
+                    >
+                      {copiedAll ? (
+                        <Check className="h-3 w-3" />
+                      ) : (
+                        <Copy className="h-3 w-3" />
+                      )}
+                      Purchase All
                     </Button>
                   </div>
                 </div>
