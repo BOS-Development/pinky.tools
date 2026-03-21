@@ -698,11 +698,12 @@ function OpportunityRow({
 
   const effectiveQty = qty || 1;
 
-  // Recalculate values based on qty
-  const scaledCost = opp.total_cost * effectiveQty;
-  const scaledRevenue = opp.revenue * effectiveQty;
-  const scaledProfit = opp.profit * effectiveQty;
-  const scaledSalesTax = opp.sales_tax * effectiveQty;
+  // Recalculate values based on qty (per-unit, not per-BPC)
+  const runsPerBpc = opp.runs || 1;
+  const scaledCost = (opp.total_cost / runsPerBpc) * effectiveQty;
+  const scaledRevenue = (opp.revenue / runsPerBpc) * effectiveQty;
+  const scaledProfit = (opp.profit / runsPerBpc) * effectiveQty;
+  const scaledSalesTax = (opp.sales_tax / runsPerBpc) * effectiveQty;
 
   async function fetchBom() {
     if (bomFetched.current) return;
