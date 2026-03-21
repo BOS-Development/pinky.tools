@@ -712,7 +712,8 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 
 	var meFactor float64
 	if activity == "manufacturing" {
-		meFactor = calculator.ComputeManufacturingME(0, lvl.structure, lvl.rig, "null")
+		// Sub-component blueprints (T2 components, T1 hulls) are assumed researched to ME 10/20
+		meFactor = calculator.ComputeManufacturingME(10, lvl.structure, lvl.rig, "null")
 	} else {
 		meFactor = calculator.ComputeMEFactor(lvl.rig, "null")
 	}
@@ -1079,8 +1080,9 @@ func buildBOMNode(
 
 		var childNode *models.BOMNode
 		if subBpID != 0 && depth+1 < maxDepth && !btc.blacklist[mat.TypeID] {
-			// Recurse to build sub-tree
-			childNode, err = buildBOMNode(btc, subBpID, mat.TypeID, mat.TypeName, int64(batchQty), 0, depth+1)
+			// Recurse to build sub-tree; sub-component blueprints are assumed researched to ME 10/20
+			// reactions ignore the me param entirely via ComputeMEFactor
+			childNode, err = buildBOMNode(btc, subBpID, mat.TypeID, mat.TypeName, int64(batchQty), 10, depth+1)
 			if err != nil || childNode == nil {
 				childNode = &models.BOMNode{
 					TypeID:       mat.TypeID,
