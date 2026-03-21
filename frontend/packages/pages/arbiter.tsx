@@ -1003,19 +1003,17 @@ function collectShoppingItems(node: BomNode): ShoppingListItem[] {
   const result: ShoppingListItem[] = [];
 
   if (node.decision === "buy" || node.decision === "buy_override") {
-    // This item is being bought — add to shopping list if there's a delta
-    if (node.delta > 0) {
-      result.push({
-        type_id: node.type_id,
-        name: node.name,
-        req_qty: Number(node.quantity),
-        unit_price: node.unit_buy_price,
-        total_value: node.unit_buy_price * Number(node.quantity),
-        warehouse: Number(node.available),
-        delta_qty: Number(node.delta),
-        delta_cost: node.unit_buy_price * Number(node.delta),
-      });
-    }
+    // This item is being bought — always add to shopping list for full cost visibility
+    result.push({
+      type_id: node.type_id,
+      name: node.name,
+      req_qty: Number(node.quantity),
+      unit_price: node.unit_buy_price,
+      total_value: node.unit_buy_price * Number(node.quantity),
+      warehouse: Number(node.available),
+      delta_qty: Number(node.delta),
+      delta_cost: node.unit_buy_price * Number(node.delta),
+    });
   } else if (node.children && node.children.length > 0) {
     // Building this item — recurse into its children
     for (const child of node.children) {
@@ -1181,7 +1179,7 @@ function WarehousePanel({
                 {/* Summary row */}
                 <div className="flex items-center justify-between px-3 py-1.5 border-b border-overlay-subtle bg-background-elevated">
                   <span className="text-xs text-text-muted">
-                    {shoppingItems.filter((i) => i.delta_qty > 0).length} items to buy
+                    {shoppingItems.filter((i) => i.delta_qty > 0).length} to buy · {shoppingItems.length} total
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono text-text-data-value">
@@ -1234,7 +1232,7 @@ function WarehousePanel({
                         key={item.type_id}
                         className={cn(
                           "border-b border-overlay-subtle/50 hover:bg-interactive-hover",
-                          item.delta_qty > 0 && "bg-rose-danger/5",
+                          item.delta_qty > 0 ? "bg-rose-danger/5" : "opacity-50",
                         )}
                       >
                         <td className="px-3 py-1 text-text-primary truncate max-w-[160px]">
@@ -1279,7 +1277,7 @@ function WarehousePanel({
                   {bomLoading
                     ? "Loading..."
                     : selectedOpp
-                    ? "Nothing to buy — warehouse is stocked"
+                    ? "No materials found in BOM"
                     : "Select an opportunity to see shopping list"}
                 </p>
               </div>
