@@ -1224,6 +1224,119 @@ func Test_ScanOpportunities_ReactionFullBatchCost(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
+// Test_ScanOpportunities_ReactionFullJobCost verifies that reaction job costs are charged
+// for the full run (no pro-rating), while material costs are also NOT pro-rated.
+//
+// Setup:
+//   T2 product (typeID 7101, blueprint 7102, T1 blueprint 7103)
+//   T2 blueprint requires 1,000x composite (typeID 7110)
+//   Composite (7110) is produced by reaction blueprint (7111) at 10,000 units/run
+//   Reaction blueprint requires 5x raw input (typeID 7120), adjusted price 1,000 ISK each
+//
+// The reaction produces 10,000 units but only 1,000 are needed → 1 full run is charged.
+//
+// Reaction job cost formula (simplified, no facility tax, costIdx=0.05):
+//   EIV = 5 × 1,000 = 5,000 ISK (for one run of materials)
+//   Full job cost = EIV × (costIdx + sccSurcharge) × 1 run (NOT scaled down)
+//
+// Material cost = 5 raw × 1,000 ISK = 5,000 ISK (full batch)
+func Test_ScanOpportunities_ReactionFullJobCost(t *testing.T) {
+	// The composite reaction blueprint is reached at depth=1 from calculateFinalBOM,
+	// so its job cost uses ComponentSystemID (not ReactionSystemID).
+	componentSystemID := int64(30000142) // arbitrary system ID
+
+	settings := defaultArbiterSettings()
+	settings.ComponentSystemID = &componentSystemID
+
+	repo := &MockArbiterScanRepository{}
+
+	productSellPrice := float64(50_000_000) // generous — ensures opportunity is returned
+	compMarketPrice := float64(10_000_000)  // high — ensures build path wins
+	rawPrice := float64(1_000)
+	rawAdjustedPrice := float64(1_000) // same as market for simplicity
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       7101,
+		ProductName:         "T2 Armor Plate Pro-Rated",
+		BlueprintTypeID:     7102,
+		T1BlueprintTypeID:   7103,
+		BaseInventionChance: 1.0,
+		BaseResultME:        0,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		7101: {TypeID: 7101, SellPrice: &productSellPrice},
+		7110: {TypeID: 7110, SellPrice: &compMarketPrice},
+		7120: {TypeID: 7120, SellPrice: &rawPrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{
+		7120: rawAdjustedPrice,
+	}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(7103)).Return((*models.InventionCharacter)(nil), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7102), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7111), "reaction").Return(int64(3600), nil)
+
+	// Invention materials for T1 blueprint
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7103), "invention").Return([]*models.BlueprintMaterial{}, nil)
+
+	// T2 blueprint materials: 1,000x composite (7110)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7102), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 7110, TypeName: "Composite", Quantity: 1000},
+		}, nil)
+
+	// Reaction blueprint (7111) requires 5x raw input, produces 10,000 composite per run
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7111), "reaction").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 7120, TypeName: "Raw Ore", Quantity: 5},
+		}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "manufacturing").Return([]*models.BlueprintMaterial{}, nil).Maybe()
+
+	// Reaction product: 10,000 units per run
+	reactionProduct := &models.BlueprintProduct{TypeID: 7110, Quantity: 10000}
+	repo.On("GetBlueprintProductForActivity", mock.Anything, int64(7111), "reaction").Return(reactionProduct, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+
+	// Composite (7110) has a reaction blueprint (7111), no manufacturing blueprint
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(7110)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(7110)).Return(int64(7111), nil)
+	// Raw input (7120) has no blueprint
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(7120)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(7120)).Return(int64(0), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
+
+	// Component system cost index = 5% (reaction blueprint is at depth=1, so it uses ComponentSystemID)
+	const reactionCostIdx = 0.05
+	repo.On("GetCostIndexForSystem", mock.Anything, componentSystemID, "reaction").Return(reactionCostIdx, nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+
+	// --- Material cost: should be FULL batch regardless of how many we consume ---
+	// 5 raw × 1,000 ISK = 5,000 ISK (one full reaction run, no pro-rating)
+	const fullBatchMatCost = float64(5_000)
+	assert.GreaterOrEqual(t, opp.MaterialCost, fullBatchMatCost,
+		"Material cost must reflect the full reaction batch input cost, not a pro-rated fraction")
+
+	// --- Job cost: should be the FULL run cost, not pro-rated ---
+	// EIV = 5 raw × adjusted_price(1,000) = 5,000 ISK
+	// Full job cost = 5,000 × (0.05 + scc_surcharge) × 1 run ≥ 250 ISK
+	// You either run a job or you don't — no partial job fees.
+	const minFullJobCost = float64(250) // EIV × costIdx alone = 5,000 × 0.05
+	assert.GreaterOrEqual(t, opp.JobCost, minFullJobCost,
+		"Job cost must reflect the full reaction run cost, not a pro-rated fraction")
+
+	repo.AssertExpectations(t)
+}
+
 func Test_ScanOpportunities_BuildIfProfitable_PicksCheaperOption(t *testing.T) {
 	// Verify the "build if profitable" logic for buildAll=false:
 	// for each sub-component that has a blueprint, compute both the recursive build cost AND

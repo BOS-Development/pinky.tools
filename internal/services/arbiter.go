@@ -632,7 +632,7 @@ func calculateDecryptorOption(
 		ME:                    resultME,
 		TE:                    resultTE,
 		InventionCost:         math.Round(inventionCost*100) / 100,
-		MaterialCost:          math.Round(bom.MaterialCost*100) / 100,
+		MaterialCost:          math.Round((bom.MaterialCost+inventionCost)*100) / 100,
 		JobCost:               math.Round(bom.JobCost*100) / 100,
 		TotalCost:             math.Round(totalCost*100) / 100,
 		Profit:                math.Round(profit*100) / 100,
@@ -941,11 +941,19 @@ func (btc *bomTreeContext) getInputPrice(typeID int64) float64 {
 		if mp.BuyPrice != nil {
 			return *mp.BuyPrice
 		}
+		// fallback: use sell price if no buy orders exist
+		if mp.SellPrice != nil {
+			return *mp.SellPrice
+		}
 		return 0
 	}
 	// default: sell
 	if mp.SellPrice != nil {
 		return *mp.SellPrice
+	}
+	// fallback: use buy price if no sell orders exist
+	if mp.BuyPrice != nil {
+		return *mp.BuyPrice
 	}
 	return 0
 }

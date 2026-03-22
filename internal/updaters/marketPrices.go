@@ -72,6 +72,14 @@ func (u *MarketPrices) UpdateJitaMarket(ctx context.Context) error {
 		}
 	}
 
+	return u.doUpdateJitaMarket(ctx)
+}
+
+func (u *MarketPrices) ForceUpdateJitaMarket(ctx context.Context) error {
+	return u.doUpdateJitaMarket(ctx)
+}
+
+func (u *MarketPrices) doUpdateJitaMarket(ctx context.Context) error {
 	log.Info("updating market prices", "region_id", JitaRegionID)
 
 	// Fetch all market orders for Jita

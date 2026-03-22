@@ -197,3 +197,40 @@ func Test_IndustryCostIndices_EmptySystemList(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, repo.upsertedRows)
 }
+
+func Test_IndustryCostIndices_ForceUpdate_SkipsThrottle(t *testing.T) {
+	// Even with a very recent update, ForceUpdate should still run
+	recentTime := time.Now().Add(-1 * time.Minute)
+	esiClient := &mockCostIndicesEsiClient{
+		systems: []*client.IndustryCostIndexSystem{
+			{
+				SolarSystemID: 30000142,
+				CostIndices: []client.IndustryCostIndexActivity{
+					{Activity: "manufacturing", CostIndex: 0.05},
+				},
+			},
+		},
+	}
+	repo := &mockCostIndicesRepo{
+		lastUpdateTime: &recentTime,
+	}
+
+	u := updaters.NewIndustryCostIndices(esiClient, repo)
+	err := u.ForceUpdate(context.Background())
+
+	assert.NoError(t, err)
+	assert.Len(t, repo.upsertedRows, 1)
+}
+
+func Test_IndustryCostIndices_ForceUpdate_ESIError(t *testing.T) {
+	esiClient := &mockCostIndicesEsiClient{
+		err: fmt.Errorf("ESI unavailable"),
+	}
+	repo := &mockCostIndicesRepo{}
+
+	u := updaters.NewIndustryCostIndices(esiClient, repo)
+	err := u.ForceUpdate(context.Background())
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to fetch industry cost indices")
+}

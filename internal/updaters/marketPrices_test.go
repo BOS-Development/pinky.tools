@@ -487,6 +487,70 @@ func Test_MarketPricesUpdater_GetLastUpdateTimeError(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to get last market price update time")
 }
 
+func Test_MarketPricesUpdater_ForceUpdate_SkipsThrottle(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := NewMockMarketPricesRepository(ctrl)
+	mockESIClient := NewMockMarketPricesEsiClient(ctrl)
+
+	mockOrders := []*client.MarketOrder{
+		{TypeID: 34, LocationID: 60003760, Price: 5.45, IsBuyOrder: true, VolumeRemain: 1000},
+		{TypeID: 34, LocationID: 60003760, Price: 5.50, IsBuyOrder: false, VolumeRemain: 2000},
+	}
+
+	// ForceUpdate does NOT call GetLastUpdateTime — no throttle check
+	mockESIClient.EXPECT().
+		GetMarketOrders(gomock.Any(), int64(10000002)).
+		Return(mockOrders, nil).
+		Times(1)
+
+	mockRepo.EXPECT().
+		DeleteAllForRegion(gomock.Any(), int64(10000002)).
+		Return(nil).
+		Times(1)
+
+	mockRepo.EXPECT().
+		UpsertPrices(gomock.Any(), gomock.Any()).
+		Return(nil).
+		Times(1)
+
+	mockRepo.EXPECT().
+		InsertPriceHistorySnapshot(gomock.Any(), gomock.Any()).
+		Return(nil).
+		Times(1)
+
+	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
+
+	err := updater.ForceUpdateJitaMarket(context.Background())
+	assert.NoError(t, err)
+}
+
+func Test_MarketPricesUpdater_ForceUpdate_ESIError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockRepo := NewMockMarketPricesRepository(ctrl)
+	mockESIClient := NewMockMarketPricesEsiClient(ctrl)
+
+	// ForceUpdate does NOT call GetLastUpdateTime
+	mockESIClient.EXPECT().
+		GetMarketOrders(gomock.Any(), int64(10000002)).
+		Return(nil, assert.AnError).
+		Times(1)
+
+	// Should NOT try to delete or upsert
+	mockRepo.EXPECT().
+		DeleteAllForRegion(gomock.Any(), gomock.Any()).
+		Times(0)
+
+	updater := updaters.NewMarketPrices(mockRepo, mockESIClient)
+
+	err := updater.ForceUpdateJitaMarket(context.Background())
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to fetch market orders from ESI")
+}
+
 func Test_MarketPricesUpdater_FiltersNonJitaOrders(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

@@ -1582,7 +1582,7 @@ export default function ArbiterPage() {
   const handleRefreshPrices = useCallback(async () => {
     setRefreshingPrices(true);
     try {
-      const res = await fetch("/api/market-prices/update", { method: "POST" });
+      const res = await fetch("/api/esi/refresh", { method: "POST" });
       if (res.ok) {
         // Re-trigger the scan after prices are refreshed
         await handleScan();
@@ -2261,7 +2261,7 @@ export default function ArbiterPage() {
                           ) : (
                             <RefreshCw className="h-4 w-4 mr-2" />
                           )}
-                          Refresh Prices
+                          ESI Refresh
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>

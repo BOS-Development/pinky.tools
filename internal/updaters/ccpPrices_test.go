@@ -168,3 +168,35 @@ func Test_CcpPrices_FirstRunWithNoLastUpdate(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, map[int64]float64{34: 5.0}, repo.upsertedPrices)
 }
+
+func Test_CcpPrices_ForceUpdate_SkipsThrottle(t *testing.T) {
+	// Even with a very recent update, ForceUpdate should still run
+	recentTime := time.Now().Add(-1 * time.Minute)
+	esiClient := &mockCcpPricesEsiClient{
+		prices: []*client.CcpMarketPrice{
+			{TypeID: 34, AdjustedPrice: ptrFloat64(10.5)},
+		},
+	}
+	repo := &mockCcpPricesMarketRepo{
+		lastUpdateTime: &recentTime,
+	}
+
+	u := updaters.NewCcpPrices(esiClient, repo)
+	err := u.ForceUpdate(context.Background())
+
+	assert.NoError(t, err)
+	assert.Equal(t, map[int64]float64{34: 10.5}, repo.upsertedPrices)
+}
+
+func Test_CcpPrices_ForceUpdate_ESIError(t *testing.T) {
+	esiClient := &mockCcpPricesEsiClient{
+		err: fmt.Errorf("ESI unavailable"),
+	}
+	repo := &mockCcpPricesMarketRepo{}
+
+	u := updaters.NewCcpPrices(esiClient, repo)
+	err := u.ForceUpdate(context.Background())
+
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "failed to fetch CCP market prices")
+}
