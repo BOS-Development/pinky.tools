@@ -188,9 +188,11 @@ func (r *MarketPrices) UpsertAdjustedPrices(ctx context.Context, prices map[int6
 	}
 
 	upsertQuery := `
-UPDATE market_prices
-SET adjusted_price = $2
-WHERE type_id = $1
+INSERT INTO adjusted_prices (type_id, adjusted_price)
+VALUES ($1, $2)
+ON CONFLICT (type_id) DO UPDATE
+	SET adjusted_price = EXCLUDED.adjusted_price,
+		updated_at = NOW()
 `
 
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -223,8 +225,7 @@ WHERE type_id = $1
 func (r *MarketPrices) GetAllAdjustedPrices(ctx context.Context) (map[int64]float64, error) {
 	query := `
 SELECT type_id, adjusted_price
-FROM market_prices
-WHERE adjusted_price IS NOT NULL
+FROM adjusted_prices
 `
 
 	rows, err := r.db.QueryContext(ctx, query)
@@ -284,7 +285,7 @@ WHERE region_id = 10000002
 
 func (r *MarketPrices) GetAdjustedPriceLastUpdateTime(ctx context.Context) (*time.Time, error) {
 	query := `
-SELECT MAX(updated_at) FROM market_prices WHERE adjusted_price IS NOT NULL
+SELECT MAX(updated_at) FROM adjusted_prices
 `
 	var lastUpdate *time.Time
 	err := r.db.QueryRowContext(ctx, query).Scan(&lastUpdate)

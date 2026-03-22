@@ -181,11 +181,7 @@ func (u *Sde) Update(ctx context.Context) error {
 		log.Info("NPC station names resolved", "resolved", len(names))
 	}
 
-	if err := u.itemTypeRepository.UpsertItemTypes(ctx, data.Types); err != nil {
-		return errors.Wrap(err, "failed to upsert item types")
-	}
-
-	// Step 6: Populate SDE-specific tables
+	// Step 6: Populate SDE-specific tables (reference tables first, then item types which FK into them)
 	if err := u.sdeDataRepo.UpsertCategories(ctx, data.Categories); err != nil {
 		return errors.Wrap(err, "failed to upsert categories")
 	}
@@ -200,6 +196,10 @@ func (u *Sde) Update(ctx context.Context) error {
 
 	if err := u.sdeDataRepo.UpsertMarketGroups(ctx, data.MarketGroups); err != nil {
 		return errors.Wrap(err, "failed to upsert market groups")
+	}
+
+	if err := u.itemTypeRepository.UpsertItemTypes(ctx, data.Types); err != nil {
+		return errors.Wrap(err, "failed to upsert item types")
 	}
 
 	if err := u.sdeDataRepo.UpsertIcons(ctx, data.Icons); err != nil {

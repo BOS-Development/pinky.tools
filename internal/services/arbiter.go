@@ -135,6 +135,7 @@ func (ac *arbiterContext) getPrice(typeID int64) float64 {
 }
 
 // getInputPrice returns price for input materials, respecting InputPriceType.
+// Falls back to the other price type if the preferred one is unavailable.
 func (ac *arbiterContext) getInputPrice(typeID int64) float64 {
 	mp := ac.loadPrice(typeID)
 	if mp == nil {
@@ -144,10 +145,18 @@ func (ac *arbiterContext) getInputPrice(typeID int64) float64 {
 		if mp.BuyPrice != nil {
 			return *mp.BuyPrice
 		}
+		// fallback: use sell price if no buy orders exist
+		if mp.SellPrice != nil {
+			return *mp.SellPrice
+		}
 		return 0
 	}
 	if mp.SellPrice != nil {
 		return *mp.SellPrice
+	}
+	// fallback: use buy price if no sell orders exist
+	if mp.BuyPrice != nil {
+		return *mp.BuyPrice
 	}
 	return 0
 }
@@ -524,9 +533,20 @@ func calculateDecryptorOption(
 		decryptorCost = ac.getPrice(*decryptorTypeID)
 	}
 
+	// decryptorAdjPrice contributes to the invention EIV job cost per attempt
+	var decryptorJobCost float64
+	if decryptorTypeID != nil && ac.settings.InventionSystemID != nil {
+		invIdx := ac.getCostIndex(*ac.settings.InventionSystemID, "invention")
+		if invIdx > 0 {
+			facilityTaxRate := ac.settings.InventionFacilityTax / 100.0
+			adjPrice := ac.getAdjustedPrice(*decryptorTypeID)
+			decryptorJobCost = adjPrice * (invIdx + facilityTaxRate + calculator.SccSurchargeRate)
+		}
+	}
+
 	var inventionCost float64
 	if chanceMod > 0 {
-		inventionCost = (copyAndDatacoreCost + decryptorCost) / chanceMod
+		inventionCost = (copyAndDatacoreCost + decryptorCost + decryptorJobCost) / chanceMod
 	}
 
 	// Resolve decryptor name before building the materials list so it can be used there.
@@ -642,7 +662,10 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 		dataCoreCost += ac.getInputPrice(m.TypeID) * float64(m.Quantity)
 	}
 
-	// Copy cost: approximate using invention system cost index if configured
+	// facilityTaxRate is shared by both the copy job and the invention job (same structure).
+	facilityTaxRate := ac.settings.InventionFacilityTax / 100.0
+
+	// Copy cost: EIV of T1 product × (cost_index + facility_tax + scc_surcharge)
 	var copyCost float64
 	if ac.settings.InventionSystemID != nil {
 		copyIdx := ac.getCostIndex(*ac.settings.InventionSystemID, "copying")
@@ -650,7 +673,7 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 			t1Product, err := ac.getBlueprintProduct(item.T1BlueprintTypeID, "manufacturing")
 			if err == nil && t1Product != nil {
 				adjPrice := ac.getAdjustedPrice(t1Product.TypeID)
-				copyCost = adjPrice * copyIdx
+				copyCost = adjPrice * (copyIdx + facilityTaxRate + calculator.SccSurchargeRate)
 			}
 		}
 	}
@@ -659,7 +682,6 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 	if ac.settings.InventionSystemID != nil {
 		invIdx := ac.getCostIndex(*ac.settings.InventionSystemID, "invention")
 		if invIdx > 0 {
-			facilityTaxRate := ac.settings.InventionFacilityTax / 100.0
 			var invEIV float64
 			for _, m := range datecoreMats {
 				invEIV += float64(m.Quantity) * ac.getAdjustedPrice(m.TypeID)
@@ -792,16 +814,6 @@ func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int
 
 	buildTime := ac.getBlueprintTime(blueprintTypeID, activity)
 	totalBuildTime := buildTime * int64(runs)
-
-	// Pro-rate costs: we computed for `runs × productQtyPerRun` units,
-	// but only `qty` are consumed. Scale proportionally.
-	// For manufacturing (productQtyPerRun=1), scale=1.0 (no change).
-	if productQtyPerRun > 1 && runs > 0 {
-		scale := float64(qty) / float64(runs*productQtyPerRun)
-		totalMatCost *= scale
-		totalJobCost *= scale
-		totalBuildTime = int64(math.Round(float64(totalBuildTime) * scale))
-	}
 
 	return totalMatCost, totalJobCost, totalBuildTime
 }

@@ -655,9 +655,8 @@ func (r *ArbiterRepository) GetAdjustedPricesForTypes(ctx context.Context, typeI
 	}
 	query := `
 SELECT type_id, adjusted_price
-FROM market_prices
+FROM adjusted_prices
 WHERE type_id = ANY($1)
-  AND adjusted_price IS NOT NULL
 `
 	rows, err := r.db.QueryContext(ctx, query, pq.Array(typeIDs))
 	if err != nil {

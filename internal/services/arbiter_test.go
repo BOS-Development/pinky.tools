@@ -360,6 +360,130 @@ func Test_ScanOpportunities_TaxProfile_AffectsProfitCalculation(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
+func Test_ScanOpportunities_InputPriceFallback_BuyTypeWithNoBuyPrice_UsesSellPrice(t *testing.T) {
+	// When InputPriceType="buy" but a material has no buy price, getInputPrice should
+	// fall back to the sell price rather than returning 0.
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	productSellPrice := float64(10_000_000) // 10M output sell price
+	// Material only has a sell price — no buy orders exist for it.
+	matSellPrice := float64(500_000) // 500K sell price (no BuyPrice)
+
+	taxProfile := &models.ArbiterTaxProfile{
+		InputPriceType:  "buy", // prefer buy, but material has none
+		OutputPriceType: "sell",
+		SalesTaxRate:    0.0,
+		BrokerFeeRate:   0.0,
+	}
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       9101,
+		ProductName:         "Fallback Module Buy",
+		BlueprintTypeID:     9102,
+		T1BlueprintTypeID:   9103,
+		BaseInventionChance: 1.0,
+		BaseResultME:        0,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		9101: {TypeID: 9101, SellPrice: &productSellPrice},
+		9110: {TypeID: 9110, SellPrice: &matSellPrice}, // only sell price, no buy price
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(9103)).Return((*models.InventionCharacter)(nil), nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9103), "invention").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9102), "manufacturing").Return([]*models.BlueprintMaterial{
+		{TypeID: 9110, TypeName: "Material A", Quantity: 1},
+	}, nil)
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(9110)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(9110)).Return(int64(0), nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(9102), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, taxProfile, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+	// Material cost must reflect the sell price fallback (500K), not 0.
+	// If fallback failed it would be 0, making profit equal to revenue (10M).
+	assert.Greater(t, opp.MaterialCost, float64(0),
+		"material cost should use the sell price fallback when buy price is unavailable")
+	assert.Less(t, opp.Profit, opp.Revenue,
+		"profit should be less than revenue because material cost was applied via fallback")
+
+	repo.AssertExpectations(t)
+}
+
+func Test_ScanOpportunities_InputPriceFallback_SellTypeWithNoSellPrice_UsesBuyPrice(t *testing.T) {
+	// When InputPriceType="sell" but a material has no sell price, getInputPrice should
+	// fall back to the buy price rather than returning 0.
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	productSellPrice := float64(10_000_000) // 10M output sell price
+	// Material only has a buy price — no sell orders exist for it.
+	matBuyPrice := float64(400_000) // 400K buy price (no SellPrice)
+
+	taxProfile := &models.ArbiterTaxProfile{
+		InputPriceType:  "sell", // prefer sell, but material has none
+		OutputPriceType: "sell",
+		SalesTaxRate:    0.0,
+		BrokerFeeRate:   0.0,
+	}
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       9201,
+		ProductName:         "Fallback Module Sell",
+		BlueprintTypeID:     9202,
+		T1BlueprintTypeID:   9203,
+		BaseInventionChance: 1.0,
+		BaseResultME:        0,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		9201: {TypeID: 9201, SellPrice: &productSellPrice},
+		9210: {TypeID: 9210, BuyPrice: &matBuyPrice}, // only buy price, no sell price
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(9203)).Return((*models.InventionCharacter)(nil), nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9203), "invention").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9202), "manufacturing").Return([]*models.BlueprintMaterial{
+		{TypeID: 9210, TypeName: "Material B", Quantity: 1},
+	}, nil)
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(9210)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(9210)).Return(int64(0), nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(9202), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, taxProfile, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+	// Material cost must reflect the buy price fallback (400K), not 0.
+	// If fallback failed it would be 0, making profit equal to revenue (10M).
+	assert.Greater(t, opp.MaterialCost, float64(0),
+		"material cost should use the buy price fallback when sell price is unavailable")
+	assert.Less(t, opp.Profit, opp.Revenue,
+		"profit should be less than revenue because material cost was applied via fallback")
+
+	repo.AssertExpectations(t)
+}
+
 func Test_ScanOpportunities_MultiRunBPC_ProfitUsesFullRevenue(t *testing.T) {
 	repo := &MockArbiterScanRepository{}
 	settings := defaultArbiterSettings()
@@ -1004,11 +1128,11 @@ func Test_ScanOpportunities_RecursiveChain_BuysAtMarket_WhenNoBlueprintFound(t *
 	repo.AssertExpectations(t)
 }
 
-// Test_ScanOpportunities_ReactionProRating verifies that when a T2 component requires fewer
-// units than a reaction run produces, costs are scaled proportionally and not inflated by the
-// full run output. E.g. needing 1,000 units from a 10,000-unit reaction run should cost 10%
-// of the full run, not 100%.
-func Test_ScanOpportunities_ReactionProRating(t *testing.T) {
+// Test_ScanOpportunities_ReactionFullBatchCost verifies that when a T2 component requires fewer
+// units than a reaction run produces, the full batch input cost is charged — not a pro-rated
+// fraction. Reactions always consume full batches of inputs: if you need 1,000 units from a
+// 10,000-unit reaction run, you still run 1 full batch and pay for all 5 raw inputs.
+func Test_ScanOpportunities_ReactionFullBatchCost(t *testing.T) {
 	// Setup:
 	//   T2 product (typeID 7001, blueprint 7002, T1 blueprint 7003)
 	//   T2 blueprint requires 1,000x composite mat (typeID 7010)
@@ -1018,10 +1142,8 @@ func Test_ScanOpportunities_ReactionProRating(t *testing.T) {
 	// Full reaction run cost (inputs only, no adjusted prices / job cost):
 	//   5 raw × 1,000 ISK = 5,000 ISK per run → produces 10,000 units
 	//
-	// Pro-rated cost for 1,000 units (10% of run):
-	//   5,000 × (1,000/10,000) = 500 ISK
-	//
-	// Without the fix, we'd pay 5,000 ISK (10× inflation).
+	// Correct cost for 1,000 units (1 full batch required):
+	//   5,000 ISK (full batch — inputs are not pro-rated)
 
 	repo := &MockArbiterScanRepository{}
 	settings := defaultArbiterSettings()
@@ -1090,14 +1212,12 @@ func Test_ScanOpportunities_ReactionProRating(t *testing.T) {
 	opp := result.Opportunities[0]
 
 	// The reaction produces 10,000 units/run but we only need 1,000.
-	// With pro-rating: mat cost ≈ 5 raw × 1,000 ISK × (1,000/10,000) = 500 ISK.
-	// Without pro-rating: mat cost ≈ 5 raw × 1,000 ISK = 5,000 ISK (10× too high).
-	//
-	// The actual cost may include ME reductions and job costs, so we assert it is well
-	// below the inflated un-pro-rated ceiling (5,000 ISK), confirming the fix is active.
-	const inflatedCeiling = float64(5_000)
-	assert.Less(t, opp.MaterialCost, inflatedCeiling,
-		"Material cost should be pro-rated to 1,000/10,000 of the reaction run, not the full run cost")
+	// One full batch must be run, consuming all 5 raw inputs at 1,000 ISK each = 5,000 ISK.
+	// No ME reduction applies to reactions, so the full 5,000 ISK is the correct material cost.
+	// A pro-rated (incorrect) result would be ~500 ISK (5,000 × 1,000/10,000).
+	const fullBatchCost = float64(5_000)
+	assert.GreaterOrEqual(t, opp.MaterialCost, fullBatchCost,
+		"Material cost should reflect the full reaction batch input cost, not a pro-rated fraction")
 	assert.Greater(t, opp.MaterialCost, float64(0),
 		"Material cost should be positive")
 

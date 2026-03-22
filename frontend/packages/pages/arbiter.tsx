@@ -756,6 +756,8 @@ function OpportunityRow({
 
   // Recalculate values based on qty (per-unit, not per-BPC)
   const runsPerBpc = opp.runs || 1;
+  const scaledMatCost = (opp.material_cost / runsPerBpc) * effectiveQty;
+  const scaledJobCost = (opp.job_cost / runsPerBpc) * effectiveQty;
   const scaledCost = (opp.total_cost / runsPerBpc) * effectiveQty;
   const scaledRevenue = (opp.revenue / runsPerBpc) * effectiveQty;
   const scaledProfit = (opp.profit / runsPerBpc) * effectiveQty;
@@ -895,6 +897,12 @@ function OpportunityRow({
           </span>
         </TableCell>
         <TableCell className="py-2 text-sm text-text-data-value font-mono">
+          {formatISK(scaledMatCost)}
+        </TableCell>
+        <TableCell className="py-2 text-sm text-text-data-value font-mono">
+          {formatISK(scaledJobCost)}
+        </TableCell>
+        <TableCell className="py-2 text-sm text-text-data-value font-mono">
           {formatISK(scaledCost)}
         </TableCell>
         <TableCell className="py-2 text-sm text-text-data-value font-mono">
@@ -946,7 +954,7 @@ function OpportunityRow({
 
       {expanded && (
         <TableRow className="bg-background-panel hover:bg-background-panel">
-          <TableCell colSpan={17} className="p-0">
+          <TableCell colSpan={19} className="p-0">
             <div className="border-t border-overlay-subtle">
               {/* BOM header */}
               <div className="flex items-center justify-between px-4 py-2 border-b border-overlay-subtle">
@@ -2445,7 +2453,9 @@ export default function ArbiterPage() {
                       <SortHeader field="days_of_supply" label="D.O.S." />
                       <TableHead className="py-2 text-xs text-text-muted">Qty</TableHead>
                       <SortHeader field="roi" label="ROI" />
-                      <SortHeader field="material_cost" label="Cost" />
+                      <SortHeader field="material_cost" label="Mat. Cost" />
+                      <TableHead className="py-2 text-xs text-text-muted">Job Cost</TableHead>
+                      <TableHead className="py-2 text-xs text-text-muted">Total Cost</TableHead>
                       <SortHeader field="revenue" label="Revenue" />
                       <SortHeader field="sales_tax" label="Sales Tax" />
                       <SortHeader field="profit" label="Profit" />
