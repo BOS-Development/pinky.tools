@@ -18,7 +18,7 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  const { typeID, scope_id, quantity, build_all, me } = req.query;
+  const { typeID, scope_id, quantity, build_all, me, input_price_type } = req.query;
 
   try {
     const params = new URLSearchParams();
@@ -26,6 +26,7 @@ export default async function handler(
     if (quantity) params.set("quantity", String(quantity));
     if (build_all) params.set("build_all", String(build_all));
     if (me) params.set("me", String(me));
+    if (input_price_type) params.set("input_price_type", String(input_price_type));
 
     const response = await fetch(
       `${backend}v1/arbiter/opportunities/${typeID}/bom?${params.toString()}`,

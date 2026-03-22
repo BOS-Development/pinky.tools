@@ -1098,12 +1098,13 @@ function WarehousePanel({
     params.set("quantity", String(qty || 1));
     params.set("build_all", String(buildAll));
     params.set("me", String(selectedOpp.me));
+    params.set("input_price_type", inputPrice);
     fetch(`/api/arbiter/${selectedOpp.product_type_id}/bom?${params.toString()}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => setBom(data))
       .catch(() => setBom(null))
       .finally(() => setBomLoading(false));
-  }, [selectedOpp?.product_type_id, scopeId, qty, buildAll]);
+  }, [selectedOpp?.product_type_id, scopeId, qty, buildAll, inputPrice]);
 
   const ingredients = bom?.children ?? [];
 
@@ -1136,7 +1137,7 @@ function WarehousePanel({
     return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name));
   }, [bom, inventionMaterials, qty, runsPerBpc]);
 
-  const totalCost = shoppingItems.reduce((s, i) => s + i.delta_cost, 0);
+  const totalCost = shoppingItems.reduce((s, i) => s + i.total_value, 0);
 
   function handleExportMultibuy() {
     const lines = shoppingItems

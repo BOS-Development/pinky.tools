@@ -857,7 +857,10 @@ func (c *Arbiter) GetBOMTree(args *web.HandlerArgs) (any, *web.HttpError) {
 		return nil, &web.HttpError{StatusCode: 404, Error: errors.New("no blueprint found for this type")}
 	}
 
-	inputPriceType := "sell"
+	inputPriceType := args.Request.URL.Query().Get("input_price_type")
+	if inputPriceType == "" {
+		inputPriceType = "sell"
+	}
 
 	tree, err := services.BuildBOMTree(ctx, bpID, typeID, "", qty, me, c.bomRepo, settings, blacklist, whitelist, assets, inputPriceType, buildAll)
 	if err != nil {

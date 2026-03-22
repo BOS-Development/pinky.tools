@@ -950,25 +950,10 @@ func (btc *bomTreeContext) getInputPrice(typeID int64) float64 {
 	return 0
 }
 
-// getBuyPrice returns the sell price (what it costs to buy from market).
+// getBuyPrice returns the price to purchase this item from the market,
+// respecting inputPriceType (buy or sell order pricing).
 func (btc *bomTreeContext) getBuyPrice(typeID int64) float64 {
-	mp, ok := btc.prices[typeID]
-	if !ok {
-		newPrices, err := btc.repo.GetMarketPricesForTypes(btc.ctx, []int64{typeID})
-		if err == nil {
-			for k, v := range newPrices {
-				btc.prices[k] = v
-			}
-		}
-		mp = btc.prices[typeID]
-	}
-	if mp == nil {
-		return 0
-	}
-	if mp.SellPrice != nil {
-		return *mp.SellPrice
-	}
-	return 0
+	return btc.getInputPrice(typeID)
 }
 
 // BuildBOMTree builds a full recursive BOM tree for a product.
@@ -1135,12 +1120,18 @@ func buildBOMNode(
 			// reactions ignore the me param entirely via ComputeMEFactor
 			childNode, err = buildBOMNode(btc, subBpID, mat.TypeID, mat.TypeName, int64(batchQty), 10, depth+1)
 			if err != nil || childNode == nil {
+				childAvail := btc.assets[mat.TypeID]
+				childDelta := int64(batchQty) - childAvail
+				if childDelta < 0 {
+					childDelta = 0
+				}
 				childNode = &models.BOMNode{
 					TypeID:       mat.TypeID,
 					Name:         mat.TypeName,
 					Quantity:     int64(batchQty),
-					Available:    btc.assets[mat.TypeID],
+					Available:    childAvail,
 					Needed:       int64(batchQty),
+					Delta:        childDelta,
 					UnitBuyPrice: matBuyPrice,
 					Decision:     "buy",
 					Children:     []*models.BOMNode{},
@@ -1150,12 +1141,18 @@ func buildBOMNode(
 				matBuildCost = childNode.UnitBuildCost
 			}
 		} else {
+			childAvail := btc.assets[mat.TypeID]
+			childDelta := int64(batchQty) - childAvail
+			if childDelta < 0 {
+				childDelta = 0
+			}
 			childNode = &models.BOMNode{
 				TypeID:       mat.TypeID,
 				Name:         mat.TypeName,
 				Quantity:     int64(batchQty),
-				Available:    btc.assets[mat.TypeID],
+				Available:    childAvail,
 				Needed:       int64(batchQty),
+				Delta:        childDelta,
 				UnitBuyPrice: matBuyPrice,
 				Decision:     "buy",
 				Children:     []*models.BOMNode{},

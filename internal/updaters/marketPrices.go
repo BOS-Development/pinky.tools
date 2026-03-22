@@ -13,7 +13,7 @@ import (
 
 const JitaRegionID = 10000002
 const JitaStationID = 60003760
-const UpdateInterval = 6 * time.Hour
+const UpdateInterval = 2 * time.Hour
 
 type MarketPricesRepository interface {
 	UpsertPrices(ctx context.Context, prices []models.MarketPrice) error
