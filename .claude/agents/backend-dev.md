@@ -198,6 +198,51 @@ Current services:
 - `jobGeneration.go` — Production plan job generation: `WalkAndMergeSteps`, `SimulateAssignment`, `EstimateWallClock`, `FormatLocation`
 - `arbiter.go` — T2 opportunity scanning: `ScanOpportunities` — stateless calculation service (see pattern below)
 
+### Go Struct Literal — All Computed Fields Must Be Set Explicitly
+
+When constructing a struct literal with computed integer/float fields (e.g., `Delta`, `Available`, `TotalCost`), always compute and set them explicitly — **never rely on Go's zero value**. Omitting a computed field silently defaults to `0`, which produces subtly wrong output that can be very hard to diagnose:
+
+```go
+// BAD — Delta is computed (needed - available) but not set; silently 0
+childNode = &models.BOMNode{
+    TypeID:   mat.TypeID,
+    Quantity: int64(batchQty),
+    Needed:   int64(batchQty),
+    // Delta missing! Defaults to 0 even when available < needed
+}
+
+// GOOD — compute delta before the struct literal, set it explicitly
+childAvail := btc.assets[mat.TypeID]
+childDelta := int64(batchQty) - childAvail
+if childDelta < 0 {
+    childDelta = 0
+}
+childNode = &models.BOMNode{
+    TypeID:    mat.TypeID,
+    Quantity:  int64(batchQty),
+    Available: childAvail,
+    Needed:    int64(batchQty),
+    Delta:     childDelta,
+}
+```
+
+This applies to both the happy path and error-fallback branches — if there are two struct literals for the same type, **both** must set all computed fields.
+
+### EVE Industry: Full-Batch Cost for Reactions
+
+Reactions produce a fixed batch quantity per run (e.g., a reaction that yields 100 units per run). **Never pro-rate reaction costs by the fraction of units needed.** Always charge the full batch cost:
+
+```go
+// BAD — scales cost down by qty/productQtyPerRun, under-counts cost
+scale := float64(qty) / float64(runs * productQtyPerRun)
+totalMatCost *= scale
+
+// GOOD — charge the full batch. Unused units will be consumed on a future run.
+// No scaling needed.
+```
+
+The cost model: if you need 45 units and the batch produces 100, you must buy materials for 100. The remaining 55 units are inventory for the next run.
+
 ### Stateless Calculation Services
 
 For complex multi-step calculations that don't need DB side effects, create a pure function in `internal/services/` rather than wiring through the production plan system:
