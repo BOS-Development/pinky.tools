@@ -129,7 +129,8 @@ func ComputeManufacturingJobCost(materials []*repositories.ManufacturingMaterial
 		eiv += float64(mat.Quantity) * adjPrice
 	}
 	structBonus := ManufacturingStructureCostBonus(structure)
-	return eiv*costIndex*(1.0-structBonus) + eiv*ManufacturingSccSurchargeRate + eiv*(facilityTax/100.0)
+	jobFee := eiv * costIndex * (1.0 - structBonus)
+	return jobFee*(1.0+facilityTax/100.0) + eiv*ManufacturingSccSurchargeRate
 }
 
 // CalculateManufacturingJob calculates the full cost breakdown for a manufacturing job.
