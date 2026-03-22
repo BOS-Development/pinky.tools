@@ -228,6 +228,27 @@ childNode = &models.BOMNode{
 
 This applies to both the happy path and error-fallback branches — if there are two struct literals for the same type, **both** must set all computed fields.
 
+### EVE Industry: Manufacturing Job Cost Formula — CRITICAL
+
+The correct EVE manufacturing job cost formula:
+```
+job_fee = EIV × cost_index × (1 - structure_bonus)
+facility_tax = job_fee × (facility_tax_rate / 100)
+scc = EIV × ManufacturingSccSurchargeRate   // 1.5%
+total_job_cost = (job_fee + facility_tax + scc) × runs
+               = (job_fee × (1 + facility_tax_rate/100) + scc) × runs
+```
+
+**Common bug**: applying facility tax to raw EIV directly (`eiv × facilityTaxRate`) instead of to the job fee. The tax rate is typically 0.5–3%, so the error is small but real.
+
+For reactions (no structure bonus):
+```
+job_fee = EIV × cost_index
+total = (job_fee × (1 + facility_tax_rate/100) + EIV × SccSurchargeRate) × runs
+```
+
+EIV = `sum(base_qty_per_run × adjusted_price)` where `adjusted_price` comes from CCP's ESI `/markets/prices/` endpoint (the `adjusted_price` field, NOT `average_price`). EIV uses base blueprint quantities, not ME-adjusted quantities.
+
 ### EVE Industry: Full-Batch Cost for Reactions
 
 Reactions produce a fixed batch quantity per run (e.g., a reaction that yields 100 units per run). **Never pro-rate reaction costs by the fraction of units needed.** Always charge the full batch cost:

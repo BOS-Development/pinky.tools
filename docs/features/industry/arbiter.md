@@ -163,6 +163,7 @@ CREATE TABLE arbiter_whitelist (
 | Method | Path | Description |
 |--------|------|-------------|
 | GET | `/api/arbiter/[typeID]/bom?inputPriceType=buy&scopeID=1` | Build full BOM tree for product (delta calculation, recursive materials) |
+| GET | `/v1/arbiter/decryptors` | Get list of available decryptors for invention |
 
 ## Frontend Routes
 
@@ -181,6 +182,7 @@ CREATE TABLE arbiter_whitelist (
 - Repository Tests: `internal/repositories/arbiter_test.go`
 - Models: `internal/models/arbiter.go`
 - Updater (Market Prices): `internal/updaters/marketPrices.go`
+- Calculator (Manufacturing): `internal/calculator/manufacturing.go` — manufacturing job cost calculation
 - Calculator (Cost, Time): `internal/calculator/` — various cost/time computation helpers
 
 ### Frontend
@@ -228,6 +230,49 @@ CREATE TABLE arbiter_whitelist (
 - **Behavior**: If `input_price_type` is "buy" but no buy orders exist for an item, the system falls back to sell order price
 - **Implementation**: `getInputPrice()` and `getBuyPrice()` in bomTreeContext check the preferred type first, then try the other if nil
 - **Impact**: BOM trees always have a cost, even if market data is incomplete
+
+## Job Cost Calculation (Phase 2)
+
+### Manufacturing Job Cost Formula
+
+The corrected manufacturing job cost formula applies facility tax to the job fee, not directly to EIV:
+
+```
+jobCost = (eiv × costIndex × (1 - structBonus) × (1 + facilityTaxRate) + eiv × SCC) × runs
+```
+
+**Components**:
+- **eiv** — Estimated Industry Value, calculated from base blueprint quantities (not ME-adjusted). EVE computes job costs using blueprint base quantities, regardless of ME level.
+- **costIndex** — System cost index (0.5–2.0 in 0.5-1.5 range for most empire systems)
+- **structBonus** — Structure rig bonus (0–0.2; higher rigs = lower cost). Applied as multiplication: `(1 - structBonus)`
+- **facilityTaxRate** — User-configured facility tax % (0–0.2 typical). Applied to the job fee component only
+- **SCC** — Sales tax + customs (0.02)
+- **runs** — Number of manufacturing runs
+
+**Old formula (incorrect)**: `(eiv × costIndex × (1 - structBonus) + eiv × facilityTaxRate + eiv × SCC) × runs` applied tax directly to EIV.
+
+**New formula (correct)**: Tax applies to the job fee `costIndex × (1 - structBonus)` before adding SCC.
+
+**Impact**: Manufacturing job costs are now accurate. Facility tax reduction is more meaningful with higher-tier rigs.
+
+### BOM Node Cost Fields
+
+`BOMNode` in `internal/models/arbiter.go` now includes:
+- **job_cost** (`int64`) — Per-run manufacturing or reaction cost in ISK
+- **runs** (`int`) — Number of runs needed to produce required quantity
+
+These fields enable the frontend to display per-step manufacturing costs in the Job Costs tab.
+
+### Job Costs Tab in BOM Panel
+
+The BOM panel in `frontend/packages/pages/arbiter.tsx` now includes a "Job Costs" tab showing:
+- **Step** — Item name being built
+- **Qty** — Total quantity needed
+- **Runs** — Number of runs required (at max manufacturing slots, or max reaction batch)
+- **Job Fee** — Total manufacturing cost per run (in ISK)
+- **Total Job Cost** — Sum of all steps' per-run costs
+
+This gives players immediate visibility into labor costs across the full production chain.
 
 ## Configuration
 
