@@ -1648,6 +1648,193 @@ func Test_ScanOpportunities_InventionMaterials_NoDecryptorOption_HasEmptySlice(t
 	repo.AssertExpectations(t)
 }
 
+func Test_BuildBOMTree_JobCostAndRuns_PopulatedWhenSystemIDConfigured(t *testing.T) {
+	// Verify that JobCost and Runs are populated on a BOM node when the settings
+	// include a FinalSystemID with a non-zero cost index.
+	//
+	// Setup:
+	//   Product (typeID 9501) manufactured from blueprint 9502
+	//   Blueprint requires 3x Material (typeID 9503) — no sub-blueprint
+	//   FinalSystemID is set; cost index = 0.05 (5%)
+	//   Adjusted price of material = 1,000,000 ISK each
+	//
+	// Expected:
+	//   Runs = 1 (1 product, 1 per run)
+	//   EIV = 3 × 1,000,000 = 3,000,000
+	//   JobCost = EIV × (costIdx × (1 - structBonus) + facilityTax + sccSurcharge) × runs
+	//           = 3,000,000 × (0.05 × (1 - 0) + 0 + scc) × 1  > 0
+	finalSystemID := int64(30000142)
+
+	repo := &MockArbiterBOMRepository{}
+
+	settings := defaultArbiterSettings()
+	settings.FinalSystemID = &finalSystemID
+	settings.FinalFacilityTax = 0.0
+	settings.FinalStructure = "none"
+
+	productSellPrice := float64(100_000_000)
+	matSellPrice := float64(500_000)
+	matAdjustedPrice := float64(1_000_000)
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			9501: {TypeID: 9501, SellPrice: &productSellPrice},
+			9503: {TypeID: 9503, SellPrice: &matSellPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]float64{9503: matAdjustedPrice}, nil)
+
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9502), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 9503, TypeName: "Raw Part", Quantity: 3},
+		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(9503)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(9503)).Return(int64(0), nil)
+
+	const costIdx = 0.05
+	repo.On("GetCostIndexForSystem", mock.Anything, finalSystemID, "manufacturing").Return(costIdx, nil)
+	// Adjusted price fetch for each material during job cost computation
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.MatchedBy(func(ids []int64) bool {
+		for _, id := range ids {
+			if id == 9503 {
+				return true
+			}
+		}
+		return false
+	})).Return(map[int64]float64{9503: matAdjustedPrice}, nil).Maybe()
+
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		9502,
+		9501,
+		"Job Cost Test Item",
+		1,
+		0,
+		repo,
+		settings,
+		map[int64]bool{},
+		map[int64]bool{},
+		map[int64]int64{},
+		"sell",
+		true, // buildAll so decision is build_override
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+
+	assert.Equal(t, "build_override", tree.Decision)
+	assert.Equal(t, int64(1), tree.Runs, "should be 1 run for 1 unit of a 1-per-run blueprint")
+	// EIV = 3 × 1,000,000 = 3,000,000; job cost = 3,000,000 × (0.05 + scc) × 1 run > 0
+	assert.Greater(t, tree.JobCost, float64(0), "job cost should be positive when cost index is configured")
+
+	// Children (raw material leaf nodes) should have zero job cost (no blueprint/system)
+	require.Len(t, tree.Children, 1)
+	assert.Equal(t, float64(0), tree.Children[0].JobCost, "leaf node with no blueprint should have zero job cost")
+
+	repo.AssertExpectations(t)
+}
+
+func Test_BuildBOMTree_JobCostZero_WhenNoSystemIDConfigured(t *testing.T) {
+	// Verify that JobCost is zero when no FinalSystemID is set (default settings).
+	repo := &MockArbiterBOMRepository{}
+	settings := defaultArbiterSettings() // no system IDs set
+
+	productSellPrice := float64(50_000_000)
+	matSellPrice := float64(1_000_000)
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			9601: {TypeID: 9601, SellPrice: &productSellPrice},
+			9602: {TypeID: 9602, SellPrice: &matSellPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9610), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 9602, TypeName: "Component", Quantity: 1},
+		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(9602)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(9602)).Return(int64(0), nil)
+
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		9610,
+		9601,
+		"No System Item",
+		1,
+		0,
+		repo,
+		settings,
+		map[int64]bool{},
+		map[int64]bool{},
+		map[int64]int64{},
+		"sell",
+		true,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+
+	assert.Equal(t, float64(0), tree.JobCost, "job cost should be zero when no system ID is configured")
+	assert.Equal(t, int64(1), tree.Runs)
+
+	repo.AssertExpectations(t)
+}
+
+func Test_BuildBOMTree_Runs_MultipleRunsWhenProductQtyPerRunGtOne(t *testing.T) {
+	// Verify that Runs is correctly computed when a reaction blueprint produces
+	// more than 1 unit per run and we need a quantity that requires multiple runs.
+	//
+	// Reaction blueprint 9710 produces 100 units per run.
+	// We need 250 units → ceil(250/100) = 3 runs.
+	repo := &MockArbiterBOMRepository{}
+	settings := defaultArbiterSettings()
+
+	productSellPrice := float64(50_000_000)
+	matSellPrice := float64(1_000)
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			9701: {TypeID: 9701, SellPrice: &productSellPrice},
+			9702: {TypeID: 9702, SellPrice: &matSellPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+
+	// Reaction blueprint: no manufacturing mats, has reaction mats
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9710), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9710), "reaction").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 9702, TypeName: "Raw Input", Quantity: 5},
+		}, nil)
+	// Reaction blueprint produces 100 per run
+	reactionProduct := &models.BlueprintProduct{TypeID: 9701, Quantity: 100}
+	repo.On("GetBlueprintProductForActivity", mock.Anything, int64(9710), "reaction").Return(reactionProduct, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(9702)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(9702)).Return(int64(0), nil)
+
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		9710,
+		9701,
+		"Reaction Product",
+		250, // need 250 units from 100-per-run reaction → 3 runs
+		0,
+		repo,
+		settings,
+		map[int64]bool{},
+		map[int64]bool{},
+		map[int64]int64{},
+		"sell",
+		true,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+
+	assert.Equal(t, int64(3), tree.Runs, "ceil(250/100) = 3 runs")
+
+	repo.AssertExpectations(t)
+}
+
 func defaultArbiterSettings() *models.ArbiterSettings {
 	return &models.ArbiterSettings{
 		UserID:             1,
