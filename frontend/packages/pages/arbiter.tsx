@@ -1109,7 +1109,7 @@ function WarehousePanel({
   const ingredients = bom?.children ?? [];
 
   const shoppingItems = useMemo<ShoppingListItem[]>(() => {
-    const fromBom = bom ? collectShoppingItems(bom) : [];
+    const fromBom = bom?.children?.flatMap((child) => collectShoppingItems(child)) ?? [];
     const bpcsNeeded = Math.ceil(qty / (runsPerBpc || 1));
     const fromInvention: ShoppingListItem[] = inventionMaterials.map((m) => ({
       type_id: m.type_id,
