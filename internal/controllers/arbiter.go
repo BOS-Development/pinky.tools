@@ -64,21 +64,15 @@ type ArbiterSolarSystemRepository interface {
 	SearchSolarSystems(ctx context.Context, query string, limit int) ([]*models.SolarSystemSearchResult, error)
 }
 
-// ArbiterDecryptorRepository handles decryptor lookups.
-type ArbiterDecryptorRepository interface {
-	GetDecryptors(ctx context.Context) ([]*models.Decryptor, error)
-}
-
 // Arbiter is the HTTP controller for the Arbiter feature.
 type Arbiter struct {
-	settingsRepo   ArbiterSettingsRepository
-	scanRepo       ArbiterScannerRepository
-	scopesRepo     ArbiterScopesRepository
-	taxRepo        ArbiterTaxProfileRepository
-	listsRepo      ArbiterListsRepository
-	bomRepo        ArbiterBOMRepositoryInterface
-	solarSysRepo   ArbiterSolarSystemRepository
-	decryptorsRepo ArbiterDecryptorRepository
+	settingsRepo  ArbiterSettingsRepository
+	scanRepo      ArbiterScannerRepository
+	scopesRepo    ArbiterScopesRepository
+	taxRepo       ArbiterTaxProfileRepository
+	listsRepo     ArbiterListsRepository
+	bomRepo       ArbiterBOMRepositoryInterface
+	solarSysRepo  ArbiterSolarSystemRepository
 }
 
 // NewArbiter creates and registers the Arbiter controller routes.
@@ -107,17 +101,15 @@ func NewArbiterFull(
 	listsRepo ArbiterListsRepository,
 	bomRepo ArbiterBOMRepositoryInterface,
 	solarSysRepo ArbiterSolarSystemRepository,
-	decryptorsRepo ArbiterDecryptorRepository,
 ) *Arbiter {
 	c := &Arbiter{
-		settingsRepo:   settingsRepo,
-		scanRepo:       scanRepo,
-		scopesRepo:     scopesRepo,
-		taxRepo:        taxRepo,
-		listsRepo:      listsRepo,
-		bomRepo:        bomRepo,
-		solarSysRepo:   solarSysRepo,
-		decryptorsRepo: decryptorsRepo,
+		settingsRepo: settingsRepo,
+		scanRepo:     scanRepo,
+		scopesRepo:   scopesRepo,
+		taxRepo:      taxRepo,
+		listsRepo:    listsRepo,
+		bomRepo:      bomRepo,
+		solarSysRepo: solarSysRepo,
 	}
 	router.RegisterRestAPIRoute("/v1/arbiter/settings", web.AuthAccessUser, c.GetArbiterSettings, "GET")
 	router.RegisterRestAPIRoute("/v1/arbiter/settings", web.AuthAccessUser, c.UpdateArbiterSettings, "PUT")
@@ -151,9 +143,6 @@ func NewArbiterFull(
 
 	// Solar systems search (shared route)
 	router.RegisterRestAPIRoute("/v1/solar-systems/search", web.AuthAccessUser, c.SearchSolarSystems, "GET")
-
-	// Decryptors
-	router.RegisterRestAPIRoute("/v1/arbiter/decryptors", web.AuthAccessUser, c.GetDecryptors, "GET")
 
 	return c
 }
@@ -909,16 +898,4 @@ func (c *Arbiter) SearchSolarSystems(args *web.HandlerArgs) (any, *web.HttpError
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to search solar systems")}
 	}
 	return results, nil
-}
-
-// --- Decryptors ---
-
-// GetDecryptors returns all available decryptors.
-func (c *Arbiter) GetDecryptors(args *web.HandlerArgs) (any, *web.HttpError) {
-	ctx := args.Request.Context()
-	decryptors, err := c.decryptorsRepo.GetDecryptors(ctx)
-	if err != nil {
-		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get decryptors")}
-	}
-	return decryptors, nil
 }

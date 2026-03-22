@@ -180,7 +180,7 @@ var rootCmd = &cobra.Command{
 		jobSlotRentalsRepository := repositories.NewJobSlotRentals(db)
 		controllers.NewJobSlotRentals(router, jobSlotRentalsRepository, contactPermissionsRepository)
 
-		controllers.NewArbiterFull(router, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository)
+		controllers.NewArbiterFull(router, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository)
 	controllers.NewESIRefresh(router, marketPricesUpdater, costIndicesUpdater, ccpPricesUpdater)
 
 		haulingRunsRepo := repositories.NewHaulingRuns(db)

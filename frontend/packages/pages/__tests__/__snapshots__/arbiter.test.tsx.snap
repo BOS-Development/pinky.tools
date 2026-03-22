@@ -1280,12 +1280,6 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
             >
               Buy Orders
             </button>
-            <button
-              data-value="jobcosts"
-              role="tab"
-            >
-              Job Costs
-            </button>
           </div>
           <div
             data-value="shopping"
@@ -1326,20 +1320,6 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
                 class="text-xs text-text-muted"
               >
                 Buy order tracking coming soon
-              </p>
-            </div>
-          </div>
-          <div
-            data-value="jobcosts"
-            role="tabpanel"
-          >
-            <div
-              class="flex items-center justify-center h-full"
-            >
-              <p
-                class="text-xs text-text-muted"
-              >
-                Select an opportunity to see job costs
               </p>
             </div>
           </div>
@@ -3114,12 +3094,6 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
             >
               Buy Orders
             </button>
-            <button
-              data-value="jobcosts"
-              role="tab"
-            >
-              Job Costs
-            </button>
           </div>
           <div
             data-value="shopping"
@@ -3160,20 +3134,6 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                 class="text-xs text-text-muted"
               >
                 Buy order tracking coming soon
-              </p>
-            </div>
-          </div>
-          <div
-            data-value="jobcosts"
-            role="tabpanel"
-          >
-            <div
-              class="flex items-center justify-center h-full"
-            >
-              <p
-                class="text-xs text-text-muted"
-              >
-                Select an opportunity to see job costs
               </p>
             </div>
           </div>

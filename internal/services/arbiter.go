@@ -473,9 +473,8 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 	revenue := outputPrice * float64(best.ResultingRuns)
 	salesTaxRate := ac.taxProfile.SalesTaxRate / 100.0
 	brokerFeeRate := ac.taxProfile.BrokerFeeRate / 100.0
+	salesTax := revenue * salesTaxRate
 	brokerFee := revenue * brokerFeeRate
-	profitBeforeTax := revenue - best.TotalCost - brokerFee
-	salesTax := profitBeforeTax * salesTaxRate
 
 	return &models.ArbiterOpportunity{
 		ProductTypeID: item.ProductTypeID,
@@ -496,7 +495,7 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		Revenue:       math.Round(revenue*100) / 100,
 		SalesTax:      math.Round(salesTax*100) / 100,
 		BrokerFee:     math.Round(brokerFee*100) / 100,
-		Profit:              math.Round((profitBeforeTax - salesTax)*100) / 100,
+		Profit:             best.Profit,
 		ROI:                best.ROI,
 		BestDecryptor:      best,
 		AllDecryptors:      allOptions,
@@ -595,10 +594,9 @@ func calculateDecryptorOption(
 	revenue := outputPrice * float64(resultRuns)
 	salesTaxRate := ac.taxProfile.SalesTaxRate / 100.0
 	brokerFeeRate := ac.taxProfile.BrokerFeeRate / 100.0
+	salesTax := revenue * salesTaxRate
 	brokerFee := revenue * brokerFeeRate
-	profitBeforeTax := revenue - totalCost - brokerFee
-	salesTax := profitBeforeTax * salesTaxRate
-	profit := profitBeforeTax - salesTax
+	profit := revenue - totalCost - salesTax - brokerFee
 	roi := 0.0
 	if totalCost > 0 {
 		roi = profit / totalCost * 100.0
@@ -921,7 +919,6 @@ type bomTreeContext struct {
 	inputPriceType  string
 	buildAll        bool
 	bpProductCache  map[string]*models.BlueprintProduct
-	costIndexCache  map[string]float64
 }
 
 // getInputPrice returns the price to use for material cost based on inputPriceType.
@@ -967,31 +964,6 @@ func (btc *bomTreeContext) getBuyPrice(typeID int64) float64 {
 	return btc.getInputPrice(typeID)
 }
 
-// getAdjustedPrice returns the adjusted price for a type, lazily fetching if missing.
-func (btc *bomTreeContext) getAdjustedPrice(typeID int64) float64 {
-	if p, ok := btc.adjustedPrices[typeID]; ok {
-		return p
-	}
-	newPrices, err := btc.repo.GetAdjustedPricesForTypes(btc.ctx, []int64{typeID})
-	if err == nil {
-		for k, v := range newPrices {
-			btc.adjustedPrices[k] = v
-		}
-	}
-	return btc.adjustedPrices[typeID]
-}
-
-// getCostIndex returns the cost index for a system and activity, lazily fetching if missing.
-func (btc *bomTreeContext) getCostIndex(systemID int64, activity string) float64 {
-	key := fmt.Sprintf("%d:%s", systemID, activity)
-	if c, ok := btc.costIndexCache[key]; ok {
-		return c
-	}
-	c, _ := btc.repo.GetCostIndexForSystem(btc.ctx, systemID, activity)
-	btc.costIndexCache[key] = c
-	return c
-}
-
 // BuildBOMTree builds a full recursive BOM tree for a product.
 // blueprintTypeID is the blueprint used to manufacture the product.
 // qty is the number of units needed.
@@ -1032,7 +1004,6 @@ func BuildBOMTree(
 		inputPriceType: inputPriceType,
 		buildAll:       buildAll,
 		bpProductCache: map[string]*models.BlueprintProduct{},
-		costIndexCache: map[string]float64{},
 	}
 
 	return buildBOMNode(btc, blueprintTypeID, productTypeID, productName, qty, me, 0)
@@ -1203,56 +1174,12 @@ func buildBOMNode(
 		children = append(children, childNode)
 	}
 
-	// Compute job cost for this production step
-	var nodeJobCost float64
-	var nodeSystemID *int64
-	var nodeFacilityTax float64
-	switch {
-	case depth == 0:
-		nodeSystemID = btc.settings.FinalSystemID
-		nodeFacilityTax = btc.settings.FinalFacilityTax
-	case depth == 1:
-		nodeSystemID = btc.settings.ComponentSystemID
-		nodeFacilityTax = btc.settings.ComponentFacilityTax
-	default:
-		nodeSystemID = btc.settings.ReactionSystemID
-		nodeFacilityTax = btc.settings.ReactionFacilityTax
-	}
-
-	if nodeSystemID != nil {
-		costIdx := btc.getCostIndex(*nodeSystemID, activity)
-		if costIdx > 0 {
-			var eiv float64
-			for _, m := range mats {
-				eiv += float64(m.Quantity) * btc.getAdjustedPrice(m.TypeID)
-			}
-			facilityTaxRate := nodeFacilityTax / 100.0
-			if activity == "manufacturing" {
-				var structure string
-				switch {
-				case depth == 0:
-					structure = btc.settings.FinalStructure
-				case depth == 1:
-					structure = btc.settings.ComponentStructure
-				default:
-					structure = btc.settings.ReactionStructure
-				}
-				structBonus := calculator.ManufacturingStructureCostBonus(structure)
-				nodeJobCost = (eiv*costIdx*(1.0-structBonus) + eiv*facilityTaxRate + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
-			} else {
-				nodeJobCost = eiv * (costIdx + facilityTaxRate + calculator.SccSurchargeRate) * float64(runs)
-			}
-		}
-	}
-
 	// Compute per-unit build cost
 	var unitBuildCost float64
 	if qty > 0 {
 		unitBuildCost = buildCost / float64(qty)
 	}
 	node.UnitBuildCost = math.Round(unitBuildCost*100) / 100
-	node.JobCost = math.Round(nodeJobCost*100) / 100
-	node.Runs = runs
 	node.Children = children
 
 	// Decide: build or buy

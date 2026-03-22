@@ -336,31 +336,16 @@ func (m *MockArbiterSolarSystemRepository) SearchSolarSystems(ctx context.Contex
 	return args.Get(0).([]*models.SolarSystemSearchResult), args.Error(1)
 }
 
-// --- Mock for decryptors ---
-
-type MockArbiterDecryptorRepository struct {
-	mock.Mock
-}
-
-func (m *MockArbiterDecryptorRepository) GetDecryptors(ctx context.Context) ([]*models.Decryptor, error) {
-	args := m.Called(ctx)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*models.Decryptor), args.Error(1)
-}
-
 // --- Setup helpers ---
 
 type arbiterMocks struct {
-	settings   *MockArbiterSettingsRepository
-	scan       *MockArbiterScanRepository
-	scopes     *MockArbiterScopesRepository
-	tax        *MockArbiterTaxProfileRepository
-	lists      *MockArbiterListsRepository
-	bom        *MockArbiterBOMRepository
-	solarSys   *MockArbiterSolarSystemRepository
-	decryptors *MockArbiterDecryptorRepository
+	settings  *MockArbiterSettingsRepository
+	scan      *MockArbiterScanRepository
+	scopes    *MockArbiterScopesRepository
+	tax       *MockArbiterTaxProfileRepository
+	lists     *MockArbiterListsRepository
+	bom       *MockArbiterBOMRepository
+	solarSys  *MockArbiterSolarSystemRepository
 }
 
 func setupArbiterController() (*controllers.Arbiter, *arbiterMocks) {
@@ -374,14 +359,13 @@ func setupArbiterController() (*controllers.Arbiter, *arbiterMocks) {
 
 func setupArbiterControllerFull() (*controllers.Arbiter, *arbiterMocks) {
 	mocks := &arbiterMocks{
-		settings:   &MockArbiterSettingsRepository{},
-		scan:       &MockArbiterScanRepository{},
-		scopes:     &MockArbiterScopesRepository{},
-		tax:        &MockArbiterTaxProfileRepository{},
-		lists:      &MockArbiterListsRepository{},
-		bom:        &MockArbiterBOMRepository{},
-		solarSys:   &MockArbiterSolarSystemRepository{},
-		decryptors: &MockArbiterDecryptorRepository{},
+		settings: &MockArbiterSettingsRepository{},
+		scan:     &MockArbiterScanRepository{},
+		scopes:   &MockArbiterScopesRepository{},
+		tax:      &MockArbiterTaxProfileRepository{},
+		lists:    &MockArbiterListsRepository{},
+		bom:      &MockArbiterBOMRepository{},
+		solarSys: &MockArbiterSolarSystemRepository{},
 	}
 	c := controllers.NewArbiterFull(
 		&MockRouter{},
@@ -392,7 +376,6 @@ func setupArbiterControllerFull() (*controllers.Arbiter, *arbiterMocks) {
 		mocks.lists,
 		mocks.bom,
 		mocks.solarSys,
-		mocks.decryptors,
 	)
 	return c, mocks
 }
@@ -1272,49 +1255,4 @@ func Test_GetBOMTree_BuildAll_ForcesBuiltDecision(t *testing.T) {
 
 	mocks.settings.AssertExpectations(t)
 	mocks.bom.AssertExpectations(t)
-}
-
-// --- GetDecryptors tests ---
-
-func Test_GetDecryptors_Returns200_WithDecryptors(t *testing.T) {
-	c, mocks := setupArbiterControllerFull()
-	userID := int64(100)
-
-	decryptors := []*models.Decryptor{
-		{TypeID: 34201, Name: "Accelerant Decryptor", MEModifier: 2, TEModifier: -1, RunModifier: 1, ProbabilityMultiplier: 1.2},
-		{TypeID: 34202, Name: "Attainment Decryptor", MEModifier: 4, TEModifier: -2, RunModifier: -1, ProbabilityMultiplier: 1.8},
-	}
-	mocks.decryptors.On("GetDecryptors", mock.Anything).Return(decryptors, nil)
-
-	req := httptest.NewRequest("GET", "/v1/arbiter/decryptors", nil)
-	args := &web.HandlerArgs{Request: req, User: &userID}
-
-	result, httpErr := c.GetDecryptors(args)
-	assert.Nil(t, httpErr)
-	assert.NotNil(t, result)
-
-	returned, ok := result.([]*models.Decryptor)
-	assert.True(t, ok)
-	assert.Len(t, returned, 2)
-	assert.Equal(t, int64(34201), returned[0].TypeID)
-	assert.Equal(t, "Accelerant Decryptor", returned[0].Name)
-
-	mocks.decryptors.AssertExpectations(t)
-}
-
-func Test_GetDecryptors_Returns500_WhenRepoFails(t *testing.T) {
-	c, mocks := setupArbiterControllerFull()
-	userID := int64(100)
-
-	mocks.decryptors.On("GetDecryptors", mock.Anything).Return(nil, errors.New("db error"))
-
-	req := httptest.NewRequest("GET", "/v1/arbiter/decryptors", nil)
-	args := &web.HandlerArgs{Request: req, User: &userID}
-
-	result, httpErr := c.GetDecryptors(args)
-	assert.Nil(t, result)
-	assert.NotNil(t, httpErr)
-	assert.Equal(t, 500, httpErr.StatusCode)
-
-	mocks.decryptors.AssertExpectations(t)
 }

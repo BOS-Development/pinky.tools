@@ -194,8 +194,6 @@ type BOMNode struct {
 	Delta         int64      `json:"delta"`        // needed - available (clamped to 0)
 	UnitBuyPrice  float64    `json:"unit_buy_price"`
 	UnitBuildCost float64    `json:"unit_build_cost"`
-	JobCost       float64    `json:"job_cost"` // job installation fee for THIS node's production step
-	Runs          int64      `json:"runs"`     // number of blueprint runs for this node
 	Decision      string     `json:"decision"` // "build", "buy", "buy_override", "build_override"
 	Children      []*BOMNode `json:"children"` // sub-components
 	IsBlacklisted bool       `json:"is_blacklisted"`
