@@ -41,13 +41,6 @@ type ArbiterBOMRepository interface {
 	GetCostIndexForSystem(ctx context.Context, systemID int64, activity string) (float64, error)
 }
 
-// bomResult holds the accumulated material and job cost for a BOM tree calculation.
-type bomResult struct {
-	MaterialCost float64
-	JobCost      float64
-	BuildTimeSec int64
-}
-
 // arbiterContext holds all pre-loaded (and lazily cached) data for a single scan run.
 type arbiterContext struct {
 	settings       *models.ArbiterSettings
@@ -583,13 +576,30 @@ func calculateDecryptorOption(
 		})
 	}
 
-	// BOM for the final T2 product using the T2 blueprint and result ME
-	bom, err := calculateFinalBOM(ac, item, resultME, resultRuns)
-	if err != nil {
-		return nil, err
+	// BOM for the final T2 product using the T2 blueprint and result ME.
+	// Pass the scan repo directly — ArbiterScanRepository is a superset of ArbiterBOMRepository.
+	tree, treeErr := BuildBOMTree(
+		ac.ctx,
+		item.BlueprintTypeID,
+		item.ProductTypeID,
+		item.ProductName,
+		int64(resultRuns),
+		resultME,
+		ac.repo,
+		ac.settings,
+		map[int64]bool{},   // no blacklist during scan
+		map[int64]bool{},   // no whitelist during scan
+		map[int64]int64{},  // no assets during scan
+		ac.taxProfile.InputPriceType,
+		ac.buildAll,
+	)
+	if treeErr != nil || tree == nil {
+		return nil, treeErr
 	}
+	materialCost := tree.MaterialCost
+	jobCost := tree.TotalJobCost
 
-	totalCost := bom.MaterialCost + bom.JobCost + inventionCost
+	totalCost := materialCost + jobCost + inventionCost
 	outputPrice := ac.getOutputPrice(item.ProductTypeID)
 	revenue := outputPrice * float64(resultRuns)
 	salesTaxRate := ac.taxProfile.SalesTaxRate / 100.0
@@ -603,9 +613,6 @@ func calculateDecryptorOption(
 	}
 
 	buildTimeSec := buildTime
-	if buildTimeSec <= 0 {
-		buildTimeSec = bom.BuildTimeSec
-	}
 
 	var iskPerDay float64
 	if buildTimeSec > 0 {
@@ -632,8 +639,8 @@ func calculateDecryptorOption(
 		ME:                    resultME,
 		TE:                    resultTE,
 		InventionCost:         math.Round(inventionCost*100) / 100,
-		MaterialCost:          math.Round((bom.MaterialCost+inventionCost)*100) / 100,
-		JobCost:               math.Round(bom.JobCost*100) / 100,
+		MaterialCost:          math.Round((materialCost+inventionCost)*100) / 100,
+		JobCost:               math.Round(jobCost*100) / 100,
 		TotalCost:             math.Round(totalCost*100) / 100,
 		Profit:                math.Round(profit*100) / 100,
 		ROI:                   math.Round(roi*100) / 100,
@@ -694,216 +701,6 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 	return dataCoreCost + copyCost, nil
 }
 
-// levelSettings holds the structure/rig/system configuration for a given manufacturing depth.
-type levelSettings struct {
-	structure   string
-	rig         string
-	systemID    *int64
-	facilityTax float64 // % of EIV charged by structure owner
-}
-
-// settingsForDepth returns the structure settings to apply at a given recursion depth.
-// depth 0 = final T2 build, depth 1 = T2 component build, depth >= 2 = reaction.
-func (ac *arbiterContext) settingsForDepth(depth int) levelSettings {
-	s := ac.settings
-	switch depth {
-	case 0:
-		return levelSettings{s.FinalStructure, s.FinalRig, s.FinalSystemID, s.FinalFacilityTax}
-	case 1:
-		return levelSettings{s.ComponentStructure, s.ComponentRig, s.ComponentSystemID, s.ComponentFacilityTax}
-	default: // depth >= 2 = reactions
-		return levelSettings{s.ReactionStructure, s.ReactionRig, s.ReactionSystemID, s.ReactionFacilityTax}
-	}
-}
-
-// calcChainCost returns the total material cost and job cost to produce qty units of a product
-// using blueprintTypeID at the given depth. Recursively builds sub-components up to maxDepth.
-func calcChainCost(ac *arbiterContext, blueprintTypeID int64, qty int, depth int) (materialCost float64, jobCost float64, buildTimeSec int64) {
-	const maxDepth = 10
-
-	if depth >= maxDepth || blueprintTypeID == 0 {
-		return 0, 0, 0
-	}
-
-	lvl := ac.settingsForDepth(depth)
-
-	// Try manufacturing activity first, then reaction
-	mats, err := ac.getBlueprintMaterials(blueprintTypeID, "manufacturing")
-	activity := "manufacturing"
-	if err != nil || len(mats) == 0 {
-		mats, err = ac.getBlueprintMaterials(blueprintTypeID, "reaction")
-		activity = "reaction"
-		if err != nil || len(mats) == 0 {
-			return 0, 0, 0
-		}
-	}
-
-	// Ensure prices are loaded for all materials
-	matTypeIDs := make([]int64, 0, len(mats))
-	for _, m := range mats {
-		matTypeIDs = append(matTypeIDs, m.TypeID)
-	}
-	ac.ensurePrices(matTypeIDs)
-	ac.ensureAdjustedPrices(matTypeIDs)
-
-	// Determine how many units this blueprint produces per run (reactions: 50–150; manufacturing: usually 1).
-	// We need this to convert "units needed" into "runs needed".
-	productQtyPerRun := 1
-	if prod, perr := ac.getBlueprintProduct(blueprintTypeID, activity); perr == nil && prod != nil && prod.Quantity > 1 {
-		productQtyPerRun = prod.Quantity
-	}
-	runs := (qty + productQtyPerRun - 1) / productQtyPerRun // ceil(qty / productQtyPerRun)
-
-	var meFactor float64
-	if activity == "manufacturing" {
-		// Sub-component blueprints (T2 components, T1 hulls) are assumed researched to ME 10/20
-		meFactor = calculator.ComputeManufacturingME(10, lvl.structure, lvl.rig, "null")
-	} else {
-		meFactor = calculator.ComputeMEFactor(lvl.rig, "null")
-	}
-
-	var totalMatCost, totalJobCost float64
-	var eiv float64
-
-	for _, m := range mats {
-		batchQty := int(calculator.ComputeBatchQty(runs, m.Quantity, meFactor))
-
-		// Try to find a manufacturing sub-blueprint first, then a reaction blueprint
-		subBpID := ac.getBlueprintForProduct(m.TypeID)
-		if subBpID == 0 {
-			subBpID = ac.getReactionForProduct(m.TypeID)
-		}
-
-		if subBpID != 0 {
-			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, depth+1)
-			if ac.buildAll {
-				totalMatCost += subMat
-				totalJobCost += subJob
-			} else {
-				// Build if profitable: pick whichever is cheaper
-				marketCost := ac.getInputPrice(m.TypeID) * float64(batchQty)
-				if subMat+subJob < marketCost {
-					totalMatCost += subMat
-					totalJobCost += subJob
-				} else {
-					totalMatCost += marketCost
-				}
-			}
-		} else {
-			totalMatCost += ac.getInputPrice(m.TypeID) * float64(batchQty)
-		}
-
-		adjPrice := ac.getAdjustedPrice(m.TypeID)
-		eiv += float64(m.Quantity) * adjPrice
-	}
-
-	// Job cost for this level
-	if lvl.systemID != nil {
-		costIdx := ac.getCostIndex(*lvl.systemID, activity)
-		if costIdx > 0 {
-			facilityTaxRate := lvl.facilityTax / 100.0
-			if activity == "manufacturing" {
-				structBonus := calculator.ManufacturingStructureCostBonus(lvl.structure)
-				totalJobCost += (eiv*costIdx*(1.0-structBonus)*(1.0+facilityTaxRate) + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
-			} else {
-				// Reactions: job_fee = EIV × cost_index, facility tax applies to job_fee
-				totalJobCost += (eiv*costIdx*(1.0+facilityTaxRate) + eiv*calculator.SccSurchargeRate) * float64(runs)
-			}
-		}
-	}
-
-	buildTime := ac.getBlueprintTime(blueprintTypeID, activity)
-	totalBuildTime := buildTime * int64(runs)
-
-	return totalMatCost, totalJobCost, totalBuildTime
-}
-
-// calculateFinalBOM computes the full production chain material + job cost for building the T2 product.
-// It applies the correct ME from the T2 BPC at the final level, then recursively builds sub-components
-// (T2 components at depth=1, reactions at depth=2) using the appropriate structure settings.
-func calculateFinalBOM(ac *arbiterContext, item *models.T2BlueprintScanItem, me int, runs int) (*bomResult, error) {
-	structure := ac.settings.FinalStructure
-	rig := ac.settings.FinalRig
-	systemID := ac.settings.FinalSystemID
-
-	meFactor := calculator.ComputeManufacturingME(me, structure, rig, "null")
-
-	mats, err := ac.getBlueprintMaterials(item.BlueprintTypeID, "manufacturing")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to get T2 manufacturing materials")
-	}
-
-	// Ensure prices are loaded for direct materials
-	matTypeIDs := make([]int64, 0, len(mats))
-	for _, m := range mats {
-		matTypeIDs = append(matTypeIDs, m.TypeID)
-	}
-	ac.ensurePrices(matTypeIDs)
-	ac.ensureAdjustedPrices(matTypeIDs)
-
-	var totalMatCost, totalJobCost float64
-	var eiv float64
-
-	for _, m := range mats {
-		batchQty := int(calculator.ComputeBatchQty(runs, m.Quantity, meFactor))
-
-		// Recurse into sub-components starting at depth=1 (component level)
-		subBpID := ac.getBlueprintForProduct(m.TypeID)
-		if subBpID == 0 {
-			subBpID = ac.getReactionForProduct(m.TypeID)
-		}
-
-		if subBpID != 0 {
-			subMat, subJob, _ := calcChainCost(ac, subBpID, batchQty, 1)
-			if ac.buildAll {
-				totalMatCost += subMat
-				totalJobCost += subJob
-			} else {
-				// Build if profitable: pick whichever is cheaper
-				marketCost := ac.getInputPrice(m.TypeID) * float64(batchQty)
-				if subMat+subJob < marketCost {
-					totalMatCost += subMat
-					totalJobCost += subJob
-				} else {
-					totalMatCost += marketCost
-				}
-			}
-		} else {
-			totalMatCost += ac.getInputPrice(m.TypeID) * float64(batchQty)
-		}
-
-		adjPrice := ac.getAdjustedPrice(m.TypeID)
-		eiv += float64(m.Quantity) * adjPrice
-	}
-
-	// Final manufacturing job cost
-	if systemID != nil {
-		costIndex := ac.getCostIndex(*systemID, "manufacturing")
-		if costIndex > 0 {
-			structBonus := calculator.ManufacturingStructureCostBonus(structure)
-			facilityTaxRate := ac.settings.FinalFacilityTax / 100.0
-			totalJobCost += (eiv*costIndex*(1.0-structBonus)*(1.0+facilityTaxRate) + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
-		}
-	}
-
-	buildTime := ac.getBlueprintTime(item.BlueprintTypeID, "manufacturing")
-
-	return &bomResult{
-		MaterialCost: totalMatCost,
-		JobCost:      totalJobCost,
-		BuildTimeSec: buildTime * int64(runs),
-	}, nil
-}
-
-// deriveSecurityClassFromSettings returns a security class string from settings.
-// Since security fields were removed from the model, we use a sensible default.
-func deriveSecurityClassFromSettings(ac *arbiterContext) string {
-	// Without the security columns, we can't determine it from settings.
-	// The security class must be derived from the system at runtime.
-	// Default to "null" (most conservative for ME bonus calculations).
-	return "null"
-}
-
 // --- BOM tree ---
 
 // bomTreeContext holds shared state for building a BOM tree.
@@ -919,6 +716,7 @@ type bomTreeContext struct {
 	inputPriceType  string
 	buildAll        bool
 	bpProductCache  map[string]*models.BlueprintProduct
+	bpMatsCache     map[string][]*models.BlueprintMaterial // key: "blueprintID:activity"
 }
 
 // getInputPrice returns the price to use for material cost based on inputPriceType.
@@ -964,6 +762,35 @@ func (btc *bomTreeContext) getBuyPrice(typeID int64) float64 {
 	return btc.getInputPrice(typeID)
 }
 
+// getAdjustedPrice returns the adjusted price for a type, lazily loading from the repo if missing.
+func (btc *bomTreeContext) getAdjustedPrice(typeID int64) float64 {
+	if p, ok := btc.adjustedPrices[typeID]; ok {
+		return p
+	}
+	newAdj, err := btc.repo.GetAdjustedPricesForTypes(btc.ctx, []int64{typeID})
+	if err == nil {
+		for k, v := range newAdj {
+			btc.adjustedPrices[k] = v
+		}
+		return btc.adjustedPrices[typeID]
+	}
+	return 0
+}
+
+// getBlueprintMaterials returns materials for a blueprint activity, using cache to avoid repeated DB calls.
+func (btc *bomTreeContext) getBlueprintMaterials(blueprintTypeID int64, activity string) ([]*models.BlueprintMaterial, error) {
+	key := fmt.Sprintf("%d:%s", blueprintTypeID, activity)
+	if mats, ok := btc.bpMatsCache[key]; ok {
+		return mats, nil
+	}
+	mats, err := btc.repo.GetBlueprintMaterialsForActivity(btc.ctx, blueprintTypeID, activity)
+	if err != nil {
+		return nil, err
+	}
+	btc.bpMatsCache[key] = mats
+	return mats, nil
+}
+
 // BuildBOMTree builds a full recursive BOM tree for a product.
 // blueprintTypeID is the blueprint used to manufacture the product.
 // qty is the number of units needed.
@@ -1004,6 +831,7 @@ func BuildBOMTree(
 		inputPriceType: inputPriceType,
 		buildAll:       buildAll,
 		bpProductCache: map[string]*models.BlueprintProduct{},
+		bpMatsCache:    map[string][]*models.BlueprintMaterial{},
 	}
 
 	return buildBOMNode(btc, blueprintTypeID, productTypeID, productName, qty, me, 0)
@@ -1057,16 +885,18 @@ func buildBOMNode(
 		} else {
 			node.Decision = "buy"
 		}
+		node.MaterialCost = float64(qty) * buyPrice
 		return node, nil
 	}
 
 	// Get materials for this blueprint — fall back to reaction if no manufacturing materials
-	mats, err := btc.repo.GetBlueprintMaterialsForActivity(btc.ctx, blueprintTypeID, "manufacturing")
+	mats, err := btc.getBlueprintMaterials(blueprintTypeID, "manufacturing")
 	activity := "manufacturing"
 	if err != nil || len(mats) == 0 {
-		mats, err = btc.repo.GetBlueprintMaterialsForActivity(btc.ctx, blueprintTypeID, "reaction")
+		mats, err = btc.getBlueprintMaterials(blueprintTypeID, "reaction")
 		activity = "reaction"
 		if err != nil || len(mats) == 0 {
+			// Blueprint exists but has no materials — treat as zero-cost build leaf.
 			node.Decision = "buy"
 			return node, nil
 		}
@@ -1109,6 +939,7 @@ func buildBOMNode(
 	runs := (qty + productQtyPerRun - 1) / productQtyPerRun // ceil(qty / productQtyPerRun)
 
 	var buildCost float64
+	var eiv float64
 	children := []*models.BOMNode{}
 
 	for _, mat := range mats {
@@ -1134,15 +965,16 @@ func buildBOMNode(
 					childDelta = 0
 				}
 				childNode = &models.BOMNode{
-					TypeID:       mat.TypeID,
-					Name:         mat.TypeName,
-					Quantity:     int64(batchQty),
-					Available:    childAvail,
-					Needed:       int64(batchQty),
-					Delta:        childDelta,
-					UnitBuyPrice: matBuyPrice,
-					Decision:     "buy",
-					Children:     []*models.BOMNode{},
+					TypeID:        mat.TypeID,
+					Name:          mat.TypeName,
+					Quantity:      int64(batchQty),
+					Available:     childAvail,
+					Needed:        int64(batchQty),
+					Delta:         childDelta,
+					UnitBuyPrice:  matBuyPrice,
+					Decision:      "buy",
+					Children:      []*models.BOMNode{},
+					MaterialCost:  float64(batchQty) * matBuyPrice,
 				}
 			}
 			if childNode.Decision == "build" || childNode.Decision == "build_override" {
@@ -1154,6 +986,10 @@ func buildBOMNode(
 			if childDelta < 0 {
 				childDelta = 0
 			}
+			decision := "buy"
+			if btc.blacklist[mat.TypeID] {
+				decision = "buy_override"
+			}
 			childNode = &models.BOMNode{
 				TypeID:       mat.TypeID,
 				Name:         mat.TypeName,
@@ -1162,15 +998,15 @@ func buildBOMNode(
 				Needed:       int64(batchQty),
 				Delta:        childDelta,
 				UnitBuyPrice: matBuyPrice,
-				Decision:     "buy",
+				Decision:     decision,
 				Children:     []*models.BOMNode{},
-			}
-			if btc.blacklist[mat.TypeID] {
-				childNode.Decision = "buy_override"
+				MaterialCost: float64(batchQty) * matBuyPrice,
 			}
 		}
 
 		buildCost += matBuildCost * float64(batchQty)
+		// EIV uses per-blueprint-run quantities (not ME-adjusted) for job cost calculation
+		eiv += float64(mat.Quantity) * btc.getAdjustedPrice(mat.TypeID)
 		children = append(children, childNode)
 	}
 
@@ -1197,6 +1033,53 @@ func buildBOMNode(
 		node.Decision = "build"
 	} else {
 		node.Decision = "buy"
+	}
+
+	// Compute this node's job cost using depth-appropriate structure settings
+	var systemID *int64
+	var facilityTax float64
+	var structureName string
+	switch {
+	case depth == 0:
+		systemID = btc.settings.FinalSystemID
+		facilityTax = btc.settings.FinalFacilityTax
+		structureName = btc.settings.FinalStructure
+	case depth == 1:
+		systemID = btc.settings.ComponentSystemID
+		facilityTax = btc.settings.ComponentFacilityTax
+		structureName = btc.settings.ComponentStructure
+	default:
+		systemID = btc.settings.ReactionSystemID
+		facilityTax = btc.settings.ReactionFacilityTax
+		structureName = btc.settings.ReactionStructure
+	}
+	if systemID != nil {
+		costIdx, _ := btc.repo.GetCostIndexForSystem(btc.ctx, *systemID, activity)
+		if costIdx > 0 {
+			facilityTaxRate := facilityTax / 100.0
+			if activity == "manufacturing" {
+				structBonus := calculator.ManufacturingStructureCostBonus(structureName)
+				node.JobCost = (eiv*costIdx*(1.0-structBonus)*(1.0+facilityTaxRate) + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
+			} else {
+				node.JobCost = (eiv*costIdx*(1.0+facilityTaxRate) + eiv*calculator.SccSurchargeRate) * float64(runs)
+			}
+		}
+	}
+
+	// Accumulate bottom-up cost fields.
+	// MaterialCost: for buy/buy_override leaves this is market value; for build nodes it's the sum of children.
+	if node.Decision == "buy" || node.Decision == "buy_override" {
+		node.MaterialCost = float64(node.Quantity) * node.UnitBuyPrice
+	} else {
+		for _, child := range node.Children {
+			node.MaterialCost += child.MaterialCost
+		}
+	}
+
+	// TotalJobCost: this node's job fee plus all descendant job fees.
+	node.TotalJobCost = node.JobCost
+	for _, child := range node.Children {
+		node.TotalJobCost += child.TotalJobCost
 	}
 
 	return node, nil

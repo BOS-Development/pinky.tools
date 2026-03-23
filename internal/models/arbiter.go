@@ -198,6 +198,9 @@ type BOMNode struct {
 	Children      []*BOMNode `json:"children"` // sub-components
 	IsBlacklisted bool       `json:"is_blacklisted"`
 	IsWhitelisted bool       `json:"is_whitelisted"`
+	JobCost       float64    `json:"job_cost"`      // manufacturing/reaction job fee for this node only
+	MaterialCost  float64    `json:"material_cost"` // sum of leaf buy prices × qty for this subtree
+	TotalJobCost  float64    `json:"total_job_cost"` // this node's job cost + all descendant job costs
 }
 
 // ArbiterOpportunity represents a single manufacturable item with all its profit data.

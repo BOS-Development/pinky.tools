@@ -180,6 +180,8 @@ export interface BomNode {
   children: BomNode[];
   is_blacklisted: boolean;
   is_whitelisted: boolean;
+  material_cost: number;
+  total_job_cost: number;
 }
 
 export interface SolarSystem {
@@ -773,6 +775,7 @@ function OpportunityRow({
       params.set("quantity", String(effectiveQty));
       params.set("build_all", String(buildAll));
       params.set("me", String(opp.me));
+      params.set("input_price_type", inputPrice);
       const res = await fetch(
         `/api/arbiter/${opp.product_type_id}/bom?${params.toString()}`,
       );
@@ -804,6 +807,7 @@ function OpportunityRow({
       params.set("quantity", String(effectiveQty));
       params.set("build_all", String(newBuildAll));
       params.set("me", String(opp.me));
+      params.set("input_price_type", inputPrice);
       const res = await fetch(
         `/api/arbiter/${opp.product_type_id}/bom?${params.toString()}`,
       );

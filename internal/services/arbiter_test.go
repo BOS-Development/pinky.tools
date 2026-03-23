@@ -240,6 +240,7 @@ func Test_ScanOpportunities_ReturnsSortedByProfit(t *testing.T) {
 	// Manufacturing materials for final products
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 
@@ -288,6 +289,7 @@ func Test_ScanOpportunities_NoDecryptorOption_IncludedByDefault(t *testing.T) {
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(3001)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3001), "invention").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2001), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
@@ -339,6 +341,7 @@ func Test_ScanOpportunities_TaxProfile_AffectsProfitCalculation(t *testing.T) {
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(3001)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3001), "invention").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2001), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
@@ -511,6 +514,7 @@ func Test_ScanOpportunities_MultiRunBPC_ProfitUsesFullRevenue(t *testing.T) {
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(3002)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3002), "invention").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(2002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2002), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
@@ -992,7 +996,188 @@ func Test_BuildBOMTree_RecursesIntoReactionBlueprint(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
-// --- calculateFinalBOM recursive chain tests ---
+// --- BOM tree bottom-up cost accumulation tests ---
+
+func Test_BuildBOMTree_BuyLeaf_MaterialCostEqualsQtyTimesPrice(t *testing.T) {
+	// A raw leaf with no blueprint (blueprintTypeID=0) should have MaterialCost = quantity × unit_buy_price.
+	repo := &MockArbiterBOMRepository{}
+	settings := defaultArbiterSettings()
+
+	sellPrice := float64(1_500_000)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			8101: {TypeID: 8101, SellPrice: &sellPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+
+	// blueprintTypeID=0 → no blueprint → forced "buy" immediately
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		0,    // no blueprint — forces the buy early return
+		8101, "Buy Leaf", 5, 0,
+		repo, settings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", false,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+	assert.Equal(t, "buy", tree.Decision)
+	// MaterialCost = 5 × 1_500_000
+	assert.InDelta(t, float64(7_500_000), tree.MaterialCost, 1.0)
+	// No job (no build)
+	assert.Equal(t, float64(0), tree.TotalJobCost)
+
+	repo.AssertExpectations(t)
+}
+
+func Test_BuildBOMTree_BuildParent_MaterialCostSumsChildLeaves(t *testing.T) {
+	// A build-forced parent should have MaterialCost = sum of children's leaf costs.
+	// Setup: root (8102) built from 2x mat A (8111) and 3x mat B (8112).
+	// Both mats are leaves (no sub-blueprints).
+	repo := &MockArbiterBOMRepository{}
+	settings := defaultArbiterSettings()
+
+	rootSellPrice := float64(100_000_000) // very high → build is always cheaper
+	matAPrice := float64(1_000_000)
+	matBPrice := float64(500_000)
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			8102: {TypeID: 8102, SellPrice: &rootSellPrice},
+			8111: {TypeID: 8111, SellPrice: &matAPrice},
+			8112: {TypeID: 8112, SellPrice: &matBPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8202), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 8111, TypeName: "Mat A", Quantity: 2},
+			{TypeID: 8112, TypeName: "Mat B", Quantity: 3},
+		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	// Both mats have no sub-blueprints
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(8111)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(8111)).Return(int64(0), nil)
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(8112)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(8112)).Return(int64(0), nil)
+
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		8202, 8102, "Build Parent", 1, 0,
+		repo, settings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", true, // buildAll forces build
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+	assert.Equal(t, "build_override", tree.Decision)
+	require.Len(t, tree.Children, 2)
+
+	// Each child is a buy leaf
+	var matAChild, matBChild *models.BOMNode
+	for _, c := range tree.Children {
+		if c.TypeID == 8111 {
+			matAChild = c
+		}
+		if c.TypeID == 8112 {
+			matBChild = c
+		}
+	}
+	require.NotNil(t, matAChild)
+	require.NotNil(t, matBChild)
+	assert.Equal(t, "buy", matAChild.Decision)
+	assert.Equal(t, "buy", matBChild.Decision)
+
+	// Child material costs: matA = 2 × 1M = 2M, matB = 3 × 500K = 1.5M
+	assert.InDelta(t, float64(2_000_000), matAChild.MaterialCost, 1.0)
+	assert.InDelta(t, float64(1_500_000), matBChild.MaterialCost, 1.0)
+
+	// Root MaterialCost = sum of children = 2M + 1.5M = 3.5M (no job cost, no system configured)
+	assert.InDelta(t, float64(3_500_000), tree.MaterialCost, 1.0)
+	assert.Equal(t, float64(0), tree.TotalJobCost)
+
+	repo.AssertExpectations(t)
+}
+
+func Test_BuildBOMTree_TotalJobCost_PropagatesUpFromChildren(t *testing.T) {
+	// When a system is configured, job costs accumulate bottom-up through the tree.
+	// Setup: root (8103) → child component (8113) → raw leaf (8120)
+	// Component has a reaction blueprint at depth=1 with a configured ComponentSystemID.
+	componentSystemID := int64(30000142)
+	settings := defaultArbiterSettings()
+	settings.ComponentSystemID = &componentSystemID
+
+	repo := &MockArbiterBOMRepository{}
+
+	rootSellPrice := float64(100_000_000)
+	compSellPrice := float64(10_000_000)
+	rawPrice := float64(1_000)
+	rawAdjustedPrice := float64(1_000)
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			8103: {TypeID: 8103, SellPrice: &rootSellPrice},
+			8113: {TypeID: 8113, SellPrice: &compSellPrice},
+			8120: {TypeID: 8120, SellPrice: &rawPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]float64{8120: rawAdjustedPrice}, nil)
+
+	// Root blueprint: manufacturing at depth=0, requires 1x component (8113)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8203), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 8113, TypeName: "Component", Quantity: 1},
+		}, nil)
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+
+	// Component has a reaction blueprint (8213) at depth=1
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(8113)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(8113)).Return(int64(8213), nil)
+
+	// Reaction blueprint (8213): no manufacturing mats, has reaction mats: 5x raw (8120)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8213), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(8213), "reaction").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 8120, TypeName: "Raw", Quantity: 5},
+		}, nil)
+
+	// Raw (8120): no blueprints
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(8120)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(8120)).Return(int64(0), nil)
+
+	// Cost index for component system, reaction activity = 5%
+	const costIdx = 0.05
+	repo.On("GetCostIndexForSystem", mock.Anything, componentSystemID, "reaction").Return(costIdx, nil)
+
+	tree, err := services.BuildBOMTree(
+		context.Background(),
+		8203, 8103, "Root Product", 1, 0,
+		repo, settings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", true, // buildAll
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree)
+
+	require.Len(t, tree.Children, 1)
+	compNode := tree.Children[0]
+	require.NotNil(t, compNode)
+	assert.Equal(t, int64(8113), compNode.TypeID)
+
+	// Component job cost: EIV = 5 × 1000 = 5000, costIdx = 0.05
+	// JobCost = (5000 × 0.05 × 1 + 5000 × SccSurcharge) × 1 run ≥ 250
+	assert.Greater(t, compNode.JobCost, float64(0), "component node should have a non-zero job cost")
+	assert.Greater(t, compNode.TotalJobCost, float64(0))
+
+	// Root has no system configured (FinalSystemID nil) → root.JobCost = 0
+	// Root.TotalJobCost = root.JobCost + comp.TotalJobCost = comp.TotalJobCost
+	assert.Equal(t, float64(0), tree.JobCost, "root should have zero job cost (no FinalSystemID)")
+	assert.InDelta(t, compNode.TotalJobCost, tree.TotalJobCost, 0.01,
+		"root TotalJobCost should equal component TotalJobCost when root has no job")
+
+	repo.AssertExpectations(t)
+}
+
+// --- Scan opportunities recursive chain tests ---
 
 func Test_ScanOpportunities_RecursiveChain_BuildsSubComponents(t *testing.T) {
 	// Verify that when a T2 blueprint material has a manufacturing sub-blueprint,
@@ -1035,7 +1220,7 @@ func Test_ScanOpportunities_RecursiveChain_BuildsSubComponents(t *testing.T) {
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(3001)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(2001), "manufacturing").Return(int64(86400), nil)
-	repo.On("GetBlueprintActivityTime", mock.Anything, int64(4002), "manufacturing").Return(int64(3600), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(4002), "manufacturing").Return(int64(3600), nil).Maybe()
 
 	// Invention materials for T1 blueprint
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3001), "invention").Return([]*models.BlueprintMaterial{}, nil)
@@ -1174,7 +1359,7 @@ func Test_ScanOpportunities_ReactionFullBatchCost(t *testing.T) {
 	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(7003)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7002), "manufacturing").Return(int64(86400), nil)
-	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7011), "reaction").Return(int64(3600), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7011), "reaction").Return(int64(3600), nil).Maybe()
 
 	// Invention materials for T1 blueprint
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7003), "invention").Return([]*models.BlueprintMaterial{}, nil)
@@ -1279,7 +1464,7 @@ func Test_ScanOpportunities_ReactionFullJobCost(t *testing.T) {
 	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(7103)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7102), "manufacturing").Return(int64(86400), nil)
-	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7111), "reaction").Return(int64(3600), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(7111), "reaction").Return(int64(3600), nil).Maybe()
 
 	// Invention materials for T1 blueprint
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(7103), "invention").Return([]*models.BlueprintMaterial{}, nil)
@@ -1391,7 +1576,7 @@ func Test_ScanOpportunities_BuildIfProfitable_PicksCheaperOption(t *testing.T) {
 			[]*models.BlueprintMaterial{
 				{TypeID: 8020, TypeName: "Raw Material", Quantity: 5},
 			}, nil)
-		r.On("GetBlueprintActivityTime", mock.Anything, int64(8011), "manufacturing").Return(int64(3600), nil)
+		r.On("GetBlueprintActivityTime", mock.Anything, int64(8011), "manufacturing").Return(int64(3600), nil).Maybe()
 		r.On("GetBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
 		r.On("GetReactionBlueprintForProduct", mock.Anything, int64(8020)).Return(int64(0), nil)
 		r.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
@@ -1504,6 +1689,7 @@ func Test_ScanOpportunities_InventionMaterials_Datacores_ScaledBySuccessRate(t *
 		{TypeID: 9901, TypeName: "Datacore Alpha", Quantity: 2},
 	}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3001), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3001), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
@@ -1567,6 +1753,7 @@ func Test_ScanOpportunities_InventionMaterials_Decryptor_AppendedWithScaledQty(t
 	// No datacores — only the decryptor
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(4002), "invention").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3002), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3002), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
@@ -1627,6 +1814,7 @@ func Test_ScanOpportunities_InventionMaterials_NoDecryptorOption_HasEmptySlice(t
 	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(4003)).Return((*models.InventionCharacter)(nil), nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(4003), "invention").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(3003), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(3003), "manufacturing").Return(int64(86400), nil)
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
