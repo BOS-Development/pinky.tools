@@ -369,8 +369,12 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 
 	opportunities := []*models.ArbiterOpportunity{}
 
+	// Create one shared BOM cache for the entire scan so that sub-components shared across
+	// multiple T2 items (e.g., Nanoelectrical Microprocessors) are fetched from the DB at most once.
+	shared := NewBOMSharedCache()
+
 	for _, item := range items {
-		opp, err := calculateOpportunity(ac, item, decryptors, bestChar)
+		opp, err := calculateOpportunity(ac, item, decryptors, bestChar, shared)
 		if err != nil || opp == nil {
 			continue
 		}
@@ -401,7 +405,7 @@ func ScanOpportunities(ctx context.Context, userID int64, settings *models.Arbit
 	return result, nil
 }
 
-func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, decryptors []*models.Decryptor, bestChar *models.InventionCharacter) (*models.ArbiterOpportunity, error) {
+func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, decryptors []*models.Decryptor, bestChar *models.InventionCharacter, shared *BOMSharedCache) (*models.ArbiterOpportunity, error) {
 	mp := ac.prices[item.ProductTypeID]
 	var jitaSell, jitaBuy float64
 	if mp != nil {
@@ -434,9 +438,8 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 	buildTime := ac.getBlueprintTime(item.BlueprintTypeID, "manufacturing")
 
 	// Build all decryptor options: no-decryptor + each decryptor.
-	// A single shared BOM cache is created per T2 item so that blueprint materials,
-	// prices, and cost indices are fetched from DB at most once across all decryptor variants.
-	shared := NewBOMSharedCache()
+	// The shared BOM cache is passed in from ScanOpportunities so that sub-components used by
+	// multiple T2 items are fetched from the DB at most once across the entire scan.
 	allOptions := make([]*models.DecryptorOption, 0, len(decryptors)+1)
 
 	noDecOpt, err := calculateDecryptorOption(ac, item, &models.Decryptor{
@@ -713,11 +716,13 @@ func calculateInventionBaseCost(ac *arbiterContext, item *models.T2BlueprintScan
 // Pass a single instance through calculateDecryptorOption calls for a given T2 item so that
 // blueprint materials, product lookups, prices, and cost indices are fetched at most once per scan.
 type BOMSharedCache struct {
-	bpMatsCache    map[string][]*models.BlueprintMaterial // key: "blueprintID:activity"
-	bpProductCache map[string]*models.BlueprintProduct    // key: "blueprintID:activity"
-	marketPrices   map[int64]*models.MarketPrice          // key: typeID
-	adjPrices      map[int64]float64                      // key: typeID
-	costIndices    map[string]float64                     // key: "systemID:activity"
+	bpMatsCache       map[string][]*models.BlueprintMaterial // key: "blueprintID:activity"
+	bpProductCache    map[string]*models.BlueprintProduct    // key: "blueprintID:activity"
+	marketPrices      map[int64]*models.MarketPrice          // key: typeID
+	adjPrices         map[int64]float64                      // key: typeID
+	costIndices       map[string]float64                     // key: "systemID:activity"
+	bpForProductCache map[int64]int64                        // mat typeID → manufacturing blueprint typeID (0 if none)
+	rxForProductCache map[int64]int64                        // mat typeID → reaction blueprint typeID (0 if none)
 }
 
 // NewBOMSharedCache creates an empty shared cache for use across multiple BuildBOMTree calls.
@@ -725,29 +730,33 @@ type BOMSharedCache struct {
 // should create one cache and pass it to every BuildBOMTree call.
 func NewBOMSharedCache() *BOMSharedCache {
 	return &BOMSharedCache{
-		bpMatsCache:    map[string][]*models.BlueprintMaterial{},
-		bpProductCache: map[string]*models.BlueprintProduct{},
-		marketPrices:   map[int64]*models.MarketPrice{},
-		adjPrices:      map[int64]float64{},
-		costIndices:    map[string]float64{},
+		bpMatsCache:       map[string][]*models.BlueprintMaterial{},
+		bpProductCache:    map[string]*models.BlueprintProduct{},
+		marketPrices:      map[int64]*models.MarketPrice{},
+		adjPrices:         map[int64]float64{},
+		costIndices:       map[string]float64{},
+		bpForProductCache: map[int64]int64{},
+		rxForProductCache: map[int64]int64{},
 	}
 }
 
 // bomTreeContext holds shared state for building a BOM tree.
 type bomTreeContext struct {
-	ctx             context.Context
-	repo            ArbiterBOMRepository
-	settings        *models.ArbiterSettings
-	prices          map[int64]*models.MarketPrice
-	adjustedPrices  map[int64]float64
-	blacklist        map[int64]bool
-	whitelist        map[int64]bool
-	assets           map[int64]int64
-	inputPriceType  string
-	buildAll        bool
-	bpProductCache  map[string]*models.BlueprintProduct
-	bpMatsCache     map[string][]*models.BlueprintMaterial // key: "blueprintID:activity"
-	costIndexCache  map[string]float64                     // key: "systemID:activity"
+	ctx               context.Context
+	repo              ArbiterBOMRepository
+	settings          *models.ArbiterSettings
+	prices            map[int64]*models.MarketPrice
+	adjustedPrices    map[int64]float64
+	blacklist         map[int64]bool
+	whitelist         map[int64]bool
+	assets            map[int64]int64
+	inputPriceType    string
+	buildAll          bool
+	bpProductCache    map[string]*models.BlueprintProduct
+	bpMatsCache       map[string][]*models.BlueprintMaterial // key: "blueprintID:activity"
+	costIndexCache    map[string]float64                     // key: "systemID:activity"
+	bpForProductCache map[int64]int64                        // mat typeID → manufacturing blueprint typeID (0 if none)
+	rxForProductCache map[int64]int64                        // mat typeID → reaction blueprint typeID (0 if none)
 }
 
 // getInputPrice returns the price to use for material cost based on inputPriceType.
@@ -860,6 +869,8 @@ func BuildBOMTree(
 	var bpProductCache map[string]*models.BlueprintProduct
 	var bpMatsCache map[string][]*models.BlueprintMaterial
 	var costIndexCache map[string]float64
+	var bpForProductCache map[int64]int64
+	var rxForProductCache map[int64]int64
 
 	if shared != nil {
 		// Use shared caches — add the product price if not already cached
@@ -884,6 +895,8 @@ func BuildBOMTree(
 		bpProductCache = shared.bpProductCache
 		bpMatsCache = shared.bpMatsCache
 		costIndexCache = shared.costIndices
+		bpForProductCache = shared.bpForProductCache
+		rxForProductCache = shared.rxForProductCache
 	} else {
 		// No shared cache — create fresh local maps (single-call path, e.g., BOM display endpoint)
 		var err error
@@ -898,22 +911,26 @@ func BuildBOMTree(
 		bpProductCache = map[string]*models.BlueprintProduct{}
 		bpMatsCache = map[string][]*models.BlueprintMaterial{}
 		costIndexCache = map[string]float64{}
+		bpForProductCache = map[int64]int64{}
+		rxForProductCache = map[int64]int64{}
 	}
 
 	btc := &bomTreeContext{
-		ctx:            ctx,
-		repo:           repo,
-		settings:       settings,
-		prices:         prices,
-		adjustedPrices: adjPrices,
-		blacklist:      blacklist,
-		whitelist:      whitelist,
-		assets:         assets,
-		inputPriceType: inputPriceType,
-		buildAll:       buildAll,
-		bpProductCache: bpProductCache,
-		bpMatsCache:    bpMatsCache,
-		costIndexCache: costIndexCache,
+		ctx:               ctx,
+		repo:              repo,
+		settings:          settings,
+		prices:            prices,
+		adjustedPrices:    adjPrices,
+		blacklist:         blacklist,
+		whitelist:         whitelist,
+		assets:            assets,
+		inputPriceType:    inputPriceType,
+		buildAll:          buildAll,
+		bpProductCache:    bpProductCache,
+		bpMatsCache:       bpMatsCache,
+		costIndexCache:    costIndexCache,
+		bpForProductCache: bpForProductCache,
+		rxForProductCache: rxForProductCache,
 	}
 
 	return buildBOMNode(btc, blueprintTypeID, productTypeID, productName, qty, me, 0)
@@ -1029,10 +1046,25 @@ func buildBOMNode(
 		matBuyPrice := btc.getBuyPrice(mat.TypeID)
 		matBuildCost := matBuyPrice // default: buy
 
-		// Check if this material has a blueprint for sub-building — try manufacturing first, then reaction
-		subBpID, err := btc.repo.GetBlueprintForProduct(btc.ctx, mat.TypeID)
-		if err != nil || subBpID == 0 {
-			subBpID, _ = btc.repo.GetReactionBlueprintForProduct(btc.ctx, mat.TypeID)
+		// Check if this material has a blueprint for sub-building — try manufacturing first, then reaction.
+		// Both lookups go through the shared cache to avoid repeated DB calls across recursion levels.
+		var subBpID int64
+		if cached, ok := btc.bpForProductCache[mat.TypeID]; ok {
+			subBpID = cached
+		} else {
+			subBpID, err = btc.repo.GetBlueprintForProduct(btc.ctx, mat.TypeID)
+			if err != nil {
+				subBpID = 0
+			}
+			btc.bpForProductCache[mat.TypeID] = subBpID
+		}
+		if subBpID == 0 {
+			if cached, ok := btc.rxForProductCache[mat.TypeID]; ok {
+				subBpID = cached
+			} else {
+				subBpID, _ = btc.repo.GetReactionBlueprintForProduct(btc.ctx, mat.TypeID)
+				btc.rxForProductCache[mat.TypeID] = subBpID
+			}
 		}
 
 		var childNode *models.BOMNode
