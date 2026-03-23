@@ -1059,9 +1059,9 @@ func buildBOMNode(
 			facilityTaxRate := facilityTax / 100.0
 			if activity == "manufacturing" {
 				structBonus := calculator.ManufacturingStructureCostBonus(structureName)
-				node.JobCost = (eiv*costIdx*(1.0-structBonus)*(1.0+facilityTaxRate) + eiv*calculator.ManufacturingSccSurchargeRate) * float64(runs)
+				node.JobCost = eiv * (costIdx*(1.0-structBonus) + facilityTaxRate + calculator.ManufacturingSccSurchargeRate) * float64(runs)
 			} else {
-				node.JobCost = (eiv*costIdx*(1.0+facilityTaxRate) + eiv*calculator.SccSurchargeRate) * float64(runs)
+				node.JobCost = eiv * (costIdx + facilityTaxRate + calculator.SccSurchargeRate) * float64(runs)
 			}
 		}
 	}
