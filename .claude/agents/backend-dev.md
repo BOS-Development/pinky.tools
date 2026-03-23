@@ -230,24 +230,35 @@ This applies to both the happy path and error-fallback branches — if there are
 
 ### EVE Industry: Manufacturing Job Cost Formula — CRITICAL
 
-The correct EVE manufacturing job cost formula:
+**This is the correct EVE manufacturing job cost formula (verified in-game and updated in Viridian expansion)**:
+
 ```
-job_fee = EIV × cost_index × (1 - structure_bonus)
-facility_tax = job_fee × (facility_tax_rate / 100)
-scc = EIV × ManufacturingSccSurchargeRate   // 1.5%
-total_job_cost = (job_fee + facility_tax + scc) × runs
-               = (job_fee × (1 + facility_tax_rate/100) + scc) × runs
+total_job_cost = EIV × [cost_index × (1 − structure_bonus) + facility_tax_rate + 0.04] × runs
 ```
 
-**Common bug**: applying facility tax to raw EIV directly (`eiv × facilityTaxRate`) instead of to the job fee. The tax rate is typically 0.5–3%, so the error is small but real.
+Expanded:
+```
+eiv_cost = EIV × cost_index × (1 − structure_bonus)   ← job fee gross cost
+tax_cost = EIV × facility_tax_rate                     ← flat % of EIV
+scc_cost = EIV × 0.04                                  ← SCC (Sales Customs Commodity), flat on EIV
+total = (eiv_cost + tax_cost + scc_cost) × runs
+```
+
+**Critical facts**:
+- **SCC surcharge is 4.0%** for both manufacturing AND reactions (updated in Viridian expansion; was 1.5% before)
+- **Facility tax is a flat % of EIV**, not applied to the job fee. Common bug: treating it as `(job_fee × (1 + facilityTaxRate))` when it's actually a separate `EIV × facilityTaxRate` term
+- **Structure bonus reduces only the cost_index component**, not the flat tax/SCC: `cost_index × (1 − structure_bonus)`
 
 For reactions (no structure bonus):
 ```
-job_fee = EIV × cost_index
-total = (job_fee × (1 + facility_tax_rate/100) + EIV × SccSurchargeRate) × runs
+total = EIV × (cost_index + facility_tax_rate + 0.04) × runs
 ```
 
-EIV = `sum(base_qty_per_run × adjusted_price)` where `adjusted_price` comes from CCP's ESI `/markets/prices/` endpoint (the `adjusted_price` field, NOT `average_price`). EIV uses base blueprint quantities, not ME-adjusted quantities.
+**EIV Calculation**:
+- `EIV = sum(base_qty_per_run × adjusted_price)`
+- Use `adjusted_price` from CCP's ESI `/markets/prices/` endpoint (the `adjusted_price` field, NOT `average_price`)
+- Use **base blueprint quantities** (ME=0), never ME-adjusted quantities
+- This matches the in-game formula exactly
 
 ### EVE Industry: Full-Batch Cost for Reactions
 
@@ -263,6 +274,38 @@ totalMatCost *= scale
 ```
 
 The cost model: if you need 45 units and the batch produces 100, you must buy materials for 100. The remaining 55 units are inventory for the next run.
+
+### BOM Shared Cache Pattern — Performance Critical
+
+When calling `BuildBOMTree()` in a loop (e.g., scanning 500 items × 10 decryptors = 5,000 calls), create a single `*BOMSharedCache` **before the loop** and pass it to every call. The cache contains:
+- `bpMatsCache` — blueprint material lists (per-BP, not per-decryptor)
+- `bpProductCache` — blueprint product definitions
+- `marketPrices` — market buy/sell orders
+- `adjPrices` — adjusted prices (for EIV calculation)
+- `costIndices` — per-system cost indices
+- `bpForProductCache` — product type ID → blueprint mapping
+- `rxForProductCache` — reaction product type ID → reaction mapping
+
+Without caching, each call rebuilds these maps from scratch, causing exponential slowdown and timeout.
+
+```go
+// GOOD — build cache once, reuse across all items
+cache := &services.BOMSharedCache{}
+for _, typeID := range itemIDs {
+    bomResult, err := services.BuildBOMTree(ctx, typeID, /* ... */, cache)
+    // ...
+}
+
+// BAD — each call creates a fresh context, O(n²) slowdown
+for _, typeID := range itemIDs {
+    bomResult, err := services.BuildBOMTree(ctx, typeID, /* ... */, nil)  // nil cache = fresh each time
+    // ...
+}
+```
+
+### Adjusted Price vs. Average Price
+
+For **EIV calculation only**, use `adjusted_price` from the `adjusted_prices` table (which mirrors CCP's ESI `/markets/prices/` endpoint). Do **not** use `average_price` from `market_prices`. The adjusted price matches the in-game job cost formula exactly; average price is different and will produce wrong EIV values.
 
 ### Stateless Calculation Services
 

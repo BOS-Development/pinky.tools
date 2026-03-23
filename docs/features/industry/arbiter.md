@@ -190,7 +190,54 @@ CREATE TABLE arbiter_whitelist (
 - Main Page: `frontend/packages/pages/arbiter.tsx`
 - API Route: `frontend/pages/api/arbiter/[typeID]/bom.ts`
 
-## Phase 2 Fixes
+## Phase 2 Implementation
+
+### Unified BOM Code Path
+
+Phase 2 removed duplicate BOM calculation logic. `ScanOpportunities` in `internal/services/arbiter.go` now uses `BuildBOMTree` for all opportunity analysis, eliminating the separate `calculateFinalBOM` scan path that existed in Phase 1. This ensures all cost calculations follow a single code path, reducing bugs.
+
+Key changes:
+- **Shared `BOMSharedCache`**: Created once before scanning all opportunities (500+ items × 10 decryptors) and reused across all `BuildBOMTree` calls. Without this, each call rebuilds the cache from scratch, causing O(n²) slowdown and timeout.
+- **Bottom-up cost accumulation**: `BOMNode` now includes `MaterialCost` (sum of child material costs) and `TotalJobCost` (all job fees in the tree), computed during tree traversal.
+- **Corrected OpportunityRow wiring**: Fixed bug where `input_price_type` was omitted from BOM fetch, causing cost calculations to always use wrong price type.
+
+### Job Cost Calculation (Viridian-Correct)
+
+The **correct and verified EVE manufacturing job cost formula** (updated in Viridian expansion):
+
+```
+total_job_cost = EIV × [cost_index × (1 − structure_bonus) + facility_tax_rate + 0.04] × runs
+```
+
+**Components** (all flat % applied to EIV):
+- **cost_index** — System cost index (typically 0.5–1.5 in empire)
+- **structure_bonus** — Rig bonus reduction (0–0.2): applied as `(1 − bonus)`
+- **facility_tax_rate** — User's facility tax % (0–0.2 typical). **This is flat on EIV, not on job_fee**
+- **0.04** — SCC (Sales Customs Commodity) surcharge, **4% as of Viridian** (previously 1.5%)
+- **EIV** — Estimated Industry Value: `sum(base_qty × adjusted_price)` where `adjusted_price` is from CCP's `/markets/prices/` endpoint
+
+For reactions (no structure bonus):
+```
+total = EIV × (cost_index + facility_tax_rate + 0.04) × runs
+```
+
+**Critical corrections from Phase 1**:
+1. **SCC is 4.0%**, not 1.5% — updated for both manufacturing and reactions (Viridian expansion)
+2. **Facility tax is flat on EIV**, not multiplied into job_fee. Bug: treating tax as `(eiv × cost_index × (1 − bonus) × (1 + tax_rate))` instead of `(eiv × cost_index × (1 − bonus)) + (eiv × tax_rate)`
+3. **EIV uses `adjusted_price`**, not `average_price`. The adjusted price from ESI matches the in-game formula exactly; using average_price produces wrong costs
+
+**BOM Node Cost Fields**:
+- **job_cost** (`int64`) — Per-run manufacturing or reaction cost in ISK
+- **runs** (`int`) — Number of runs needed to produce required quantity
+- **MaterialCost** (`int64`) — Sum of all child material costs (bottom-up accumulation)
+- **TotalJobCost** (`int64`) — All job fees in the subtree (bottom-up accumulation)
+
+**Frontend Job Costs Tab**: The BOM panel in `frontend/packages/pages/arbiter.tsx` displays a "Job Costs" tab showing:
+- **Step** — Item name being built
+- **Qty** — Total quantity needed
+- **Runs** — Number of runs required
+- **Job Fee** — Total manufacturing cost per run (in ISK)
+- **Total Job Cost** — Sum of all steps' per-run costs
 
 ### BOM Tree Delta Calculation
 - **Issue**: Leaf nodes (buyable items with no blueprint) always showed delta = 0
@@ -223,56 +270,13 @@ CREATE TABLE arbiter_whitelist (
 - **Root Cause**: Cost calculation tried to amortize batch fee across multiple output units
 - **Fix**: Reactions now always charge the full batch cost, regardless of how many units are produced
 - **Rationale**: EVE reactions always run full batches; there's no such thing as a partial reaction
-- **Code**: `calcChainCost()` no longer applies pro-ration for reaction activities
+- **Code**: Unified BOM tree now correctly treats reactions as full-batch operations
 - **Impact**: Reaction opportunity costs are now accurate
 
 ### Input Price Fallback
 - **Behavior**: If `input_price_type` is "buy" but no buy orders exist for an item, the system falls back to sell order price
 - **Implementation**: `getInputPrice()` and `getBuyPrice()` in bomTreeContext check the preferred type first, then try the other if nil
 - **Impact**: BOM trees always have a cost, even if market data is incomplete
-
-## Job Cost Calculation (Phase 2)
-
-### Manufacturing Job Cost Formula
-
-The corrected manufacturing job cost formula applies facility tax to the job fee, not directly to EIV:
-
-```
-jobCost = (eiv × costIndex × (1 - structBonus) × (1 + facilityTaxRate) + eiv × SCC) × runs
-```
-
-**Components**:
-- **eiv** — Estimated Industry Value, calculated from base blueprint quantities (not ME-adjusted). EVE computes job costs using blueprint base quantities, regardless of ME level.
-- **costIndex** — System cost index (0.5–2.0 in 0.5-1.5 range for most empire systems)
-- **structBonus** — Structure rig bonus (0–0.2; higher rigs = lower cost). Applied as multiplication: `(1 - structBonus)`
-- **facilityTaxRate** — User-configured facility tax % (0–0.2 typical). Applied to the job fee component only
-- **SCC** — Sales tax + customs (0.02)
-- **runs** — Number of manufacturing runs
-
-**Old formula (incorrect)**: `(eiv × costIndex × (1 - structBonus) + eiv × facilityTaxRate + eiv × SCC) × runs` applied tax directly to EIV.
-
-**New formula (correct)**: Tax applies to the job fee `costIndex × (1 - structBonus)` before adding SCC.
-
-**Impact**: Manufacturing job costs are now accurate. Facility tax reduction is more meaningful with higher-tier rigs.
-
-### BOM Node Cost Fields
-
-`BOMNode` in `internal/models/arbiter.go` now includes:
-- **job_cost** (`int64`) — Per-run manufacturing or reaction cost in ISK
-- **runs** (`int`) — Number of runs needed to produce required quantity
-
-These fields enable the frontend to display per-step manufacturing costs in the Job Costs tab.
-
-### Job Costs Tab in BOM Panel
-
-The BOM panel in `frontend/packages/pages/arbiter.tsx` now includes a "Job Costs" tab showing:
-- **Step** — Item name being built
-- **Qty** — Total quantity needed
-- **Runs** — Number of runs required (at max manufacturing slots, or max reaction batch)
-- **Job Fee** — Total manufacturing cost per run (in ISK)
-- **Total Job Cost** — Sum of all steps' per-run costs
-
-This gives players immediate visibility into labor costs across the full production chain.
 
 ## Configuration
 
