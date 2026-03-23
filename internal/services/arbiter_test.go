@@ -562,6 +562,7 @@ func Test_BuildBOMTree_ReturnsLeafNode_WhenNoMaterials(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -602,6 +603,7 @@ func Test_BuildBOMTree_BlacklistForcesBuy(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -647,6 +649,7 @@ func Test_BuildBOMTree_WhitelistForcesBuild(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -693,6 +696,7 @@ func Test_BuildBOMTree_ChoosesBuild_WhenCheaperThanBuy(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -737,6 +741,7 @@ func Test_BuildBOMTree_ChoosesBuy_WhenCheaperThanBuild(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -775,6 +780,7 @@ func Test_BuildBOMTree_AvailableAssets_ReducesDelta(t *testing.T) {
 		assets,
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -826,6 +832,7 @@ func Test_BuildBOMTree_DepthLimit_StopsRecursion(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		false,
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -868,6 +875,7 @@ func Test_BuildBOMTree_BuildAll_ForcesAllNodesToBuild(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		true, // buildAll
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -904,6 +912,7 @@ func Test_BuildBOMTree_BuildAll_RespectsBlacklist(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		true, // buildAll
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -978,6 +987,7 @@ func Test_BuildBOMTree_RecursesIntoReactionBlueprint(t *testing.T) {
 		map[int64]int64{},
 		"sell",
 		true, // buildAll so we can observe recursion without cost comparison
+		nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -1017,7 +1027,7 @@ func Test_BuildBOMTree_BuyLeaf_MaterialCostEqualsQtyTimesPrice(t *testing.T) {
 		8101, "Buy Leaf", 5, 0,
 		repo, settings,
 		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
-		"sell", false,
+		"sell", false, nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -1065,7 +1075,7 @@ func Test_BuildBOMTree_BuildParent_MaterialCostSumsChildLeaves(t *testing.T) {
 		8202, 8102, "Build Parent", 1, 0,
 		repo, settings,
 		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
-		"sell", true, // buildAll forces build
+		"sell", true, nil, // buildAll forces build
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -1153,7 +1163,7 @@ func Test_BuildBOMTree_TotalJobCost_PropagatesUpFromChildren(t *testing.T) {
 		8203, 8103, "Root Product", 1, 0,
 		repo, settings,
 		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
-		"sell", true, // buildAll
+		"sell", true, nil, // buildAll
 	)
 	require.NoError(t, err)
 	require.NotNil(t, tree)
@@ -1833,6 +1843,65 @@ func Test_ScanOpportunities_InventionMaterials_NoDecryptorOption_HasEmptySlice(t
 	assert.NotNil(t, opp.AllDecryptors[0].InventionMaterials)
 	assert.Empty(t, opp.AllDecryptors[0].InventionMaterials)
 
+	repo.AssertExpectations(t)
+}
+
+// --- BOMSharedCache tests ---
+
+func Test_BuildBOMTree_SharedCache_DeduplicatesDBCalls(t *testing.T) {
+	// When the same blueprint is built twice with a shared cache, GetBlueprintMaterialsForActivity
+	// should only be called once — the second call hits the cache.
+	repo := &MockArbiterBOMRepository{}
+	settings := defaultArbiterSettings()
+
+	sellPrice := float64(10_000_000)
+	matPrice := float64(1_000_000)
+
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			9901: {TypeID: 9901, SellPrice: &sellPrice},
+			9910: {TypeID: 9910, SellPrice: &matPrice},
+		}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+
+	// This must be called exactly once — the second BuildBOMTree call should hit the cache.
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9901), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 9910, TypeName: "Shared Mat", Quantity: 1},
+		}, nil).Once()
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(9910)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(9910)).Return(int64(0), nil)
+
+	shared := services.NewBOMSharedCache()
+
+	// First call — populates cache
+	tree1, err := services.BuildBOMTree(
+		context.Background(),
+		9901, 9901, "Product", 1, 0,
+		repo, settings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", false, shared,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree1)
+
+	// Second call with the same blueprint — must NOT call GetBlueprintMaterialsForActivity again
+	tree2, err := services.BuildBOMTree(
+		context.Background(),
+		9901, 9901, "Product", 1, 0,
+		repo, settings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", false, shared,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, tree2)
+
+	// Both trees should have the same structure
+	assert.Equal(t, tree1.TypeID, tree2.TypeID)
+	assert.Equal(t, tree1.Decision, tree2.Decision)
+
+	// AssertExpectations verifies GetBlueprintMaterialsForActivity was called exactly Once()
 	repo.AssertExpectations(t)
 }
 

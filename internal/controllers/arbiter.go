@@ -862,7 +862,7 @@ func (c *Arbiter) GetBOMTree(args *web.HandlerArgs) (any, *web.HttpError) {
 		inputPriceType = "sell"
 	}
 
-	tree, err := services.BuildBOMTree(ctx, bpID, typeID, "", qty, me, c.bomRepo, settings, blacklist, whitelist, assets, inputPriceType, buildAll)
+	tree, err := services.BuildBOMTree(ctx, bpID, typeID, "", qty, me, c.bomRepo, settings, blacklist, whitelist, assets, inputPriceType, buildAll, nil)
 	if err != nil {
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to build BOM tree")}
 	}
