@@ -304,6 +304,8 @@ None specific to Arbiter — uses standard `BACKEND_KEY`, `DATABASE_*`, and `POR
 2. **No job slot validation**: Arbiter assumes unlimited job slots. Real players must verify they have slots available.
 3. **Single-system cost index**: Each structure uses one system's cost index. Multi-system chains (e.g., reaction in A, invention in B) compute each stage separately.
 4. **Static decryptor**: The decryptor type is fixed per user (via `decryptor_type_id`). Invention chains always assume this decryptor.
+5. **Batch Rounding Overshoot (small builds)**: When sub-components produce in fixed batch sizes (e.g., 3 per run), building a small quantity forces rounding up to the next full run, creating leftover units that are paid for but not consumed. The BOM shopping cost reflects what you actually spend (correct). The "effective" cost per unit — shopping cost minus the market value of leftover materials — is not calculated. For large builds this overshoot is negligible (<1%). For small builds (1–5 ships, <50 modules) the shopping cost can significantly overstate the true per-unit cost. No changes to code required now; flagged for future improvement.
+6. **Scan ROI is static after scan completes**: The QTY spinner on each scan row scales the warehouse panel shopping list but does not recalculate the ROI, profit, or cost columns — those are frozen from the server-side calculation at 1 BPC (resultRuns units). A post-scan recalculation when QTY changes would require either a client-side approximation (scale the embedded BOM by bpcsNeeded — accurate for spend, but doesn't capture improved batch efficiency at scale) or a server round-trip to re-run the full BOM at the new quantity. Flagged for future improvement; no code changes needed now.
 
 ## Related Features
 

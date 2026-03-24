@@ -1175,3 +1175,27 @@ LIMIT $2
 	}
 	return results, nil
 }
+
+// GetSecurityClassForSystem returns "high", "low", or "null" for a solar system
+// based on its security value. Returns "null" if the system is not found.
+func (r *ArbiterRepository) GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error) {
+	query := `
+SELECT
+    CASE
+        WHEN security >= 0.45 THEN 'high'
+        WHEN security > 0.0  THEN 'low'
+        ELSE 'null'
+    END
+FROM solar_systems
+WHERE solar_system_id = $1
+`
+	var secClass string
+	err := r.db.QueryRowContext(ctx, query, systemID).Scan(&secClass)
+	if err == sql.ErrNoRows {
+		return "null", nil
+	}
+	if err != nil {
+		return "null", errors.Wrap(err, "failed to query security class for system")
+	}
+	return secClass, nil
+}

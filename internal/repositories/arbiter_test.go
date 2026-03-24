@@ -628,3 +628,76 @@ func Test_InsertPriceHistorySnapshot_Succeeds_WithEmptyPrices(t *testing.T) {
 	err = mpRepo.InsertPriceHistorySnapshot(ctx, time.Now())
 	require.NoError(t, err)
 }
+
+// --- GetSecurityClassForSystem tests ---
+
+func Test_GetSecurityClassForSystem_ReturnsHigh_ForHighSecSystem(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+	ctx := context.Background()
+
+	// Insert minimal universe hierarchy for a high-sec test system (security = 0.9)
+	_, err = db.ExecContext(ctx, `INSERT INTO regions (region_id, name) VALUES (99010000, 'Test Region Sec') ON CONFLICT (region_id) DO NOTHING`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO constellations (constellation_id, name, region_id) VALUES (99020000, 'Test Constellation Sec', 99010000) ON CONFLICT (constellation_id) DO NOTHING`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (99030001, 'Test High Sec System', 99020000, 0.9) ON CONFLICT (solar_system_id) DO NOTHING`)
+	require.NoError(t, err)
+
+	repo := repositories.NewArbiterRepository(db)
+
+	sec, err := repo.GetSecurityClassForSystem(ctx, 99030001)
+	require.NoError(t, err)
+	assert.Equal(t, "high", sec)
+}
+
+func Test_GetSecurityClassForSystem_ReturnsLow_ForLowSecSystem(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+	ctx := context.Background()
+
+	_, err = db.ExecContext(ctx, `INSERT INTO regions (region_id, name) VALUES (99010001, 'Test Region Low') ON CONFLICT (region_id) DO NOTHING`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO constellations (constellation_id, name, region_id) VALUES (99020001, 'Test Constellation Low', 99010001) ON CONFLICT (constellation_id) DO NOTHING`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (99030002, 'Test Low Sec System', 99020001, 0.2) ON CONFLICT (solar_system_id) DO NOTHING`)
+	require.NoError(t, err)
+
+	repo := repositories.NewArbiterRepository(db)
+
+	sec, err := repo.GetSecurityClassForSystem(ctx, 99030002)
+	require.NoError(t, err)
+	assert.Equal(t, "low", sec)
+}
+
+func Test_GetSecurityClassForSystem_ReturnsNull_ForNullSecSystem(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+	ctx := context.Background()
+
+	_, err = db.ExecContext(ctx, `INSERT INTO regions (region_id, name) VALUES (99010002, 'Test Region Null') ON CONFLICT (region_id) DO NOTHING`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO constellations (constellation_id, name, region_id) VALUES (99020002, 'Test Constellation Null', 99010002) ON CONFLICT (constellation_id) DO NOTHING`)
+	require.NoError(t, err)
+	_, err = db.ExecContext(ctx, `INSERT INTO solar_systems (solar_system_id, name, constellation_id, security) VALUES (99030003, 'Test Null Sec System', 99020002, -0.5) ON CONFLICT (solar_system_id) DO NOTHING`)
+	require.NoError(t, err)
+
+	repo := repositories.NewArbiterRepository(db)
+
+	sec, err := repo.GetSecurityClassForSystem(ctx, 99030003)
+	require.NoError(t, err)
+	assert.Equal(t, "null", sec)
+}
+
+func Test_GetSecurityClassForSystem_ReturnsNull_WhenSystemNotFound(t *testing.T) {
+	db, err := setupDatabase(t)
+	require.NoError(t, err)
+	ctx := context.Background()
+
+	repo := repositories.NewArbiterRepository(db)
+
+	// Use a system ID that does not exist
+	sec, err := repo.GetSecurityClassForSystem(ctx, 99999998)
+	require.NoError(t, err)
+	assert.Equal(t, "null", sec)
+}

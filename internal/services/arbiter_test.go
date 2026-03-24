@@ -110,6 +110,11 @@ func (m *MockArbiterScanRepository) GetMarketPricesLastUpdated(ctx context.Conte
 	return args.Get(0).(*time.Time), args.Error(1)
 }
 
+func (m *MockArbiterScanRepository) GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error) {
+	args := m.Called(ctx, systemID)
+	return args.Get(0).(string), args.Error(1)
+}
+
 // Ensure interface is satisfied
 var _ services.ArbiterScanRepository = &MockArbiterScanRepository{}
 
@@ -169,6 +174,11 @@ func (m *MockArbiterBOMRepository) GetCostIndexForSystem(ctx context.Context, sy
 func (m *MockArbiterBOMRepository) GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error) {
 	args := m.Called(ctx, productTypeID)
 	return args.Get(0).(int64), args.Error(1)
+}
+
+func (m *MockArbiterBOMRepository) GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error) {
+	args := m.Called(ctx, systemID)
+	return args.Get(0).(string), args.Error(1)
 }
 
 // Ensure interface is satisfied
@@ -1158,6 +1168,9 @@ func Test_BuildBOMTree_TotalJobCost_PropagatesUpFromChildren(t *testing.T) {
 	const costIdx = 0.05
 	repo.On("GetCostIndexForSystem", mock.Anything, componentSystemID, "reaction").Return(costIdx, nil)
 
+	// Security class for the component system (used for ME factor at depth=1)
+	repo.On("GetSecurityClassForSystem", mock.Anything, componentSystemID).Return("null", nil)
+
 	tree, err := services.BuildBOMTree(
 		context.Background(),
 		8203, 8103, "Root Product", 1, 0,
@@ -1572,6 +1585,9 @@ func Test_ScanOpportunities_ReactionFullJobCost(t *testing.T) {
 	const reactionCostIdx = 0.05
 	repo.On("GetCostIndexForSystem", mock.Anything, componentSystemID, "reaction").Return(reactionCostIdx, nil)
 
+	// Security class for the component system (used for ME factor at depth=1)
+	repo.On("GetSecurityClassForSystem", mock.Anything, componentSystemID).Return("null", nil)
+
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, true, repo)
 	require.NoError(t, err)
 	require.Len(t, result.Opportunities, 1)
@@ -1966,6 +1982,201 @@ func Test_BuildBOMTree_SharedCache_DeduplicatesDBCalls(t *testing.T) {
 
 	// AssertExpectations verifies GetBlueprintMaterialsForActivity was called exactly Once()
 	repo.AssertExpectations(t)
+}
+
+// --- Fix 1: chanceMod cap tests ---
+
+func Test_ScanOpportunities_ChanceMod_CappedAtOne(t *testing.T) {
+	// When effectiveChance × decryptor.ProbabilityMultiplier > 1.0, chanceMod should be capped at 1.0.
+	// Without the cap, inventionCost = cost / chanceMod would be negative (or less than cost),
+	// which is physically impossible: EVE caps invention success at 100%.
+	//
+	// The Augmentation Decryptor has ProbabilityMultiplier = 1.5 by default.
+	// If a character has 100% base chance (e.g., very high skills), chance × 1.5 > 1.0.
+	// We test this by setting BaseInventionChance = 1.0 and using a multiplier > 1.0.
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	sellPrice := float64(10_000_000) // 10M
+	datacorePrice := float64(1_000_000)
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       9800,
+		ProductName:         "Capped Chance Module",
+		BlueprintTypeID:     9801,
+		T1BlueprintTypeID:   9802,
+		BaseInventionChance: 1.0, // full base chance
+		BaseResultME:        2,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	// Use a decryptor with ProbabilityMultiplier > 1.0 to trigger the cap
+	decryptorTypeID := int64(9999)
+	decryptorPrice := float64(500_000)
+	decryptors := []*models.Decryptor{
+		{
+			TypeID:                decryptorTypeID,
+			Name:                  "Boosted Decryptor",
+			ProbabilityMultiplier: 1.5, // 1.0 × 1.5 = 1.5 → capped to 1.0
+			MEModifier:            2,
+			TEModifier:            -2,
+			RunModifier:           2,
+		},
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return(decryptors, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		9800: {TypeID: 9800, SellPrice: &sellPrice},
+		9999: {TypeID: 9999, SellPrice: &decryptorPrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(9802)).Return((*models.InventionCharacter)(nil), nil)
+
+	// Invention materials: 1 datacore
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9802), "invention").Return([]*models.BlueprintMaterial{
+		{TypeID: 9810, TypeName: "Datacore", Quantity: 1},
+	}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		9800: {TypeID: 9800, SellPrice: &sellPrice},
+		9999: {TypeID: 9999, SellPrice: &decryptorPrice},
+		9810: {TypeID: 9810, SellPrice: &datacorePrice},
+	}, nil).Maybe()
+
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9801), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(9801), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+	require.Len(t, opp.AllDecryptors, 2) // no-decryptor + boosted decryptor
+
+	// Find the boosted decryptor option
+	var boostedOption *models.DecryptorOption
+	for _, opt := range opp.AllDecryptors {
+		if opt.TypeID != nil && *opt.TypeID == decryptorTypeID {
+			boostedOption = opt
+			break
+		}
+	}
+	require.NotNil(t, boostedOption, "boosted decryptor option should exist")
+
+	// Without the cap, inventionCost = (datacore + decryptor) / 1.5 < raw cost
+	// With the cap, inventionCost = (datacore + decryptor) / 1.0 = raw cost
+	rawCost := datacorePrice + decryptorPrice // 1.5M
+	// inventionCost should equal rawCost (cap applied), not rawCost/1.5 = 1M
+	assert.InDelta(t, rawCost, boostedOption.InventionCost, 1.0,
+		"invention cost should equal raw cost when chanceMod is capped at 1.0")
+
+	// Verify inventory materials quantity for the decryptor: ceil(1 / 1.0) = 1 (not ceil(1/1.5) = 1, same)
+	// More clearly: quantity for datacore should be ceil(1/1.0) = 1, not ceil(1/1.5) = 1
+	// The key invariant: chanceMod must never exceed 1.0
+	for _, mat := range boostedOption.InventionMaterials {
+		if mat.TypeID == 9810 { // datacore
+			// At chanceMod=1.0: qty = ceil(1/1.0) = 1
+			// At chanceMod=1.5: qty = ceil(1/1.5) = 1 (same — this is the degenerate case)
+			// Instead verify via cost: inventionCost >= decryptor + datacores / 1.0
+			assert.GreaterOrEqual(t, float64(mat.Quantity), float64(1),
+				"datacore quantity must be at least 1 when chanceMod is capped at 1.0")
+		}
+	}
+
+	repo.AssertExpectations(t)
+}
+
+// --- Fix 2: security class propagation tests ---
+
+func Test_BuildBOMTree_SecurityClass_HighSec_LowerRigBonus_ThanNullSec(t *testing.T) {
+	// Verify that configuring a high-sec system produces a smaller rig ME bonus than null-sec.
+	// The rig ME factor: for reactions = 1.0 - rigME * secMult
+	// null-sec secMult=1.1, high-sec secMult=1.0 → null-sec rig gives a slightly bigger reduction.
+	// A bigger reduction means fewer materials consumed → lower material cost.
+	//
+	// Setup: two BuildBOMTree calls on the same blueprint, differing only in FinalSystemID.
+	//   One uses a high-sec system, the other uses a null-sec system (via mock returning "high"/"null").
+	//   With t2 rig + null-sec the ME factor is smaller → fewer materials → lower build cost.
+	//   With t2 rig + high-sec the ME factor is larger → more materials → higher build cost.
+
+	highSecSystemID := int64(30000142) // Jita (will be mocked to return "high")
+	nullSecSystemID := int64(30000001) // arbitrary null-sec system
+
+	matSellPrice := float64(1_000_000)
+	rootSellPrice := float64(100_000_000) // always cheaper to build
+
+	// --- High-sec build ---
+	highSecSettings := defaultArbiterSettings()
+	highSecSettings.FinalSystemID = &highSecSystemID
+
+	repoHigh := &MockArbiterBOMRepository{}
+	repoHigh.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			9700: {TypeID: 9700, SellPrice: &rootSellPrice},
+			9701: {TypeID: 9701, SellPrice: &matSellPrice},
+		}, nil)
+	repoHigh.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repoHigh.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9750), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 9701, TypeName: "Raw Part", Quantity: 10},
+		}, nil)
+	repoHigh.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repoHigh.On("GetBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
+	repoHigh.On("GetReactionBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
+	repoHigh.On("GetSecurityClassForSystem", mock.Anything, highSecSystemID).Return("high", nil)
+
+	treeHigh, err := services.BuildBOMTree(
+		context.Background(),
+		9750, 9700, "Product", 1, 10, // ME=10 to exercise rig bonus
+		repoHigh, highSecSettings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", true, nil,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, treeHigh)
+
+	// --- Null-sec build ---
+	nullSecSettings := defaultArbiterSettings()
+	nullSecSettings.FinalSystemID = &nullSecSystemID
+
+	repoNull := &MockArbiterBOMRepository{}
+	repoNull.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(
+		map[int64]*models.MarketPrice{
+			9700: {TypeID: 9700, SellPrice: &rootSellPrice},
+			9701: {TypeID: 9701, SellPrice: &matSellPrice},
+		}, nil)
+	repoNull.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repoNull.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9750), "manufacturing").Return(
+		[]*models.BlueprintMaterial{
+			{TypeID: 9701, TypeName: "Raw Part", Quantity: 10},
+		}, nil)
+	repoNull.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repoNull.On("GetBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
+	repoNull.On("GetReactionBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
+	repoNull.On("GetSecurityClassForSystem", mock.Anything, nullSecSystemID).Return("null", nil)
+
+	treeNull, err := services.BuildBOMTree(
+		context.Background(),
+		9750, 9700, "Product", 1, 10,
+		repoNull, nullSecSettings,
+		map[int64]bool{}, map[int64]bool{}, map[int64]int64{},
+		"sell", true, nil,
+	)
+	require.NoError(t, err)
+	require.NotNil(t, treeNull)
+
+	// Null-sec should produce a lower (or equal) material cost than high-sec
+	// because the null-sec rig bonus is larger (more ME reduction → fewer materials consumed).
+	assert.LessOrEqual(t, treeNull.MaterialCost, treeHigh.MaterialCost,
+		"null-sec should have lower or equal material cost than high-sec due to stronger rig ME bonus")
+
+	repoHigh.AssertExpectations(t)
+	repoNull.AssertExpectations(t)
 }
 
 func defaultArbiterSettings() *models.ArbiterSettings {

@@ -17,7 +17,7 @@ import (
 )
 
 func setupPurchasesTestDB(t *testing.T) *sql.DB {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	// Create base data

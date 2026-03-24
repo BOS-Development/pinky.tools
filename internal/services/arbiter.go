@@ -27,6 +27,7 @@ type ArbiterScanRepository interface {
 	GetBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 	GetReactionBlueprintForProduct(ctx context.Context, productTypeID int64) (int64, error)
 	GetMarketPricesLastUpdated(ctx context.Context) (*time.Time, error)
+	GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error)
 }
 
 // ArbiterBOMRepository is the interface needed for building a BOM tree.
@@ -39,6 +40,9 @@ type ArbiterBOMRepository interface {
 	GetAdjustedPricesForTypes(ctx context.Context, typeIDs []int64) (map[int64]float64, error)
 	GetBlueprintActivityTime(ctx context.Context, blueprintTypeID int64, activity string) (int64, error)
 	GetCostIndexForSystem(ctx context.Context, systemID int64, activity string) (float64, error)
+	// GetSecurityClassForSystem returns "high", "low", or "null" for a solar system.
+	// Returns "null" if the system is not found (safe default — never overstates rig bonuses).
+	GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error)
 }
 
 // arbiterContext holds all pre-loaded (and lazily cached) data for a single scan run.
@@ -520,6 +524,9 @@ func calculateDecryptorOption(
 ) (*models.DecryptorOption, *models.BOMNode, error) {
 	chanceMod := effectiveChance * decryptor.ProbabilityMultiplier
 	chanceMod = math.Round(chanceMod*100) / 100
+	if chanceMod > 1.0 {
+		chanceMod = 1.0
+	}
 
 	resultME := item.BaseResultME + decryptor.MEModifier
 	if resultME < 0 {
@@ -776,6 +783,9 @@ type bomTreeContext struct {
 	costIndexCache    map[string]float64                     // key: "systemID:activity"
 	bpForProductCache map[int64]int64                        // mat typeID → manufacturing blueprint typeID (0 if none)
 	rxForProductCache map[int64]int64                        // mat typeID → reaction blueprint typeID (0 if none)
+	finalSecurity     string                                 // "high", "low", or "null"
+	componentSecurity string
+	reactionSecurity  string
 }
 
 // getInputPrice returns the price to use for material cost based on inputPriceType.
@@ -934,6 +944,21 @@ func BuildBOMTree(
 		rxForProductCache = map[int64]int64{}
 	}
 
+	// Resolve security class for each depth's system.
+	// resolveSecurityClass looks up the security class for a system ID.
+	// Returns "null" when the system ID is nil or not found — this is the safe default
+	// because it never overstates rig bonuses versus the actual system security.
+	resolveSecurityClass := func(systemID *int64) string {
+		if systemID == nil {
+			return "null"
+		}
+		sec, err := repo.GetSecurityClassForSystem(ctx, *systemID)
+		if err != nil || sec == "" {
+			return "null"
+		}
+		return sec
+	}
+
 	btc := &bomTreeContext{
 		ctx:               ctx,
 		repo:              repo,
@@ -950,6 +975,9 @@ func BuildBOMTree(
 		costIndexCache:    costIndexCache,
 		bpForProductCache: bpForProductCache,
 		rxForProductCache: rxForProductCache,
+		finalSecurity:     resolveSecurityClass(settings.FinalSystemID),
+		componentSecurity: resolveSecurityClass(settings.ComponentSystemID),
+		reactionSecurity:  resolveSecurityClass(settings.ReactionSystemID),
 	}
 
 	return buildBOMNode(btc, blueprintTypeID, productTypeID, productName, qty, me, 0)
@@ -1020,25 +1048,28 @@ func buildBOMNode(
 		}
 	}
 
-	// Use depth-appropriate structure/rig for ME factor
-	var structure, rig string
+	// Use depth-appropriate structure/rig/security for ME factor
+	var structure, rig, security string
 	switch {
 	case depth == 0:
 		structure = btc.settings.FinalStructure
 		rig = btc.settings.FinalRig
+		security = btc.finalSecurity
 	case depth == 1:
 		structure = btc.settings.ComponentStructure
 		rig = btc.settings.ComponentRig
+		security = btc.componentSecurity
 	default:
 		structure = btc.settings.ReactionStructure
 		rig = btc.settings.ReactionRig
+		security = btc.reactionSecurity
 	}
 
 	var meFactor float64
 	if activity == "manufacturing" {
-		meFactor = calculator.ComputeManufacturingME(me, structure, rig, "null")
+		meFactor = calculator.ComputeManufacturingME(me, structure, rig, security)
 	} else {
-		meFactor = calculator.ComputeMEFactor(rig, "null")
+		meFactor = calculator.ComputeMEFactor(rig, security)
 	}
 
 	productQtyPerRun := int64(1)

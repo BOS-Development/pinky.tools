@@ -137,6 +137,11 @@ func (m *MockArbiterScanRepository) GetMarketPricesLastUpdated(ctx context.Conte
 	return args.Get(0).(*time.Time), args.Error(1)
 }
 
+func (m *MockArbiterScanRepository) GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error) {
+	args := m.Called(ctx, systemID)
+	return args.Get(0).(string), args.Error(1)
+}
+
 // Ensure MockArbiterScanRepository satisfies services.ArbiterScanRepository
 var _ services.ArbiterScanRepository = &MockArbiterScanRepository{}
 
@@ -312,6 +317,11 @@ func (m *MockArbiterBOMRepository) GetBlueprintActivityTime(ctx context.Context,
 func (m *MockArbiterBOMRepository) GetCostIndexForSystem(ctx context.Context, systemID int64, activity string) (float64, error) {
 	args := m.Called(ctx, systemID, activity)
 	return args.Get(0).(float64), args.Error(1)
+}
+
+func (m *MockArbiterBOMRepository) GetSecurityClassForSystem(ctx context.Context, systemID int64) (string, error) {
+	args := m.Called(ctx, systemID)
+	return args.Get(0).(string), args.Error(1)
 }
 
 func (m *MockArbiterBOMRepository) GetScopeAssets(ctx context.Context, scopeID, userID int64) (map[int64]int64, error) {
