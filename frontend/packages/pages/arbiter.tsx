@@ -38,6 +38,13 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   Loader2,
   ChevronDown,
   ChevronUp,
@@ -51,6 +58,8 @@ import {
   Check,
   ExternalLink,
   RefreshCw,
+  Save,
+  BookMarked,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -92,6 +101,27 @@ export interface TaxProfile {
 export interface ArbiterScope {
   id: number;
   name: string;
+}
+
+export interface ManufacturingProfile {
+  id: number;
+  name: string;
+  reaction_structure: string;
+  reaction_rig: string;
+  reaction_system_id: number;
+  reaction_facility_tax: number;
+  invention_structure: string;
+  invention_rig: string;
+  invention_system_id: number;
+  invention_facility_tax: number;
+  component_structure: string;
+  component_rig: string;
+  component_system_id: number;
+  component_facility_tax: number;
+  final_structure: string;
+  final_rig: string;
+  final_system_id: number;
+  final_facility_tax: number;
 }
 
 export interface ListItem {
@@ -1400,6 +1430,14 @@ export default function ArbiterPage() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  // Manufacturing profiles state
+  const [profiles, setProfiles] = useState<ManufacturingProfile[]>([]);
+  const [selectedProfileId, setSelectedProfileId] = useState<number | null>(null);
+  const [saveProfileDialogOpen, setSaveProfileDialogOpen] = useState(false);
+  const [saveProfileName, setSaveProfileName] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [deletingProfile, setDeletingProfile] = useState(false);
+
   // Lists state
   const [blacklist, setBlacklist] = useState<ListItem[]>([]);
   const [whitelist, setWhitelist] = useState<ListItem[]>([]);
@@ -1496,6 +1534,14 @@ export default function ArbiterPage() {
       })
       .catch(() => {});
 
+    // Load manufacturing profiles
+    fetch("/api/arbiter/manufacturing-profiles")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data && Array.isArray(data)) setProfiles(data);
+      })
+      .catch(() => {});
+
     // Load lists
     fetch("/api/arbiter/blacklist")
       .then((r) => r.ok ? r.json() : null)
@@ -1518,6 +1564,118 @@ export default function ArbiterPage() {
     },
     [],
   );
+
+  const handleApplyProfile = useCallback(
+    (profile: ManufacturingProfile) => {
+      setSettings((prev) => ({
+        ...prev,
+        reaction_structure: profile.reaction_structure,
+        reaction_rig: profile.reaction_rig,
+        reaction_system_id: profile.reaction_system_id,
+        reaction_facility_tax: profile.reaction_facility_tax,
+        invention_structure: profile.invention_structure,
+        invention_rig: profile.invention_rig,
+        invention_system_id: profile.invention_system_id,
+        invention_facility_tax: profile.invention_facility_tax,
+        component_structure: profile.component_structure,
+        component_rig: profile.component_rig,
+        component_system_id: profile.component_system_id,
+        component_facility_tax: profile.component_facility_tax,
+        final_structure: profile.final_structure,
+        final_rig: profile.final_rig,
+        final_system_id: profile.final_system_id,
+        final_facility_tax: profile.final_facility_tax,
+      }));
+    },
+    [],
+  );
+
+  const handleSaveProfile = async () => {
+    const name = saveProfileName.trim();
+    if (!name) return;
+    setSavingProfile(true);
+    try {
+      const body = {
+        name,
+        reaction_structure: settings.reaction_structure,
+        reaction_rig: settings.reaction_rig,
+        reaction_system_id: settings.reaction_system_id,
+        reaction_facility_tax: settings.reaction_facility_tax,
+        invention_structure: settings.invention_structure,
+        invention_rig: settings.invention_rig,
+        invention_system_id: settings.invention_system_id,
+        invention_facility_tax: settings.invention_facility_tax,
+        component_structure: settings.component_structure,
+        component_rig: settings.component_rig,
+        component_system_id: settings.component_system_id,
+        component_facility_tax: settings.component_facility_tax,
+        final_structure: settings.final_structure,
+        final_rig: settings.final_rig,
+        final_system_id: settings.final_system_id,
+        final_facility_tax: settings.final_facility_tax,
+      };
+
+      // Check if a profile with this name already exists
+      const existing = profiles.find((p) => p.name === name);
+      let saved: ManufacturingProfile | null = null;
+
+      if (existing) {
+        // Update existing
+        const res = await fetch(`/api/arbiter/manufacturing-profiles/${existing.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          saved = await res.json();
+          setProfiles((prev) =>
+            prev.map((p) => (p.id === existing.id ? saved! : p)),
+          );
+          setSelectedProfileId(existing.id);
+        }
+      } else {
+        // Create new
+        const res = await fetch("/api/arbiter/manufacturing-profiles", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (res.ok) {
+          saved = await res.json();
+          setProfiles((prev) => [...prev, saved!]);
+          setSelectedProfileId(saved!.id);
+        }
+      }
+
+      if (saved) {
+        setSaveProfileDialogOpen(false);
+        setSaveProfileName("");
+      }
+    } catch {
+      // ignore
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!selectedProfileId) return;
+    setDeletingProfile(true);
+    try {
+      const res = await fetch(
+        `/api/arbiter/manufacturing-profiles/${selectedProfileId}`,
+        { method: "DELETE" },
+      );
+      if (res.ok || res.status === 204) {
+        setProfiles((prev) => prev.filter((p) => p.id !== selectedProfileId));
+        setSelectedProfileId(null);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setDeletingProfile(false);
+    }
+  };
 
   const handleSaveSettings = async () => {
     setSavingSettings(true);
@@ -1888,6 +2046,97 @@ export default function ArbiterPage() {
 
                   {/* Structures tab */}
                   <TabsContent value="structures" className="p-4 m-0">
+                    {/* Manufacturing Profiles */}
+                    <div className="mb-5 pb-5 border-b border-overlay-subtle">
+                      <div className="flex items-center gap-2 mb-2">
+                        <BookMarked className="h-4 w-4 text-text-muted" />
+                        <span className="text-sm font-medium text-text-heading">
+                          Manufacturing Profiles
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Select
+                          value={selectedProfileId ? String(selectedProfileId) : ""}
+                          onValueChange={(v) => setSelectedProfileId(parseInt(v))}
+                        >
+                          <SelectTrigger className="h-8 text-sm w-52">
+                            <SelectValue placeholder="Select a profile…" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {profiles.map((p) => (
+                              <SelectItem key={p.id} value={String(p.id)}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8"
+                                disabled={!selectedProfileId}
+                                onClick={() => {
+                                  const profile = profiles.find(
+                                    (p) => p.id === selectedProfileId,
+                                  );
+                                  if (profile) handleApplyProfile(profile);
+                                }}
+                              >
+                                Apply
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Load this profile into the settings fields below
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1.5"
+                          onClick={() => {
+                            setSaveProfileName(
+                              selectedProfileId
+                                ? (profiles.find((p) => p.id === selectedProfileId)?.name ?? "")
+                                : "",
+                            );
+                            setSaveProfileDialogOpen(true);
+                          }}
+                        >
+                          <Save className="h-3.5 w-3.5" />
+                          Save as Profile
+                        </Button>
+
+                        {selectedProfileId && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0 text-text-muted hover:text-rose-danger"
+                                  disabled={deletingProfile}
+                                  onClick={handleDeleteProfile}
+                                >
+                                  {deletingProfile ? (
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Delete selected profile</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </div>
+                    </div>
+
                     <div className="flex flex-wrap gap-6">
                       <StructureSection
                         title="Reaction"
@@ -2521,6 +2770,59 @@ export default function ArbiterPage() {
           onRemoveWhitelist={(id) => handleRemoveFromList("whitelist", id)}
         />
       )}
+
+      {/* Save as Profile dialog */}
+      <Dialog open={saveProfileDialogOpen} onOpenChange={setSaveProfileDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Save as Profile</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <div className="space-y-1">
+              <Label htmlFor="profile-name" className="text-sm text-text-secondary">
+                Profile Name
+              </Label>
+              <Input
+                id="profile-name"
+                value={saveProfileName}
+                onChange={(e) => setSaveProfileName(e.target.value)}
+                placeholder="e.g. Jita Null Sec Build"
+                className="h-9"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && saveProfileName.trim()) {
+                    handleSaveProfile();
+                  }
+                }}
+                autoFocus
+              />
+              {profiles.find((p) => p.name === saveProfileName.trim()) && (
+                <p className="text-xs text-amber-manufacturing">
+                  A profile with this name already exists — saving will overwrite it.
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSaveProfileDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={!saveProfileName.trim() || savingProfile}
+              onClick={handleSaveProfile}
+            >
+              {savingProfile ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : null}
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

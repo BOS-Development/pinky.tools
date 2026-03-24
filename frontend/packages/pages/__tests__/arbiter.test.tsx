@@ -111,6 +111,16 @@ jest.mock('@/components/ui/tooltip', () => ({
   TooltipContent: ({ children }: any) => <div>{children}</div>,
 }));
 
+// Mock Dialog (Radix)
+jest.mock('@/components/ui/dialog', () => ({
+  Dialog: ({ children, open }: any) =>
+    open ? <div data-testid="dialog">{children}</div> : null,
+  DialogContent: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
+  DialogHeader: ({ children }: any) => <div>{children}</div>,
+  DialogTitle: ({ children }: any) => <h2>{children}</h2>,
+  DialogFooter: ({ children }: any) => <div>{children}</div>,
+}));
+
 const mockFetch = jest.fn();
 global.fetch = mockFetch;
 
@@ -204,7 +214,8 @@ function mockDefaultFetches() {
       url.includes('/api/arbiter/scopes') ||
       url.includes('/api/arbiter/decryptors') ||
       url.includes('/api/arbiter/blacklist') ||
-      url.includes('/api/arbiter/whitelist')
+      url.includes('/api/arbiter/whitelist') ||
+      url.includes('/api/arbiter/manufacturing-profiles')
     ) {
       return Promise.resolve({ ok: false, json: async () => null } as Response);
     }

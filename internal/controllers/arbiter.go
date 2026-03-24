@@ -64,15 +64,25 @@ type ArbiterSolarSystemRepository interface {
 	SearchSolarSystems(ctx context.Context, query string, limit int) ([]*models.SolarSystemSearchResult, error)
 }
 
+// ArbiterManufacturingProfileRepository handles manufacturing profile CRUD.
+type ArbiterManufacturingProfileRepository interface {
+	ListManufacturingProfiles(ctx context.Context, userID int64) ([]*models.ArbiterManufacturingProfile, error)
+	GetManufacturingProfile(ctx context.Context, id, userID int64) (*models.ArbiterManufacturingProfile, error)
+	CreateManufacturingProfile(ctx context.Context, p *models.ArbiterManufacturingProfile) (*models.ArbiterManufacturingProfile, error)
+	UpdateManufacturingProfile(ctx context.Context, p *models.ArbiterManufacturingProfile) (*models.ArbiterManufacturingProfile, error)
+	DeleteManufacturingProfile(ctx context.Context, id, userID int64) error
+}
+
 // Arbiter is the HTTP controller for the Arbiter feature.
 type Arbiter struct {
-	settingsRepo  ArbiterSettingsRepository
-	scanRepo      ArbiterScannerRepository
-	scopesRepo    ArbiterScopesRepository
-	taxRepo       ArbiterTaxProfileRepository
-	listsRepo     ArbiterListsRepository
-	bomRepo       ArbiterBOMRepositoryInterface
-	solarSysRepo  ArbiterSolarSystemRepository
+	settingsRepo     ArbiterSettingsRepository
+	scanRepo         ArbiterScannerRepository
+	scopesRepo       ArbiterScopesRepository
+	taxRepo          ArbiterTaxProfileRepository
+	listsRepo        ArbiterListsRepository
+	bomRepo          ArbiterBOMRepositoryInterface
+	solarSysRepo     ArbiterSolarSystemRepository
+	mfgProfileRepo   ArbiterManufacturingProfileRepository
 }
 
 // NewArbiter creates and registers the Arbiter controller routes.
@@ -101,15 +111,17 @@ func NewArbiterFull(
 	listsRepo ArbiterListsRepository,
 	bomRepo ArbiterBOMRepositoryInterface,
 	solarSysRepo ArbiterSolarSystemRepository,
+	mfgProfileRepo ArbiterManufacturingProfileRepository,
 ) *Arbiter {
 	c := &Arbiter{
-		settingsRepo: settingsRepo,
-		scanRepo:     scanRepo,
-		scopesRepo:   scopesRepo,
-		taxRepo:      taxRepo,
-		listsRepo:    listsRepo,
-		bomRepo:      bomRepo,
-		solarSysRepo: solarSysRepo,
+		settingsRepo:   settingsRepo,
+		scanRepo:       scanRepo,
+		scopesRepo:     scopesRepo,
+		taxRepo:        taxRepo,
+		listsRepo:      listsRepo,
+		bomRepo:        bomRepo,
+		solarSysRepo:   solarSysRepo,
+		mfgProfileRepo: mfgProfileRepo,
 	}
 	router.RegisterRestAPIRoute("/v1/arbiter/settings", web.AuthAccessUser, c.GetArbiterSettings, "GET")
 	router.RegisterRestAPIRoute("/v1/arbiter/settings", web.AuthAccessUser, c.UpdateArbiterSettings, "PUT")
@@ -143,6 +155,13 @@ func NewArbiterFull(
 
 	// Solar systems search (shared route)
 	router.RegisterRestAPIRoute("/v1/solar-systems/search", web.AuthAccessUser, c.SearchSolarSystems, "GET")
+
+	// Manufacturing profiles
+	router.RegisterRestAPIRoute("/v1/arbiter/manufacturing-profiles", web.AuthAccessUser, c.ListManufacturingProfiles, "GET")
+	router.RegisterRestAPIRoute("/v1/arbiter/manufacturing-profiles", web.AuthAccessUser, c.CreateManufacturingProfile, "POST")
+	router.RegisterRestAPIRoute("/v1/arbiter/manufacturing-profiles/{id}", web.AuthAccessUser, c.UpdateManufacturingProfile, "PUT")
+	router.RegisterRestAPIRoute("/v1/arbiter/manufacturing-profiles/{id}", web.AuthAccessUser, c.DeleteManufacturingProfile, "DELETE")
+	router.RegisterRestAPIRoute("/v1/arbiter/manufacturing-profiles/{id}/apply", web.AuthAccessUser, c.ApplyManufacturingProfile, "POST")
 
 	return c
 }
@@ -898,4 +917,217 @@ func (c *Arbiter) SearchSolarSystems(args *web.HandlerArgs) (any, *web.HttpError
 		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to search solar systems")}
 	}
 	return results, nil
+}
+
+// ListManufacturingProfiles returns all manufacturing profiles for the user.
+func (c *Arbiter) ListManufacturingProfiles(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+	userID := *args.User
+
+	if httpErr := c.checkFeatureGate(ctx, userID); httpErr != nil {
+		return nil, httpErr
+	}
+
+	profiles, err := c.mfgProfileRepo.ListManufacturingProfiles(ctx, userID)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to list manufacturing profiles")}
+	}
+	return profiles, nil
+}
+
+type manufacturingProfileRequest struct {
+	Name string `json:"name"`
+
+	ReactionStructure   string  `json:"reaction_structure"`
+	ReactionRig         string  `json:"reaction_rig"`
+	ReactionSystemID    *int64  `json:"reaction_system_id"`
+	ReactionFacilityTax float64 `json:"reaction_facility_tax"`
+
+	InventionStructure   string  `json:"invention_structure"`
+	InventionRig         string  `json:"invention_rig"`
+	InventionSystemID    *int64  `json:"invention_system_id"`
+	InventionFacilityTax float64 `json:"invention_facility_tax"`
+
+	ComponentStructure   string  `json:"component_structure"`
+	ComponentRig         string  `json:"component_rig"`
+	ComponentSystemID    *int64  `json:"component_system_id"`
+	ComponentFacilityTax float64 `json:"component_facility_tax"`
+
+	FinalStructure   string  `json:"final_structure"`
+	FinalRig         string  `json:"final_rig"`
+	FinalSystemID    *int64  `json:"final_system_id"`
+	FinalFacilityTax float64 `json:"final_facility_tax"`
+}
+
+// CreateManufacturingProfile creates a new manufacturing profile for the user.
+func (c *Arbiter) CreateManufacturingProfile(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+	userID := *args.User
+
+	if httpErr := c.checkFeatureGate(ctx, userID); httpErr != nil {
+		return nil, httpErr
+	}
+
+	var req manufacturingProfileRequest
+	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
+	}
+
+	if req.Name == "" {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("name is required")}
+	}
+
+	p := &models.ArbiterManufacturingProfile{
+		UserID:               userID,
+		Name:                 req.Name,
+		ReactionStructure:    req.ReactionStructure,
+		ReactionRig:          req.ReactionRig,
+		ReactionSystemID:     req.ReactionSystemID,
+		ReactionFacilityTax:  req.ReactionFacilityTax,
+		InventionStructure:   req.InventionStructure,
+		InventionRig:         req.InventionRig,
+		InventionSystemID:    req.InventionSystemID,
+		InventionFacilityTax: req.InventionFacilityTax,
+		ComponentStructure:   req.ComponentStructure,
+		ComponentRig:         req.ComponentRig,
+		ComponentSystemID:    req.ComponentSystemID,
+		ComponentFacilityTax: req.ComponentFacilityTax,
+		FinalStructure:       req.FinalStructure,
+		FinalRig:             req.FinalRig,
+		FinalSystemID:        req.FinalSystemID,
+		FinalFacilityTax:     req.FinalFacilityTax,
+	}
+
+	created, err := c.mfgProfileRepo.CreateManufacturingProfile(ctx, p)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to create manufacturing profile")}
+	}
+	return created, nil
+}
+
+// UpdateManufacturingProfile updates an existing manufacturing profile.
+func (c *Arbiter) UpdateManufacturingProfile(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+	userID := *args.User
+
+	if httpErr := c.checkFeatureGate(ctx, userID); httpErr != nil {
+		return nil, httpErr
+	}
+
+	profileID, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("invalid profile id")}
+	}
+
+	var req manufacturingProfileRequest
+	if err := json.NewDecoder(args.Request.Body).Decode(&req); err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.Wrap(err, "invalid request body")}
+	}
+
+	if req.Name == "" {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("name is required")}
+	}
+
+	p := &models.ArbiterManufacturingProfile{
+		ID:                   profileID,
+		UserID:               userID,
+		Name:                 req.Name,
+		ReactionStructure:    req.ReactionStructure,
+		ReactionRig:          req.ReactionRig,
+		ReactionSystemID:     req.ReactionSystemID,
+		ReactionFacilityTax:  req.ReactionFacilityTax,
+		InventionStructure:   req.InventionStructure,
+		InventionRig:         req.InventionRig,
+		InventionSystemID:    req.InventionSystemID,
+		InventionFacilityTax: req.InventionFacilityTax,
+		ComponentStructure:   req.ComponentStructure,
+		ComponentRig:         req.ComponentRig,
+		ComponentSystemID:    req.ComponentSystemID,
+		ComponentFacilityTax: req.ComponentFacilityTax,
+		FinalStructure:       req.FinalStructure,
+		FinalRig:             req.FinalRig,
+		FinalSystemID:        req.FinalSystemID,
+		FinalFacilityTax:     req.FinalFacilityTax,
+	}
+
+	updated, err := c.mfgProfileRepo.UpdateManufacturingProfile(ctx, p)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to update manufacturing profile")}
+	}
+	if updated == nil {
+		return nil, &web.HttpError{StatusCode: 404, Error: errors.New("manufacturing profile not found")}
+	}
+	return updated, nil
+}
+
+// DeleteManufacturingProfile deletes a manufacturing profile by ID.
+func (c *Arbiter) DeleteManufacturingProfile(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+	userID := *args.User
+
+	if httpErr := c.checkFeatureGate(ctx, userID); httpErr != nil {
+		return nil, httpErr
+	}
+
+	profileID, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("invalid profile id")}
+	}
+
+	if err := c.mfgProfileRepo.DeleteManufacturingProfile(ctx, profileID, userID); err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to delete manufacturing profile")}
+	}
+	return nil, nil
+}
+
+// ApplyManufacturingProfile copies a profile's 16 structure/rig/system/tax fields into the user's arbiter_settings.
+func (c *Arbiter) ApplyManufacturingProfile(args *web.HandlerArgs) (any, *web.HttpError) {
+	ctx := args.Request.Context()
+	userID := *args.User
+
+	if httpErr := c.checkFeatureGate(ctx, userID); httpErr != nil {
+		return nil, httpErr
+	}
+
+	profileID, err := strconv.ParseInt(args.Params["id"], 10, 64)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 400, Error: errors.New("invalid profile id")}
+	}
+
+	profile, err := c.mfgProfileRepo.GetManufacturingProfile(ctx, profileID, userID)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get manufacturing profile")}
+	}
+	if profile == nil {
+		return nil, &web.HttpError{StatusCode: 404, Error: errors.New("manufacturing profile not found")}
+	}
+
+	// Load existing settings so we preserve non-structure fields (use_whitelist, decryptor_type_id, etc.)
+	settings, err := c.settingsRepo.GetArbiterSettings(ctx, userID)
+	if err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to get arbiter settings")}
+	}
+
+	// Overwrite only the 16 structure/rig/system/tax fields from the profile
+	settings.ReactionStructure = profile.ReactionStructure
+	settings.ReactionRig = profile.ReactionRig
+	settings.ReactionSystemID = profile.ReactionSystemID
+	settings.ReactionFacilityTax = profile.ReactionFacilityTax
+	settings.InventionStructure = profile.InventionStructure
+	settings.InventionRig = profile.InventionRig
+	settings.InventionSystemID = profile.InventionSystemID
+	settings.InventionFacilityTax = profile.InventionFacilityTax
+	settings.ComponentStructure = profile.ComponentStructure
+	settings.ComponentRig = profile.ComponentRig
+	settings.ComponentSystemID = profile.ComponentSystemID
+	settings.ComponentFacilityTax = profile.ComponentFacilityTax
+	settings.FinalStructure = profile.FinalStructure
+	settings.FinalRig = profile.FinalRig
+	settings.FinalSystemID = profile.FinalSystemID
+	settings.FinalFacilityTax = profile.FinalFacilityTax
+
+	if err := c.settingsRepo.UpsertArbiterSettings(ctx, settings); err != nil {
+		return nil, &web.HttpError{StatusCode: 500, Error: errors.Wrap(err, "failed to apply manufacturing profile to settings")}
+	}
+	return settings, nil
 }

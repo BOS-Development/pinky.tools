@@ -245,3 +245,30 @@ type ArbiterScanResult struct {
 	BestCharacterName string                `json:"best_character_name"`
 	PricesUpdatedAt   *time.Time            `json:"prices_updated_at"`
 }
+
+// ArbiterManufacturingProfile is a named preset for the industry chain structure/rig/system/tax configuration.
+type ArbiterManufacturingProfile struct {
+	ID     int64  `json:"id"`
+	UserID int64  `json:"user_id"`
+	Name   string `json:"name"`
+
+	ReactionStructure   string  `json:"reaction_structure"`
+	ReactionRig         string  `json:"reaction_rig"`
+	ReactionSystemID    *int64  `json:"reaction_system_id"`
+	ReactionFacilityTax float64 `json:"reaction_facility_tax"`
+
+	InventionStructure   string  `json:"invention_structure"`
+	InventionRig         string  `json:"invention_rig"`
+	InventionSystemID    *int64  `json:"invention_system_id"`
+	InventionFacilityTax float64 `json:"invention_facility_tax"`
+
+	ComponentStructure   string  `json:"component_structure"`
+	ComponentRig         string  `json:"component_rig"`
+	ComponentSystemID    *int64  `json:"component_system_id"`
+	ComponentFacilityTax float64 `json:"component_facility_tax"`
+
+	FinalStructure   string  `json:"final_structure"`
+	FinalRig         string  `json:"final_rig"`
+	FinalSystemID    *int64  `json:"final_system_id"`
+	FinalFacilityTax float64 `json:"final_facility_tax"`
+}

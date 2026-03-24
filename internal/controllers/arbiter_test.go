@@ -346,16 +346,63 @@ func (m *MockArbiterSolarSystemRepository) SearchSolarSystems(ctx context.Contex
 	return args.Get(0).([]*models.SolarSystemSearchResult), args.Error(1)
 }
 
+// --- Mock for manufacturing profiles ---
+
+type MockArbiterManufacturingProfileRepository struct {
+	mock.Mock
+}
+
+func (m *MockArbiterManufacturingProfileRepository) ListManufacturingProfiles(ctx context.Context, userID int64) ([]*models.ArbiterManufacturingProfile, error) {
+	args := m.Called(ctx, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.ArbiterManufacturingProfile), args.Error(1)
+}
+
+func (m *MockArbiterManufacturingProfileRepository) GetManufacturingProfile(ctx context.Context, id, userID int64) (*models.ArbiterManufacturingProfile, error) {
+	args := m.Called(ctx, id, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.ArbiterManufacturingProfile), args.Error(1)
+}
+
+func (m *MockArbiterManufacturingProfileRepository) CreateManufacturingProfile(ctx context.Context, p *models.ArbiterManufacturingProfile) (*models.ArbiterManufacturingProfile, error) {
+	args := m.Called(ctx, p)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.ArbiterManufacturingProfile), args.Error(1)
+}
+
+func (m *MockArbiterManufacturingProfileRepository) UpdateManufacturingProfile(ctx context.Context, p *models.ArbiterManufacturingProfile) (*models.ArbiterManufacturingProfile, error) {
+	args := m.Called(ctx, p)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.ArbiterManufacturingProfile), args.Error(1)
+}
+
+func (m *MockArbiterManufacturingProfileRepository) DeleteManufacturingProfile(ctx context.Context, id, userID int64) error {
+	args := m.Called(ctx, id, userID)
+	return args.Error(0)
+}
+
+// Ensure mock satisfies the interface
+var _ controllers.ArbiterManufacturingProfileRepository = &MockArbiterManufacturingProfileRepository{}
+
 // --- Setup helpers ---
 
 type arbiterMocks struct {
-	settings  *MockArbiterSettingsRepository
-	scan      *MockArbiterScanRepository
-	scopes    *MockArbiterScopesRepository
-	tax       *MockArbiterTaxProfileRepository
-	lists     *MockArbiterListsRepository
-	bom       *MockArbiterBOMRepository
-	solarSys  *MockArbiterSolarSystemRepository
+	settings   *MockArbiterSettingsRepository
+	scan       *MockArbiterScanRepository
+	scopes     *MockArbiterScopesRepository
+	tax        *MockArbiterTaxProfileRepository
+	lists      *MockArbiterListsRepository
+	bom        *MockArbiterBOMRepository
+	solarSys   *MockArbiterSolarSystemRepository
+	mfgProfile *MockArbiterManufacturingProfileRepository
 }
 
 func setupArbiterController() (*controllers.Arbiter, *arbiterMocks) {
@@ -369,13 +416,14 @@ func setupArbiterController() (*controllers.Arbiter, *arbiterMocks) {
 
 func setupArbiterControllerFull() (*controllers.Arbiter, *arbiterMocks) {
 	mocks := &arbiterMocks{
-		settings: &MockArbiterSettingsRepository{},
-		scan:     &MockArbiterScanRepository{},
-		scopes:   &MockArbiterScopesRepository{},
-		tax:      &MockArbiterTaxProfileRepository{},
-		lists:    &MockArbiterListsRepository{},
-		bom:      &MockArbiterBOMRepository{},
-		solarSys: &MockArbiterSolarSystemRepository{},
+		settings:   &MockArbiterSettingsRepository{},
+		scan:       &MockArbiterScanRepository{},
+		scopes:     &MockArbiterScopesRepository{},
+		tax:        &MockArbiterTaxProfileRepository{},
+		lists:      &MockArbiterListsRepository{},
+		bom:        &MockArbiterBOMRepository{},
+		solarSys:   &MockArbiterSolarSystemRepository{},
+		mfgProfile: &MockArbiterManufacturingProfileRepository{},
 	}
 	c := controllers.NewArbiterFull(
 		&MockRouter{},
@@ -386,6 +434,7 @@ func setupArbiterControllerFull() (*controllers.Arbiter, *arbiterMocks) {
 		mocks.lists,
 		mocks.bom,
 		mocks.solarSys,
+		mocks.mfgProfile,
 	)
 	return c, mocks
 }

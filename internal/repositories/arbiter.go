@@ -1199,3 +1199,199 @@ WHERE solar_system_id = $1
 	}
 	return secClass, nil
 }
+
+// scanManufacturingProfile scans a single row into an ArbiterManufacturingProfile using nullable SQL types.
+func scanManufacturingProfile(row interface {
+	Scan(...interface{}) error
+}) (*models.ArbiterManufacturingProfile, error) {
+	var p models.ArbiterManufacturingProfile
+	var reactionStructure, reactionRig sql.NullString
+	var reactionSystemID sql.NullInt64
+	var reactionFacilityTax sql.NullFloat64
+	var inventionStructure, inventionRig sql.NullString
+	var inventionSystemID sql.NullInt64
+	var inventionFacilityTax sql.NullFloat64
+	var componentStructure, componentRig sql.NullString
+	var componentSystemID sql.NullInt64
+	var componentFacilityTax sql.NullFloat64
+	var finalStructure, finalRig sql.NullString
+	var finalSystemID sql.NullInt64
+	var finalFacilityTax sql.NullFloat64
+
+	err := row.Scan(
+		&p.ID, &p.UserID, &p.Name,
+		&reactionStructure, &reactionRig, &reactionSystemID, &reactionFacilityTax,
+		&inventionStructure, &inventionRig, &inventionSystemID, &inventionFacilityTax,
+		&componentStructure, &componentRig, &componentSystemID, &componentFacilityTax,
+		&finalStructure, &finalRig, &finalSystemID, &finalFacilityTax,
+	)
+	if err != nil {
+		return nil, err
+	}
+	p.ReactionStructure = reactionStructure.String
+	p.ReactionRig = reactionRig.String
+	if reactionSystemID.Valid {
+		v := reactionSystemID.Int64
+		p.ReactionSystemID = &v
+	}
+	p.ReactionFacilityTax = reactionFacilityTax.Float64
+	p.InventionStructure = inventionStructure.String
+	p.InventionRig = inventionRig.String
+	if inventionSystemID.Valid {
+		v := inventionSystemID.Int64
+		p.InventionSystemID = &v
+	}
+	p.InventionFacilityTax = inventionFacilityTax.Float64
+	p.ComponentStructure = componentStructure.String
+	p.ComponentRig = componentRig.String
+	if componentSystemID.Valid {
+		v := componentSystemID.Int64
+		p.ComponentSystemID = &v
+	}
+	p.ComponentFacilityTax = componentFacilityTax.Float64
+	p.FinalStructure = finalStructure.String
+	p.FinalRig = finalRig.String
+	if finalSystemID.Valid {
+		v := finalSystemID.Int64
+		p.FinalSystemID = &v
+	}
+	p.FinalFacilityTax = finalFacilityTax.Float64
+	return &p, nil
+}
+
+const manufacturingProfileSelectCols = `
+	id, user_id, name,
+	reaction_structure, reaction_rig, reaction_system_id, reaction_facility_tax,
+	invention_structure, invention_rig, invention_system_id, invention_facility_tax,
+	component_structure, component_rig, component_system_id, component_facility_tax,
+	final_structure, final_rig, final_system_id, final_facility_tax
+`
+
+// ListManufacturingProfiles returns all manufacturing profiles for a user ordered by name.
+func (r *ArbiterRepository) ListManufacturingProfiles(ctx context.Context, userID int64) ([]*models.ArbiterManufacturingProfile, error) {
+	query := `SELECT` + manufacturingProfileSelectCols + `FROM arbiter_manufacturing_profiles WHERE user_id = $1 ORDER BY name`
+	rows, err := r.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to list manufacturing profiles")
+	}
+	defer rows.Close()
+
+	profiles := []*models.ArbiterManufacturingProfile{}
+	for rows.Next() {
+		p, err := scanManufacturingProfile(rows)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to scan manufacturing profile")
+		}
+		profiles = append(profiles, p)
+	}
+	return profiles, nil
+}
+
+// GetManufacturingProfile returns a single manufacturing profile by ID and userID.
+func (r *ArbiterRepository) GetManufacturingProfile(ctx context.Context, id, userID int64) (*models.ArbiterManufacturingProfile, error) {
+	query := `SELECT` + manufacturingProfileSelectCols + `FROM arbiter_manufacturing_profiles WHERE id = $1 AND user_id = $2`
+	row := r.db.QueryRowContext(ctx, query, id, userID)
+	p, err := scanManufacturingProfile(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get manufacturing profile")
+	}
+	return p, nil
+}
+
+// CreateManufacturingProfile inserts a new manufacturing profile and returns the created row.
+func (r *ArbiterRepository) CreateManufacturingProfile(ctx context.Context, p *models.ArbiterManufacturingProfile) (*models.ArbiterManufacturingProfile, error) {
+	query := `
+INSERT INTO arbiter_manufacturing_profiles (
+	user_id, name,
+	reaction_structure, reaction_rig, reaction_system_id, reaction_facility_tax,
+	invention_structure, invention_rig, invention_system_id, invention_facility_tax,
+	component_structure, component_rig, component_system_id, component_facility_tax,
+	final_structure, final_rig, final_system_id, final_facility_tax
+) VALUES (
+	$1, $2,
+	$3, $4, $5, $6,
+	$7, $8, $9, $10,
+	$11, $12, $13, $14,
+	$15, $16, $17, $18
+)
+RETURNING` + manufacturingProfileSelectCols
+
+	row := r.db.QueryRowContext(ctx, query,
+		p.UserID, p.Name,
+		nullableString(p.ReactionStructure), nullableString(p.ReactionRig), p.ReactionSystemID, p.ReactionFacilityTax,
+		nullableString(p.InventionStructure), nullableString(p.InventionRig), p.InventionSystemID, p.InventionFacilityTax,
+		nullableString(p.ComponentStructure), nullableString(p.ComponentRig), p.ComponentSystemID, p.ComponentFacilityTax,
+		nullableString(p.FinalStructure), nullableString(p.FinalRig), p.FinalSystemID, p.FinalFacilityTax,
+	)
+	created, err := scanManufacturingProfile(row)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create manufacturing profile")
+	}
+	return created, nil
+}
+
+// UpdateManufacturingProfile updates name and all 16 structure/rig/system/tax fields, returns updated row.
+func (r *ArbiterRepository) UpdateManufacturingProfile(ctx context.Context, p *models.ArbiterManufacturingProfile) (*models.ArbiterManufacturingProfile, error) {
+	query := `
+UPDATE arbiter_manufacturing_profiles SET
+	name                   = $1,
+	reaction_structure     = $2,
+	reaction_rig           = $3,
+	reaction_system_id     = $4,
+	reaction_facility_tax  = $5,
+	invention_structure    = $6,
+	invention_rig          = $7,
+	invention_system_id    = $8,
+	invention_facility_tax = $9,
+	component_structure    = $10,
+	component_rig          = $11,
+	component_system_id    = $12,
+	component_facility_tax = $13,
+	final_structure        = $14,
+	final_rig              = $15,
+	final_system_id        = $16,
+	final_facility_tax     = $17,
+	updated_at             = now()
+WHERE id = $18 AND user_id = $19
+RETURNING` + manufacturingProfileSelectCols
+
+	row := r.db.QueryRowContext(ctx, query,
+		p.Name,
+		nullableString(p.ReactionStructure), nullableString(p.ReactionRig), p.ReactionSystemID, p.ReactionFacilityTax,
+		nullableString(p.InventionStructure), nullableString(p.InventionRig), p.InventionSystemID, p.InventionFacilityTax,
+		nullableString(p.ComponentStructure), nullableString(p.ComponentRig), p.ComponentSystemID, p.ComponentFacilityTax,
+		nullableString(p.FinalStructure), nullableString(p.FinalRig), p.FinalSystemID, p.FinalFacilityTax,
+		p.ID, p.UserID,
+	)
+	updated, err := scanManufacturingProfile(row)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update manufacturing profile")
+	}
+	return updated, nil
+}
+
+// DeleteManufacturingProfile removes a manufacturing profile by ID and userID.
+func (r *ArbiterRepository) DeleteManufacturingProfile(ctx context.Context, id, userID int64) error {
+	_, err := r.db.ExecContext(ctx,
+		`DELETE FROM arbiter_manufacturing_profiles WHERE id = $1 AND user_id = $2`,
+		id, userID,
+	)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete manufacturing profile")
+	}
+	return nil
+}
+
+// nullableString converts an empty string to a NULL sql.NullString.
+func nullableString(s string) sql.NullString {
+	if s == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: s, Valid: true}
+}

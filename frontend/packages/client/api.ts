@@ -1,5 +1,29 @@
 import { Character, Corporation, AssetsResponse, StockpileMarker, HaulingRun, HaulingRunItem, HaulingArbitrageRow } from "./data/models";
 
+export interface ManufacturingProfile {
+  id: number;
+  user_id: string;
+  name: string;
+  reaction_structure: string;
+  reaction_rig: string;
+  reaction_system_id: number;
+  reaction_facility_tax: number;
+  invention_structure: string;
+  invention_rig: string;
+  invention_system_id: number;
+  invention_facility_tax: number;
+  component_structure: string;
+  component_rig: string;
+  component_system_id: number;
+  component_facility_tax: number;
+  final_structure: string;
+  final_rig: string;
+  final_system_id: number;
+  final_facility_tax: number;
+}
+
+export type ManufacturingProfileBody = Omit<ManufacturingProfile, "id" | "user_id">;
+
 export type ApiError = {
   kind: "error";
   statusCode: number;
@@ -428,6 +452,82 @@ const Client = (baseUrl: string, id: string) => {
       }
 
       return { kind: "success", data: true };
+    },
+
+    async getManufacturingProfiles(): Promise<ApiResult<ManufacturingProfile[]> | ApiError> {
+      const path = baseUrl + "v1/arbiter/manufacturing-profiles";
+      const response = await fetch(path, {
+        method: "GET",
+        headers: getHeaders(id),
+      });
+
+      if (response.status !== 200) {
+        return { kind: "error", statusCode: response.status, error: "" };
+      }
+
+      const resp = await response.json();
+      return { kind: "success", data: resp };
+    },
+
+    async createManufacturingProfile(body: ManufacturingProfileBody): Promise<ApiResult<ManufacturingProfile> | ApiError> {
+      const path = baseUrl + "v1/arbiter/manufacturing-profiles";
+      const response = await fetch(path, {
+        method: "POST",
+        headers: getHeaders(id),
+        body: JSON.stringify(body),
+      });
+
+      if (response.status !== 200 && response.status !== 201) {
+        return { kind: "error", statusCode: response.status, error: "" };
+      }
+
+      const resp = await response.json();
+      return { kind: "success", data: resp };
+    },
+
+    async updateManufacturingProfile(profileId: number, body: ManufacturingProfileBody): Promise<ApiResult<ManufacturingProfile> | ApiError> {
+      const path = baseUrl + `v1/arbiter/manufacturing-profiles/${profileId}`;
+      const response = await fetch(path, {
+        method: "PUT",
+        headers: getHeaders(id),
+        body: JSON.stringify(body),
+      });
+
+      if (response.status !== 200) {
+        return { kind: "error", statusCode: response.status, error: "" };
+      }
+
+      const resp = await response.json();
+      return { kind: "success", data: resp };
+    },
+
+    async deleteManufacturingProfile(profileId: number): Promise<ApiResult<boolean> | ApiError> {
+      const path = baseUrl + `v1/arbiter/manufacturing-profiles/${profileId}`;
+      const response = await fetch(path, {
+        method: "DELETE",
+        headers: getHeaders(id),
+      });
+
+      if (response.status !== 200 && response.status !== 204) {
+        return { kind: "error", statusCode: response.status, error: "" };
+      }
+
+      return { kind: "success", data: true };
+    },
+
+    async applyManufacturingProfile(profileId: number): Promise<ApiResult<Record<string, unknown>> | ApiError> {
+      const path = baseUrl + `v1/arbiter/manufacturing-profiles/${profileId}/apply`;
+      const response = await fetch(path, {
+        method: "POST",
+        headers: getHeaders(id),
+      });
+
+      if (response.status !== 200) {
+        return { kind: "error", statusCode: response.status, error: "" };
+      }
+
+      const resp = await response.json();
+      return { kind: "success", data: resp };
     },
   };
 };

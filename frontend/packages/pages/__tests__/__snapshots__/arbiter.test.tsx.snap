@@ -126,6 +126,93 @@ exports[`ArbiterPage renders initial authenticated state 1`] = `
                 role="tabpanel"
               >
                 <div
+                  class="mb-5 pb-5 border-b border-overlay-subtle"
+                >
+                  <div
+                    class="flex items-center gap-2 mb-2"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-book-marked h-4 w-4 text-text-muted"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 2v8l3-3 3 3V2"
+                      />
+                      <path
+                        d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"
+                      />
+                    </svg>
+                    <span
+                      class="text-sm font-medium text-text-heading"
+                    >
+                      Manufacturing Profiles
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-2 flex-wrap"
+                  >
+                    <div
+                      data-testid="select"
+                      data-value=""
+                    >
+                      <div
+                        role="combobox"
+                      >
+                        <span>
+                          Select a profile…
+                        </span>
+                      </div>
+                      <div />
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8"
+                      disabled=""
+                    >
+                      Apply
+                    </button>
+                    <div>
+                      Load this profile into the settings fields below
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8 gap-1.5"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-save h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+                        />
+                        <path
+                          d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"
+                        />
+                        <path
+                          d="M7 3v4a1 1 0 0 0 1 1h7"
+                        />
+                      </svg>
+                      Save as Profile
+                    </button>
+                  </div>
+                </div>
+                <div
                   class="flex flex-wrap gap-6"
                 >
                   <div
@@ -1463,6 +1550,93 @@ exports[`ArbiterPage renders opportunities after successful scan 1`] = `
                 data-value="structures"
                 role="tabpanel"
               >
+                <div
+                  class="mb-5 pb-5 border-b border-overlay-subtle"
+                >
+                  <div
+                    class="flex items-center gap-2 mb-2"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-book-marked h-4 w-4 text-text-muted"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 2v8l3-3 3 3V2"
+                      />
+                      <path
+                        d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"
+                      />
+                    </svg>
+                    <span
+                      class="text-sm font-medium text-text-heading"
+                    >
+                      Manufacturing Profiles
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-2 flex-wrap"
+                  >
+                    <div
+                      data-testid="select"
+                      data-value=""
+                    >
+                      <div
+                        role="combobox"
+                      >
+                        <span>
+                          Select a profile…
+                        </span>
+                      </div>
+                      <div />
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8"
+                      disabled=""
+                    >
+                      Apply
+                    </button>
+                    <div>
+                      Load this profile into the settings fields below
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8 gap-1.5"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-save h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+                        />
+                        <path
+                          d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"
+                        />
+                        <path
+                          d="M7 3v4a1 1 0 0 0 1 1h7"
+                        />
+                      </svg>
+                      Save as Profile
+                    </button>
+                  </div>
+                </div>
                 <div
                   class="flex flex-wrap gap-6"
                 >

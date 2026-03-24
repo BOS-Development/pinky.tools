@@ -2030,6 +2030,7 @@ func Test_ScanOpportunities_ChanceMod_CappedAtOne(t *testing.T) {
 	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
 		9800: {TypeID: 9800, SellPrice: &sellPrice},
 		9999: {TypeID: 9999, SellPrice: &decryptorPrice},
+		9810: {TypeID: 9810, SellPrice: &datacorePrice},
 	}, nil)
 	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
 	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
@@ -2039,16 +2040,13 @@ func Test_ScanOpportunities_ChanceMod_CappedAtOne(t *testing.T) {
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9802), "invention").Return([]*models.BlueprintMaterial{
 		{TypeID: 9810, TypeName: "Datacore", Quantity: 1},
 	}, nil)
-	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
-		9800: {TypeID: 9800, SellPrice: &sellPrice},
-		9999: {TypeID: 9999, SellPrice: &decryptorPrice},
-		9810: {TypeID: 9810, SellPrice: &datacorePrice},
-	}, nil).Maybe()
 
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(9801), "manufacturing").Return([]*models.BlueprintMaterial{}, nil)
 	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
 	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repo.On("GetBlueprintActivityTime", mock.Anything, int64(9801), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetCostIndexForSystem", mock.Anything, mock.Anything, mock.Anything).Return(0.0, nil).Maybe()
+	repo.On("GetSecurityClassForSystem", mock.Anything, mock.Anything).Return("null", nil).Maybe()
 	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
 
 	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
@@ -2128,6 +2126,7 @@ func Test_BuildBOMTree_SecurityClass_HighSec_LowerRigBonus_ThanNullSec(t *testin
 	repoHigh.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repoHigh.On("GetBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
 	repoHigh.On("GetReactionBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
+	repoHigh.On("GetCostIndexForSystem", mock.Anything, mock.Anything, mock.Anything).Return(0.0, nil).Maybe()
 	repoHigh.On("GetSecurityClassForSystem", mock.Anything, highSecSystemID).Return("high", nil)
 
 	treeHigh, err := services.BuildBOMTree(
@@ -2158,6 +2157,7 @@ func Test_BuildBOMTree_SecurityClass_HighSec_LowerRigBonus_ThanNullSec(t *testin
 	repoNull.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
 	repoNull.On("GetBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
 	repoNull.On("GetReactionBlueprintForProduct", mock.Anything, int64(9701)).Return(int64(0), nil)
+	repoNull.On("GetCostIndexForSystem", mock.Anything, mock.Anything, mock.Anything).Return(0.0, nil).Maybe()
 	repoNull.On("GetSecurityClassForSystem", mock.Anything, nullSecSystemID).Return("null", nil)
 
 	treeNull, err := services.BuildBOMTree(
