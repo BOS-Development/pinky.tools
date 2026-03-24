@@ -120,9 +120,9 @@ type DecryptorOption struct {
 	ResultingRuns         int     `json:"resulting_runs"`
 	ME                    int     `json:"me"`
 	TE                    int     `json:"te"`
-	InventionCost         float64 `json:"invention_cost"`  // datacores + decryptor + copy cost, per successful BPC
-	MaterialCost          float64 `json:"material_cost"`   // full BOM cost with this ME level
-	JobCost               float64 `json:"job_cost"`
+	InventionCost         float64 `json:"invention_cost"`  // total invention cost (datacores + decryptor + copy + job fees), per successful BPC
+	MaterialCost          float64 `json:"material_cost"`   // BOM cost + purchasable invention materials (datacores + decryptor), per BPC
+	JobCost               float64 `json:"job_cost"`        // manufacturing job fees + non-purchasable invention fees (copy + invention job fee)
 	TotalCost             float64 `json:"total_cost"`
 	Profit                float64 `json:"profit"`
 	ROI                   float64 `json:"roi"`
@@ -233,6 +233,7 @@ type ArbiterOpportunity struct {
 	IsBlacklisted      bool                 `json:"is_blacklisted"`
 	IsWhitelisted      bool                 `json:"is_whitelisted"`
 	InventionMaterials []*InventionMaterial `json:"invention_materials"`
+	BOM                *BOMNode             `json:"bom,omitempty"`
 }
 
 // ArbiterScanResult is the full result of a scan run.

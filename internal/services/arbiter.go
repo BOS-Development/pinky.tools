@@ -424,8 +424,8 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		sci2 = bestChar.Science2SkillLevel
 	}
 
-	// base_chance * (1 + enc*0.01 + (sci1+sci2)*0.005)
-	skillBonus := 1.0 + float64(encLevel)*0.01 + float64(sci1+sci2)*0.005
+	// base_chance * (1 + enc*0.01 + sci1*0.1 + sci2*0.1)
+	skillBonus := 1.0 + float64(encLevel)*0.01 + float64(sci1+sci2)*0.1
 	effectiveChance := item.BaseInventionChance * skillBonus
 
 	// Copy + datacore cost for one invention attempt
@@ -441,19 +441,22 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 	// The shared BOM cache is passed in from ScanOpportunities so that sub-components used by
 	// multiple T2 items are fetched from the DB at most once across the entire scan.
 	allOptions := make([]*models.DecryptorOption, 0, len(decryptors)+1)
+	allTrees := make([]*models.BOMNode, 0, len(decryptors)+1)
 
-	noDecOpt, err := calculateDecryptorOption(ac, item, &models.Decryptor{
+	noDecOpt, noDecTree, err := calculateDecryptorOption(ac, item, &models.Decryptor{
 		ProbabilityMultiplier: 1.0,
 	}, nil, effectiveChance, copyAndDatacoreCost, buildTime, shared)
 	if err == nil && noDecOpt != nil {
 		allOptions = append(allOptions, noDecOpt)
+		allTrees = append(allTrees, noDecTree)
 	}
 
 	for _, dec := range decryptors {
 		d := dec
-		opt, err := calculateDecryptorOption(ac, item, d, &d.TypeID, effectiveChance, copyAndDatacoreCost, buildTime, shared)
+		opt, tree, err := calculateDecryptorOption(ac, item, d, &d.TypeID, effectiveChance, copyAndDatacoreCost, buildTime, shared)
 		if err == nil && opt != nil {
 			allOptions = append(allOptions, opt)
+			allTrees = append(allTrees, tree)
 		}
 	}
 
@@ -462,9 +465,11 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 	}
 
 	var best *models.DecryptorOption
-	for _, opt := range allOptions {
+	var bestBOM *models.BOMNode
+	for i, opt := range allOptions {
 		if best == nil || opt.ROI > best.ROI {
 			best = opt
+			bestBOM = allTrees[i]
 		}
 	}
 
@@ -499,6 +504,7 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		BestDecryptor:      best,
 		AllDecryptors:      allOptions,
 		InventionMaterials: best.InventionMaterials,
+		BOM:                bestBOM,
 	}, nil
 }
 
@@ -511,7 +517,7 @@ func calculateDecryptorOption(
 	copyAndDatacoreCost float64,
 	buildTime int64,
 	shared *BOMSharedCache,
-) (*models.DecryptorOption, error) {
+) (*models.DecryptorOption, *models.BOMNode, error) {
 	chanceMod := effectiveChance * decryptor.ProbabilityMultiplier
 	chanceMod = math.Round(chanceMod*100) / 100
 
@@ -583,6 +589,19 @@ func calculateDecryptorOption(
 		})
 	}
 
+	// Compute purchasable invention cost: datacores + decryptor (market purchases, scaled by 1/chanceMod).
+	// Excludes copy fees and invention job fees which are non-purchasable ISK costs.
+	var purchasableInventionCost float64
+	if chanceMod > 0 {
+		var rawPurchasableCost float64
+		for _, m := range inventionMats {
+			rawPurchasableCost += ac.getPrice(m.TypeID) * float64(m.Quantity)
+		}
+		rawPurchasableCost += decryptorCost
+		purchasableInventionCost = rawPurchasableCost / chanceMod
+	}
+	inventionFeesCost := inventionCost - purchasableInventionCost
+
 	// BOM for the final T2 product using the T2 blueprint and result ME.
 	// Pass the scan repo directly — ArbiterScanRepository is a superset of ArbiterBOMRepository.
 	// shared cache is populated once per T2 item and reused across all decryptor options.
@@ -603,7 +622,7 @@ func calculateDecryptorOption(
 		shared,
 	)
 	if treeErr != nil || tree == nil {
-		return nil, treeErr
+		return nil, nil, treeErr
 	}
 	materialCost := tree.MaterialCost
 	jobCost := tree.TotalJobCost
@@ -648,15 +667,15 @@ func calculateDecryptorOption(
 		ME:                    resultME,
 		TE:                    resultTE,
 		InventionCost:         math.Round(inventionCost*100) / 100,
-		MaterialCost:          math.Round((materialCost+inventionCost)*100) / 100,
-		JobCost:               math.Round(jobCost*100) / 100,
+		MaterialCost:          math.Round((materialCost+purchasableInventionCost)*100) / 100,
+		JobCost:               math.Round((jobCost+inventionFeesCost)*100) / 100,
 		TotalCost:             math.Round(totalCost*100) / 100,
 		Profit:                math.Round(profit*100) / 100,
 		ROI:                   math.Round(roi*100) / 100,
 		ISKPerDay:             math.Round(iskPerDay*100) / 100,
 		BuildTimeSec:          buildTimeSec,
 		InventionMaterials:    inventionMaterials,
-	}, nil
+	}, tree, nil
 }
 
 // calculateInventionBaseCost returns copy cost + datacore cost for one invention attempt.

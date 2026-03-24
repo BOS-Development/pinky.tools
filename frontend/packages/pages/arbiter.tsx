@@ -157,6 +157,7 @@ export interface Opportunity {
     quantity: number;
     unit_price: number;
   }>;
+  bom?: BomNode | null;
 }
 
 export interface OpportunitiesResponse {
@@ -1067,63 +1068,56 @@ function collectShoppingItems(node: BomNode): ShoppingListItem[] {
   return result;
 }
 
+function scaleBOMNode(node: BomNode, factor: number): BomNode {
+  return {
+    ...node,
+    quantity: node.quantity * factor,
+    available: node.available * factor,
+    needed: node.needed * factor,
+    delta: node.delta * factor,
+    material_cost: node.material_cost * factor,
+    total_job_cost: node.total_job_cost * factor,
+    children: node.children?.map((c) => scaleBOMNode(c, factor)) ?? [],
+  };
+}
+
 interface WarehousePanelProps {
   selectedOpp: Opportunity | null;
-  scopeId: number | null;
   qty: number;
-  inputPrice: "sell" | "buy";
-  buildAll: boolean;
+  bom: BomNode | null;
   inventionMaterials: Array<{ type_id: number; name: string; quantity: number; unit_price: number }>;
   runsPerBpc: number;
 }
 
 function WarehousePanel({
   selectedOpp,
-  scopeId,
   qty,
-  inputPrice,
-  buildAll,
+  bom,
   inventionMaterials,
   runsPerBpc,
 }: WarehousePanelProps) {
   const [copied, setCopied] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
-  const [bom, setBom] = useState<BomNode | null>(null);
-  const [bomLoading, setBomLoading] = useState(false);
 
-  useEffect(() => {
-    if (!selectedOpp) {
-      setBom(null);
-      return;
-    }
-    setBomLoading(true);
-    const params = new URLSearchParams();
-    if (scopeId) params.set("scope_id", String(scopeId));
-    params.set("quantity", String(qty || 1));
-    params.set("build_all", String(buildAll));
-    params.set("me", String(selectedOpp.me));
-    params.set("input_price_type", inputPrice);
-    fetch(`/api/arbiter/${selectedOpp.product_type_id}/bom?${params.toString()}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => setBom(data))
-      .catch(() => setBom(null))
-      .finally(() => setBomLoading(false));
-  }, [selectedOpp?.product_type_id, scopeId, qty, buildAll, inputPrice]);
+  const bpcsNeeded = Math.ceil(qty / (runsPerBpc || 1));
+  const scaledBom = bom && bpcsNeeded !== 1
+    ? { ...bom, children: bom.children.map((c) => scaleBOMNode(c, bpcsNeeded)) }
+    : bom;
 
-  const ingredients = bom?.children ?? [];
+  const ingredients = scaledBom?.children ?? [];
 
   const shoppingItems = useMemo<ShoppingListItem[]>(() => {
-    const fromBom = bom?.children?.flatMap((child) => collectShoppingItems(child)) ?? [];
-    const bpcsNeeded = Math.ceil(qty / (runsPerBpc || 1));
+    const fromBom = scaledBom?.children?.flatMap((child) => collectShoppingItems(child)) ?? [];
+    const bpcsNeededMemo = Math.ceil(qty / (runsPerBpc || 1));
     const fromInvention: ShoppingListItem[] = inventionMaterials.map((m) => ({
       type_id: m.type_id,
       name: m.name,
-      req_qty: m.quantity * bpcsNeeded,
+      req_qty: m.quantity * bpcsNeededMemo,
       unit_price: m.unit_price,
-      total_value: m.unit_price * m.quantity * bpcsNeeded,
+      total_value: m.unit_price * m.quantity * bpcsNeededMemo,
       warehouse: 0,
-      delta_qty: m.quantity * bpcsNeeded,
-      delta_cost: m.unit_price * m.quantity * bpcsNeeded,
+      delta_qty: m.quantity * bpcsNeededMemo,
+      delta_cost: m.unit_price * m.quantity * bpcsNeededMemo,
     }));
     const merged = new Map<number, ShoppingListItem>();
     for (const item of [...fromBom, ...fromInvention]) {
@@ -1139,7 +1133,7 @@ function WarehousePanel({
       }
     }
     return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [bom, inventionMaterials, qty, runsPerBpc]);
+  }, [scaledBom, inventionMaterials, qty, runsPerBpc]);
 
   const totalCost = shoppingItems.reduce((s, i) => s + i.total_value, 0);
 
@@ -1170,11 +1164,7 @@ function WarehousePanel({
           <span className="text-xs font-medium text-text-heading">Ingredients</span>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {bomLoading ? (
-            <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-4 w-4 animate-spin text-text-muted" />
-            </div>
-          ) : selectedOpp ? (
+          {selectedOpp ? (
             ingredients.length > 0 ? (
               <table className="w-full text-xs">
                 <thead>
@@ -1372,9 +1362,7 @@ function WarehousePanel({
             ) : (
               <div className="flex items-center justify-center h-full">
                 <p className="text-xs text-text-muted">
-                  {bomLoading
-                    ? "Loading..."
-                    : selectedOpp
+                  {selectedOpp
                     ? "No materials found in BOM"
                     : "Select an opportunity to see shopping list"}
                 </p>
@@ -1437,7 +1425,6 @@ export default function ArbiterPage() {
   const [opportunities, setOpportunities] = useState<OpportunitiesResponse | null>(null);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
-
   // Price refresh state
   const [refreshingPrices, setRefreshingPrices] = useState(false);
   const [lastPricesUpdatedAt, setLastPricesUpdatedAt] = useState<string | null>(null);
@@ -1478,7 +1465,15 @@ export default function ArbiterPage() {
     fetch("/api/arbiter/tax-profile")
       .then((r) => r.ok ? r.json() : null)
       .then((data) => {
-        if (data) setTaxProfile(data);
+        if (data) {
+          setTaxProfile(data);
+          if (data.input_price_type === "sell" || data.input_price_type === "buy") {
+            setInputPrice(data.input_price_type);
+          }
+          if (data.output_price_type === "sell" || data.output_price_type === "buy") {
+            setOutputPrice(data.output_price_type);
+          }
+        }
       })
       .catch(() => {});
 
@@ -2478,7 +2473,7 @@ export default function ArbiterPage() {
                         key={opp.product_type_id}
                         opp={opp}
                         rank={i + 1}
-                        qty={rowQtys[opp.product_type_id] ?? 1}
+                        qty={rowQtys[opp.product_type_id] ?? (opp.runs || 1)}
                         onQtyChange={(typeId, qty) =>
                           setRowQtys((prev) => ({ ...prev, [typeId]: qty }))
                         }
@@ -2502,14 +2497,12 @@ export default function ArbiterPage() {
         {/* Warehouse panel */}
         <WarehousePanel
           selectedOpp={selectedOpp}
-          scopeId={selectedScopeId}
           qty={
             selectedOpp
-              ? (rowQtys[selectedOpp.product_type_id] ?? 1)
+              ? (rowQtys[selectedOpp.product_type_id] ?? (selectedOpp.runs || 1))
               : 1
           }
-          inputPrice={inputPrice}
-          buildAll={scanBuildAll}
+          bom={selectedOpp?.bom ?? null}
           inventionMaterials={selectedOpp?.invention_materials ?? []}
           runsPerBpc={selectedOpp?.runs ?? 1}
         />

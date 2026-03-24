@@ -1272,6 +1272,69 @@ func Test_ScanOpportunities_RecursiveChain_BuildsSubComponents(t *testing.T) {
 	repo.AssertExpectations(t)
 }
 
+func Test_ScanOpportunities_Opportunity_HasNonNilBOM(t *testing.T) {
+	// Verify that the BOM field on an ArbiterOpportunity is populated by the scan.
+	// Setup: T2 module with one material leaf — the BOM root should have the leaf as a child.
+	repo := &MockArbiterScanRepository{}
+	settings := defaultArbiterSettings()
+
+	productSellPrice := float64(10_000_000)
+	matSellPrice := float64(1_000_000)
+
+	blueprint := &models.T2BlueprintScanItem{
+		ProductTypeID:       5500,
+		ProductName:         "BOM Test Module",
+		BlueprintTypeID:     5501,
+		T1BlueprintTypeID:   5502,
+		BaseInventionChance: 1.0,
+		BaseResultME:        2,
+		BaseResultRuns:      1,
+		Category:            "module",
+	}
+
+	repo.On("GetT2BlueprintsForScan", mock.Anything).Return([]*models.T2BlueprintScanItem{blueprint}, nil)
+	repo.On("GetDecryptors", mock.Anything).Return([]*models.Decryptor{}, nil)
+	repo.On("GetMarketPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]*models.MarketPrice{
+		5500: {TypeID: 5500, SellPrice: &productSellPrice},
+		5510: {TypeID: 5510, SellPrice: &matSellPrice},
+	}, nil)
+	repo.On("GetAdjustedPricesForTypes", mock.Anything, mock.Anything).Return(map[int64]float64{}, nil)
+	repo.On("GetDemandStats", mock.Anything, mock.Anything).Return(map[int64]*models.DemandStats{}, nil)
+	repo.On("GetBestInventionCharacter", mock.Anything, mock.Anything, int64(5502)).Return((*models.InventionCharacter)(nil), nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(5502), "invention").Return([]*models.BlueprintMaterial{}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, int64(5501), "manufacturing").Return([]*models.BlueprintMaterial{
+		{TypeID: 5510, TypeName: "BOM Material", Quantity: 3},
+	}, nil)
+	repo.On("GetBlueprintMaterialsForActivity", mock.Anything, mock.Anything, "reaction").Return([]*models.BlueprintMaterial{}, nil).Maybe()
+	repo.On("GetBlueprintProductForActivity", mock.Anything, mock.Anything, mock.Anything).Return((*models.BlueprintProduct)(nil), nil).Maybe()
+	repo.On("GetBlueprintForProduct", mock.Anything, int64(5510)).Return(int64(0), nil)
+	repo.On("GetReactionBlueprintForProduct", mock.Anything, int64(5510)).Return(int64(0), nil)
+	repo.On("GetBlueprintActivityTime", mock.Anything, int64(5501), "manufacturing").Return(int64(86400), nil)
+	repo.On("GetMarketPricesLastUpdated", mock.Anything).Return((*time.Time)(nil), nil)
+
+	result, err := services.ScanOpportunities(context.Background(), 1, settings, nil, false, repo)
+	require.NoError(t, err)
+	require.Len(t, result.Opportunities, 1)
+
+	opp := result.Opportunities[0]
+	require.NotNil(t, opp.BOM, "BOM field should be populated on the opportunity")
+	assert.Equal(t, int64(5500), opp.BOM.TypeID, "BOM root should be the product type")
+	assert.NotEmpty(t, opp.BOM.Children, "BOM root should have children when materials exist")
+
+	// Find the leaf child
+	var child *models.BOMNode
+	for _, c := range opp.BOM.Children {
+		if c.TypeID == 5510 {
+			child = c
+			break
+		}
+	}
+	require.NotNil(t, child, "BOM should contain the material leaf")
+	assert.Equal(t, "buy", child.Decision)
+
+	repo.AssertExpectations(t)
+}
+
 func Test_ScanOpportunities_RecursiveChain_BuysAtMarket_WhenNoBlueprintFound(t *testing.T) {
 	// When a material has no blueprint at all (manufacturing or reaction), it should buy at market.
 	repo := &MockArbiterScanRepository{}
