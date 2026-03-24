@@ -1,11 +1,11 @@
 # Arbiter — T2 Industry Opportunity Scanner
 
 ## Status
-Implemented (Phase 2 complete)
+Implemented (Phase 3 complete)
 
 ## Overview
 
-Arbiter is a comprehensive T2 (Tech 2) industry opportunity scanner that helps players identify profitable manufacturing chains. It combines real-time market data with player-owned structure costs to analyze full production chains (reactions → moon goo → components → final modules), including invention requirements and job costs. Phase 2 adds multi-scope asset tracking, BOM tree visualization with delta calculation, customizable tax profiles, and item black/whitelisting.
+Arbiter is a comprehensive T2 (Tech 2) industry opportunity scanner that helps players identify profitable manufacturing chains. It combines real-time market data with player-owned structure costs to analyze full production chains (reactions → moon goo → components → final modules), including invention requirements and job costs. Phase 2 adds multi-scope asset tracking, BOM tree visualization with delta calculation, customizable tax profiles, and item black/whitelisting. Phase 3 adds Manufacturing Profiles — named presets of the 16 structure/rig/system/tax settings that can be saved and recalled with a single click.
 
 ## Key Decisions
 
@@ -102,6 +102,32 @@ CREATE TABLE arbiter_whitelist (
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(user_id, type_id)
 );
+
+-- Manufacturing Profiles: named presets of the 16 structure/rig/system/tax settings
+CREATE TABLE arbiter_manufacturing_profiles (
+  id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  user_id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  reaction_structure VARCHAR(50),
+  reaction_rig VARCHAR(50),
+  reaction_system_id BIGINT,
+  reaction_facility_tax NUMERIC(5,2),
+  invention_structure VARCHAR(50),
+  invention_rig VARCHAR(50),
+  invention_system_id BIGINT,
+  invention_facility_tax NUMERIC(5,2),
+  component_structure VARCHAR(50),
+  component_rig VARCHAR(50),
+  component_system_id BIGINT,
+  component_facility_tax NUMERIC(5,2),
+  final_structure VARCHAR(50),
+  final_rig VARCHAR(50),
+  final_system_id BIGINT,
+  final_facility_tax NUMERIC(5,2),
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, name)
+);
 ```
 
 ### Related Tables
@@ -158,6 +184,16 @@ CREATE TABLE arbiter_whitelist (
 | POST | `/v1/arbiter/whitelist/:typeID` | Add item to whitelist |
 | DELETE | `/v1/arbiter/whitelist/:typeID` | Remove item from whitelist |
 
+### Manufacturing Profiles (Phase 3)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/v1/arbiter/manufacturing-profiles` | List all manufacturing profiles for user |
+| POST | `/v1/arbiter/manufacturing-profiles` | Create new profile from current settings |
+| PUT | `/v1/arbiter/manufacturing-profiles/:id` | Update profile by ID |
+| DELETE | `/v1/arbiter/manufacturing-profiles/:id` | Delete profile by ID |
+| POST | `/v1/arbiter/manufacturing-profiles/:id/apply` | Apply profile (load all 16 settings into live form) |
+
 ### BOM Tree (Phase 2)
 
 | Method | Path | Description |
@@ -175,11 +211,11 @@ CREATE TABLE arbiter_whitelist (
 ### Backend
 
 - Controller: `internal/controllers/arbiter.go`
-- Controller Tests: `internal/controllers/arbiter_test.go`
+- Controller Tests: `internal/controllers/arbiter_test.go`, `internal/controllers/arbiter_manufacturing_profiles_test.go`
 - Services: `internal/services/arbiter.go`
 - Service Tests: `internal/services/arbiter_test.go`
 - Repository: `internal/repositories/arbiter.go`
-- Repository Tests: `internal/repositories/arbiter_test.go`
+- Repository Tests: `internal/repositories/arbiter_test.go`, `internal/repositories/arbiter_manufacturing_profiles_test.go`
 - Models: `internal/models/arbiter.go`
 - Updater (Market Prices): `internal/updaters/marketPrices.go`
 - Calculator (Manufacturing): `internal/calculator/manufacturing.go` — manufacturing job cost calculation
@@ -189,6 +225,7 @@ CREATE TABLE arbiter_whitelist (
 
 - Main Page: `frontend/packages/pages/arbiter.tsx`
 - API Route: `frontend/pages/api/arbiter/[typeID]/bom.ts`
+- API Routes (Manufacturing Profiles): `frontend/pages/api/arbiter/manufacturing-profiles/index.ts`, `frontend/pages/api/arbiter/manufacturing-profiles/[id]/index.ts`, `frontend/pages/api/arbiter/manufacturing-profiles/[id]/apply.ts`
 
 ## Phase 2 Implementation
 
@@ -278,6 +315,29 @@ total = EIV × (cost_index + facility_tax_rate + 0.04) × runs
 - **Implementation**: `getInputPrice()` and `getBuyPrice()` in bomTreeContext check the preferred type first, then try the other if nil
 - **Impact**: BOM trees always have a cost, even if market data is incomplete
 
+## Phase 3 Implementation
+
+### Manufacturing Profiles
+
+**Overview**: Manufacturing Profiles are named presets that save and recall the 16 structure/rig/system/tax settings fields. Users configure their industry setup once, save it as a profile, and apply it again with a single click.
+
+**Key behaviors**:
+- **Save as Profile**: "Save as Profile" button captures all 16 current settings (reaction/invention/component/final structure, rig, system ID, facility tax) and stores them under a name
+- **Upsert by name**: If a profile with the same name already exists, it is overwritten (upsert behavior)
+- **Apply**: The "Apply" button loads the profile's 16 fields into the live settings form — does **not** auto-save settings to `arbiter_settings`
+- **Apply endpoint**: `POST /v1/arbiter/manufacturing-profiles/{id}/apply` copies all structure/rig/system/tax fields from the profile into the user's `arbiter_settings` row
+- **Profile storage**: Each profile is stored in `arbiter_manufacturing_profiles` table with a UNIQUE constraint on (user_id, name) to prevent duplicate names per user
+
+**Database model**: `ArbiterManufacturingProfile` struct mirrors the 16 fields from `ArbiterSettings`:
+- reaction_structure, reaction_rig, reaction_system_id, reaction_facility_tax
+- invention_structure, invention_rig, invention_system_id, invention_facility_tax
+- component_structure, component_rig, component_system_id, component_facility_tax
+- final_structure, final_rig, final_system_id, final_facility_tax
+
+**Frontend workflow**: The Arbiter settings form displays a profile dropdown and two buttons:
+1. "Save as Profile" — captures current form state and saves it (prompts for name if new, or confirms overwrite if existing)
+2. "Apply Profile" — loads selected profile into the form (user can edit before saving to `arbiter_settings`)
+
 ## Configuration
 
 ### Environment Variables
@@ -291,12 +351,15 @@ None specific to Arbiter — uses standard `BACKEND_KEY`, `DATABASE_*`, and `POR
 ## Testing
 
 ### E2E Tests
-- `e2e/tests/arbiter.spec.ts` — Scan opportunities, build BOM trees, manage scopes
+- `e2e/tests/21-arbiter.spec.ts` — Scan opportunities, build BOM trees, manage scopes
+- `e2e/tests/22-arbiter-manufacturing-profiles.spec.ts` — Save, list, apply, update, delete manufacturing profiles
 
 ### Unit Tests
 - `internal/controllers/arbiter_test.go` — Route handlers
+- `internal/controllers/arbiter_manufacturing_profiles_test.go` — Manufacturing profile route handlers
 - `internal/services/arbiter_test.go` — BOM tree calculation, delta logic, price type logic
 - `internal/repositories/arbiter_test.go` — Settings/scope/list CRUD
+- `internal/repositories/arbiter_manufacturing_profiles_test.go` — Profile CRUD operations
 
 ## Known Limitations
 
