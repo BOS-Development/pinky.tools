@@ -52,6 +52,8 @@ INSERT INTO users (id, name) VALUES
   (1003, 'Charlie Trader'),
   (1004, 'Diana Scout');
 
+UPDATE users SET arbiter_enabled = true WHERE id = 1001;
+
 -- ===========================================
 -- SDE Data for Industry Tests
 -- ===========================================
