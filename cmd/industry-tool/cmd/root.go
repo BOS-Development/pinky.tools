@@ -98,7 +98,9 @@ var rootCmd = &cobra.Command{
 		discordNotificationsRepository := repositories.NewDiscordNotifications(db)
 
 		assetUpdater := updaters.NewAssets(charactersAssetRepository, charactersRepository, stationsRepository, playerCorporationRepostiory, playerCorporationAssetsRepository, esiClient, usersRepository, settings.AssetUpdateConcurrency)
-		sdeUpdater := updaters.NewSde(sdeClient, esiClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository)
+		arbiterRepository := repositories.NewArbiterRepository(db)
+		sdeUpdater := updaters.NewSde(sdeClient, esiClient, sdeDataRepository, itemTypesRepository, regionsRepository, constellationsRepository, systemRepository, stationsRepository).
+			WithDecryptorRepository(arbiterRepository)
 		marketPricesUpdater := updaters.NewMarketPrices(marketPricesRepository, esiClient)
 		ccpPricesUpdater := updaters.NewCcpPrices(esiClient, marketPricesRepository)
 		costIndicesUpdater := updaters.NewIndustryCostIndices(esiClient, industryCostIndicesRepository)
@@ -177,6 +179,9 @@ var rootCmd = &cobra.Command{
 
 		jobSlotRentalsRepository := repositories.NewJobSlotRentals(db)
 		controllers.NewJobSlotRentals(router, jobSlotRentalsRepository, contactPermissionsRepository)
+
+		controllers.NewArbiterFull(router, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository, arbiterRepository)
+	controllers.NewESIRefresh(router, marketPricesUpdater, costIndicesUpdater, ccpPricesUpdater)
 
 		haulingRunsRepo := repositories.NewHaulingRuns(db)
 		haulingRunItemsRepo := repositories.NewHaulingRunItems(db)

@@ -274,6 +274,7 @@ type sdeTypeYAML struct {
 	PortionSize     *int              `yaml:"portionSize"`
 	Published       *bool             `yaml:"published"`
 	MarketGroupID   *int64            `yaml:"marketGroupID"`
+	MetaGroupID     *int64            `yaml:"metaGroupID"`
 	IconID          *int64            `yaml:"iconID"`
 	GraphicID       *int64            `yaml:"graphicID"`
 	RaceID          *int64            `yaml:"raceID"`
@@ -313,6 +314,7 @@ func parseTypeIDs(f *zip.File, data *SdeData) error {
 			PortionSize:    t.PortionSize,
 			Published:      t.Published,
 			MarketGroupID:  t.MarketGroupID,
+			MetaGroupID:    t.MetaGroupID,
 			GraphicID:      t.GraphicID,
 			RaceID:         t.RaceID,
 			Description:    desc,

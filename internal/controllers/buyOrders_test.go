@@ -16,7 +16,7 @@ import (
 )
 
 func Test_BuyOrders_CreateOrder_Success(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userID := int64(6000)
@@ -64,7 +64,7 @@ func Test_BuyOrders_CreateOrder_Success(t *testing.T) {
 }
 
 func Test_BuyOrders_CreateOrder_InvalidQuantity(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userID := int64(6010)
@@ -95,7 +95,7 @@ func Test_BuyOrders_CreateOrder_InvalidQuantity(t *testing.T) {
 }
 
 func Test_BuyOrders_CreateOrder_MissingLocationId(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userID := int64(6011)
@@ -125,7 +125,7 @@ func Test_BuyOrders_CreateOrder_MissingLocationId(t *testing.T) {
 }
 
 func Test_BuyOrders_GetMyOrders(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userID := int64(6020)
@@ -175,7 +175,7 @@ func Test_BuyOrders_GetMyOrders(t *testing.T) {
 }
 
 func Test_BuyOrders_UpdateOrder_Success(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userID := int64(6030)
@@ -231,7 +231,7 @@ func Test_BuyOrders_UpdateOrder_Success(t *testing.T) {
 }
 
 func Test_BuyOrders_UpdateOrder_NotOwner(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	ownerID := int64(6040)
@@ -290,7 +290,7 @@ func Test_BuyOrders_UpdateOrder_NotOwner(t *testing.T) {
 }
 
 func Test_BuyOrders_DeleteOrder_Success(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	userID := int64(6050)
@@ -339,7 +339,7 @@ func Test_BuyOrders_DeleteOrder_Success(t *testing.T) {
 }
 
 func Test_BuyOrders_GetDemand(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	assert.NoError(t, err)
 
 	buyerID := int64(6060)

@@ -59,6 +59,7 @@ test-backend: test-clean
 		sh -c "gotestsum --format pkgname -- -p 1 -coverprofile=/artifacts/coverage/backend/coverage.out ./internal/... && \
 		       go tool cover -html=/artifacts/coverage/backend/coverage.out -o /artifacts/coverage/backend/coverage.html"
 	@echo "✓ Backend coverage report: artifacts/coverage/backend/coverage.html"
+	@$(MAKE) docker-prune
 
 test-backend-sde-integration:
 	@echo "Running SDE integration test (downloads real SDE from CCP)..."
@@ -72,6 +73,7 @@ test-frontend: test-clean
 	$(DOCKER_COMPOSE) -f docker-compose.test.yaml run --rm frontend-test \
 		sh -c "npm install && npm run test:coverage -- --coverageDirectory=/artifacts/coverage/frontend"
 	@echo "✓ Frontend coverage report: artifacts/coverage/frontend/lcov-report/index.html"
+	@$(MAKE) docker-prune
 
 test-all: test-clean
 	@echo "Running all tests with coverage..."
@@ -88,6 +90,13 @@ test-all: test-clean
 test-clean:
 	@echo "Cleaning up test containers..."
 	@$(DOCKER_COMPOSE) -f docker-compose.test.yaml down --remove-orphans 2>/dev/null || true
+
+# Prune Docker build cache, keeping the 5 most recent GB to prevent disk exhaustion.
+# Run this manually if disk space is low, or it runs automatically after test-prune targets.
+docker-prune:
+	@echo "Pruning Docker build cache (keeping last 5GB)..."
+	@docker builder prune -f --keep-storage=5gb
+	@echo "✓ Docker build cache pruned"
 
 test: test-all
 

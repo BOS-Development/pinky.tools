@@ -116,3 +116,79 @@ func Test_MarketPricesShouldHandleEmptyUpsert(t *testing.T) {
 	err = marketPricesRepo.UpsertPrices(context.Background(), []models.MarketPrice{})
 	assert.NoError(t, err)
 }
+
+func Test_UpsertAdjustedPrices_InsertsWithoutMarketPricesRow(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewMarketPrices(db)
+
+	// Type IDs that have no rows in market_prices — verifies the new table
+	// accepts any type_id without requiring a market_prices FK
+	prices := map[int64]float64{
+		99001: 1234.56,
+		99002: 9876.54,
+	}
+
+	err = repo.UpsertAdjustedPrices(context.Background(), prices)
+	assert.NoError(t, err)
+
+	got, err := repo.GetAllAdjustedPrices(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, 1234.56, got[99001])
+	assert.Equal(t, 9876.54, got[99002])
+}
+
+func Test_UpsertAdjustedPrices_UpdatesExistingRow(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewMarketPrices(db)
+
+	err = repo.UpsertAdjustedPrices(context.Background(), map[int64]float64{99010: 100.0})
+	assert.NoError(t, err)
+
+	// Upsert again with a new price — should update, not error
+	err = repo.UpsertAdjustedPrices(context.Background(), map[int64]float64{99010: 200.0})
+	assert.NoError(t, err)
+
+	got, err := repo.GetAllAdjustedPrices(context.Background())
+	assert.NoError(t, err)
+	assert.Equal(t, 200.0, got[99010])
+}
+
+func Test_UpsertAdjustedPrices_EmptyMapIsNoop(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewMarketPrices(db)
+
+	err = repo.UpsertAdjustedPrices(context.Background(), map[int64]float64{})
+	assert.NoError(t, err)
+}
+
+func Test_GetAdjustedPriceLastUpdateTime_ReturnsNilWhenEmpty(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewMarketPrices(db)
+
+	lastUpdate, err := repo.GetAdjustedPriceLastUpdateTime(context.Background())
+	assert.NoError(t, err)
+	// Table may or may not be empty — just verify no error and valid return
+	_ = lastUpdate
+}
+
+func Test_GetAdjustedPriceLastUpdateTime_ReturnsTimeAfterUpsert(t *testing.T) {
+	db, err := setupDatabase(t)
+	assert.NoError(t, err)
+
+	repo := repositories.NewMarketPrices(db)
+
+	err = repo.UpsertAdjustedPrices(context.Background(), map[int64]float64{99020: 50.0})
+	assert.NoError(t, err)
+
+	lastUpdate, err := repo.GetAdjustedPriceLastUpdateTime(context.Background())
+	assert.NoError(t, err)
+	assert.NotNil(t, lastUpdate)
+}

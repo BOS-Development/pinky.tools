@@ -49,6 +49,14 @@ func (u *IndustryCostIndicesUpdater) Update(ctx context.Context) error {
 		}
 	}
 
+	return u.doUpdate(ctx)
+}
+
+func (u *IndustryCostIndicesUpdater) ForceUpdate(ctx context.Context) error {
+	return u.doUpdate(ctx)
+}
+
+func (u *IndustryCostIndicesUpdater) doUpdate(ctx context.Context) error {
 	log.Info("updating industry cost indices")
 
 	systems, err := u.esiClient.GetIndustryCostIndices(ctx)

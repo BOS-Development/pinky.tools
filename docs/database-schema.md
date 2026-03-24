@@ -1,7 +1,7 @@
 # Database Schema Reference
 
-**Last updated:** 2026-02-26
-**Tables:** 68 | **Views:** 1 | **Functions:** 2 | **Migrations:** 91 (45 up/down pairs + 1 schema-only migration)
+**Last updated:** 2026-03-20
+**Tables:** 77 | **Views:** 1 | **Functions:** 2 | **Migrations:** 105 (52 up/down pairs + 1 schema-only migration)
 
 ---
 
@@ -18,12 +18,13 @@
 9. [Planetary Industry](#9-planetary-industry)
 10. [Transportation](#10-transportation)
 11. [Notifications](#11-notifications)
-12. [Views](#12-views)
-13. [SQL Functions](#13-sql-functions)
-14. [Relationship Map](#14-relationship-map)
-15. [Index Reference](#15-index-reference)
-16. [Schema Conventions](#16-schema-conventions)
-17. [Migration History](#17-migration-history)
+12. [Arbiter](#12-arbiter)
+13. [Views](#13-views)
+14. [SQL Functions](#14-sql-functions)
+15. [Relationship Map](#15-relationship-map)
+16. [Index Reference](#16-index-reference)
+17. [Schema Conventions](#17-schema-conventions)
+18. [Migration History](#18-migration-history)
 
 ---
 
@@ -318,6 +319,14 @@ SDE tables are populated by the SDE import pipeline. Full column details are in 
 | `sde_corporation_activities` | activity_id | Corporation activity types |
 | `sde_tournament_rule_sets` | rule_set_id | Tournament ruleset data (JSONB) |
 
+### Arbiter SDE Tables
+
+Denormalized from dogma attribute data by the SDE importer. See Section 12 (Arbiter) for full column details.
+
+| Table | Primary Key | Description |
+|-------|-------------|-------------|
+| `sde_decryptors` | type_id | T2 invention decryptors with probability/ME/TE/run modifiers |
+
 ---
 
 ## 5. Market & Pricing
@@ -334,9 +343,29 @@ Jita market snapshots. FK to `asset_item_types` was dropped (migration `20250101
 | sell_price | DOUBLE PRECISION | nullable |
 | daily_volume | BIGINT | nullable |
 | adjusted_price | DOUBLE PRECISION | nullable |
+| order_book_volume | BIGINT | nullable |
 | updated_at | TIMESTAMP | NOT NULL DEFAULT now() |
 
+`order_book_volume`: total quantity across all active Jita sell orders for this type. Used for D.O.S. calculation: `order_book_volume / 30d avg daily volume`.
+
 Indexes: `(region_id)`, `(updated_at)`
+
+### `market_price_history`
+
+Daily snapshots of Jita prices per type. No FK on `type_id` — consistent with `market_prices` post-FK-removal. Used by Arbiter to compute 30-day average daily volume and D.O.S.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| type_id | BIGINT | PK (composite) |
+| snapshot_date | DATE | PK (composite) |
+| buy_price | DOUBLE PRECISION | nullable |
+| sell_price | DOUBLE PRECISION | nullable |
+| order_book_volume | BIGINT | nullable |
+| daily_volume | BIGINT | nullable |
+
+Primary key: `(type_id, snapshot_date)`
+
+Indexes: `(type_id, snapshot_date DESC)` for per-item history queries, `(snapshot_date)` for bulk pruning old snapshots.
 
 ### `stockpile_markers`
 
@@ -1047,7 +1076,131 @@ Unique: `(target_id, event_type)`
 
 ---
 
-## 12. Views
+## 12. Arbiter
+
+Tables for the Arbiter T2 profit advisor. All tables are user-scoped via `user_id REFERENCES users(id) ON DELETE CASCADE`. The `arbiter_enabled` gate is on the `users` table.
+
+### `arbiter_settings`
+
+Per-user Arbiter configuration. One row per user, inserted on first use.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| user_id | BIGINT | PRIMARY KEY, FK → users(id) ON DELETE CASCADE |
+| reaction_structure | TEXT | NOT NULL DEFAULT 'athanor' |
+| reaction_rig | TEXT | NOT NULL DEFAULT 't1' |
+| reaction_system_id | BIGINT | nullable, FK → solar_systems(solar_system_id) ON DELETE SET NULL |
+| invention_structure | TEXT | NOT NULL DEFAULT 'raitaru' |
+| invention_rig | TEXT | NOT NULL DEFAULT 't1' |
+| invention_system_id | BIGINT | nullable, FK → solar_systems(solar_system_id) ON DELETE SET NULL |
+| component_structure | TEXT | NOT NULL DEFAULT 'raitaru' |
+| component_rig | TEXT | NOT NULL DEFAULT 't2' |
+| component_system_id | BIGINT | nullable, FK → solar_systems(solar_system_id) ON DELETE SET NULL |
+| final_structure | TEXT | NOT NULL DEFAULT 'raitaru' |
+| final_rig | TEXT | NOT NULL DEFAULT 't2' |
+| final_system_id | BIGINT | nullable, FK → solar_systems(solar_system_id) ON DELETE SET NULL |
+| use_whitelist | BOOLEAN | NOT NULL DEFAULT true |
+| use_blacklist | BOOLEAN | NOT NULL DEFAULT true |
+| decryptor_type_id | BIGINT | nullable, FK → sde_decryptors(type_id) ON DELETE SET NULL |
+| default_scope_id | BIGINT | nullable, FK → arbiter_scopes(id) ON DELETE SET NULL |
+| updated_at | TIMESTAMPTZ | NOT NULL DEFAULT now() |
+
+Security class per slot is derived at query time from `solar_systems.security` (via the `_system_id` columns), not stored as text. The four `*_security` text columns were removed in migration `20260320000007`.
+
+### `sde_decryptors`
+
+Denormalized T2 invention decryptors derived from SDE dogma attributes. Populated by the SDE importer for all type_ids carrying dogma attribute 1112 (`inventionPropabilityMultiplier`).
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| type_id | BIGINT | PRIMARY KEY, FK → asset_item_types(type_id) |
+| name | TEXT | NOT NULL |
+| probability_multiplier | DOUBLE PRECISION | NOT NULL |
+| me_modifier | INT | NOT NULL |
+| te_modifier | INT | NOT NULL |
+| run_modifier | INT | NOT NULL |
+
+The "no decryptor" case is handled in application code (multiplier=1.0, modifiers=0) — not stored as a sentinel row.
+
+Dogma attribute IDs used by the SDE importer:
+- 1112 = `inventionPropabilityMultiplier`
+- 1113 = `inventionMEModifier`
+- 1114 = `inventionTEModifier`
+- 1124 = `inventionMaxRunModifier`
+
+### `arbiter_scopes`
+
+Named asset scopes per user. A scope groups characters and/or corporations whose assets are pooled for Arbiter evaluation.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | BIGSERIAL | PRIMARY KEY |
+| user_id | BIGINT | NOT NULL, FK → users(id) ON DELETE CASCADE |
+| name | TEXT | NOT NULL |
+| is_default | BOOLEAN | NOT NULL DEFAULT false |
+| created_at | TIMESTAMPTZ | NOT NULL DEFAULT now() |
+
+Unique index: `(user_id, name)`. Index on `(user_id)`.
+
+### `arbiter_scope_members`
+
+Associates characters or corporations with a scope.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| id | BIGSERIAL | PRIMARY KEY |
+| scope_id | BIGINT | NOT NULL, FK → arbiter_scopes(id) ON DELETE CASCADE |
+| member_type | TEXT | NOT NULL — 'character' or 'corporation' |
+| member_id | BIGINT | NOT NULL — character.id or player_corporations.id |
+
+No FK on `member_id` — `characters` has a composite PK `(id, user_id)`, making a bare `REFERENCES characters(id)` invalid. Application layer enforces that members belong to the scope's user.
+
+Unique index: `(scope_id, member_type, member_id)`. Index on `(scope_id)`.
+
+### `arbiter_tax_profile`
+
+Per-user fee and pricing configuration for Arbiter profit calculations.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| user_id | BIGINT | PRIMARY KEY, FK → users(id) ON DELETE CASCADE |
+| trader_character_id | BIGINT | nullable (bare, no FK — characters composite PK) |
+| sales_tax_rate | DOUBLE PRECISION | NOT NULL DEFAULT 0.036 |
+| broker_fee_rate | DOUBLE PRECISION | NOT NULL DEFAULT 0.03 |
+| structure_broker_fee | DOUBLE PRECISION | NOT NULL DEFAULT 0.02 |
+| input_price_type | TEXT | NOT NULL DEFAULT 'sell' |
+| output_price_type | TEXT | NOT NULL DEFAULT 'buy' |
+| updated_at | TIMESTAMPTZ | NOT NULL DEFAULT now() |
+
+If `trader_character_id` is set, the effective `sales_tax_rate` should be overridden at query time using the character's Accounting skill level. `input_price_type` / `output_price_type` are 'buy' or 'sell'.
+
+### `arbiter_blacklist`
+
+Items the user never wants Arbiter to build — always buy instead.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| user_id | BIGINT | NOT NULL, FK → users(id) ON DELETE CASCADE |
+| type_id | BIGINT | NOT NULL |
+| added_at | TIMESTAMPTZ | NOT NULL DEFAULT now() |
+
+Primary key: `(user_id, type_id)`. No FK on `type_id` — consistent with `market_prices` pattern.
+
+### `arbiter_whitelist`
+
+Items the user always wants Arbiter to build — ignore profitability gate.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| user_id | BIGINT | NOT NULL, FK → users(id) ON DELETE CASCADE |
+| type_id | BIGINT | NOT NULL |
+| added_at | TIMESTAMPTZ | NOT NULL DEFAULT now() |
+
+Primary key: `(user_id, type_id)`. No FK on `type_id` — consistent with `market_prices` pattern.
+
+---
+
+## 13. Views
 
 ### `corporation_asset_locations`
 
@@ -1069,7 +1222,7 @@ Resolves corporation asset locations to their station, division, and geographic 
 
 ---
 
-## 13. SQL Functions
+## 14. SQL Functions
 
 ### `resolve_owner_name(owner_type VARCHAR, owner_id BIGINT) → VARCHAR`
 
@@ -1100,7 +1253,7 @@ Resolves location names from `location_id` by checking stations first, then sola
 
 ---
 
-## 14. Relationship Map
+## 15. Relationship Map
 
 ```
 users
@@ -1166,7 +1319,7 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 
 ---
 
-## 15. Index Reference
+## 16. Index Reference
 
 ### Custom Unique Indexes
 
@@ -1191,6 +1344,13 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 | `idx_stockpile_markers_auto_production` | stockpile_markers | user_id | WHERE auto_production_enabled |
 | `idx_market_prices_region` | market_prices | region_id | — |
 | `idx_market_prices_updated` | market_prices | updated_at | — |
+| `idx_market_price_history_type_date` | market_price_history | type_id, snapshot_date DESC | — |
+| `idx_market_price_history_snapshot_date` | market_price_history | snapshot_date | — |
+| `idx_arbiter_scopes_user_name` | arbiter_scopes | user_id, name | UNIQUE |
+| `idx_arbiter_scopes_user_id` | arbiter_scopes | user_id | — |
+| `idx_arbiter_scope_members_unique` | arbiter_scope_members | scope_id, member_type, member_id | UNIQUE |
+| `idx_arbiter_scope_members_scope_id` | arbiter_scope_members | scope_id | — |
+| `idx_asset_item_types_meta_group_id` | asset_item_types | meta_group_id | — |
 | `idx_contacts_requester` | contacts | requester_user_id | — |
 | `idx_contacts_recipient` | contacts | recipient_user_id | — |
 | `idx_contacts_status` | contacts | status | — |
@@ -1239,7 +1399,7 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 
 ---
 
-## 16. Schema Conventions
+## 17. Schema Conventions
 
 ### Data Types
 
@@ -1282,7 +1442,7 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 
 ---
 
-## 17. Migration History
+## 18. Migration History
 
 | Migration | Timestamp | Description |
 |-----------|-----------|-------------|
@@ -1350,3 +1510,14 @@ sde_blueprints → sde_blueprint_activities → sde_blueprint_materials
 | `add_sort_order_to_job_queue` | 20260224222923 | Adds sort_order, station_name, input_location, output_location to industry_job_queue |
 | `create_character_blueprints` | 20260225111931 | Creates character_blueprints table for ME/TE auto-detection |
 | `auto_production` | 20260225205355 | Adds plan_id, auto_production_parallelism, auto_production_enabled to stockpile_markers |
+| `add_meta_group_id_to_asset_item_types` | 20260319000001 | Adds meta_group_id to asset_item_types; indexes for T2 filtering in Arbiter |
+| `create_arbiter_settings` | 20260319000002 | Creates arbiter_settings with 4 structure slots (reaction, invention, component, final) |
+| `create_sde_decryptors` | 20260319000003 | Creates sde_decryptors denormalized from dogma attributes 1112–1114, 1124 |
+| `add_arbiter_enabled_to_users` | 20260319000004 | Adds arbiter_enabled boolean gate to users |
+| `add_order_book_volume_to_market_prices` | 20260320000001 | Adds order_book_volume to market_prices for D.O.S. calculation |
+| `create_market_price_history` | 20260320000002 | Creates market_price_history for 30-day daily volume snapshots |
+| `create_arbiter_scopes` | 20260320000003 | Creates arbiter_scopes — named asset groupings per user |
+| `create_arbiter_scope_members` | 20260320000004 | Creates arbiter_scope_members — character/corporation membership in scopes |
+| `create_arbiter_tax_profile` | 20260320000005 | Creates arbiter_tax_profile — fee rates and price type preferences per user |
+| `create_arbiter_lists` | 20260320000006 | Creates arbiter_blacklist and arbiter_whitelist |
+| `alter_arbiter_settings` | 20260320000007 | Drops 4 security text columns; adds use_whitelist, use_blacklist, decryptor_type_id, default_scope_id |

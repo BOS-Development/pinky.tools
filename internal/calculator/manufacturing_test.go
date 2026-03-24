@@ -117,13 +117,11 @@ func TestComputeManufacturingJobCost(t *testing.T) {
 	}
 
 	// EIV = (1000 * 5.0) + (500 * 10.0) = 5000 + 5000 = 10000
-	// Station (no bonus): EIV*cost_index + EIV*scc + EIV*tax
-	// = 10000*0.01 + 10000*0.04 + 10000*0.05 = 100 + 400 + 500 = 1000
+	// Station (no bonus): EIV*(cost_index*(1-0) + facilityTax/100 + scc) = 10000*(0.01 + 0.05 + 0.04) = 1000
 	result := ComputeManufacturingJobCost(materials, adjustedPrices, 0.01, 5.0, "station")
 	assert.InDelta(t, 1000.0, result, 0.01)
 
-	// Sotiyo (5% bonus on cost index only):
-	// = 10000*0.01*0.95 + 10000*0.04 + 10000*0.05 = 95 + 400 + 500 = 995
+	// Sotiyo (5% bonus on cost index): EIV*(0.01*0.95 + 0.05 + 0.04) = 10000*0.0995 = 995
 	result = ComputeManufacturingJobCost(materials, adjustedPrices, 0.01, 5.0, "sotiyo")
 	assert.InDelta(t, 995.0, result, 0.01)
 }
@@ -139,7 +137,7 @@ func TestComputeManufacturingJobCost_MissingPrices(t *testing.T) {
 	}
 
 	// EIV = (1000 * 5.0) = 5000 (type 99 missing, skipped)
-	// Station: 5000*0.02 + 5000*0.04 + 0 = 100 + 200 = 300
+	// Station: EIV*(cost_index + 0 + scc) = 5000*(0.02 + 0 + 0.04) = 5000*0.06 = 300
 	result := ComputeManufacturingJobCost(materials, adjustedPrices, 0.02, 0, "station")
 	assert.InDelta(t, 300.0, result, 0.01)
 }

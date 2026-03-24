@@ -48,6 +48,14 @@ func (u *CcpPrices) Update(ctx context.Context) error {
 		}
 	}
 
+	return u.doUpdate(ctx)
+}
+
+func (u *CcpPrices) ForceUpdate(ctx context.Context) error {
+	return u.doUpdate(ctx)
+}
+
+func (u *CcpPrices) doUpdate(ctx context.Context) error {
 	log.Info("updating CCP adjusted prices")
 
 	prices, err := u.esiClient.GetCcpMarketPrices(ctx)

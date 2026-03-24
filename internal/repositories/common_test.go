@@ -2,12 +2,14 @@ package repositories_test
 
 import (
 	"database/sql"
+	"fmt"
 	"math/rand"
 	"os"
 	"strconv"
 	"testing"
 
 	"github.com/annymsMthd/industry-tool/internal/database"
+	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 )
 
@@ -55,6 +57,18 @@ func setupDatabase(t *testing.T) (*sql.DB, error) {
 
 	t.Cleanup(func() {
 		db.Close()
+		// Drop the test database to free tmpfs space
+		adminDSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=disable",
+			getEnvOrDefault("DATABASE_HOST", "localhost"),
+			getEnvOrDefault("DATABASE_PORT", "5432"),
+			getEnvOrDefault("DATABASE_USER", "postgres"),
+			getEnvOrDefault("DATABASE_PASSWORD", "postgres"),
+		)
+		adminDB, err := sql.Open("postgres", adminDSN)
+		if err == nil {
+			adminDB.Exec("DROP DATABASE IF EXISTS \"" + databaseName + "\"")
+			adminDB.Close()
+		}
 	})
 
 	return db, nil

@@ -77,6 +77,45 @@ Maintain `docs/database-schema.md` as the single source of truth. Update it when
 - New migrations are created
 - The planner asks you to audit/refresh the doc
 
+## SDE Dogma Attribute Patterns
+
+### `sde_type_dogma_attributes` as Source of Truth
+
+Item stats not present in core SDE tables (invention modifiers, skill attributes, fitting attributes) live in `sde_type_dogma_attributes` (~800K rows). When a feature needs item stats that aren't in `asset_item_types` or `sde_blueprint_*`, check this table first.
+
+Known attribute IDs used in the project:
+- `1112` — `inventionProbabilityMultiplier` (float, e.g. 1.8 = +80% chance)
+- `1113` — `inventionMEModifier` (int, offset on resulting BPC ME)
+- `1114` — `inventionTEModifier` (int, offset on resulting BPC TE)
+- `1124` — `inventionMaxRunModifier` (int, offset on resulting BPC run count)
+
+### Dogma Attribute Pivot Query Pattern
+
+When deriving a semantic table from `sde_type_dogma_attributes`, use a `MAX(CASE WHEN attribute_id = N THEN value END)` pivot with a `HAVING COUNT(DISTINCT attribute_id) = N` completeness guard:
+
+```sql
+INSERT INTO sde_decryptors (type_id, name, probability_multiplier, me_modifier, te_modifier, run_modifier)
+SELECT
+    tda.type_id,
+    ait.type_name,
+    MAX(CASE WHEN tda.attribute_id = 1112 THEN tda.value END)           AS probability_multiplier,
+    MAX(CASE WHEN tda.attribute_id = 1113 THEN tda.value END)::int      AS me_modifier,
+    MAX(CASE WHEN tda.attribute_id = 1114 THEN tda.value END)::int      AS te_modifier,
+    MAX(CASE WHEN tda.attribute_id = 1124 THEN tda.value END)::int      AS run_modifier
+FROM sde_type_dogma_attributes tda
+JOIN asset_item_types ait ON ait.type_id = tda.type_id
+WHERE tda.attribute_id IN (1112, 1113, 1114, 1124)
+GROUP BY tda.type_id, ait.type_name
+HAVING COUNT(DISTINCT attribute_id) = 4  -- only rows with ALL 4 attributes
+ON CONFLICT (type_id) DO UPDATE SET ...;
+```
+
+Key points:
+- `HAVING COUNT(DISTINCT attribute_id) = N` ensures only complete rows are inserted — no partial data
+- Run this AFTER both `asset_item_types` and `sde_type_dogma_attributes` are populated in the same SDE import pass
+- Use `ON CONFLICT DO UPDATE` so re-runs are idempotent
+- The derived table should be truncated and re-populated on each SDE refresh (not incrementally updated)
+
 ## Known Duplication Patterns
 
 These patterns are repeated across multiple repository files and are prime candidates for database-level optimization:
@@ -232,6 +271,7 @@ user_id      BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
 Core: `sde_categories`, `sde_groups`, `sde_meta_groups`, `sde_market_groups`, `sde_icons`, `sde_graphics`, `sde_metadata`
 Blueprints: `sde_blueprints`, `sde_blueprint_activities`, `sde_blueprint_materials`, `sde_blueprint_products`, `sde_blueprint_skills`
 Dogma: `sde_dogma_attribute_categories`, `sde_dogma_attributes`, `sde_dogma_effects`, `sde_type_dogma_attributes`, `sde_type_dogma_effects`
+Derived (from dogma): `sde_decryptors` (invention decryptor stats — see dogma pivot pattern below)
 NPC: `sde_factions`, `sde_npc_corporations`, `sde_npc_corporation_divisions`, `sde_agents`, `sde_agents_in_space`, `sde_races`, `sde_bloodlines`, `sde_ancestries`
 Industry: `sde_planet_schematics`, `sde_planet_schematic_types`, `sde_control_tower_resources`, `industry_cost_indices`
 

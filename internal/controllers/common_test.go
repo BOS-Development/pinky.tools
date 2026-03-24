@@ -3,13 +3,16 @@ package controllers_test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"math/rand"
 	"os"
 	"strconv"
+	"testing"
 
 	"github.com/annymsMthd/industry-tool/internal/database"
 	"github.com/annymsMthd/industry-tool/internal/models"
 	"github.com/annymsMthd/industry-tool/internal/web"
+	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/mock"
 )
@@ -21,7 +24,9 @@ func getEnvOrDefault(key, defaultValue string) string {
 	return defaultValue
 }
 
-func setupDatabase() (*sql.DB, error) {
+func setupDatabase(t *testing.T) (*sql.DB, error) {
+	t.Helper()
+
 	databaseName := "testDatabase_" + strconv.Itoa(rand.Int())
 
 	host := getEnvOrDefault("DATABASE_HOST", "localhost")
@@ -54,6 +59,22 @@ func setupDatabase() (*sql.DB, error) {
 	// Set connection pool limits to prevent exhausting PostgreSQL connections
 	db.SetMaxOpenConns(5)
 	db.SetMaxIdleConns(2)
+
+	t.Cleanup(func() {
+		db.Close()
+		// Drop the test database to free tmpfs space
+		adminDSN := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=postgres sslmode=disable",
+			getEnvOrDefault("DATABASE_HOST", "localhost"),
+			getEnvOrDefault("DATABASE_PORT", "5432"),
+			getEnvOrDefault("DATABASE_USER", "postgres"),
+			getEnvOrDefault("DATABASE_PASSWORD", "postgres"),
+		)
+		adminDB, err := sql.Open("postgres", adminDSN)
+		if err == nil {
+			adminDB.Exec("DROP DATABASE IF EXISTS \"" + databaseName + "\"")
+			adminDB.Close()
+		}
+	})
 
 	return db, nil
 }

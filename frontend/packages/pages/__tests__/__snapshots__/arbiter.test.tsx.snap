@@ -1,0 +1,3327 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`ArbiterPage renders initial authenticated state 1`] = `
+<div>
+  <nav
+    data-testid="navbar"
+  />
+  <div
+    class="px-4 pb-4 bg-background-void min-h-screen flex flex-col"
+  >
+    <div
+      class="flex items-center gap-3 py-3"
+    >
+      <h1
+        class="text-xl font-semibold text-text-heading"
+      >
+        Arbiter
+      </h1>
+      <span
+        class="text-sm text-text-muted"
+      >
+        Industry Advisor
+      </span>
+    </div>
+    <div
+      data-open="false"
+      data-testid="collapsible"
+    >
+      <div
+        class="border border-overlay-subtle rounded-lg mb-4 bg-background-panel"
+      >
+        <div
+          data-testid="collapsible-trigger"
+        >
+          <button
+            class="w-full flex items-center justify-between px-4 py-3 hover:bg-interactive-hover rounded-t-lg transition-colors"
+          >
+            <span
+              class="flex items-center gap-2 text-sm font-medium text-text-primary"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-settings2 lucide-settings-2 h-4 w-4 text-text-muted"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 17H5"
+                />
+                <path
+                  d="M19 7h-9"
+                />
+                <circle
+                  cx="17"
+                  cy="17"
+                  r="3"
+                />
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="3"
+                />
+              </svg>
+              Settings
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down h-4 w-4 text-text-muted"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          data-testid="collapsible-content"
+        >
+          <div
+            class="border-t border-overlay-subtle"
+          >
+            <div
+              data-testid="tabs"
+              data-value="structures"
+            >
+              <div
+                role="tablist"
+              >
+                <button
+                  data-value="structures"
+                  role="tab"
+                >
+                  Structures
+                </button>
+                <button
+                  data-value="tax"
+                  role="tab"
+                >
+                  Tax & Pricing
+                </button>
+                <button
+                  data-value="lists"
+                  role="tab"
+                >
+                  Lists
+                </button>
+              </div>
+              <div
+                data-value="structures"
+                role="tabpanel"
+              >
+                <div
+                  class="mb-5 pb-5 border-b border-overlay-subtle"
+                >
+                  <div
+                    class="flex items-center gap-2 mb-2"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-book-marked h-4 w-4 text-text-muted"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 2v8l3-3 3 3V2"
+                      />
+                      <path
+                        d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"
+                      />
+                    </svg>
+                    <span
+                      class="text-sm font-medium text-text-heading"
+                    >
+                      Manufacturing Profiles
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-2 flex-wrap"
+                  >
+                    <div
+                      data-testid="select"
+                      data-value=""
+                    >
+                      <div
+                        role="combobox"
+                      >
+                        <span>
+                          Select a profile…
+                        </span>
+                      </div>
+                      <div />
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8"
+                      disabled=""
+                    >
+                      Apply
+                    </button>
+                    <div>
+                      Load this profile into the settings fields below
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8 gap-1.5"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-save h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+                        />
+                        <path
+                          d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"
+                        />
+                        <path
+                          d="M7 3v4a1 1 0 0 0 1 1h7"
+                        />
+                      </svg>
+                      Save as Profile
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="flex flex-wrap gap-6"
+                >
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Reaction
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="tatara"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t2"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Invention
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="raitaru"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t1"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Component Build
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="raitaru"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t2"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Final Build
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="azbel"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t2"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                data-value="tax"
+                role="tabpanel"
+              >
+                <div
+                  class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-2xl"
+                >
+                  <div
+                    class="space-y-1"
+                  >
+                    <label
+                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                    >
+                      Sales Tax %
+                    </label>
+                    <input
+                      class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                      max="100"
+                      min="0"
+                      step="0.1"
+                      type="number"
+                      value="8"
+                    />
+                  </div>
+                  <div
+                    class="space-y-1"
+                  >
+                    <label
+                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                    >
+                      Broker Fee %
+                    </label>
+                    <input
+                      class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                      max="100"
+                      min="0"
+                      step="0.1"
+                      type="number"
+                      value="3"
+                    />
+                  </div>
+                  <div
+                    class="space-y-1"
+                  >
+                    <label
+                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                    >
+                      Structure Broker Fee %
+                    </label>
+                    <input
+                      class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                      max="100"
+                      min="0"
+                      step="0.1"
+                      type="number"
+                      value="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                data-value="lists"
+                role="tabpanel"
+              >
+                <div
+                  class="flex items-center gap-8 mb-4"
+                >
+                  <label
+                    class="font-medium text-[var(--color-text-secondary)] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 text-sm cursor-pointer"
+                  >
+                    <input
+                      data-testid="switch"
+                      type="checkbox"
+                    />
+                    Use Whitelist (show only whitelisted)
+                  </label>
+                  <label
+                    class="font-medium text-[var(--color-text-secondary)] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 text-sm cursor-pointer"
+                  >
+                    <input
+                      data-testid="switch"
+                      type="checkbox"
+                    />
+                    Use Blacklist (hide blacklisted)
+                  </label>
+                </div>
+                <div
+                  class="flex gap-6"
+                >
+                  <div
+                    class="flex-1"
+                  >
+                    <div
+                      class="flex items-center justify-between mb-2"
+                    >
+                      <span
+                        class="text-sm font-medium text-teal-success"
+                      >
+                        Whitelist (
+                        0
+                        )
+                      </span>
+                    </div>
+                    <div
+                      class="border border-overlay-subtle rounded max-h-48 overflow-y-auto"
+                    >
+                      <div
+                        class="flex items-center justify-center py-6"
+                      >
+                        <p
+                          class="text-xs text-text-muted"
+                        >
+                          No items — right-click in results to add
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1"
+                  >
+                    <div
+                      class="flex items-center justify-between mb-2"
+                    >
+                      <span
+                        class="text-sm font-medium text-rose-danger"
+                      >
+                        Blacklist (
+                        0
+                        )
+                      </span>
+                    </div>
+                    <div
+                      class="border border-overlay-subtle rounded max-h-48 overflow-y-auto"
+                    >
+                      <div
+                        class="flex items-center justify-center py-6"
+                      >
+                        <p
+                          class="text-xs text-text-muted"
+                        >
+                          No items — right-click in results to add
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="mt-3"
+                >
+                  <a
+                    href="/arbiter/lists"
+                  >
+                    Manage lists in full view
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-external-link h-3 w-3"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15 3h6v6"
+                      />
+                      <path
+                        d="M10 14 21 3"
+                      />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div
+              class="px-4 pb-4 flex justify-end"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="flex items-center gap-3 mb-3 flex-wrap"
+    >
+      <div
+        class="flex items-center gap-2 flex-1 flex-wrap"
+      >
+        <div
+          class="flex items-center gap-1"
+        >
+          <div
+            data-testid="select"
+            data-value=""
+          >
+            <div
+              role="combobox"
+            >
+              <span>
+                Select scope...
+              </span>
+            </div>
+            <div />
+          </div>
+          <div
+            class="flex items-center gap-1"
+          >
+            <input
+              class="flex rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm w-28"
+              placeholder="New scope..."
+              value=""
+            />
+            <button
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm text-xs h-8 w-8 p-0"
+              disabled=""
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-plus h-3.5 w-3.5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="M12 5v14"
+                />
+              </svg>
+            </button>
+          </div>
+          <div>
+            Create new scope
+          </div>
+        </div>
+        <div
+          data-testid="select"
+          data-value="maximize_roi"
+        >
+          <div
+            role="combobox"
+          >
+            <span />
+          </div>
+          <div>
+            <div
+              data-value="maximize_roi"
+              role="option"
+            >
+              Maximize ROI
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex items-center gap-1.5"
+        >
+          <span
+            class="text-xs text-text-muted"
+          >
+            Chain:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
+          >
+            Build if Profitable
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Build All
+          </button>
+        </div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
+        >
+          Scan Opportunities
+        </button>
+        <div
+          class="flex items-center gap-2"
+        >
+          <button
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-refresh-cw h-4 w-4 mr-2"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
+              />
+              <path
+                d="M21 3v5h-5"
+              />
+              <path
+                d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"
+              />
+              <path
+                d="M8 16H3v5"
+              />
+            </svg>
+            ESI Refresh
+          </button>
+          <div>
+            Fetch latest Jita market prices, then re-scan
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex items-center gap-3"
+      >
+        <div
+          class="flex items-center gap-1.5"
+        >
+          <span
+            class="text-xs text-text-muted"
+          >
+            Input:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
+          >
+            Sell
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Buy
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-1.5"
+        >
+          <span
+            class="text-xs text-text-muted"
+          >
+            Output:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Sell
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
+          >
+            Buy
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="flex items-center gap-4 mb-3 flex-wrap"
+    >
+      <div
+        class="flex items-center gap-2 flex-wrap"
+      >
+        <span
+          class="text-xs text-text-muted"
+        >
+          Category:
+        </span>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors bg-primary/10 border-primary/30 text-primary"
+        >
+          ship
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors bg-primary/10 border-primary/30 text-primary"
+        >
+          module
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          charge
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          drone
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          implant
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          booster
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          structure
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          deployable
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          fighter
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-2 flex-wrap"
+      >
+        <span
+          class="text-xs text-text-muted"
+        >
+          Tech:
+        </span>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Tech I
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors bg-primary/10 border-primary/30 text-primary"
+        >
+          Tech II
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Tech III
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Faction
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Storyline
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Officer
+        </button>
+      </div>
+      <div
+        class="relative ml-auto"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m21 21-4.34-4.34"
+          />
+          <circle
+            cx="11"
+            cy="11"
+            r="8"
+          />
+        </svg>
+        <input
+          class="flex rounded-sm border px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-7 h-7 text-xs w-48 bg-background-elevated border-overlay-subtle"
+          placeholder="Search..."
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="flex-1 border border-overlay-subtle rounded-lg bg-background-panel overflow-hidden"
+    >
+      <div
+        class="flex flex-col items-center justify-center py-16 gap-2"
+      >
+        <p
+          class="text-sm text-text-secondary"
+        >
+          Configure your settings above, then click Scan Opportunities
+        </p>
+      </div>
+    </div>
+    <div
+      class="border-t border-overlay-subtle bg-background-panel h-[300px] flex"
+    >
+      <div
+        class="w-64 border-r border-overlay-subtle flex flex-col"
+      >
+        <div
+          class="px-3 py-2 border-b border-overlay-subtle flex-shrink-0"
+        >
+          <span
+            class="text-xs font-medium text-text-heading"
+          >
+            Ingredients
+          </span>
+        </div>
+        <div
+          class="flex-1 overflow-y-auto"
+        >
+          <div
+            class="flex items-center justify-center h-full"
+          >
+            <p
+              class="text-xs text-text-muted"
+            >
+              Click a row to select
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex-1 flex flex-col min-w-0"
+      >
+        <div
+          data-testid="tabs"
+        >
+          <div
+            role="tablist"
+          >
+            <button
+              data-value="shopping"
+              role="tab"
+            >
+              Shopping List
+            </button>
+            <button
+              data-value="sell"
+              role="tab"
+            >
+              Sell Orders
+            </button>
+            <button
+              data-value="buy"
+              role="tab"
+            >
+              Buy Orders
+            </button>
+          </div>
+          <div
+            data-value="shopping"
+            role="tabpanel"
+          >
+            <div
+              class="flex items-center justify-center h-full"
+            >
+              <p
+                class="text-xs text-text-muted"
+              >
+                Select an opportunity to see shopping list
+              </p>
+            </div>
+          </div>
+          <div
+            data-value="sell"
+            role="tabpanel"
+          >
+            <div
+              class="flex items-center justify-center h-full"
+            >
+              <p
+                class="text-xs text-text-muted"
+              >
+                Sell order tracking coming soon
+              </p>
+            </div>
+          </div>
+          <div
+            data-value="buy"
+            role="tabpanel"
+          >
+            <div
+              class="flex items-center justify-center h-full"
+            >
+              <p
+                class="text-xs text-text-muted"
+              >
+                Buy order tracking coming soon
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ArbiterPage renders loading state 1`] = `
+<div>
+  <div
+    data-testid="loading"
+  />
+</div>
+`;
+
+exports[`ArbiterPage renders opportunities after successful scan 1`] = `
+<div>
+  <nav
+    data-testid="navbar"
+  />
+  <div
+    class="px-4 pb-4 bg-background-void min-h-screen flex flex-col"
+  >
+    <div
+      class="flex items-center gap-3 py-3"
+    >
+      <h1
+        class="text-xl font-semibold text-text-heading"
+      >
+        Arbiter
+      </h1>
+      <span
+        class="text-sm text-text-muted"
+      >
+        Industry Advisor
+      </span>
+    </div>
+    <div
+      data-open="false"
+      data-testid="collapsible"
+    >
+      <div
+        class="border border-overlay-subtle rounded-lg mb-4 bg-background-panel"
+      >
+        <div
+          data-testid="collapsible-trigger"
+        >
+          <button
+            class="w-full flex items-center justify-between px-4 py-3 hover:bg-interactive-hover rounded-t-lg transition-colors"
+          >
+            <span
+              class="flex items-center gap-2 text-sm font-medium text-text-primary"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-settings2 lucide-settings-2 h-4 w-4 text-text-muted"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M14 17H5"
+                />
+                <path
+                  d="M19 7h-9"
+                />
+                <circle
+                  cx="17"
+                  cy="17"
+                  r="3"
+                />
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="3"
+                />
+              </svg>
+              Settings
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down h-4 w-4 text-text-muted"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          data-testid="collapsible-content"
+        >
+          <div
+            class="border-t border-overlay-subtle"
+          >
+            <div
+              data-testid="tabs"
+              data-value="structures"
+            >
+              <div
+                role="tablist"
+              >
+                <button
+                  data-value="structures"
+                  role="tab"
+                >
+                  Structures
+                </button>
+                <button
+                  data-value="tax"
+                  role="tab"
+                >
+                  Tax & Pricing
+                </button>
+                <button
+                  data-value="lists"
+                  role="tab"
+                >
+                  Lists
+                </button>
+              </div>
+              <div
+                data-value="structures"
+                role="tabpanel"
+              >
+                <div
+                  class="mb-5 pb-5 border-b border-overlay-subtle"
+                >
+                  <div
+                    class="flex items-center gap-2 mb-2"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-book-marked h-4 w-4 text-text-muted"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M10 2v8l3-3 3 3V2"
+                      />
+                      <path
+                        d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"
+                      />
+                    </svg>
+                    <span
+                      class="text-sm font-medium text-text-heading"
+                    >
+                      Manufacturing Profiles
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-2 flex-wrap"
+                  >
+                    <div
+                      data-testid="select"
+                      data-value=""
+                    >
+                      <div
+                        role="combobox"
+                      >
+                        <span>
+                          Select a profile…
+                        </span>
+                      </div>
+                      <div />
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8"
+                      disabled=""
+                    >
+                      Apply
+                    </button>
+                    <div>
+                      Load this profile into the settings fields below
+                    </div>
+                    <button
+                      class="inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm px-3 text-xs h-8 gap-1.5"
+                    >
+                      <svg
+                        aria-hidden="true"
+                        class="lucide lucide-save h-3.5 w-3.5"
+                        fill="none"
+                        height="24"
+                        stroke="currentColor"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                        width="24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"
+                        />
+                        <path
+                          d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"
+                        />
+                        <path
+                          d="M7 3v4a1 1 0 0 0 1 1h7"
+                        />
+                      </svg>
+                      Save as Profile
+                    </button>
+                  </div>
+                </div>
+                <div
+                  class="flex flex-wrap gap-6"
+                >
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Reaction
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="tatara"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t2"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Invention
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="raitaru"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t1"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Component Build
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="raitaru"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t2"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1 min-w-[200px] space-y-3"
+                  >
+                    <h3
+                      class="text-sm font-semibold text-text-heading border-b border-overlay-subtle pb-1"
+                    >
+                      Final Build
+                    </h3>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Structure
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="azbel"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="station"
+                            role="option"
+                          >
+                            Station
+                          </div>
+                          <div
+                            data-value="raitaru"
+                            role="option"
+                          >
+                            Raitaru
+                          </div>
+                          <div
+                            data-value="azbel"
+                            role="option"
+                          >
+                            Azbel
+                          </div>
+                          <div
+                            data-value="sotiyo"
+                            role="option"
+                          >
+                            Sotiyo
+                          </div>
+                          <div
+                            data-value="athanor"
+                            role="option"
+                          >
+                            Athanor
+                          </div>
+                          <div
+                            data-value="tatara"
+                            role="option"
+                          >
+                            Tatara
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Rig
+                      </label>
+                      <div
+                        data-testid="select"
+                        data-value="t2"
+                      >
+                        <div
+                          role="combobox"
+                        >
+                          <span />
+                        </div>
+                        <div>
+                          <div
+                            data-value="none"
+                            role="option"
+                          >
+                            None
+                          </div>
+                          <div
+                            data-value="t1"
+                            role="option"
+                          >
+                            T1
+                          </div>
+                          <div
+                            data-value="t2"
+                            role="option"
+                          >
+                            T2
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        System
+                      </label>
+                      <div
+                        class="relative"
+                      >
+                        <div
+                          class="relative"
+                        >
+                          <input
+                            class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm pr-7"
+                            placeholder="Search system..."
+                            value="Jita"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div
+                      class="space-y-1"
+                    >
+                      <label
+                        class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                      >
+                        Facility Tax %
+                      </label>
+                      <input
+                        class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                        max="10"
+                        min="0"
+                        step="0.1"
+                        type="number"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div
+                data-value="tax"
+                role="tabpanel"
+              >
+                <div
+                  class="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-2xl"
+                >
+                  <div
+                    class="space-y-1"
+                  >
+                    <label
+                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                    >
+                      Sales Tax %
+                    </label>
+                    <input
+                      class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                      max="100"
+                      min="0"
+                      step="0.1"
+                      type="number"
+                      value="8"
+                    />
+                  </div>
+                  <div
+                    class="space-y-1"
+                  >
+                    <label
+                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                    >
+                      Broker Fee %
+                    </label>
+                    <input
+                      class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                      max="100"
+                      min="0"
+                      step="0.1"
+                      type="number"
+                      value="3"
+                    />
+                  </div>
+                  <div
+                    class="space-y-1"
+                  >
+                    <label
+                      class="font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-xs text-text-secondary"
+                    >
+                      Structure Broker Fee %
+                    </label>
+                    <input
+                      class="flex w-full rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm"
+                      max="100"
+                      min="0"
+                      step="0.1"
+                      type="number"
+                      value="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div
+                data-value="lists"
+                role="tabpanel"
+              >
+                <div
+                  class="flex items-center gap-8 mb-4"
+                >
+                  <label
+                    class="font-medium text-[var(--color-text-secondary)] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 text-sm cursor-pointer"
+                  >
+                    <input
+                      data-testid="switch"
+                      type="checkbox"
+                    />
+                    Use Whitelist (show only whitelisted)
+                  </label>
+                  <label
+                    class="font-medium text-[var(--color-text-secondary)] peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2 text-sm cursor-pointer"
+                  >
+                    <input
+                      data-testid="switch"
+                      type="checkbox"
+                    />
+                    Use Blacklist (hide blacklisted)
+                  </label>
+                </div>
+                <div
+                  class="flex gap-6"
+                >
+                  <div
+                    class="flex-1"
+                  >
+                    <div
+                      class="flex items-center justify-between mb-2"
+                    >
+                      <span
+                        class="text-sm font-medium text-teal-success"
+                      >
+                        Whitelist (
+                        0
+                        )
+                      </span>
+                    </div>
+                    <div
+                      class="border border-overlay-subtle rounded max-h-48 overflow-y-auto"
+                    >
+                      <div
+                        class="flex items-center justify-center py-6"
+                      >
+                        <p
+                          class="text-xs text-text-muted"
+                        >
+                          No items — right-click in results to add
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    class="flex-1"
+                  >
+                    <div
+                      class="flex items-center justify-between mb-2"
+                    >
+                      <span
+                        class="text-sm font-medium text-rose-danger"
+                      >
+                        Blacklist (
+                        0
+                        )
+                      </span>
+                    </div>
+                    <div
+                      class="border border-overlay-subtle rounded max-h-48 overflow-y-auto"
+                    >
+                      <div
+                        class="flex items-center justify-center py-6"
+                      >
+                        <p
+                          class="text-xs text-text-muted"
+                        >
+                          No items — right-click in results to add
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="mt-3"
+                >
+                  <a
+                    href="/arbiter/lists"
+                  >
+                    Manage lists in full view
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-external-link h-3 w-3"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15 3h6v6"
+                      />
+                      <path
+                        d="M10 14 21 3"
+                      />
+                      <path
+                        d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                      />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div
+              class="px-4 pb-4 flex justify-end"
+            >
+              <button
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="flex items-center gap-3 mb-3 flex-wrap"
+    >
+      <div
+        class="flex items-center gap-2 flex-1 flex-wrap"
+      >
+        <div
+          class="flex items-center gap-1"
+        >
+          <div
+            data-testid="select"
+            data-value=""
+          >
+            <div
+              role="combobox"
+            >
+              <span>
+                Select scope...
+              </span>
+            </div>
+            <div />
+          </div>
+          <div
+            class="flex items-center gap-1"
+          >
+            <input
+              class="flex rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-8 text-sm w-28"
+              placeholder="New scope..."
+              value=""
+            />
+            <button
+              class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] rounded-sm text-xs h-8 w-8 p-0"
+              disabled=""
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-plus h-3.5 w-3.5"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M5 12h14"
+                />
+                <path
+                  d="M12 5v14"
+                />
+              </svg>
+            </button>
+          </div>
+          <div>
+            Create new scope
+          </div>
+        </div>
+        <div
+          data-testid="select"
+          data-value="maximize_roi"
+        >
+          <div
+            role="combobox"
+          >
+            <span />
+          </div>
+          <div>
+            <div
+              data-value="maximize_roi"
+              role="option"
+            >
+              Maximize ROI
+            </div>
+          </div>
+        </div>
+        <div
+          class="flex items-center gap-1.5"
+        >
+          <span
+            class="text-xs text-text-muted"
+          >
+            Chain:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
+          >
+            Build if Profitable
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Build All
+          </button>
+        </div>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-[var(--color-primary-cyan)] text-[var(--color-bg-void)] shadow hover:bg-[var(--color-cyan-muted)] font-semibold h-8 rounded-sm px-3 text-xs"
+        >
+          Scan Opportunities
+        </button>
+        <div
+          class="flex items-center gap-2"
+        >
+          <button
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-[var(--color-border-active)] bg-transparent text-[var(--color-text-primary)] shadow-sm hover:bg-[var(--color-surface-elevated)] hover:border-[var(--color-primary-cyan)] h-8 rounded-sm px-3 text-xs"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-refresh-cw h-4 w-4 mr-2"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
+              />
+              <path
+                d="M21 3v5h-5"
+              />
+              <path
+                d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"
+              />
+              <path
+                d="M8 16H3v5"
+              />
+            </svg>
+            ESI Refresh
+          </button>
+          <div>
+            Fetch latest Jita market prices, then re-scan
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex items-center gap-3"
+      >
+        <div
+          class="flex items-center gap-1.5"
+        >
+          <span
+            class="text-xs text-text-muted"
+          >
+            Input:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
+          >
+            Sell
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Buy
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-1.5"
+        >
+          <span
+            class="text-xs text-text-muted"
+          >
+            Output:
+          </span>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors bg-primary/10 border-primary/30 text-primary"
+          >
+            Sell
+          </button>
+          <button
+            class="px-2.5 py-1 text-xs rounded border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium"
+          >
+            Buy
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="flex items-center gap-4 mb-3 flex-wrap"
+    >
+      <div
+        class="flex items-center gap-2 flex-wrap"
+      >
+        <span
+          class="text-xs text-text-muted"
+        >
+          Category:
+        </span>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors bg-primary/10 border-primary/30 text-primary"
+        >
+          ship
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors bg-primary/10 border-primary/30 text-primary"
+        >
+          module
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          charge
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          drone
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          implant
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          booster
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          structure
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          deployable
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border capitalize transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          fighter
+        </button>
+      </div>
+      <div
+        class="flex items-center gap-2 flex-wrap"
+      >
+        <span
+          class="text-xs text-text-muted"
+        >
+          Tech:
+        </span>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Tech I
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors bg-primary/10 border-primary/30 text-primary"
+        >
+          Tech II
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Tech III
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Faction
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Storyline
+        </button>
+        <button
+          class="px-2.5 py-0.5 text-xs rounded-full border transition-colors border-overlay-subtle text-text-muted hover:border-overlay-medium hover:text-text-secondary"
+        >
+          Officer
+        </button>
+      </div>
+      <div
+        class="relative ml-auto"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-search absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-muted pointer-events-none"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="m21 21-4.34-4.34"
+          />
+          <circle
+            cx="11"
+            cy="11"
+            r="8"
+          />
+        </svg>
+        <input
+          class="flex rounded-sm border px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm pl-8 pr-7 h-7 text-xs w-48 bg-background-elevated border-overlay-subtle"
+          placeholder="Search..."
+          value=""
+        />
+      </div>
+    </div>
+    <div
+      class="flex-1 border border-overlay-subtle rounded-lg bg-background-panel overflow-hidden"
+    >
+      <div
+        class="flex items-center gap-4 px-4 py-2 border-b border-overlay-subtle text-xs text-text-muted"
+      >
+        <span>
+          Scanned 
+          150
+           blueprints
+        </span>
+        <span>
+          Inventor:
+           
+          <span
+            class="text-text-secondary"
+          >
+            Inventor Alt
+          </span>
+        </span>
+        <span>
+          2
+           result
+          s
+        </span>
+      </div>
+      <div
+        class="overflow-x-auto"
+      >
+        <div
+          class="relative w-full overflow-auto"
+        >
+          <table
+            class="w-full caption-bottom text-sm"
+          >
+            <thead
+              class="[&_tr]:border-b [&_tr]:border-[var(--color-border-active)]"
+            >
+              <tr
+                class="border-b transition-colors data-[state=selected]:bg-muted border-overlay-subtle hover:bg-transparent"
+              >
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 w-8 text-xs text-text-muted"
+                >
+                  #
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Name
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Duration
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    Demand/d
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    D.O.S.
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Qty
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    ROI
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    Mat. Cost
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Job Cost
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Total Cost
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    Revenue
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    Sales Tax
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold text-[var(--color-heading)]/70 uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs cursor-pointer select-none hover:text-text-primary transition-colors"
+                >
+                  <span
+                    class="flex items-center gap-0.5"
+                  >
+                    Profit
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-down h-3 w-3"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m6 9 6 6 6-6"
+                      />
+                    </svg>
+                  </span>
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  ME
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  TE
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-xs font-medium text-text-secondary py-2"
+                >
+                  Max Runs
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-xs font-medium text-text-secondary py-2"
+                >
+                  Decryptor
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Group
+                </th>
+                <th
+                  class="h-10 px-2 text-left align-middle font-semibold uppercase tracking-wider [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted"
+                >
+                  Category
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="[&_tr:last-child]:border-0"
+            >
+              <tr
+                class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-interactive-hover"
+              >
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted w-8"
+                >
+                  1
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="flex items-center gap-2 text-sm font-medium text-text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-right h-3.5 w-3.5 text-text-muted flex-shrink-0"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m9 18 6-6-6-6"
+                      />
+                    </svg>
+                    <img
+                      alt="Vagabond"
+                      class="w-5 h-5 rounded flex-shrink-0"
+                      src="https://images.evetech.net/types/12345/icon?size=32"
+                    />
+                    Vagabond
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary"
+                >
+                  1d
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  5.2
+                  /d
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="text-sm font-mono text-amber-manufacturing"
+                  >
+                    14.3
+                    d
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <input
+                    class="flex rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-7 w-16 text-xs text-center"
+                    min="1"
+                    type="number"
+                    value="1"
+                  />
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="text-sm font-mono text-teal-success"
+                  >
+                    22.1
+                    %
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  290.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  15.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  320.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  420.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-muted font-mono"
+                >
+                  16.80M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="text-sm font-mono text-teal-success"
+                  >
+                    70.60M ISK
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  4
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  4
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  1
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary truncate max-w-[100px]"
+                >
+                  Accelerant Decryptor
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary"
+                >
+                  Heavy Assault Cruisers
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <div
+                    class="inline-flex items-center rounded-sm font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border shadow hover:bg-[var(--color-overlay-medium)] text-[10px] px-1.5 py-0 bg-blue-science/20 text-blue-science border-blue-science/30"
+                  >
+                    ship
+                  </div>
+                </td>
+              </tr>
+              <tr
+                class="border-b border-[var(--color-border-dim)] transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-interactive-hover"
+              >
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-muted w-8"
+                >
+                  2
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="flex items-center gap-2 text-sm font-medium text-text-primary"
+                  >
+                    <svg
+                      aria-hidden="true"
+                      class="lucide lucide-chevron-right h-3.5 w-3.5 text-text-muted flex-shrink-0"
+                      fill="none"
+                      height="24"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      viewBox="0 0 24 24"
+                      width="24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="m9 18 6-6-6-6"
+                      />
+                    </svg>
+                    <img
+                      alt="Caldari Navy Kinetic Plating"
+                      class="w-5 h-5 rounded flex-shrink-0"
+                      src="https://images.evetech.net/types/67890/icon?size=32"
+                    />
+                    Caldari Navy Kinetic Plating
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary"
+                >
+                  6h
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  2.1
+                  /d
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="text-sm font-mono text-teal-success"
+                  >
+                    30.0
+                    d
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <input
+                    class="flex rounded-sm border border-[var(--color-border-dim)] bg-[var(--color-bg-void)] px-3 py-1 text-[var(--color-text-primary)] shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus-visible:outline-none focus-visible:border-[var(--color-primary-cyan)] focus-visible:ring-1 focus-visible:ring-[var(--color-primary-cyan)] focus-visible:shadow-[var(--glow-cyan-sm)] disabled:cursor-not-allowed disabled:opacity-50 md:text-sm h-7 w-16 text-xs text-center"
+                    min="1"
+                    type="number"
+                    value="3"
+                  />
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="text-sm font-mono text-teal-success"
+                  >
+                    2.1
+                    %
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  8.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  1.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  11.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-data-value font-mono"
+                >
+                  11.00M ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-muted font-mono"
+                >
+                  440.00K ISK
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <span
+                    class="text-sm font-mono text-teal-success"
+                  >
+                    230.00K ISK
+                  </span>
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  2
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  2
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-sm text-text-secondary font-mono"
+                >
+                  3
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary truncate max-w-[100px]"
+                >
+                  None
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2 text-xs text-text-secondary"
+                >
+                  Armor Platings
+                </td>
+                <td
+                  class="p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] py-2"
+                >
+                  <div
+                    class="inline-flex items-center rounded-sm font-semibold transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--color-primary-cyan)] border shadow hover:bg-[var(--color-overlay-medium)] text-[10px] px-1.5 py-0 bg-category-violet/20 text-category-violet border-category-violet/30"
+                  >
+                    module
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div
+      class="border-t border-overlay-subtle bg-background-panel h-[300px] flex"
+    >
+      <div
+        class="w-64 border-r border-overlay-subtle flex flex-col"
+      >
+        <div
+          class="px-3 py-2 border-b border-overlay-subtle flex-shrink-0"
+        >
+          <span
+            class="text-xs font-medium text-text-heading"
+          >
+            Ingredients
+          </span>
+        </div>
+        <div
+          class="flex-1 overflow-y-auto"
+        >
+          <div
+            class="flex items-center justify-center h-full"
+          >
+            <p
+              class="text-xs text-text-muted"
+            >
+              Click a row to select
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="flex-1 flex flex-col min-w-0"
+      >
+        <div
+          data-testid="tabs"
+        >
+          <div
+            role="tablist"
+          >
+            <button
+              data-value="shopping"
+              role="tab"
+            >
+              Shopping List
+            </button>
+            <button
+              data-value="sell"
+              role="tab"
+            >
+              Sell Orders
+            </button>
+            <button
+              data-value="buy"
+              role="tab"
+            >
+              Buy Orders
+            </button>
+          </div>
+          <div
+            data-value="shopping"
+            role="tabpanel"
+          >
+            <div
+              class="flex items-center justify-center h-full"
+            >
+              <p
+                class="text-xs text-text-muted"
+              >
+                Select an opportunity to see shopping list
+              </p>
+            </div>
+          </div>
+          <div
+            data-value="sell"
+            role="tabpanel"
+          >
+            <div
+              class="flex items-center justify-center h-full"
+            >
+              <p
+                class="text-xs text-text-muted"
+              >
+                Sell order tracking coming soon
+              </p>
+            </div>
+          </div>
+          <div
+            data-value="buy"
+            role="tabpanel"
+          >
+            <div
+              class="flex items-center justify-center h-full"
+            >
+              <p
+                class="text-xs text-text-muted"
+              >
+                Buy order tracking coming soon
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ArbiterPage renders unauthorized state 1`] = `
+<div>
+  <div
+    data-testid="unauthorized"
+  />
+</div>
+`;

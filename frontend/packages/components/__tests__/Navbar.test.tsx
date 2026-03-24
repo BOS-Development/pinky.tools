@@ -82,6 +82,7 @@ describe('Navbar Component', () => {
     cleanup();
     render(<Navbar />);
     fireEvent.pointerDown(screen.getByRole('button', { name: /industry/i }));
+    expect(screen.getByRole('menuitem', { name: /arbiter/i })).toHaveAttribute('href', '/arbiter');
     expect(screen.getByRole('menuitem', { name: /reactions/i })).toHaveAttribute('href', '/reactions');
     expect(screen.getByRole('menuitem', { name: /^industry$/i })).toHaveAttribute('href', '/industry');
     expect(screen.getByRole('menuitem', { name: /plans/i })).toHaveAttribute('href', '/production-plans');

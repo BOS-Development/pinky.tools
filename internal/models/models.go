@@ -28,6 +28,7 @@ type EveInventoryType struct {
 	PortionSize    *int
 	Published      *bool
 	MarketGroupID  *int64
+	MetaGroupID    *int64
 	GraphicID      *int64
 	RaceID         *int64
 	Description    *string
@@ -92,13 +93,14 @@ type StockpileMarker struct {
 }
 
 type MarketPrice struct {
-	TypeID        int64
-	RegionID      int64
-	BuyPrice      *float64
-	SellPrice     *float64
-	DailyVolume   *int64
-	AdjustedPrice *float64
-	UpdatedAt     string
+	TypeID          int64
+	RegionID        int64
+	BuyPrice        *float64
+	SellPrice       *float64
+	DailyVolume     *int64
+	OrderBookVolume *int64
+	AdjustedPrice   *float64
+	UpdatedAt       string
 }
 
 type Contact struct {

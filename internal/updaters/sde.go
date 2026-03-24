@@ -36,6 +36,10 @@ type SdeItemTypeRepository interface {
 	UpsertItemTypes(ctx context.Context, itemTypes []models.EveInventoryType) error
 }
 
+type SdeDecryptorRepository interface {
+	UpsertDecryptors(ctx context.Context) error
+}
+
 type SdeRegionRepository interface {
 	Upsert(ctx context.Context, regions []models.Region) error
 }
@@ -63,6 +67,7 @@ type Sde struct {
 	esiClient               SdeEsiClient
 	sdeDataRepo             SdeDataRepository
 	itemTypeRepository      SdeItemTypeRepository
+	decryptorRepository     SdeDecryptorRepository
 	regionRepository        SdeRegionRepository
 	constellationRepository SdeConstellationRepository
 	solarSystemRepository   SdeSolarSystemRepository
@@ -89,6 +94,12 @@ func NewSde(
 		solarSystemRepository:   solarSystemRepository,
 		stationRepository:       stationRepository,
 	}
+}
+
+// WithDecryptorRepository sets an optional decryptor repository for post-dogma population.
+func (u *Sde) WithDecryptorRepository(repo SdeDecryptorRepository) *Sde {
+	u.decryptorRepository = repo
+	return u
 }
 
 func (u *Sde) Update(ctx context.Context) error {
@@ -170,11 +181,7 @@ func (u *Sde) Update(ctx context.Context) error {
 		log.Info("NPC station names resolved", "resolved", len(names))
 	}
 
-	if err := u.itemTypeRepository.UpsertItemTypes(ctx, data.Types); err != nil {
-		return errors.Wrap(err, "failed to upsert item types")
-	}
-
-	// Step 6: Populate SDE-specific tables
+	// Step 6: Populate SDE-specific tables (reference tables first, then item types which FK into them)
 	if err := u.sdeDataRepo.UpsertCategories(ctx, data.Categories); err != nil {
 		return errors.Wrap(err, "failed to upsert categories")
 	}
@@ -191,6 +198,10 @@ func (u *Sde) Update(ctx context.Context) error {
 		return errors.Wrap(err, "failed to upsert market groups")
 	}
 
+	if err := u.itemTypeRepository.UpsertItemTypes(ctx, data.Types); err != nil {
+		return errors.Wrap(err, "failed to upsert item types")
+	}
+
 	if err := u.sdeDataRepo.UpsertIcons(ctx, data.Icons); err != nil {
 		return errors.Wrap(err, "failed to upsert icons")
 	}
@@ -205,6 +216,14 @@ func (u *Sde) Update(ctx context.Context) error {
 
 	if err := u.sdeDataRepo.UpsertDogma(ctx, data.DogmaAttributeCategories, data.DogmaAttributes, data.DogmaEffects, data.TypeDogmaAttributes, data.TypeDogmaEffects); err != nil {
 		return errors.Wrap(err, "failed to upsert dogma")
+	}
+
+	// Populate sde_decryptors from dogma attributes (requires both item_types and dogma to be populated)
+	if u.decryptorRepository != nil {
+		if err := u.decryptorRepository.UpsertDecryptors(ctx); err != nil {
+			return errors.Wrap(err, "failed to upsert decryptors")
+		}
+		log.Info("SDE decryptors populated")
 	}
 
 	if err := u.sdeDataRepo.UpsertNpcData(ctx, data.Factions, data.NpcCorporations, data.NpcCorporationDivisions, data.Agents, data.AgentsInSpace, data.Races, data.Bloodlines, data.Ancestries); err != nil {

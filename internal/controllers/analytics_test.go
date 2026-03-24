@@ -14,7 +14,7 @@ import (
 )
 
 func TestAnalyticsController_GetSalesMetrics(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -95,7 +95,7 @@ func TestAnalyticsController_GetSalesMetrics(t *testing.T) {
 }
 
 func TestAnalyticsController_GetTopItems(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 	defer db.Close()
 
@@ -189,7 +189,7 @@ func TestAnalyticsController_GetTopItems(t *testing.T) {
 }
 
 func TestAnalyticsController_GetItemSalesHistory(t *testing.T) {
-	db, err := setupDatabase()
+	db, err := setupDatabase(t)
 	require.NoError(t, err)
 	defer db.Close()
 

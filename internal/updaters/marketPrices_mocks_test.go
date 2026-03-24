@@ -80,6 +80,20 @@ func (mr *MockMarketPricesRepositoryMockRecorder) UpsertPrices(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertPrices", reflect.TypeOf((*MockMarketPricesRepository)(nil).UpsertPrices), arg0, arg1)
 }
 
+// InsertPriceHistorySnapshot mocks base method.
+func (m *MockMarketPricesRepository) InsertPriceHistorySnapshot(arg0 context.Context, arg1 time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertPriceHistorySnapshot", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertPriceHistorySnapshot indicates an expected call of InsertPriceHistorySnapshot.
+func (mr *MockMarketPricesRepositoryMockRecorder) InsertPriceHistorySnapshot(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPriceHistorySnapshot", reflect.TypeOf((*MockMarketPricesRepository)(nil).InsertPriceHistorySnapshot), arg0, arg1)
+}
+
 // MockMarketPricesEsiClient is a mock of MarketPricesEsiClient interface.
 type MockMarketPricesEsiClient struct {
 	ctrl     *gomock.Controller

@@ -39,12 +39,13 @@ insert into
 		portion_size,
 		published,
 		market_group_id,
+		meta_group_id,
 		graphic_id,
 		race_id,
 		description
 	)
 	values
-		($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+		($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
 on conflict
 	(type_id)
 do update set
@@ -58,6 +59,7 @@ do update set
 	portion_size = EXCLUDED.portion_size,
 	published = EXCLUDED.published,
 	market_group_id = EXCLUDED.market_group_id,
+	meta_group_id = EXCLUDED.meta_group_id,
 	graphic_id = EXCLUDED.graphic_id,
 	race_id = EXCLUDED.race_id,
 	description = EXCLUDED.description
@@ -87,6 +89,7 @@ do update set
 			itemType.PortionSize,
 			itemType.Published,
 			itemType.MarketGroupID,
+			itemType.MetaGroupID,
 			itemType.GraphicID,
 			itemType.RaceID,
 			itemType.Description,

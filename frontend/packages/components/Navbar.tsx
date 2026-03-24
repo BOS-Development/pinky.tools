@@ -206,6 +206,7 @@ export default function Navbar() {
               </span>
             }
             items={[
+              { label: 'Arbiter', href: '/arbiter' },
               { label: 'Reactions', href: '/reactions' },
               { label: 'Industry', href: '/industry' },
               { label: 'Plans', href: '/production-plans' },

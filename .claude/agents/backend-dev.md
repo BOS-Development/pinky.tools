@@ -196,6 +196,187 @@ When moving code from one package to another (e.g., extracting shared logic from
 
 Current services:
 - `jobGeneration.go` — Production plan job generation: `WalkAndMergeSteps`, `SimulateAssignment`, `EstimateWallClock`, `FormatLocation`
+- `arbiter.go` — T2 opportunity scanning: `ScanOpportunities` — stateless calculation service (see pattern below)
+
+### Go Struct Literal — All Computed Fields Must Be Set Explicitly
+
+When constructing a struct literal with computed integer/float fields (e.g., `Delta`, `Available`, `TotalCost`), always compute and set them explicitly — **never rely on Go's zero value**. Omitting a computed field silently defaults to `0`, which produces subtly wrong output that can be very hard to diagnose:
+
+```go
+// BAD — Delta is computed (needed - available) but not set; silently 0
+childNode = &models.BOMNode{
+    TypeID:   mat.TypeID,
+    Quantity: int64(batchQty),
+    Needed:   int64(batchQty),
+    // Delta missing! Defaults to 0 even when available < needed
+}
+
+// GOOD — compute delta before the struct literal, set it explicitly
+childAvail := btc.assets[mat.TypeID]
+childDelta := int64(batchQty) - childAvail
+if childDelta < 0 {
+    childDelta = 0
+}
+childNode = &models.BOMNode{
+    TypeID:    mat.TypeID,
+    Quantity:  int64(batchQty),
+    Available: childAvail,
+    Needed:    int64(batchQty),
+    Delta:     childDelta,
+}
+```
+
+This applies to both the happy path and error-fallback branches — if there are two struct literals for the same type, **both** must set all computed fields.
+
+### EVE Industry: Manufacturing Job Cost Formula — CRITICAL
+
+**This is the correct EVE manufacturing job cost formula (verified in-game and updated in Viridian expansion)**:
+
+```
+total_job_cost = EIV × [cost_index × (1 − structure_bonus) + facility_tax_rate + 0.04] × runs
+```
+
+Expanded:
+```
+eiv_cost = EIV × cost_index × (1 − structure_bonus)   ← job fee gross cost
+tax_cost = EIV × facility_tax_rate                     ← flat % of EIV
+scc_cost = EIV × 0.04                                  ← SCC (Sales Customs Commodity), flat on EIV
+total = (eiv_cost + tax_cost + scc_cost) × runs
+```
+
+**Critical facts**:
+- **SCC surcharge is 4.0%** for both manufacturing AND reactions (updated in Viridian expansion; was 1.5% before)
+- **Facility tax is a flat % of EIV**, not applied to the job fee. Common bug: treating it as `(job_fee × (1 + facilityTaxRate))` when it's actually a separate `EIV × facilityTaxRate` term
+- **Structure bonus reduces only the cost_index component**, not the flat tax/SCC: `cost_index × (1 − structure_bonus)`
+
+For reactions (no structure bonus):
+```
+total = EIV × (cost_index + facility_tax_rate + 0.04) × runs
+```
+
+**EIV Calculation**:
+- `EIV = sum(base_qty_per_run × adjusted_price)`
+- Use `adjusted_price` from CCP's ESI `/markets/prices/` endpoint (the `adjusted_price` field, NOT `average_price`)
+- Use **base blueprint quantities** (ME=0), never ME-adjusted quantities
+- This matches the in-game formula exactly
+
+### EVE Industry: Full-Batch Cost for Reactions
+
+Reactions produce a fixed batch quantity per run (e.g., a reaction that yields 100 units per run). **Never pro-rate reaction costs by the fraction of units needed.** Always charge the full batch cost:
+
+```go
+// BAD — scales cost down by qty/productQtyPerRun, under-counts cost
+scale := float64(qty) / float64(runs * productQtyPerRun)
+totalMatCost *= scale
+
+// GOOD — charge the full batch. Unused units will be consumed on a future run.
+// No scaling needed.
+```
+
+The cost model: if you need 45 units and the batch produces 100, you must buy materials for 100. The remaining 55 units are inventory for the next run.
+
+### BOM Shared Cache Pattern — Performance Critical
+
+When calling `BuildBOMTree()` in a loop (e.g., scanning 500 items × 10 decryptors = 5,000 calls), create a single `*BOMSharedCache` **before the loop** and pass it to every call. The cache contains:
+- `bpMatsCache` — blueprint material lists (per-BP, not per-decryptor)
+- `bpProductCache` — blueprint product definitions
+- `marketPrices` — market buy/sell orders
+- `adjPrices` — adjusted prices (for EIV calculation)
+- `costIndices` — per-system cost indices
+- `bpForProductCache` — product type ID → blueprint mapping
+- `rxForProductCache` — reaction product type ID → reaction mapping
+
+Without caching, each call rebuilds these maps from scratch, causing exponential slowdown and timeout.
+
+```go
+// GOOD — build cache once, reuse across all items
+cache := &services.BOMSharedCache{}
+for _, typeID := range itemIDs {
+    bomResult, err := services.BuildBOMTree(ctx, typeID, /* ... */, cache)
+    // ...
+}
+
+// BAD — each call creates a fresh context, O(n²) slowdown
+for _, typeID := range itemIDs {
+    bomResult, err := services.BuildBOMTree(ctx, typeID, /* ... */, nil)  // nil cache = fresh each time
+    // ...
+}
+```
+
+### Adjusted Price vs. Average Price
+
+For **EIV calculation only**, use `adjusted_price` from the `adjusted_prices` table (which mirrors CCP's ESI `/markets/prices/` endpoint). Do **not** use `average_price` from `market_prices`. The adjusted price matches the in-game job cost formula exactly; average price is different and will produce wrong EIV values.
+
+### Stateless Calculation Services
+
+For complex multi-step calculations that don't need DB side effects, create a pure function in `internal/services/` rather than wiring through the production plan system:
+
+```go
+// Takes all inputs as parameters, returns result — no DB writes
+func ScanOpportunities(ctx context.Context, userID int64, settings *models.ArbiterSettings, repo ArbiterRepository) (*models.ArbiterScanResult, error)
+```
+
+Key characteristics:
+- Bulk-load all data up front (prices, blueprints, decryptors) in one pass — avoid N+1 queries
+- Use a context struct to accumulate lazily-cached state during recursion
+- Controller calls directly — no runner or background job needed for on-demand calculations
+- Define a narrow repository interface in the service file for only the methods it needs
+
+### Feature Gate Pattern
+
+For user-specific features that should be hidden from most users:
+
+1. Add `feature_enabled BOOLEAN NOT NULL DEFAULT FALSE` to `users` table (via migration)
+2. Add a `GetFeatureEnabled(ctx, userID)` method to the repository
+3. Implement a private `checkFeatureGate` helper on the controller that returns 403:
+```go
+func (c *ArbiterController) checkFeatureGate(ctx context.Context, userID int64) *web.HttpError {
+    enabled, err := c.repo.GetArbiterEnabled(ctx, userID)
+    if err != nil {
+        return web.NewHttpError(http.StatusInternalServerError, "failed to check feature access")
+    }
+    if !enabled {
+        return web.NewHttpError(http.StatusForbidden, "Arbiter feature not enabled for this user")
+    }
+    return nil
+}
+```
+4. Call at the top of every handler before any other logic
+
+### WithXxx Optional Dependency Injection Pattern
+
+For optional post-processing steps in updaters (e.g., populating a derived table after the main import):
+
+```go
+// Define an interface for the optional dependency
+type SdeDecryptorRepository interface {
+    UpsertDecryptors(ctx context.Context) error
+}
+
+// Add optional field to updater struct
+type Sde struct {
+    decryptorRepository SdeDecryptorRepository // nil if not wired
+    // ...
+}
+
+// Fluent setter — called in root.go when the repo is available
+func (u *Sde) WithDecryptorRepository(r SdeDecryptorRepository) *Sde {
+    u.decryptorRepository = r
+    return u
+}
+
+// Nil-check before calling in Update()
+if u.decryptorRepository != nil {
+    if err := u.decryptorRepository.UpsertDecryptors(ctx); err != nil {
+        return errors.Wrap(err, "failed to upsert decryptors")
+    }
+}
+```
+
+Wire in `root.go`:
+```go
+sdeUpdater := updaters.NewSde(...).WithDecryptorRepository(arbiterRepository)
+```
 
 ## Testing
 

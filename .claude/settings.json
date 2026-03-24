@@ -1,37 +1,41 @@
 {
-    "model": "opusplan",
-    "enabledPlugins": {
-        "typescript-lsp@claude-plugins-official": true,
-        "security-guidance@claude-plugins-official": true,
-        "frontend-design@claude-plugins-official": true
-    },
-    "permissions": {
-        "defaultMode": "plan"
-    },
-    "hooks": {
-        "PostToolUse": [
-            {
-                "matcher": "Write",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/validate-test-files.sh",
-                        "timeout": 10
-                    }
-                ]
-            }
-        ],
-        "SubagentStop": [
-            {
-                "matcher": "backend-dev|frontend-dev",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/review-agent-output.sh",
-                        "timeout": 10
-                    }
-                ]
-            }
+  "permissions": {
+    "allow": [
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 19235 -U postgres -d app -c \"SELECT column_name, data_type FROM information_schema.columns WHERE table_name = ''industry_cost_indices'' ORDER BY ordinal_position;\")",
+      "Bash(PGPASSWORD=postgres psql -h localhost -p 19235 -U postgres -d app -c \":*)"
+    ],
+    "defaultMode": "plan"
+  },
+  "model": "opusplan",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/validate-test-files.sh",
+            "timeout": 10
+          }
         ]
-    }
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "backend-dev|frontend-dev",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/review-agent-output.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true
+  }
 }
