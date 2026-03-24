@@ -424,8 +424,8 @@ func calculateOpportunity(ac *arbiterContext, item *models.T2BlueprintScanItem, 
 		sci2 = bestChar.Science2SkillLevel
 	}
 
-	// base_chance * (1 + enc*0.01 + sci1*0.1 + sci2*0.1)
-	skillBonus := 1.0 + float64(encLevel)*0.01 + float64(sci1+sci2)*0.1
+	// base_chance * (1 + enc/40 + (sci1+sci2)/30) per EVE University wiki
+	skillBonus := 1.0 + float64(encLevel)/40.0 + float64(sci1+sci2)/30.0
 	effectiveChance := item.BaseInventionChance * skillBonus
 
 	// Copy + datacore cost for one invention attempt

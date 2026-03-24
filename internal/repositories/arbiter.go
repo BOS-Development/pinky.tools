@@ -540,7 +540,7 @@ WHERE tda.type_id = ANY($1)
 		for _, l := range sciLevels {
 			sciSum += l
 		}
-		score := float64(encLevel)*0.01 + float64(sciSum)*0.1
+		score := float64(encLevel)/40.0 + float64(sciSum)/30.0
 		if bestChar == nil || score > bestScore {
 			bestScore = score
 			sci1, sci2 := 0, 0
